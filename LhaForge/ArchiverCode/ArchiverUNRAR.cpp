@@ -32,6 +32,7 @@
 #include "stdafx.h"
 #include "ArchiverUNRAR.h"
 #include "../Utilities/FileOperation.h"
+#include "../Utilities/StringUtil.h"
 #include "../resource.h"
 #include "../ConfigCode/ConfigExtract.h"
 #include "../Utilities/OSUtil.h"
@@ -41,11 +42,52 @@ CArchiverUNRAR::CArchiverUNRAR()
 	m_nRequiredVersion=12;
 	m_strDllName=_T("unrar32.dll");
 	m_AstrPrefix="Unrar";
+	m_bUTF8=false;
+
+	m_strDllDisplayName=m_strDllName;
 }
 
 CArchiverUNRAR::~CArchiverUNRAR()
 {
 	FreeDLL();
+}
+
+LOAD_RESULT CArchiverUNRAR::LoadDLL(CConfigManager &ConfMan,CString &strErr)
+{
+	FreeDLL();
+
+	//基底クラスのメソッドを呼ぶ
+	LOAD_RESULT res=CArchiverDLL::LoadDLL(ConfMan,strErr);
+	if(LOAD_RESULT_OK!=res){
+		return res;
+	}
+
+	//UNICODEモード設定用
+	CStringA strFunctionName;
+	strFunctionName=m_AstrPrefix+"SetUnicodeMode";
+	ArchiverSetUnicodeMode=(COMMON_ARCHIVER_SETUNICODEMODE)GetProcAddress(m_hInstDLL,strFunctionName);
+	if(NULL==ArchiverSetUnicodeMode){
+		m_bUTF8=false;
+	}
+	//ここでUNICODEモードに設定
+	if(ArchiverSetUnicodeMode && ArchiverSetUnicodeMode(TRUE)){
+		m_bUTF8=true;
+	}else{
+		m_bUTF8=false;
+	}
+
+	m_strDllDisplayName=m_bUTF8 ? m_strDllName+_T("[UTF8]") : m_strDllName;
+
+	return LOAD_RESULT_OK;
+}
+
+void CArchiverUNRAR::FreeDLL()
+{
+	if(m_hInstDLL){
+		ArchiverSetUnicodeMode=NULL;
+		m_strDllDisplayName=m_strDllName;
+		CArchiverDLL::FreeDLL();
+	}
 }
 
 bool CArchiverUNRAR::Compress(LPCTSTR,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int,LPCTSTR,LPCTSTR,LPCTSTR,CString &)
@@ -91,10 +133,18 @@ bool CArchiverUNRAR::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigEx
 
 	TRACE(_T("ArchiveHandler呼び出し\n"));
 	//char szLog[LOG_BUFFER_SIZE]={0};
-	std::vector<char> szLog(LOG_BUFFER_SIZE);
+	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
-	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
-	strLog=&szLog[0];
+	int Ret;
+	if(m_bUTF8){
+		Ret=ArchiveHandler(NULL,C2UTF8(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
+		CString strTmp;
+		UtilToUNICODE(strTmp,&szLog[0],szLog.size()-1,UTILCP_UTF8);
+		strLog=strTmp;
+	}else{
+		Ret=ArchiveHandler(NULL,CT2A(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
+		strLog=&szLog[0];
+	}
 
 	return 0==Ret;
 }
@@ -191,10 +241,18 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 
 	TRACE(_T("ArchiveHandler呼び出し\nCommandline Parameter:%s\n"),Param);
 	//char szLog[LOG_BUFFER_SIZE]={0};
-	std::vector<char> szLog(LOG_BUFFER_SIZE);
+	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
-	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
-	strLog=&szLog[0];
+	int Ret;
+	if(m_bUTF8){
+		Ret=ArchiveHandler(NULL,C2UTF8(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
+		CString strTmp;
+		UtilToUNICODE(strTmp,&szLog[0],szLog.size()-1,UTILCP_UTF8);
+		strLog=strTmp;
+	}else{
+		Ret=ArchiveHandler(NULL,CT2A(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
+		strLog=&szLog[0];
+	}
 	//使ったレスポンスファイルは消去
 	DeleteFile(ResponceFileName);
 
@@ -213,7 +271,7 @@ ARCRESULT CArchiverUNRAR::TestArchive(LPCTSTR ArcFileName,CString &strLog)
 	strLog.Format(IDS_TESTARCHIVE_WITH_CHECKARCHIVE,ArcFileName,GetName());	//APIによるチェック
 	strLog+=_T("\r\n\r\n");
 
-	if(ArchiverCheckArchive(CT2A(ArcFileName),CHECKARCHIVE_FULLCRC|CHECKARCHIVE_NOT_ASK_PASSWORD)){
+	if(ArchiverCheckArchive(m_bUTF8 ? (LPCSTR)C2UTF8(ArcFileName) : CT2A(ArcFileName),CHECKARCHIVE_FULLCRC|CHECKARCHIVE_NOT_ASK_PASSWORD)){
 		//正常
 		strLog+=CString(MAKEINTRESOURCE(IDS_TESTARCHIVE_RESULT_OK));
 		return TEST_OK;
@@ -230,10 +288,99 @@ BOOL CArchiverUNRAR::CheckArchive(LPCTSTR _szFileName)
 		ASSERT(ArchiverCheckArchive);
 		return false;
 	}
-	return ArchiverCheckArchive(CT2A(_szFileName),CHECKARCHIVE_BASIC|CHECKARCHIVE_NOT_ASK_PASSWORD);
+	return ArchiverCheckArchive(m_bUTF8 ? (LPCSTR)C2UTF8(_szFileName) : CT2A(_szFileName),CHECKARCHIVE_BASIC|CHECKARCHIVE_NOT_ASK_PASSWORD);
 }
 
 bool CArchiverUNRAR::IsHeaderEncrypted(LPCTSTR _szFileName)
 {
 	return ERROR_PASSWORD_FILE==CheckArchive(_szFileName);
+}
+
+int CArchiverUNRAR::GetFileCount(LPCTSTR _szFileName)
+{
+	if(!ArchiverGetFileCount){
+		return -1;
+	}
+	return ArchiverGetFileCount(m_bUTF8 ? (LPCSTR)C2UTF8(_szFileName) : CT2A(_szFileName));
+}
+
+bool CArchiverUNRAR::InspectArchiveBegin(LPCTSTR ArcFileName,CConfigManager& config)
+{
+	if(m_bUTF8){
+		ASSERT(ArchiverOpenArchive);
+		if(!ArchiverOpenArchive){
+			return false;
+		}
+		if(m_hInspectArchive){
+			ASSERT(!"Close the Archive First!!!\n");
+			return false;
+		}
+		m_hInspectArchive=ArchiverOpenArchive(NULL,m_bUTF8 ? (LPCSTR)C2UTF8(ArcFileName) : CT2A(ArcFileName),m_dwInspectMode);
+		if(!m_hInspectArchive){
+			return false;
+		}
+		m_bInspectFirstTime=true;
+
+		FILL_ZERO(m_IndividualInfo);
+		return true;
+	}else{
+		return __super::InspectArchiveBegin(ArcFileName, config);
+	}
+}
+
+bool CArchiverUNRAR::InspectArchiveGetFileName(CString &FileName)
+{
+	if(m_bUTF8){
+		if(ArchiverGetFileName){
+			if(!m_hInspectArchive){
+				ASSERT(!"Open an Archive First!!!\n");
+				return false;
+			}
+			std::vector<BYTE> szBuffer(FNAME_MAX32*2+1);
+			ArchiverGetFileName(m_hInspectArchive,(LPCSTR)&szBuffer[0],FNAME_MAX32*2);
+			UtilToUNICODE(FileName,&szBuffer[0],szBuffer.size(),UTILCP_UTF8);
+			return true;
+		}
+		else{
+			ASSERT(LOAD_DLL_STANDARD!=m_LoadLevel);
+			if(!m_hInspectArchive){
+				ASSERT(!"Open an Archive First!!!\n");
+				return false;
+			}
+			UtilToUNICODE(FileName,(LPCBYTE)m_IndividualInfo.szFileName,sizeof(m_IndividualInfo.szFileName),UTILCP_UTF8);
+			return true;
+		}
+	}else{
+		return __super::InspectArchiveGetFileName(FileName);
+	}
+}
+
+bool CArchiverUNRAR::InspectArchiveGetMethodString(CString &strMethod)
+{
+	if(m_bUTF8){
+		if(!m_hInspectArchive){
+			ASSERT(!"Open an Archive First!!!\n");
+			return false;
+		}
+
+		//\0で終わっているかどうか保証できない
+		char szBuffer[32]={0};
+
+		if(ArchiverGetMethod){
+			if(0!=ArchiverGetMethod(m_hInspectArchive,szBuffer,31)){
+				//構造体から取得
+				strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
+			}
+		}
+		else{
+			//構造体から取得
+			strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
+		}
+
+		//情報格納
+		UtilToUNICODE(strMethod,(LPCBYTE)szBuffer,9,UTILCP_UTF8);
+		return true;
+	}else{
+		return __super::InspectArchiveGetMethodString(strMethod);
+	}
 }

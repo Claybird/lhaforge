@@ -167,7 +167,7 @@ void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize)
 }
 
 //UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,const CStringW &strSrc)
+bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc)
 {
 #if defined(_UNICODE)||defined(UNICODE)
 	cArray.resize(::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,NULL,0,NULL,NULL));	//バッファ確保

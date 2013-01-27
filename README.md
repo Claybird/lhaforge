@@ -1,7 +1,9 @@
-lhaforge
+lhaforge_utf8_unrar
 ========
 
-Windows用圧縮解凍ソフトLhaForgeのソースコードです。
+Windows用圧縮解凍ソフトLhaForgeのテスト版です。
+UTF-8対応unrar32.dll(https://github.com/rururutan/unrar32)と組み合わせて使用します。
+
 LhaForgeは修正BSDライセンスで公開されています。
 
 [開発環境]

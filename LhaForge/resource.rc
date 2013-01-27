@@ -331,7 +331,7 @@ CAPTION "バージョン情報"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
     ICON            IDI_APP,IDC_STATIC,7,7,20,20
-    LTEXT           "LhaForge Ver.1.6.1",IDC_STATIC,31,7,146,8
+    LTEXT           "LhaForge Ver.1.6.1 Custom",IDC_STATIC,31,7,146,8
     LTEXT           "Copyright (C) 2005-2012 Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
     LTEXT           "配布元:<a>泥巣 [http://claybird.sakura.ne.jp/]</a>",IDC_URL,15,59,148,8
     LTEXT           "mailto:<a>claybird.without.wing@gmail.com</a>",IDC_MAILTO,15,68,136,8
@@ -1226,8 +1226,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,1,0
- PRODUCTVERSION 1,6,1,0
+ FILEVERSION 1,6,1,1
+ PRODUCTVERSION 1,6,1,1
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1245,12 +1245,12 @@ BEGIN
             VALUE "Comments", "ファイル圧縮/解凍プログラム LhaForge"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "LhaForge"
-            VALUE "FileVersion", "Ver.1.6.1"
+            VALUE "FileVersion", "Ver.1.6.1.1"
             VALUE "InternalName", "LhaForge"
             VALUE "LegalCopyright", "Copyright (C) 2005-2012 Claybird <claybird.without.wing@gmail.com>"
             VALUE "OriginalFilename", "LhaForge.exe"
             VALUE "ProductName", "LhaForge"
-            VALUE "ProductVersion", "Ver.1.6.1"
+            VALUE "ProductVersion", "Ver.1.6.1.1"
         END
     END
     BLOCK "VarFileInfo"

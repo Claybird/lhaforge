@@ -50,14 +50,14 @@ bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uS
 //UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
 void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
 //UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,const CStringW &strSrc);
+bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc);
 
 //UNICODEをUTF8に変換するためのアダプタクラス
 class C2UTF8{
 protected:
 	std::vector<BYTE> m_cArray;
 public:
-	C2UTF8(const CStringW &str){
+	C2UTF8(LPCWSTR str){
 		UtilToUTF8(m_cArray,str);
 	}
 	virtual ~C2UTF8(){}
