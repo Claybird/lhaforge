@@ -69,7 +69,7 @@ LOAD_RESULT CArchiverUNRAR::LoadDLL(CConfigManager &ConfMan,CString &strErr)
 	if(NULL==ArchiverSetUnicodeMode){
 		m_bUTF8=false;
 	}
-	//ここでUNICODEモードに設定
+	//ここでUNICODEモードに設定: UNICODE非対応版DLLなら何もしない
 	if(ArchiverSetUnicodeMode && ArchiverSetUnicodeMode(TRUE)){
 		m_bUTF8=true;
 	}else{

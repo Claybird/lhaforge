@@ -151,6 +151,10 @@ bool CArchiverUNLHA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,
 		_T("-jso1 ")	//SH_DENYNO でのオープンを行わない
 		_T("-jsm1 ")	//サウンドを使う
 	;
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 
 	CConfigLZH Config;
 	Config.load(ConfMan);
@@ -216,6 +220,10 @@ bool CArchiverUNLHA::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigEx
 		_T("-jsp23 ")		//不正なパス/制御文字を拒否
 		_T("-jsc ")			//展開できなかったファイルの数を返す
 	;
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 	if(Config.ForceOverwrite){
 		//強制上書き
 		Param+=_T("-jyo ");
@@ -343,6 +351,10 @@ bool CArchiverUNLHA::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 		_T("-jsp23 ")		//不正なパス/制御文字を拒否
 		_T("-jsc ")			//展開できなかったファイルの数を返す
 	;
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 	if(bUsePath){
 		Param+=_T("-x1 ");			//パスを有効に
 	}
@@ -437,6 +449,10 @@ bool CArchiverUNLHA::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,c
 		_T("-jsm1 ")		//サウンドを使う
 		_T("-d ")			//ディレクトリの格納
 	;
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 	//アーカイブファイル名指定
 	Param+=_T("\"");
 	Param+=ArcFileName;
@@ -478,7 +494,11 @@ ARCRESULT CArchiverUNLHA::TestArchive(LPCTSTR ArcFileName,CString &strLog)
 		_T("\"")
 	;
 	Param+=ArcFileName;
-	Param+=_T("\"");
+	Param+=_T("\" ");
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<WCHAR> szLog(LOG_BUFFER_SIZE);
@@ -812,6 +832,11 @@ bool CArchiverUNLHA::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CStrin
 		_T("-jso1 ")	//SH_DENYNO でのオープンを行わない
 		_T("-jsm1 ")	//サウンドを使う
 	;
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
+
 	CConfigLZH Config;
 	Config.load(ConfMan);
 	FormatCompressCommand(Config,NULL,Param);

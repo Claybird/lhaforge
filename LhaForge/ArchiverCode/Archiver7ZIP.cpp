@@ -441,6 +441,11 @@ bool CArchiver7ZIP::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 
 	Param+=_T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
 
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
+
 	//圧縮先ファイル名指定
 	if(bZIPSFX){
 		Param+=_T("\"");
@@ -586,6 +591,11 @@ bool CArchiver7ZIP::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExt
 	}
 
 	Param+=_T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
+
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 
 	//アーカイブファイル名指定
 	Param+=_T("\"");
@@ -780,6 +790,11 @@ bool CArchiver7ZIP::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPC
 		_T("-scsUTF-8 ")	//レスポンスファイルのコードページ指定
 	;
 
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
+
 	//アーカイブファイル名指定
 	Param+=_T("\"");
 	Param+=ArcFileName;
@@ -857,6 +872,11 @@ bool CArchiver7ZIP::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,co
 		_T("-scsUTF-8 ")	//レスポンスファイルのコードページ指定
 	;
 
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
+
 	//アーカイブファイル名指定
 	Param+=_T("\"");
 	Param+=ArcFileName;
@@ -866,7 +886,6 @@ bool CArchiver7ZIP::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,co
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
-
 
 	TRACE(_T("ArchiveHandler呼び出し\nCommandline Parameter:%s\n"),Param);
 	//char szLog[LOG_BUFFER_SIZE]={0};
@@ -1127,6 +1146,11 @@ bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString
 	}
 
 	Param+=_T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
+
+	//作業ディレクトリ
+	Param+=_T("\"-w");
+	Param+=UtilGetTempPath();
+	Param+=_T("\" ");
 
 	//圧縮先ファイル名指定
 	Param+=_T("\"");

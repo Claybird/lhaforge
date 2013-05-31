@@ -213,13 +213,18 @@ void GetArchiveDirectoryPath(const CConfigExtract &ConfExtract,LPCTSTR lpszArcNa
 	if(ConfExtract.RemoveSymbolAndNumber){
 		CPath pathOrg=pathDir;
 		UtilTrimString(pathDir,g_szTable);
-		//数字と記号を取り除いた結果、文字列が空になってしまっていたらもとにもどす
-		if(((CString)pathDir).IsEmpty()){
+		//数字と記号を取り除いた結果、文字列が空になってしまっていたら元にもどす
+		if(_tcslen(pathDir)==0){
 			pathDir=pathOrg;
 		}
 	}
 
-	pathDir.AddBackslash();
+	//空白を取り除く
+	UtilTrimString(pathDir,_T(".\\ 　"));
+
+	if(_tcslen(pathDir)>0){
+		pathDir.AddBackslash();
+	}
 }
 
 /*************************************************************
@@ -262,8 +267,12 @@ HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,
 			)
 	){
 		GetArchiveDirectoryPath(ConfExtract,ArcFileName,pathArchiveNamedDir);
-		pathOutputDir+=pathArchiveNamedDir;
-		bCreateArchiveDir=true;
+		if(_tcslen(pathArchiveNamedDir)==0){
+			hStatus=S_FALSE;	//NG
+		}else{
+			pathOutputDir+=pathArchiveNamedDir;
+			bCreateArchiveDir=true;
+		}
 	}
 
 	//パス名の長さチェック

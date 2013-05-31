@@ -94,7 +94,7 @@ void CConfigShellExt::storeExtraMenu(CONFIG_SECTION &Config)const
 void CConfigShellExt::loadCustomMenu(CONFIG_SECTION &Config)
 {
 	// カスタマイズメニューの使用
-	UseCustomMenu=Config.Data[_T("UseCustom")].GetNParam(FALSE);
+	UseCustomMenu=Config.Data[_T("UseCustom")].GetNParam(TRUE);
 }
 
 void CConfigShellExt::storeCustomMenu(CONFIG_SECTION &Config)const

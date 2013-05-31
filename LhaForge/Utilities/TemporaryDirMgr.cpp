@@ -49,27 +49,21 @@ void CTemporaryDirectoryManager::Prepare()
 {
 	Finish();
 	//%TEMP%\%prefix%0000\filename...
-	TCHAR TempPath[_MAX_PATH+1];
-	FILL_ZERO(TempPath);
-	GetTempPath(_MAX_PATH,TempPath);
-
 	int Count=0;
 	while(true){	//一時解凍先確保
-		TCHAR Buffer[_MAX_PATH+1];
-		FILL_ZERO(Buffer);
-		_tcsncpy_s(Buffer,TempPath,_MAX_PATH);
+		CPath Buffer=UtilGetTempPath();
 		CString Name;
 		Name.Format(_T("%s%d"),m_strPrefix,Count);
 		Count++;
 
 		//存在チェック
-		PathAppend(Buffer,Name);
+		Buffer.Append(Name);
 //		TRACE(_T("%s\n"),Buffer);
 		if(!PathFileExists(Buffer)){
-			PathAddBackslash(Buffer);
+			Buffer.AddBackslash();
 			if(!PathIsDirectory(Buffer)){
 				if(UtilMakeSureDirectoryPathExists(Buffer)){
-					m_strDirPath=Buffer;
+					m_strDirPath=(LPCTSTR)Buffer;
 					break;
 				}
 			}
@@ -116,13 +110,11 @@ LPCTSTR CTemporaryDirectoryManager::GetDirPath()
 bool CTemporaryDirectoryManager::DeleteAllTemporaryDir(LPCTSTR lpszPrefix)
 {
 	//%TEMP%\%prefix%0000\filename...
-	TCHAR TempPath[_MAX_PATH+1];
-	FILL_ZERO(TempPath);
-	GetTempPath(_MAX_PATH,TempPath);
+	CPath TempPath=UtilGetTempPath();
 	{
 		CString strTemp(lpszPrefix);
 		strTemp+=_T("*");
-		PathAppend(TempPath,strTemp);
+		TempPath.Append(strTemp);
 	}
 
 	//数字

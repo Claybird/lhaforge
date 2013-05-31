@@ -31,8 +31,8 @@
 
 #pragma once
 
+LPCTSTR UtilGetTempPath();
 bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix);
-bool UtilGetTemporaryFileNameA(LPSTR fname,LPCSTR prefix);
 bool UtilDeletePath(LPCTSTR PathName);
 bool UtilDeleteDir(LPCTSTR Path,bool);
 int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);

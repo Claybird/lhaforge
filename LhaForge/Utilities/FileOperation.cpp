@@ -33,30 +33,42 @@
 #include "FileOperation.h"
 #include "Utility.h"
 #include "StringUtil.h"
+#include "OSUtil.h"
 
 
 #if !defined(_UNICODE)&&!defined(UNICODE)
  #include <imagehlp.h> //MakeSureDirectoryPathExists()
 #endif
 
+LPCTSTR UtilGetTempPath()
+{
+	static CPath s_tempPath;
+	if(_tcslen(s_tempPath)==0){		//初期設定
+		//環境変数取得
+		std::map<stdString,stdString> envs;
+		UtilGetEnvInfo(envs);
+		if(!has_key(envs,_T("TMP")) && !has_key(envs,_T("TEMP"))){
+			//%TMP%/%TEMP%が存在しなければ自前の一時フォルダを使う(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
+			TCHAR szPath[_MAX_PATH+1]={0};
+			SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szPath);
+			s_tempPath=szPath;
+			s_tempPath.Append(_T("lhaforge\\temp\\"));
+			UtilMakeSureDirectoryPathExists(s_tempPath);
+		}else{
+			//通常のパス
+			std::vector<TCHAR> buffer(GetTempPath(0,NULL)+1);
+			GetTempPath(buffer.size(),&buffer[0]);
+			buffer.back()=_T('\0');
+			s_tempPath=&buffer[0];
+			s_tempPath.AddBackslash();
+		}
+	}
+	return s_tempPath;
+}
 
 bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix)
 {
-	TCHAR TempDirPath[_MAX_PATH+1];
-	FILL_ZERO(TempDirPath);
-	GetTempPath(_MAX_PATH,TempDirPath);
-	if(!GetTempFileName(TempDirPath,prefix,0,fname)){
-		return false;
-	}
-	return true;
-}
-
-bool UtilGetTemporaryFileNameA(LPSTR fname,LPCSTR prefix)
-{
-	char TempDirPath[_MAX_PATH+1];
-	FILL_ZERO(TempDirPath);
-	GetTempPathA(_MAX_PATH,TempDirPath);
-	if(!GetTempFileNameA(TempDirPath,prefix,0,fname)){
+	if(!GetTempFileName(UtilGetTempPath(),prefix,0,fname)){
 		return false;
 	}
 	return true;
@@ -376,6 +388,7 @@ BOOL UtilMakeSureDirectoryPathExists(LPCTSTR _lpszPath)
 	//TODO:UNICODE版のみでチェックを入れているのでANSIビルド時には適宜処理し直すべき
 	CString tmp(path);
 	if(-1!=tmp.Find(_T(" \\"))||-1!=tmp.Find(_T(".\\"))){	//パスとして処理できないファイル名がある
+		ASSERT(!"Unacceptable Directory Name");
 		return FALSE;
 	}
 

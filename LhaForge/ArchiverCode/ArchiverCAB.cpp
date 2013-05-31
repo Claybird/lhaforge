@@ -212,13 +212,8 @@ bool CArchiverCAB::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 
 	//----------
 	//出力先フォルダ名
-	TCHAR Buffer[_MAX_PATH+1];
-	FILL_ZERO(Buffer);
-	GetTempPath(_MAX_PATH,Buffer);
-	PathAddBackslash(Buffer);
-
 	Param+=_T(" \"");
-	Param+=Buffer;
+	Param+=UtilGetTempPath();
 	Param+=_T("\" ");
 
 	ASSERT(!Param.IsEmpty());
@@ -236,9 +231,10 @@ bool CArchiverCAB::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 		PathStripPath(SFXTemporaryFileName);
 		PathRemoveExtension(SFXTemporaryFileName);
 		PathAddExtension(SFXTemporaryFileName,_T(".exe"));
-		PathAppend(Buffer,SFXTemporaryFileName);
+		CPath tmpPath=UtilGetTempPath();
+		tmpPath.Append(SFXTemporaryFileName);
 		//ファイル移動
-		MoveFile(Buffer,ArcFileName);
+		MoveFile(tmpPath,ArcFileName);
 	}
 
 	return 0==Ret;

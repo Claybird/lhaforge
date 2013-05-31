@@ -331,8 +331,8 @@ CAPTION "バージョン情報"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
     ICON            IDI_APP,IDC_STATIC,7,7,20,20
-    LTEXT           "LhaForge Ver.1.6.1 Custom",IDC_STATIC,31,7,146,8
-    LTEXT           "Copyright (C) 2005-2012 Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
+    LTEXT           "LhaForge Ver.1.6.2",IDC_STATIC,31,7,146,8
+    LTEXT           "Copyright (C) 2005-2013 Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
     LTEXT           "配布元:<a>泥巣 [http://claybird.sakura.ne.jp/]</a>",IDC_URL,15,59,148,8
     LTEXT           "mailto:<a>claybird.without.wing@gmail.com</a>",IDC_MAILTO,15,68,136,8
     LTEXT           "バグ、感想、要望等は上記連絡先まで。",IDC_STATIC,15,77,129,8
@@ -1226,8 +1226,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,1,1
- PRODUCTVERSION 1,6,1,1
+ FILEVERSION 1,6,2,0
+ PRODUCTVERSION 1,6,2,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1245,12 +1245,12 @@ BEGIN
             VALUE "Comments", "ファイル圧縮/解凍プログラム LhaForge"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "LhaForge"
-            VALUE "FileVersion", "Ver.1.6.1.1"
+            VALUE "FileVersion", "Ver.1.6.2"
             VALUE "InternalName", "LhaForge"
-            VALUE "LegalCopyright", "Copyright (C) 2005-2012 Claybird <claybird.without.wing@gmail.com>"
+            VALUE "LegalCopyright", "Copyright (C) 2005-2013 Claybird <claybird.without.wing@gmail.com>"
             VALUE "OriginalFilename", "LhaForge.exe"
             VALUE "ProductName", "LhaForge"
-            VALUE "ProductVersion", "Ver.1.6.1.1"
+            VALUE "ProductVersion", "Ver.1.6.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -1508,7 +1508,7 @@ BEGIN
     IDS_ERROR_CANNOT_MAKE_DIR "出力先フォルダ '%s' を作成できませんでした。"
     IDS_ERROR_CANNOT_SET_CURRENT_DIR "フォルダ '%s' を出力用にセットできませんでした。"
     IDS_ERROR_CANNOT_SPLIT_SFX "分割書庫の自己解凍は作成できません。自己解凍を無効にします。"
-    IDS_DENYEXT_DEFAULT     ".docx;.dotx;.xslx;.xltx;.pptx;.potx;.ppsx;.sldx;.thmx;.odt;.ods;.odp;.odb;.odg;.odf;"
+    IDS_DENYEXT_DEFAULT     ".docx;.dotx;.xlsx;.xltx;.pptx;.potx;.ppsx;.sldx;.thmx;.odt;.ods;.odp;.odb;.odg;.odf;"
     IDS_NUM_EXTRA_FILES     "他%d個のファイル"
     IDS_ERROR_CREATE_SHORTCUT "ショートカットを作成できませんでした。"
 END
@@ -1565,7 +1565,7 @@ BEGIN
     IDS_ICON_FILE_NAME_DEFAULT "LFIcons.DLL"
     IDS_ERROR_DISABLED_DLL  "このDLLを使用しない設定になっているため、いくつかの機能が使用不能です。"
     IDS_INPUT_TARGET_FOLDER "出力先フォルダを選択してください。"
-    IDS_LHAFORGE_VERSION_STRING "Ver.1.6.1"
+    IDS_LHAFORGE_VERSION_STRING "Ver.1.6.2"
     IDS_MESSAGE_DLL_NOT_AVAILABLE "利用不可"
     IDS_COMPRESS_FILE       "圧縮ファイル"
     IDS_CONFIRM_OVERWRITE_MESSAGE 
