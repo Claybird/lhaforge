@@ -1,39 +1,32 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../resource.h"
 #include "../ArchiverCode/ArchiverB2E.h"
 
-//à≥èkå`éÆÇÃëIë
+//ÂúßÁ∏ÆÂΩ¢Âºè„ÅÆÈÅ∏Êäû
 class CSelectDialog : public CDialogImpl<CSelectDialog>,public CWinDataExchange<CSelectDialog>
 {
 protected:
@@ -44,7 +37,7 @@ protected:
 	bool bSingleCompression;
 	bool bDeleteAfterCompress;
 
-	// DDXÉ}ÉbÉv
+	// DDX„Éû„ÉÉ„Éó
 	BEGIN_DDX_MAP(CSelectDialog)
 		DDX_CHECK(IDC_CHECK_COMPRESS_SFX,bSFX)
 		DDX_CHECK(IDC_CHECK_COMPRESS_SPLIT,bSplit)
@@ -54,7 +47,7 @@ protected:
 		DDX_CHECK(IDC_CHECK_DELETE_AFTER_COMPRESS,bDeleteAfterCompress)
 	END_DDX_MAP()
 
-	// ÉÅÉbÉZÅ[ÉWÉ}ÉbÉv
+	// „É°„ÉÉ„Çª„Éº„Ç∏„Éû„ÉÉ„Éó
 	BEGIN_MSG_MAP_EX(CSelectDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER(IDC_CHECK_COMPRESS_SFX, OnSFX)
@@ -80,19 +73,19 @@ public:
 
 //-----------------------------------
 
-//B2EÇ≈à≥èkå`éÆÇÃëIë
+//B2E„ÅßÂúßÁ∏ÆÂΩ¢Âºè„ÅÆÈÅ∏Êäû
 class CB2ESelectDialog : public CDialogImpl<CB2ESelectDialog>,public CWinDataExchange<CB2ESelectDialog>
 {
 protected:
 	bool m_bSFX;
 	bool m_bSingleCompression;
-	CComboBox Combo_Format;		//à≥èkå`éÆéwíË
-	CComboBox Combo_Method;		//à≥èkÉÅÉ\ÉbÉhéwíË
+	CComboBox Combo_Format;		//ÂúßÁ∏ÆÂΩ¢ÂºèÊåáÂÆö
+	CComboBox Combo_Method;		//ÂúßÁ∏Æ„É°„ÇΩ„ÉÉ„ÉâÊåáÂÆö
 	CString m_strFormat;
 	CString m_strMethod;
 	std::vector<B2ESCRIPTINFO> m_ScriptInfoArray;
 
-	// DDXÉ}ÉbÉv
+	// DDX„Éû„ÉÉ„Éó
 	BEGIN_DDX_MAP(CSelectDialog)
 		DDX_CHECK(IDC_CHECK_COMPRESS_SFX,m_bSFX)
 		DDX_CHECK(IDC_CHECK_SINGLE_COMPRESSION,m_bSingleCompression)
@@ -100,7 +93,7 @@ protected:
 		DDX_CONTROL_HANDLE(IDC_COMBO_B2E_METHOD,Combo_Method)
 	END_DDX_MAP()
 
-	// ÉÅÉbÉZÅ[ÉWÉ}ÉbÉv
+	// „É°„ÉÉ„Çª„Éº„Ç∏„Éû„ÉÉ„Éó
 	BEGIN_MSG_MAP_EX(CB2ESelectDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_HANDLER_EX(IDC_COMBO_B2E_FORMAT, CBN_SELCHANGE, OnComboFormat)
@@ -123,6 +116,6 @@ public:
 };
 
 
-//à≥èkå`éÆëIë:ÉLÉÉÉìÉZÉãÇ≈PARAMETER_UNDEFINEDÇ™ï‘ÇÈ
-//SelectDialogÇÃÉâÉbÉp
+//ÂúßÁ∏ÆÂΩ¢ÂºèÈÅ∏Êäû:„Ç≠„É£„É≥„Çª„É´„ÅßPARAMETER_UNDEFINED„ÅåËøî„Çã
+//SelectDialog„ÅÆ„É©„ÉÉ„Éë
 PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression,CString &strB2EFormat,CString &strB2EMethod,bool &bB2ESFX);

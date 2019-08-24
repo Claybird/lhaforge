@@ -1,37 +1,30 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
 
-//LhaForge—p
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
-//ƒfƒoƒbƒO—pŠÖ”‚¨‚æ‚Ñ•Ö—˜‚ÈŠÖ”ŒQ
+//LhaForgeç”¨
+
+//ãƒ‡ãƒãƒƒã‚°ç”¨é–¢æ•°ãŠã‚ˆã³ä¾¿åˆ©ãªé–¢æ•°ç¾¤
 #pragma once
 //#pragma warning(disable:4786)
 
@@ -40,63 +33,63 @@
 void TraceLastError();
 
 #else
-// Release‚Ì‚Æ‚«
+// Releaseã®ã¨ã
 #define TraceLastError()
 
 #endif	//_DEBUG
 
 //=============================================
-// ‹¤’Ê•Ö—˜ŠÖ”
+// å…±é€šä¾¿åˆ©é–¢æ•°
 //=============================================
 
-//ƒGƒ‰[ƒƒbƒZ[ƒW‚ğ•\¦
+//ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º
 int ErrorMessage(LPCTSTR);
-//ƒƒbƒZ[ƒWƒLƒƒƒvƒVƒ‡ƒ“‚ğæ“¾
+//ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³ã‚’å–å¾—
 LPCTSTR UtilGetMessageCaption();
 void UtilGetLastErrorMessage(CString &strMsg);
 
 #define BOOL2bool(x)	(FALSE!=x)
 
-//”z—ñ‚Ì’†‚Éw’è‚³‚ê‚½”š‚ª—L‚ê‚Î‚»‚ÌˆÊ’u‚ğ•Ô‚·;Œ©‚Â‚©‚ç‚È‚¯‚ê‚Î-1‚ğ•Ô‚·
+//é…åˆ—ã®ä¸­ã«æŒ‡å®šã•ã‚ŒãŸæ•°å­—ãŒæœ‰ã‚Œã°ãã®ä½ç½®ã‚’è¿”ã™;è¦‹ã¤ã‹ã‚‰ãªã‘ã‚Œã°-1ã‚’è¿”ã™
 int UtilCheckNumberArray(const int *lpcArray,int size,int c);
 
 enum UTIL_CODEPAGE;
 
-//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ğ“Ç‚İæ‚é
+//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿å–ã‚‹
 bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE,std::list<CString> &FileList);
 
-//INI‚É”š‚ğ•¶š—ñ‚Æ‚µ‚Ä‘‚«‚Ş
+//INIã«æ•°å­—ã‚’æ–‡å­—åˆ—ã¨ã—ã¦æ›¸ãè¾¼ã‚€
 BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName);
 
-//INI‚Éw’è‚³‚ê‚½ƒZƒNƒVƒ‡ƒ“‚ª‚ ‚é‚È‚çtrue‚ğ•Ô‚·
+//INIã«æŒ‡å®šã•ã‚ŒãŸã‚»ã‚¯ã‚·ãƒ§ãƒ³ãŒã‚ã‚‹ãªã‚‰trueã‚’è¿”ã™
 bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName);
 
-//•¶š—ñ‚ğ“ü—Í‚³‚¹‚é
+//æ–‡å­—åˆ—ã‚’å…¥åŠ›ã•ã›ã‚‹
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput);
 
-//—^‚¦‚ç‚ê‚½ƒtƒ@ƒCƒ‹–¼‚ªƒ}ƒ‹ƒ`ƒ{ƒŠƒ…[ƒ€‘ŒÉ‚ÆŒ©‚È‚¹‚é‚È‚çŒŸõ•¶š—ñ‚ğì¬‚µAtrue‚ğ•Ô‚·
+//ä¸ãˆã‚‰ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«åãŒãƒãƒ«ãƒãƒœãƒªãƒ¥ãƒ¼ãƒ æ›¸åº«ã¨è¦‹ãªã›ã‚‹ãªã‚‰æ¤œç´¢æ–‡å­—åˆ—ã‚’ä½œæˆã—ã€trueã‚’è¿”ã™
 bool UtilIsMultiVolume(LPCTSTR lpszPath,CString &r_strFindParam);
 
-//•W€‚Ìİ’èƒtƒ@ƒCƒ‹‚ÌƒpƒX‚ğæ“¾
+//æ¨™æº–ã®è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹ã‚’å–å¾—
 void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon);
 
-//ƒtƒ@ƒCƒ‹–¼‚ªw’è‚µ‚½ƒpƒ^[ƒ“‚É“–‚Ä‚Í‚Ü‚ê‚Îtrue
+//ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã—ãŸãƒ‘ã‚¿ãƒ¼ãƒ³ã«å½“ã¦ã¯ã¾ã‚Œã°true
 bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern);
 
-//ƒtƒ@ƒCƒ‹–¼‚ªw’è‚µ‚½2‚Â‚ÌğŒ‚Å[‹–‰Â]‚³‚ê‚é‚©‚Ç‚¤‚©;‹‘”Û‚ª—Dæ;bDenyOnly=true‚È‚çADeny‚Ìƒ`ƒFƒbƒN‚Ì‚İs‚¤
+//ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã—ãŸ2ã¤ã®æ¡ä»¶ã§[è¨±å¯]ã•ã‚Œã‚‹ã‹ã©ã†ã‹;æ‹’å¦ãŒå„ªå…ˆ;bDenyOnly=trueãªã‚‰ã€Denyã®ãƒã‚§ãƒƒã‚¯ã®ã¿è¡Œã†
 bool UtilPathAcceptSpec(LPCTSTR,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly);
 
-//‹­§“I‚ÉƒƒbƒZ[ƒWƒ‹[ƒv‚ğ‰ñ‚·
+//å¼·åˆ¶çš„ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã‚’å›ã™
 bool UtilDoMessageLoop();
 VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD);
 
-//w’è‚³‚ê‚½map‚ªƒL[‚ğ‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©
+//æŒ‡å®šã•ã‚ŒãŸmapãŒã‚­ãƒ¼ã‚’æŒã£ã¦ã„ã‚‹ã‹ã©ã†ã‹
 template <typename mapclass,typename keyclass>
 bool has_key(const mapclass &theMap,keyclass theKey){
 	return theMap.find(theKey)!=theMap.end();
 }
 
-//w’è‚³‚ê‚½’l‚ª”z—ñ’†‚É‚ ‚ê‚Î‚»‚ÌƒCƒ“ƒfƒbƒNƒX‚ğ’T‚·;–³‚¯‚ê‚Î-1
+//æŒ‡å®šã•ã‚ŒãŸå€¤ãŒé…åˆ—ä¸­ã«ã‚ã‚Œã°ãã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã‚’æ¢ã™;ç„¡ã‘ã‚Œã°-1
 template <typename arrayclass,typename valueclass>
 int index_of(const arrayclass &theArray,valueclass theValue){
 	for(unsigned int i=0;i<theArray.size();++i){
@@ -106,7 +99,7 @@ int index_of(const arrayclass &theArray,valueclass theValue){
 	}
 	return -1;
 }
-//ƒRƒ“ƒeƒi‚Ì—v‘f‚ğíœ‚·‚é
+//ã‚³ãƒ³ãƒ†ãƒŠã®è¦ç´ ã‚’å‰Šé™¤ã™ã‚‹
 template <typename arrayclass,typename valueclass>
 void remove_item(arrayclass &theArray,const valueclass &theValue){
 	theArray.erase(std::remove(theArray.begin(), theArray.end(), theValue), theArray.end());

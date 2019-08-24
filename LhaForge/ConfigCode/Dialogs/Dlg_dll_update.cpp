@@ -1,48 +1,41 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_dll_update.h"
 
 //=====================
-// DLLƒAƒbƒvƒf[ƒg‰æ–Ê
+// DLLã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆç”»é¢
 //=====================
 LRESULT CConfigDlgDLLUpdate::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//------------------
-	// ƒAƒbƒvƒf[ƒgŠÖŒW
+	// ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆé–¢ä¿‚
 	//------------------
 	Check_AskUpdate=GetDlgItem(IDC_CHECK_DLL_ASK_UPDATE);
 	Check_AskUpdate.SetCheck(m_Config.AskUpdate);
@@ -60,18 +53,18 @@ LRESULT CConfigDlgDLLUpdate::OnInitDialog(HWND hWnd, LPARAM lParam)
 	::EnableWindow(GetDlgItem(IDC_EDIT_DLL_UPDATE_INTERVAL),State);
 
 	//-------------------
-	// DLLƒo[ƒWƒ‡ƒ“î•ñ
+	// DLLãƒãƒ¼ã‚¸ãƒ§ãƒ³æƒ…å ±
 	//-------------------
 	List_DLLVersion=GetDlgItem(IDC_LIST_DLL_VERSION);
 
-	//ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€‚ğ’Ç‰Á
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ ã‚’è¿½åŠ 
 	CRect rect;
 	List_DLLVersion.GetClientRect(rect);
 	int nScrollWidth = GetSystemMetrics(SM_CXVSCROLL);
 	List_DLLVersion.InsertColumn(0, CString(MAKEINTRESOURCE(IDS_DLL_INFO_NAME)), LVCFMT_LEFT, 80, -1);
 	List_DLLVersion.InsertColumn(1, CString(MAKEINTRESOURCE(IDS_DLL_INFO_VERSION)), LVCFMT_LEFT,rect.Width() - 80 - nScrollWidth, -1);
 
-	//ŠeDLL‚Ìî•ñ‚ğ’Ç‰Á
+	//å„DLLã®æƒ…å ±ã‚’è¿½åŠ 
 	for(int i=0;i<DLL_ID_ITEM_COUNT;i++){
 		CArchiverDLL *Archiver=ArchiverManager.GetArchiver((DLL_ID)i,true,true);
 		ASSERT(Archiver);
@@ -84,10 +77,10 @@ LRESULT CConfigDlgDLLUpdate::OnInitDialog(HWND hWnd, LPARAM lParam)
 			List_DLLVersion.AddItem(i,1,vs);
 		}
 	}
-	//DLLŠJ•ú
+	//DLLé–‹æ”¾
 	ArchiverManager.Free();
 
-	//XVƒ{ƒ^ƒ“‚ÉƒV[ƒ‹ƒhƒAƒCƒRƒ“‚ğ‚Â‚¯‚é
+	//æ›´æ–°ãƒœã‚¿ãƒ³ã«ã‚·ãƒ¼ãƒ«ãƒ‰ã‚¢ã‚¤ã‚³ãƒ³ã‚’ã¤ã‘ã‚‹
 	Button_SetElevationRequiredState(GetDlgItem(IDC_BUTTON_DLL_UPDATE),TRUE);
 
 	return TRUE;
@@ -97,7 +90,7 @@ LRESULT CConfigDlgDLLUpdate::OnDLLUpdate(WORD wNotifyCode, WORD wID, HWND hWndCt
 {
 	if(BN_CLICKED==wNotifyCode){
 		//--------------------
-		// LFCaldix‚ÌƒpƒXæ“¾
+		// LFCaldixã®ãƒ‘ã‚¹å–å¾—
 		//--------------------
 		TCHAR ExePath[_MAX_PATH+1];
 		FILL_ZERO(ExePath);
@@ -106,7 +99,7 @@ LRESULT CConfigDlgDLLUpdate::OnDLLUpdate(WORD wNotifyCode, WORD wID, HWND hWndCt
 		PathRemoveFileSpec(ExePath);
 		PathAppend(ExePath,CString(MAKEINTRESOURCE(IDS_CALDIX_EXE_NAME)));
 		if(32>=(int)ShellExecute(m_hWnd,NULL,ExePath,Check_SilentUpdate.GetCheck() ? _T("/silent"): NULL,NULL,SW_RESTORE)){
-			//ÀsƒGƒ‰[
+			//å®Ÿè¡Œã‚¨ãƒ©ãƒ¼
 			CString strLastError;
 			UtilGetLastErrorMessage(strLastError);
 
@@ -122,7 +115,7 @@ LRESULT CConfigDlgDLLUpdate::OnDLLUpdate(WORD wNotifyCode, WORD wID, HWND hWndCt
 LRESULT CConfigDlgDLLUpdate::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	m_Config.AskUpdate=Check_AskUpdate.GetCheck();
 	m_Config.SilentUpdate=Check_SilentUpdate.GetCheck();

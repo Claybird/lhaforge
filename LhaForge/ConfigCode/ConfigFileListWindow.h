@@ -1,67 +1,60 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
 struct CConfigFileListWindow:public IConfigConverter{
 public:
-	int Width;					//ƒEƒBƒ“ƒhƒE‚Ì•
-	int Height;					//ƒEƒBƒ“ƒhƒE‚Ì‚‚³
-	int TreeWidth;				//ƒcƒŠ[ƒrƒ…[‚Ì•
+	int Width;					//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®å¹…
+	int Height;					//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®é«˜ã•
+	int TreeWidth;				//ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®å¹…
 
-	int SortColumn;				//‚Ç‚ÌƒJƒ‰ƒ€‚Åƒ\[ƒg‚·‚é‚©
-	BOOL SortDescending;		//ƒ\[ƒg‚Ì¸‡E~‡
-	int ListStyle;				//ƒŠƒXƒgƒrƒ…[‚ÌŒ`®
+	int SortColumn;				//ã©ã®ã‚«ãƒ©ãƒ ã§ã‚½ãƒ¼ãƒˆã™ã‚‹ã‹
+	BOOL SortDescending;		//ã‚½ãƒ¼ãƒˆã®æ˜‡é †ãƒ»é™é †
+	int ListStyle;				//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®å½¢å¼
 
-	BOOL StoreSetting;			//ƒEƒBƒ“ƒhƒE‚Ìİ’è‚ğ•Û‘¶
+	BOOL StoreSetting;			//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¨­å®šã‚’ä¿å­˜
 
-	int WindowPos_x;			//ƒEƒBƒ“ƒhƒE‚ÌÀ•W(x)
-	int WindowPos_y;			//ƒEƒBƒ“ƒhƒE‚ÌÀ•W(y)
-	BOOL StoreWindowPosition;	//ƒEƒBƒ“ƒhƒE‚ÌˆÊ’u‚ğ•Û‘¶‚·‚é
+	int WindowPos_x;			//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åº§æ¨™(x)
+	int WindowPos_y;			//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åº§æ¨™(y)
+	BOOL StoreWindowPosition;	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ä½ç½®ã‚’ä¿å­˜ã™ã‚‹
 
-	BOOL IgnoreMeaninglessPath;	//‹ó”’‚â.‚Ì‚İ‚ÌƒpƒXw’è‚Í–³‹‚·‚é
-	FILELISTMODE FileListMode;	//ƒtƒ@ƒCƒ‹•\¦‚ÌŠK‘wƒ‚[ƒh
-	BOOL ExpandTree;			//‹N“®‚ÉƒcƒŠ[ƒrƒ…[‚ğ“WŠJ‚µ‚Ä‚¨‚­
-	BOOL DisplayFileSizeInByte;	//ƒoƒCƒg’PˆÊ‚Åƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğ•\‹L‚·‚é
-	BOOL DisplayPathOnly;		//ƒtƒ‹ƒpƒX‚Ì—“‚Éƒtƒ@ƒCƒ‹–¼‚ğ•\¦‚µ‚È‚¢
-	int ColumnOrderArray[FILEINFO_ITEM_COUNT];	//ƒŠƒXƒgƒrƒ…[ƒJƒ‰ƒ€‚Ì•À‚Ñ‡
-	int ColumnWidthArray[FILEINFO_ITEM_COUNT];	//ƒŠƒXƒgƒrƒ…[ƒJƒ‰ƒ€‚Ì•
-	BOOL ExitWithEscape;		//[ESC]ƒL[‚ÅI—¹
-	BOOL DisableTab;			//ƒ^ƒu•\¦‚ğg‚í‚È‚¢‚È‚çTRUE
-	BOOL KeepSingleInstance;	//ƒEƒBƒ“ƒhƒE‚ğˆê‚Â‚É•Û‚Â‚È‚çTRUE
-	BOOL DenyPathExt;			//%PATHEXT%‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğŠJ‚©‚È‚¢‚È‚çTRUE
+	BOOL IgnoreMeaninglessPath;	//ç©ºç™½ã‚„.ã®ã¿ã®ãƒ‘ã‚¹æŒ‡å®šã¯ç„¡è¦–ã™ã‚‹
+	FILELISTMODE FileListMode;	//ãƒ•ã‚¡ã‚¤ãƒ«è¡¨ç¤ºã®éšå±¤ãƒ¢ãƒ¼ãƒ‰
+	BOOL ExpandTree;			//èµ·å‹•æ™‚ã«ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã‚’å±•é–‹ã—ã¦ãŠã
+	BOOL DisplayFileSizeInByte;	//ãƒã‚¤ãƒˆå˜ä½ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’è¡¨è¨˜ã™ã‚‹
+	BOOL DisplayPathOnly;		//ãƒ•ãƒ«ãƒ‘ã‚¹ã®æ¬„ã«ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¡¨ç¤ºã—ãªã„
+	int ColumnOrderArray[FILEINFO_ITEM_COUNT];	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚«ãƒ©ãƒ ã®ä¸¦ã³é †
+	int ColumnWidthArray[FILEINFO_ITEM_COUNT];	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚«ãƒ©ãƒ ã®å¹…
+	BOOL ExitWithEscape;		//[ESC]ã‚­ãƒ¼ã§çµ‚äº†
+	BOOL DisableTab;			//ã‚¿ãƒ–è¡¨ç¤ºã‚’ä½¿ã‚ãªã„ãªã‚‰TRUE
+	BOOL KeepSingleInstance;	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä¸€ã¤ã«ä¿ã¤ãªã‚‰TRUE
+	BOOL DenyPathExt;			//%PATHEXT%ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–‹ã‹ãªã„ãªã‚‰TRUE
 
-	CString strCustomToolbarImage;	//ƒJƒXƒ^ƒ€ƒc[ƒ‹ƒo[‰æ‘œ
-	BOOL ShowToolbar;			//ƒc[ƒ‹ƒo[‚ğ•\¦‚·‚é‚È‚çTRUE
-	BOOL ShowTreeView;			//ƒcƒŠ[ƒrƒ…[‚ğ•\¦‚·‚é‚È‚çTRUE
+	CString strCustomToolbarImage;	//ã‚«ã‚¹ã‚¿ãƒ ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ç”»åƒ
+	BOOL ShowToolbar;			//ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹ãªã‚‰TRUE
+	BOOL ShowTreeView;			//ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹ãªã‚‰TRUE
 
 	struct tagOpenAssoc{
 		virtual ~tagOpenAssoc(){}
@@ -69,10 +62,10 @@ public:
 		CString Deny;
 	}OpenAssoc;
 
-	std::vector<CMenuCommandItem> MenuCommandArray;	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚ÌƒRƒ}ƒ“ƒh
+	std::vector<CMenuCommandItem> MenuCommandArray;	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã®ã‚³ãƒãƒ³ãƒ‰
 protected:
-	virtual void load(CONFIG_SECTION&);	//İ’è‚ğCONFIG_SECTION‚©‚ç“Ç‚İ‚Ş
-	virtual void store(CONFIG_SECTION&)const;	//İ’è‚ğCONFIG_SECTION‚É‘‚«‚Ş
+	virtual void load(CONFIG_SECTION&);	//è¨­å®šã‚’CONFIG_SECTIONã‹ã‚‰èª­ã¿è¾¼ã‚€
+	virtual void store(CONFIG_SECTION&)const;	//è¨­å®šã‚’CONFIG_SECTIONã«æ›¸ãè¾¼ã‚€
 	void loadMenuCommand(CONFIG_SECTION&,CMenuCommandItem&);
 	void storeMenuCommand(CONFIG_SECTION&,const CMenuCommandItem&)const;
 public:

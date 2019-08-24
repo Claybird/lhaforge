@@ -1,37 +1,30 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
-//---“o˜^‚³‚ê‚½ƒ|ƒCƒ“ƒ^‚ğƒfƒXƒgƒ‰ƒNƒg‚É©“®“I‚Édelete‚·‚éŠg’£Œ^ƒXƒ}[ƒgƒ|ƒCƒ“ƒ^
+//---ç™»éŒ²ã•ã‚ŒãŸãƒã‚¤ãƒ³ã‚¿ã‚’ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ãƒˆæ™‚ã«è‡ªå‹•çš„ã«deleteã™ã‚‹æ‹¡å¼µå‹ã‚¹ãƒãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿
 template <typename T>
 class CSmartPtrCollection{
 private:
@@ -39,26 +32,26 @@ private:
 public:
 	CSmartPtrCollection(){}
 	virtual ~CSmartPtrCollection(){DeleteAll();}
-	void Add(T* lpT){	//ŠÇ—‚É“ü‚ê‚é
+	void Add(T* lpT){	//ç®¡ç†ã«å…¥ã‚Œã‚‹
 		ASSERT(lpT);
 		if(lpT){
 			m_Ptr.insert(lpT);
 		}
 	}
-	void Remove(T* lpT){	//“Á’èƒ|ƒCƒ“ƒ^‚¾‚¯ŠÇ—‚©‚çŠO‚·
+	void Remove(T* lpT){	//ç‰¹å®šãƒã‚¤ãƒ³ã‚¿ã ã‘ç®¡ç†ã‹ã‚‰å¤–ã™
 		m_Ptr.erase(lpT);
 	}
-	void RemoveAll(){	//‘Sƒ|ƒCƒ“ƒ^‚ğŠÇ—‚©‚çŠO‚·
+	void RemoveAll(){	//å…¨ãƒã‚¤ãƒ³ã‚¿ã‚’ç®¡ç†ã‹ã‚‰å¤–ã™
 		m_Ptr.clear();
 	}
-	void Delete(T* lpT){	//“Á’èƒ|ƒCƒ“ƒ^‚¾‚¯delete‚µ‚ÄŠÇ—‚©‚çŠO‚·
+	void Delete(T* lpT){	//ç‰¹å®šãƒã‚¤ãƒ³ã‚¿ã ã‘deleteã—ã¦ç®¡ç†ã‹ã‚‰å¤–ã™
 		ASSERT(lpT);
 		if(lpT){
 			m_Ptr.erase(lpT);
 			delete lpT;
 		}
 	}
-	void DeleteAll(){	//‘Sƒ|ƒCƒ“ƒ^‚ğdelete‚µ‚ÄŠÇ—‚©‚çŠO‚·
+	void DeleteAll(){	//å…¨ãƒã‚¤ãƒ³ã‚¿ã‚’deleteã—ã¦ç®¡ç†ã‹ã‚‰å¤–ã™
 		std::set<T*>::iterator ite=m_Ptr.begin();
 		const std::set<T*>::iterator end=m_Ptr.end();
 		for(;ite!=end;++ite){
@@ -78,7 +71,7 @@ protected:
 public:
 	CSmartPtrCollectionArray(){}
 	virtual ~CSmartPtrCollectionArray(){}
-	void push_back(T* lpT){	//ŠÇ—‚É“ü‚ê‚é
+	void push_back(T* lpT){	//ç®¡ç†ã«å…¥ã‚Œã‚‹
 		m_Ptr.Add(lpT);
 		m_Array.push_back(lpT);
 	}

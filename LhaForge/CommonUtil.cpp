@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "CommonUtil.h"
@@ -39,8 +32,8 @@
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
 
-//İ’è‚©‚ço—ÍæƒtƒHƒ‹ƒ_‚ğ“Ç‚İ‚Ş
-//r_bUseForAll:¡Œã‚à“¯‚¶ƒtƒHƒ‹ƒ_İ’è‚ğg‚¤‚È‚çtrue
+//è¨­å®šã‹ã‚‰å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ã‚’èª­ã¿è¾¼ã‚€
+//r_bUseForAll:ä»Šå¾Œã‚‚åŒã˜ãƒ•ã‚©ãƒ«ãƒ€è¨­å®šã‚’ä½¿ã†ãªã‚‰true
 HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,LPCTSTR lpszSpecific,CPath &r_pathOutputDir,bool &r_bUseForAll,CString &strErr)
 {
 	TCHAR szBuffer[_MAX_PATH+1];
@@ -53,13 +46,13 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 		if(_tcslen(r_pathOutputDir)>0){
 			return S_OK;
 		}else{
-			//o—Íæ‚ª‚©‚©‚ê‚Ä‚¢‚È‚¯‚ê‚ÎAƒfƒXƒNƒgƒbƒv‚Éo—Í‚·‚é
+			//å‡ºåŠ›å…ˆãŒã‹ã‹ã‚Œã¦ã„ãªã‘ã‚Œã°ã€ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—ã«å‡ºåŠ›ã™ã‚‹
 		}
 		//FALLTHROUGH
 	case OUTPUT_TO_DESKTOP:	//Desktop
 		if(SHGetSpecialFolderPath(NULL,szBuffer,CSIDL_DESKTOPDIRECTORY,FALSE)){
 			r_pathOutputDir=szBuffer;
-		}else{	//ƒfƒXƒNƒgƒbƒv‚ª‚È‚¢H
+		}else{	//ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—ãŒãªã„ï¼Ÿ
 			strErr=CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP));
 			return E_FAIL;
 		}
@@ -69,10 +62,10 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 		PathRemoveFileSpec(szBuffer);
 		r_pathOutputDir=szBuffer;
 		return S_OK;
-	case OUTPUT_TO_ALWAYS_ASK_WHERE:	//o—Íæ‚ğ–ˆ‰ñ•·‚­
+	case OUTPUT_TO_ALWAYS_ASK_WHERE:	//å‡ºåŠ›å…ˆã‚’æ¯å›èã
 		TRACE(_T("Always ask\n"));
 		{
-			//Œ³‚Ìƒtƒ@ƒCƒ‹‚Æ“¯‚¶êŠ‚É‚·‚é;2‰ñ–ÚˆÈ~‚Í‘O‰ño—ÍêŠ‚ğg—p‚·‚é
+			//å…ƒã®ãƒ•ã‚¡ã‚¤ãƒ«ã¨åŒã˜å ´æ‰€ã«ã™ã‚‹;2å›ç›®ä»¥é™ã¯å‰å›å‡ºåŠ›å ´æ‰€ã‚’ä½¿ç”¨ã™ã‚‹
 			static CString s_strLastOutput;
 			CPath pathTmp;
 			if(s_strLastOutput.IsEmpty()){
@@ -91,7 +84,7 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 				s_strLastOutput=(LPCTSTR)r_pathOutputDir;
 				return S_OK;
 			}else{
-				return E_ABORT;	//ƒLƒƒƒ“ƒZƒ‹‚³‚ê‚½
+				return E_ABORT;	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã•ã‚ŒãŸ
 			}
 		}
 		break;
@@ -102,18 +95,18 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 }
 
 
-//S_FALSE‚ª•Ô‚Á‚½‚Æ‚«‚É‚ÍAu–¼‘O‚ğ‚Â‚¯‚Ä•Û‘¶vƒ_ƒCƒAƒƒO‚ğŠJ‚­
+//S_FALSEãŒè¿”ã£ãŸã¨ãã«ã¯ã€ã€Œåå‰ã‚’ã¤ã‘ã¦ä¿å­˜ã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’é–‹ã
 HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CString &strErr)
 {
 	//---
-	// o—Íæ‚ªƒlƒbƒgƒ[ƒNƒhƒ‰ƒCƒu/ƒŠƒ€[ƒoƒuƒ‹ƒfƒBƒXƒN‚Å‚ ‚é‚È‚çAo—Íæ‚ğ‘I‘ğ‚³‚¹‚é
+	// å‡ºåŠ›å…ˆãŒãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ãƒ‰ãƒ©ã‚¤ãƒ–/ãƒªãƒ ãƒ¼ãƒãƒ–ãƒ«ãƒ‡ã‚£ã‚¹ã‚¯ã§ã‚ã‚‹ãªã‚‰ã€å‡ºåŠ›å…ˆã‚’é¸æŠã•ã›ã‚‹
 	if(Conf.WarnNetwork || Conf.WarnRemovable){
-		//ƒ‹[ƒgƒhƒ‰ƒCƒu–¼æ“¾
+		//ãƒ«ãƒ¼ãƒˆãƒ‰ãƒ©ã‚¤ãƒ–åå–å¾—
 		CPath pathDrive=lpszOutputDir;
 		pathDrive.StripToRoot();
 
 		switch(GetDriveType(pathDrive)){
-		case DRIVE_REMOVABLE://ƒhƒ‰ƒCƒu‚©‚çƒfƒBƒXƒN‚ğ”²‚­‚±‚Æ‚ª‚Å‚«‚Ü‚·B
+		case DRIVE_REMOVABLE://ãƒ‰ãƒ©ã‚¤ãƒ–ã‹ã‚‰ãƒ‡ã‚£ã‚¹ã‚¯ã‚’æŠœãã“ã¨ãŒã§ãã¾ã™ã€‚
 		case DRIVE_CDROM://CD-ROM
 			if(Conf.WarnRemovable){
 				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
@@ -121,7 +114,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 				}
 			}
 			break;
-		case DRIVE_REMOTE://ƒŠƒ‚[ƒg (ƒlƒbƒgƒ[ƒN) ƒhƒ‰ƒCƒu‚Å‚·B
+		case DRIVE_REMOTE://ãƒªãƒ¢ãƒ¼ãƒˆ (ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯) ãƒ‰ãƒ©ã‚¤ãƒ–ã§ã™ã€‚
 		case DRIVE_NO_ROOT_DIR:
 			if(Conf.WarnNetwork){
 				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
@@ -133,25 +126,25 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 	}
 
 	//---
-	//o—Íæ‚Ìƒ`ƒFƒbƒN
+	//å‡ºåŠ›å…ˆã®ãƒã‚§ãƒƒã‚¯
 	if(!PathIsDirectory(lpszOutputDir)){
-		//ƒpƒX‚ª‘¶İ‚µ‚È‚¢ê‡
+		//ãƒ‘ã‚¹ãŒå­˜åœ¨ã—ãªã„å ´åˆ
 		CString strMsg;
 		switch(Conf.OnDirNotFound){
-		case LOSTDIR_ASK_TO_CREATE:	//ì¬‚·‚é‚©‚Ç‚¤‚©•·‚­
+		case LOSTDIR_ASK_TO_CREATE:	//ä½œæˆã™ã‚‹ã‹ã©ã†ã‹èã
 			strMsg.Format(IDS_ASK_CREATE_DIR,lpszOutputDir);
 			if(IDNO==MessageBox(NULL,strMsg,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
 				return E_ABORT;
 			}
 			//FALLTHROUGH
-		case LOSTDIR_FORCE_CREATE:	//ƒfƒBƒŒƒNƒgƒŠì¬
+		case LOSTDIR_FORCE_CREATE:	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆ
 			if(!UtilMakeSureDirectoryPathExists(lpszOutputDir)){
 				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR,lpszOutputDir);
 				//ErrorMessage(strMsg);
 				return E_FAIL;
 			}
 			break;
-		default://ƒGƒ‰[‚ÆŒ©‚È‚·
+		default://ã‚¨ãƒ©ãƒ¼ã¨è¦‹ãªã™
 			strErr.Format(IDS_ERROR_DIR_NOTFOUND,lpszOutputDir);
 			return E_FAIL;
 		}
@@ -160,18 +153,18 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 	return S_OK;
 }
 
-//UtilExpandTemplateString()‚Ìƒpƒ‰ƒ[ƒ^“WŠJ‚É•K—v‚Èî•ñ‚ğ\’z‚·‚é
+//UtilExpandTemplateString()ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹ã«å¿…è¦ãªæƒ…å ±ã‚’æ§‹ç¯‰ã™ã‚‹
 void MakeExpandInformationEx(std::map<stdString,CString> &envInfo,LPCTSTR lpOpenDir,LPCTSTR lpOutputFile)
 {
-	//ŠÂ‹«•Ï”‚Å\’z
+	//ç’°å¢ƒå¤‰æ•°ã§æ§‹ç¯‰
 	UtilMakeExpandInformation(envInfo);
 
-	//•Ï”“o˜^
+	//å¤‰æ•°ç™»éŒ²
 	if(lpOpenDir){
 		envInfo[_T("dir")]=lpOpenDir;
 		envInfo[_T("OutputDir")]=lpOpenDir;
 
-		//o—Íƒhƒ‰ƒCƒu–¼
+		//å‡ºåŠ›ãƒ‰ãƒ©ã‚¤ãƒ–å
 		TCHAR szBuffer[MAX_PATH+1];
 		_tcsncpy_s(szBuffer,lpOpenDir,COUNTOF(szBuffer)-1);
 		PathStripToRoot(szBuffer);

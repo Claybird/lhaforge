@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArchiverJACK.h"
@@ -51,8 +44,8 @@ CArchiverJACK::~CArchiverJACK()
 }
 
 /*
-format‚Ìw’è‚ÍAB2E32.dll‚Å‚Ì‚İ—LŒø
-level‚Ìw’è‚ÍAB2E32.dllˆÈŠO‚Å—LŒø
+formatã®æŒ‡å®šã¯ã€B2E32.dllã§ã®ã¿æœ‰åŠ¹
+levelã®æŒ‡å®šã¯ã€B2E32.dllä»¥å¤–ã§æœ‰åŠ¹
 */
 bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CConfigManager &ConfMan,const PARAMETER_TYPE Type,int Options,LPCTSTR lpszFormat,LPCTSTR,LPCTSTR,CString &strLog)
 {
@@ -62,30 +55,30 @@ bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 		return false;
 	}
 
-	//ArcFileName‚Ío—ÍæƒtƒHƒ‹ƒ_–¼
+	//ArcFileNameã¯å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€å
 	ASSERT(0!=_tcslen(ArcFileName));
 	TRACE(_T("ArcFileName=%s\n"),ArcFileName);
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
 
 	CConfigJACK Config;
 	Config.load(ConfMan);
-	Param+=_T("-r ");	//•ªŠ„
+	Param+=_T("-r ");	//åˆ†å‰²
 	if(Options&COMPRESS_SFX){
 		Param+=_T("-m1 ");	//SFX
 	}
 	else{
-		Param+=_T("-m0 ");	//’Êí
+		Param+=_T("-m0 ");	//é€šå¸¸
 	}
 	if(lpszSplitSize && _tcslen(lpszSplitSize)>0){
 		CString Buf;
 		Buf.Format(_T("-v:%s "),lpszSplitSize);
-		Param+=Buf;//•ªŠ„ƒTƒCƒYw’è
+		Param+=Buf;//åˆ†å‰²ã‚µã‚¤ã‚ºæŒ‡å®š
 	}else if(Config.SpecifyVolumeSizeAtCompress){
 		CJackVolumeSizeDialog vsd;
 		if(IDOK!=vsd.DoModal()){
@@ -93,19 +86,19 @@ bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 		}
 		CString Buf;
 		Buf.Format(_T("-v:%d "),vsd.VolumeSize);
-		Param+=Buf;//•ªŠ„ƒTƒCƒYw’è
+		Param+=Buf;//åˆ†å‰²ã‚µã‚¤ã‚ºæŒ‡å®š
 	}else{
 		CString Buf;
 		Buf.Format(_T("-v:%d "),Config.VolumeSize);
-		Param+=Buf;//•ªŠ„ƒTƒCƒYw’è
+		Param+=Buf;//åˆ†å‰²ã‚µã‚¤ã‚ºæŒ‡å®š
 	}
 
-	//•ªŠ„‘ÎÛƒtƒ@ƒCƒ‹–¼w’è
+	//åˆ†å‰²å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=*ParamList.begin();
 	Param+=_T("\" ");
 
-	//o—ÍƒtƒHƒ‹ƒ_w’è
+	//å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€æŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\"");
@@ -113,7 +106,7 @@ bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
@@ -132,25 +125,25 @@ bool CArchiverJACK::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExt
 		strLog.Format(IDS_ERROR_DANGEROUS_ARCHIVE,ArcFileName);
 		return false;
 	}
-	//o—ÍæˆÚ“®
+	//å‡ºåŠ›å…ˆç§»å‹•
 	CCurrentDirManager currentDir(OutputDir);
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	if(!Config.ForceOverwrite){//ã‘‚«Šm”F‚·‚é
+	if(!Config.ForceOverwrite){//ä¸Šæ›¸ãç¢ºèªã™ã‚‹
 		CString strFileName;
 
-		//ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚ÅŠi”[ƒtƒ@ƒCƒ‹–¼‚ğæ“¾
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã§æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å–å¾—
 		if(!GetContainedFileName(ArcFileName,strFileName)){
-			//•s³‚Èƒtƒ@ƒCƒ‹:CheckArchive()‚Å’e‚©‚ê‚Ä‚¢‚é‚ÆŠú‘Ò‚Å‚«‚é
+			//ä¸æ­£ãªãƒ•ã‚¡ã‚¤ãƒ«:CheckArchive()ã§å¼¾ã‹ã‚Œã¦ã„ã‚‹ã¨æœŸå¾…ã§ãã‚‹
 			return false;
 		}
 
 		//--------------
-		// ‘¶İƒ`ƒFƒbƒN
+		// å­˜åœ¨ãƒã‚§ãƒƒã‚¯
 		//--------------
 		strFileName.Insert(0,OutputDir);
 		if(PathFileExists(strFileName)){
@@ -163,17 +156,17 @@ bool CArchiverJACK::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExt
 	}
 
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
 
-	//Œ‹‡ƒpƒ‰ƒ[ƒ^
-	Param+=_T("-c ");	//Œ‹‡
+	//çµåˆãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	Param+=_T("-c ");	//çµåˆ
 
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//o—Íæw’è
+	//å‡ºåŠ›å…ˆæŒ‡å®š
 	Param+=_T("\"");
 	Param+=_T(".\\");//OutputDir;
 	Param+=_T("\"");
@@ -181,7 +174,7 @@ bool CArchiverJACK::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExt
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
@@ -198,7 +191,7 @@ bool CArchiverJACK::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPC
 }
 
 //=========================================================
-// DTV‚Ì‰Â”\«‚Ì‚ ‚éƒtƒ@ƒCƒ‹‚©‚Ç‚¤‚©’¼ÚŠm”F‚·‚é
+// DTVã®å¯èƒ½æ€§ã®ã‚ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã©ã†ã‹ç›´æ¥ç¢ºèªã™ã‚‹
 //=========================================================
 bool CArchiverJACK::ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,bool,bool &bInFolder,bool &bSafeArchive,CString &BaseDir,CString &strErr)
 {
@@ -207,35 +200,35 @@ bool CArchiverJACK::ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,b
 
 	CString strFileName;
 
-	//ƒtƒ@ƒCƒ‹‚ğ“Ç‚ñ‚ÅŠi”[ƒtƒ@ƒCƒ‹–¼‚ğæ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã‚“ã§æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å–å¾—
 	if(!GetContainedFileName(ArcFileName,strFileName))return false;
-	if(-1==strFileName.FindOneOf(_T(":\\/"))){//ƒpƒXw’è‚Ì•¶š‚ªŠÜ‚Ü‚ê‚Ä‚¢‚È‚¢‚Ì‚ÅˆÀ‘S
+	if(-1==strFileName.FindOneOf(_T(":\\/"))){//ãƒ‘ã‚¹æŒ‡å®šã®æ–‡å­—ãŒå«ã¾ã‚Œã¦ã„ãªã„ã®ã§å®‰å…¨
 		bSafeArchive=true;
 	}
 
 /*
-	‚±‚ÌƒR[ƒh‚Å‚Í‰ğ“€‚·‚éƒtƒ@ƒCƒ‹Aˆê‚Â‚µ‚©ƒtƒ@ƒCƒ‹“à—e‚ğŠm”F‚µ‚Ä‚¢‚È‚¢B
-	‚±‚ê‚Å‚à–â‘è‚ª‚È‚¢——R‚ÍAJACK32.dll‚Í“WŠJ‚Éo—Íƒtƒ@ƒCƒ‹–¼‚ÌˆêŠÑ«‚ğƒ`ƒFƒbƒN‚µ‚Ä‚¢‚é–Í—l‚¾‚©‚ç‚Å‚ ‚éB
-	[—¬‚ê]
-	En-1”Ô–Ú‚Ü‚Å‚Ìƒtƒ@ƒCƒ‹‚É‚Í×H‚ª‚³‚ê‚Ä‚¢‚È‚¢
-		En”Ô–Ú‚Ìƒtƒ@ƒCƒ‹‚à×H‚³‚ê‚Ä‚¢‚È‚¢
-			¨³í‰ğ“€An++
-		En”Ô–Ú‚Ìƒtƒ@ƒCƒ‹‚ª×H‚³‚ê‚Ä‚¢‚é
-			En-1”Ô–Ú‚Ü‚Å‚Ìƒtƒ@ƒCƒ‹‚ğLhaForge‚É—^‚¦‚½
-				¨ˆÀ‘S‚¾‚Æ‚µ‚Ä‰ğ“€‚ğn‚ß‚½‚à‚Ì‚ÌAJAK‚Ì“¯ˆê«ƒ`ƒFƒbƒN‚É‚©‚©‚é
-			En”Ô–Ú‚Ìƒtƒ@ƒCƒ‹‚ğLhaForge‚É—^‚¦‚½
-				¨LhaForge‚ÌDTVƒ`ƒFƒbƒN‚É‚©‚©‚é
+	ã“ã®ã‚³ãƒ¼ãƒ‰ã§ã¯è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã€ä¸€ã¤ã—ã‹ãƒ•ã‚¡ã‚¤ãƒ«å†…å®¹ã‚’ç¢ºèªã—ã¦ã„ãªã„ã€‚
+	ã“ã‚Œã§ã‚‚å•é¡ŒãŒãªã„ç†ç”±ã¯ã€JACK32.dllã¯å±•é–‹æ™‚ã«å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åã®ä¸€è²«æ€§ã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦ã„ã‚‹æ¨¡æ§˜ã ã‹ã‚‰ã§ã‚ã‚‹ã€‚
+	[æµã‚Œ]
+	ãƒ»n-1ç•ªç›®ã¾ã§ã®ãƒ•ã‚¡ã‚¤ãƒ«ã«ã¯ç´°å·¥ãŒã•ã‚Œã¦ã„ãªã„
+		ãƒ»nç•ªç›®ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚‚ç´°å·¥ã•ã‚Œã¦ã„ãªã„
+			â†’æ­£å¸¸è§£å‡ã€n++
+		ãƒ»nç•ªç›®ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒç´°å·¥ã•ã‚Œã¦ã„ã‚‹
+			ãƒ»n-1ç•ªç›®ã¾ã§ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’LhaForgeã«ä¸ãˆãŸ
+				â†’å®‰å…¨ã ã¨ã—ã¦è§£å‡ã‚’å§‹ã‚ãŸã‚‚ã®ã®ã€JAKã®åŒä¸€æ€§ãƒã‚§ãƒƒã‚¯ã«ã‹ã‹ã‚‹
+			ãƒ»nç•ªç›®ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’LhaForgeã«ä¸ãˆãŸ
+				â†’LhaForgeã®DTVãƒã‚§ãƒƒã‚¯ã«ã‹ã‹ã‚‹
 
-	[’ˆÓ“_]
-	Œ»İ‚ÌƒR[ƒh‚Å‚ÍAã‘‚«Šm”F‹@”\‚ğg‚¤‚Æ‚«A“¯‚¶JAKƒtƒ@ƒCƒ‹‚ğ‚Q‰ñ“Ç‚Ş‚±‚Æ‚É‚È‚éB
-	Œø—¦‚ğ‹‚ß‚é‚È‚çA‚±‚±‚ÌƒR[ƒh‚ğ–³Œø‰»‚µ‚ÄAExtract()“à•”‚ÅˆÀ‘S‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN‚·‚é‚æ‚¤‚É‚·‚ê‚Î‚æ‚¢B
-	‚¢‚Ü‚Ì‚Æ‚±‚ë‚ÍAŒø—¦‚æ‚è‚àŒ©’Ê‚µ‚Ì—Ç‚³‚ğ—Dæ‚µ‚Ä‚¢‚éB
+	[æ³¨æ„ç‚¹]
+	ç¾åœ¨ã®ã‚³ãƒ¼ãƒ‰ã§ã¯ã€ä¸Šæ›¸ãç¢ºèªæ©Ÿèƒ½ã‚’ä½¿ã†ã¨ãã€åŒã˜JAKãƒ•ã‚¡ã‚¤ãƒ«ã‚’ï¼’å›èª­ã‚€ã“ã¨ã«ãªã‚‹ã€‚
+	åŠ¹ç‡ã‚’æ±‚ã‚ã‚‹ãªã‚‰ã€ã“ã“ã®ã‚³ãƒ¼ãƒ‰ã‚’ç„¡åŠ¹åŒ–ã—ã¦ã€Extract()å†…éƒ¨ã§å®‰å…¨ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹ã‚ˆã†ã«ã™ã‚Œã°ã‚ˆã„ã€‚
+	ã„ã¾ã®ã¨ã“ã‚ã¯ã€åŠ¹ç‡ã‚ˆã‚Šã‚‚è¦‹é€šã—ã®è‰¯ã•ã‚’å„ªå…ˆã—ã¦ã„ã‚‹ã€‚
 */
 
 	return true;
 }
 
-//ƒwƒbƒ_ŒŸõ
+//ãƒ˜ãƒƒãƒ€æ¤œç´¢
 // Original:JakTool.cpp/XacRett #49/(C)k.inaba
 int CArchiverJACK::FindHeader(const BYTE* hdr,DWORD size)
 {
@@ -248,7 +241,7 @@ int CArchiverJACK::FindHeader(const BYTE* hdr,DWORD size)
 		if(sizeof_JakHeader+((JakHeader*)hdr)->FileNameLen<size)
 			return 0;
 	}
-	else if(hdr[0]=='M' && hdr[1]=='Z')	//©ŒÈ‰ğ“€
+	else if(hdr[0]=='M' && hdr[1]=='Z')	//è‡ªå·±è§£å‡
 	{
 		DWORD prev = 0xffffffff;
 		for( DWORD i=0; i<size-sizeof_JakHeader; i++ )
@@ -260,8 +253,8 @@ int CArchiverJACK::FindHeader(const BYTE* hdr,DWORD size)
 			if( hdr[(++i)+1]!='_' )continue;
 			if( 0!=strcmp((char*)hdr+(++i)+1,Magic+5) )continue;
 
-			// ƒXƒ^ƒu“à‚Ì•¶š—ñ‚Éˆø‚Á‚©‚©‚é‚±‚Æ‚ª‚ ‚é‚Ì‚ÅA
-			// “ñŒÂ"This_Is_..."‚ª‚ ‚é‚Æ‚«‚ÍˆêŒÂSkip
+			// ã‚¹ã‚¿ãƒ–å†…ã®æ–‡å­—åˆ—ã«å¼•ã£ã‹ã‹ã‚‹ã“ã¨ãŒã‚ã‚‹ã®ã§ã€
+			// äºŒå€‹"This_Is_..."ãŒã‚ã‚‹ã¨ãã¯ä¸€å€‹Skip
 			if( prev==0xffffffff )
 				prev = (i-4);
 			else
@@ -277,14 +270,14 @@ bool CArchiverJACK::GetContainedFileName(LPCTSTR ArcFileName,CString &strFileNam
 {
 	strFileName.Empty();
 
-	//ƒtƒ@ƒCƒ‹“à—eƒoƒbƒtƒ@
+	//ãƒ•ã‚¡ã‚¤ãƒ«å†…å®¹ãƒãƒƒãƒ•ã‚¡
 	std::vector<BYTE> Buffer;
-	//ƒtƒ@ƒCƒ‹ƒI[ƒvƒ“
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚ªãƒ¼ãƒ—ãƒ³
 	HANDLE hFile=CreateFile(ArcFileName,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(INVALID_HANDLE_VALUE==hFile)return false;
 
 	DWORD dwSize=GetFileSize(hFile,NULL);
-		//4GB‚æ‚è‘å‚«‚Èƒtƒ@ƒCƒ‹ƒTƒCƒY‚Íæ“¾‚Å‚«‚È‚¢‚ªAŒ»À“I‚É‚Í‚»‚Ì‚æ‚¤‚È‘å‚«‚Èƒtƒ@ƒCƒ‹‚Íˆµ‚í‚È‚¢(JACK‚Í•ªŠ„—p)
+		//4GBã‚ˆã‚Šå¤§ããªãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã¯å–å¾—ã§ããªã„ãŒã€ç¾å®Ÿçš„ã«ã¯ãã®ã‚ˆã†ãªå¤§ããªãƒ•ã‚¡ã‚¤ãƒ«ã¯æ‰±ã‚ãªã„(JACKã¯åˆ†å‰²ç”¨)
 	Buffer.resize(dwSize);
 
 	DWORD dwRead=0;
@@ -293,11 +286,11 @@ bool CArchiverJACK::GetContainedFileName(LPCTSTR ArcFileName,CString &strFileNam
 		return false;
 	}
 
-	//“Ç‚İæ‚è
+	//èª­ã¿å–ã‚Š
 	ReadFile(hFile,&Buffer[0],dwSize,&dwRead,NULL);
 	CloseHandle(hFile);
 
-	//ƒwƒbƒ_ŒŸõ
+	//ãƒ˜ãƒƒãƒ€æ¤œç´¢
 	int iPos=FindHeader(&Buffer[0],dwRead);
 	if(-1==iPos){
 		//Not Found

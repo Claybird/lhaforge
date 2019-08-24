@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "OSUtil.h"
@@ -42,7 +35,7 @@ HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR l
 	HRESULT hRes;
 	IShellLink* psl =NULL;
 
-	// IShellLink ƒCƒ“ƒ^[ƒtƒFƒCƒX‚ğæ“¾
+	// IShellLink ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹ã‚’å–å¾—
 	hRes = CoCreateInstance(
 		CLSID_ShellLink,NULL,
 		CLSCTX_INPROC_SERVER,
@@ -50,24 +43,24 @@ HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR l
 		(LPVOID *)&psl);
 
 	if(FAILED(hRes)){
-		//¸”s
+		//å¤±æ•—
 		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
 		return hRes;
 	}
 
 	IPersistFile* ppf=NULL;
-	// LinkƒIƒuƒWƒFƒNƒg‚ÌƒpƒX‚ğİ’è(‚½‚Æ‚¦‚ÎAC:\Windows\notepad.exe‚È‚Ç)
+	// Linkã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ãƒ‘ã‚¹ã‚’è¨­å®š(ãŸã¨ãˆã°ã€C:\Windows\notepad.exeãªã©)
 	psl->SetPath(lpszPathTarget);
-	//ˆø”İ’è
+	//å¼•æ•°è¨­å®š
 	psl->SetArguments(lpszArgs);
-	//ƒAƒCƒRƒ“İ’è
+	//ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	psl->SetIconLocation(lpszIconPath,iIcon);
-	//à–¾•¶İ’è
+	//èª¬æ˜æ–‡è¨­å®š
 	psl->SetDescription(lpszDescription);
-	// IPersistFileƒCƒ“ƒ^[ƒtƒFƒCƒX‚ğæ“¾ŒãLinkƒpƒXƒtƒ@ƒCƒ‹–¼‚ğ•Û‘¶
+	// IPersistFileã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹ã‚’å–å¾—å¾ŒLinkãƒ‘ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ä¿å­˜
 	hRes =psl->QueryInterface( IID_IPersistFile,(void**)&ppf);
 	if(FAILED(hRes)){
-		//ppf‚Ìæ“¾‚É¸”s
+		//ppfã®å–å¾—ã«å¤±æ•—
 		psl->Release();
 		return hRes;
 	}
@@ -78,7 +71,7 @@ HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR l
 	WCHAR wsz[_MAX_PATH+1];
 
 	MultiByteToWideChar(CP_ACP, 0,lpszPathLink, -1,wsz, _MAX_PATH);
-	// ƒfƒBƒXƒN‚É•Û‘¶‚·‚é
+	// ãƒ‡ã‚£ã‚¹ã‚¯ã«ä¿å­˜ã™ã‚‹
 	hRes = ppf->Save(wsz, TRUE);
 #endif
 	ppf->Release();
@@ -90,7 +83,7 @@ HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strPa
 {
 	CComPtr<IShellLink> pLink;
 
-	// IShellLink ƒCƒ“ƒ^[ƒtƒFƒCƒX‚ğæ“¾
+	// IShellLink ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹ã‚’å–å¾—
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
 
 	if(SUCCEEDED(hr)){
@@ -129,7 +122,7 @@ void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTI
 {
 	CComPtr<IShellLink> pLink;
 
-	// IShellLink ƒCƒ“ƒ^[ƒtƒFƒCƒX‚ğæ“¾
+	// IShellLink ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹ã‚’å–å¾—
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
 
 	info.clear();
@@ -155,7 +148,7 @@ void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTI
 				hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
 				if(FAILED(hr))continue;
 
-				//’Êí‚Ìî•ñ
+				//é€šå¸¸ã®æƒ…å ±
 				CPath title=files[i];
 				title.StripPath();
 				title.RemoveExtension();
@@ -164,7 +157,7 @@ void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTI
 				info[i].strParam=szArg;
 				info[i].strWorkingDir=szDir;
 
-				//ƒAƒCƒRƒ“î•ñ:ƒAƒCƒRƒ“‚ğæ“¾‚µAƒrƒbƒgƒ}ƒbƒv‚É•ÏŠ·
+				//ã‚¢ã‚¤ã‚³ãƒ³æƒ…å ±:ã‚¢ã‚¤ã‚³ãƒ³ã‚’å–å¾—ã—ã€ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã«å¤‰æ›
 				SHFILEINFO sfi={0};
 				SHGetFileInfo(files[i],0,&sfi,sizeof(sfi),SHGFI_ICON | SHGFI_SMALLICON);
 				UtilMakeDIBFromIcon(info[i].cIconBmpSmall,sfi.hIcon);
@@ -181,27 +174,27 @@ void UtilSetAbsoluteForegroundWindow(HWND hWnd)
 	int nTargetID, nForegroundID;
 	DWORD sp_time;
 
-	// ƒtƒHƒAƒOƒ‰ƒEƒ“ƒhƒEƒBƒ“ƒhƒE‚ğì¬‚µ‚½ƒXƒŒƒbƒh‚ÌID‚ğæ“¾
+	// ãƒ•ã‚©ã‚¢ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã—ãŸã‚¹ãƒ¬ãƒƒãƒ‰ã®IDã‚’å–å¾—
 	nForegroundID = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
-	// –Ú“I‚ÌƒEƒBƒ“ƒhƒE‚ğì¬‚µ‚½ƒXƒŒƒbƒh‚ÌID‚ğæ“¾
+	// ç›®çš„ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã—ãŸã‚¹ãƒ¬ãƒƒãƒ‰ã®IDã‚’å–å¾—
 	nTargetID = GetWindowThreadProcessId(hWnd, NULL );
 
-	// ƒXƒŒƒbƒh‚ÌƒCƒ“ƒvƒbƒgó‘Ô‚ğŒ‹‚Ñ•t‚¯‚é
-	AttachThreadInput(nTargetID, nForegroundID, TRUE );  // TRUE ‚ÅŒ‹‚Ñ•t‚¯
+	// ã‚¹ãƒ¬ãƒƒãƒ‰ã®ã‚¤ãƒ³ãƒ—ãƒƒãƒˆçŠ¶æ…‹ã‚’çµã³ä»˜ã‘ã‚‹
+	AttachThreadInput(nTargetID, nForegroundID, TRUE );  // TRUE ã§çµã³ä»˜ã‘
 
-	// Œ»İ‚Ìİ’è‚ğ sp_time ‚É•Û‘¶
+	// ç¾åœ¨ã®è¨­å®šã‚’ sp_time ã«ä¿å­˜
 	SystemParametersInfo( SPI_GETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
-	// ƒEƒBƒ“ƒhƒE‚ÌØ‚è‘Ö‚¦ŠÔ‚ğ 0ms ‚É‚·‚é
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆ‡ã‚Šæ›¿ãˆæ™‚é–“ã‚’ 0ms ã«ã™ã‚‹
 	SystemParametersInfo( SPI_SETFOREGROUNDLOCKTIMEOUT,0,(LPVOID)0,0);
 
-	// ƒEƒBƒ“ƒhƒE‚ğƒtƒHƒAƒOƒ‰ƒEƒ“ƒh‚É‚Á‚Ä‚­‚é
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ãƒ•ã‚©ã‚¢ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã«æŒã£ã¦ãã‚‹
 	SetForegroundWindow(hWnd);
 
-	// İ’è‚ğŒ³‚É–ß‚·
+	// è¨­å®šã‚’å…ƒã«æˆ»ã™
 	SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
 
-	// ƒXƒŒƒbƒh‚ÌƒCƒ“ƒvƒbƒgó‘Ô‚ğØ‚è—£‚·
-	AttachThreadInput(nTargetID, nForegroundID, FALSE );  // FALSE ‚ÅØ‚è—£‚µ
+	// ã‚¹ãƒ¬ãƒƒãƒ‰ã®ã‚¤ãƒ³ãƒ—ãƒƒãƒˆçŠ¶æ…‹ã‚’åˆ‡ã‚Šé›¢ã™
+	AttachThreadInput(nTargetID, nForegroundID, FALSE );  // FALSE ã§åˆ‡ã‚Šé›¢ã—
 }
 
 
@@ -222,7 +215,7 @@ BOOL UtilIsWow64()
 }
 
 
-//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ˆø”‚ğæ“¾(ŒÂ”‚ğ•Ô‚·)
+//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³å¼•æ•°ã‚’å–å¾—(å€‹æ•°ã‚’è¿”ã™)
 int UtilGetCommandLineParams(std::vector<CString> &rParams)
 {
 #if defined(_UNICODE)||defined(UNICODE)
@@ -246,7 +239,7 @@ int UtilGetCommandLineParams(std::vector<CString> &rParams)
 
 void UtilNavigateDirectory(LPCTSTR lpszDir)
 {
-	//Explorer‚ÅŠJ‚­
+	//Explorerã§é–‹ã
 	TCHAR szExplorerPath[_MAX_PATH+1];
 	FILL_ZERO(szExplorerPath);
 	GetWindowsDirectory(szExplorerPath,_MAX_PATH);
@@ -254,21 +247,21 @@ void UtilNavigateDirectory(LPCTSTR lpszDir)
 	ShellExecute(NULL, _T("open"), szExplorerPath, lpszDir, NULL, SW_SHOWNORMAL);
 }
 
-//ŠÂ‹«•Ï”‚ğQÆ‚µA«‘Œ`®‚Åæ“¾‚·‚é
+//ç’°å¢ƒå¤‰æ•°ã‚’å‚ç…§ã—ã€è¾æ›¸å½¢å¼ã§å–å¾—ã™ã‚‹
 void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo)
 {
 	LPTSTR lpEnvStr = GetEnvironmentStrings();
 	LPCTSTR lpStr    = lpEnvStr;
 
 	for(;*lpStr!='\0';){
-		LPCTSTR lpSplit=lpStr+1;	//ŠÂ‹«•Ï”–¼‚Ìæ“ª‚ª'='‚¾‚Á‚½ê‡‚É”õ‚¦‚é
+		LPCTSTR lpSplit=lpStr+1;	//ç’°å¢ƒå¤‰æ•°åã®å…ˆé ­ãŒ'='ã ã£ãŸå ´åˆã«å‚™ãˆã‚‹
 		for(;*lpSplit!=L'\0' && *lpSplit != L'=';lpSplit++)continue;
 
-		//---ŠÂ‹«•Ï”–¼
+		//---ç’°å¢ƒå¤‰æ•°å
 		stdString strKey(lpStr,lpSplit);
-		//‘å•¶š‚É³‹K‰»
+		//å¤§æ–‡å­—ã«æ­£è¦åŒ–
 		std::transform(strKey.begin(), strKey.end(), strKey.begin(), std::toupper);
-		//---ŠÂ‹«•Ï”‚Ì’l
+		//---ç’°å¢ƒå¤‰æ•°ã®å€¤
 		CString strValue=lpSplit+1;
 		envInfo[strKey]=strValue;
 
@@ -279,18 +272,18 @@ void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo)
 	FreeEnvironmentStrings(lpEnvStr);
 }
 
-//UtilExpandTemplateString()‚Ìƒpƒ‰ƒ[ƒ^“WŠJ‚É•K—v‚Èî•ñ‚ğ\’z‚·‚é
+//UtilExpandTemplateString()ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹ã«å¿…è¦ãªæƒ…å ±ã‚’æ§‹ç¯‰ã™ã‚‹
 void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
 {
-	//ŠÂ‹«•Ï”‚Å\’z
+	//ç’°å¢ƒå¤‰æ•°ã§æ§‹ç¯‰
 	std::map<stdString,stdString> envs;
 	UtilGetEnvInfo(envs);
 	for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
-		//%ENVIRONMENT%‚ÌŒ`®‚É•ÏŠ·
+		//%ENVIRONMENT%ã®å½¢å¼ã«å¤‰æ›
 		envInfo[L'%'+(*ite).first+L'%']=(*ite).second.c_str();
 	}
 
-	//---LhaForge–{‘Ì‚Ìî•ñ
+	//---LhaForgeæœ¬ä½“ã®æƒ…å ±
 	envInfo[_T("ProgramPath")]=UtilGetModulePath();
 	envInfo[_T("ProgramFileName")]=PathFindFileName(UtilGetModulePath());
 
@@ -299,7 +292,7 @@ void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
 	envInfo[_T("ProgramDir")]=(LPCTSTR)dir;
 
 	dir.StripToRoot();
-	//––”ö‚ÌBackslash‚ğæ‚èœ‚­;RemoveBackslash‚Å‚Íƒhƒ‰ƒCƒu–¼’¼Œã‚ÌBackslash‚ªæ‚èœ‚¯‚È‚¢
+	//æœ«å°¾ã®Backslashã‚’å–ã‚Šé™¤ã;RemoveBackslashã§ã¯ãƒ‰ãƒ©ã‚¤ãƒ–åç›´å¾Œã®BackslashãŒå–ã‚Šé™¤ã‘ãªã„
 	dir.RemoveBackslash();
 	envInfo[_T("ProgramDrive")]=(LPCTSTR)dir;
 }
@@ -339,7 +332,7 @@ void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
 }
 
 
-//ƒvƒƒZƒX—Dæ“x‚Ìİ’è
+//ãƒ—ãƒ­ã‚»ã‚¹å„ªå…ˆåº¦ã®è¨­å®š
 void UtilSetPriorityClass(DWORD dwPriorityClass)
 {
 	HANDLE hProcess=GetCurrentProcess();
@@ -347,7 +340,7 @@ void UtilSetPriorityClass(DWORD dwPriorityClass)
 }
 
 
-//ƒNƒŠƒbƒvƒ{[ƒh‚ÉƒeƒLƒXƒg‚ğİ’è
+//ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void UtilSetTextOnClipboard(LPCTSTR lpszText)
 {
 	HGLOBAL hMem;

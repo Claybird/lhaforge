@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArchiverManager.h"
@@ -37,42 +30,42 @@
 #include "ConfigCode/ConfigB2E.h"
 #include "ConfigCode/ConfigXACRETT.h"
 
-//Šg’£q‚©‚ç‰ğ“€‚Ég‚¤DLL‚ğ„’è
+//æ‹¡å¼µå­ã‹ã‚‰è§£å‡ã«ä½¿ã†DLLã‚’æ¨å®š
 DLL_ID GuessDllIDFromFileName(LPCTSTR ArcFileName,CConfigManager &Config)
 {
 	TRACE(_T("GuessDllIDFromFileName()\n"));
 	TRACE(_T("ArcFileName=%s\n"),ArcFileName);
 
-	//---B2E‚ğXacRett‚æ‚è—Dæ‚·‚éê‡
+	//---B2Eã‚’XacRettã‚ˆã‚Šå„ªå…ˆã™ã‚‹å ´åˆ
 	CConfigB2E ConfB2E;
 	CConfigXACRETT ConfXACRETT;
 	ConfB2E.load(Config);
 	ConfXACRETT.load(Config);
 	if(ConfB2E.EnableDLL && ConfB2E.Priority){
-		//B2E‚É—Dæ‚·‚éŠg’£q‚ÌŠm”F
+		//B2Eã«å„ªå…ˆã™ã‚‹æ‹¡å¼µå­ã®ç¢ºèª
 		if(UtilPathAcceptSpec(ArcFileName,CString(),ConfB2E.Extensions,false))return DLL_ID_B2E;
 
-		//XacRett‚É—Dæ‚·‚éŠg’£q‚ÌŠm”F
+		//XacRettã«å„ªå…ˆã™ã‚‹æ‹¡å¼µå­ã®ç¢ºèª
 		if(ConfXACRETT.EnableDLL){
 			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfXACRETT.Extensions,false))return DLL_ID_XACRETT;
 		}
 	}else{
-		//---XacRett‚ªB2E‚æ‚è—Dæ
-		//XacRett‚É—Dæ‚·‚éŠg’£q‚ÌŠm”F
+		//---XacRettãŒB2Eã‚ˆã‚Šå„ªå…ˆ
+		//XacRettã«å„ªå…ˆã™ã‚‹æ‹¡å¼µå­ã®ç¢ºèª
 		if(ConfXACRETT.EnableDLL){
 			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfXACRETT.Extensions,false))return DLL_ID_XACRETT;
 		}
-		//B2E‚É—Dæ‚·‚éŠg’£q‚ÌŠm”F
+		//B2Eã«å„ªå…ˆã™ã‚‹æ‹¡å¼µå­ã®ç¢ºèª
 		if(ConfB2E.EnableDLL){
 			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfB2E.Extensions,false))return DLL_ID_B2E;
 		}
 	}
 
-	//Šg’£q”²‚«‚¾‚µ
+	//æ‹¡å¼µå­æŠœãã ã—
 	CString strExt=PathFindExtension(ArcFileName);
 	strExt.MakeLower();
 
-	//QÆ•\‚©‚çŠg’£q”äŠr
+	//å‚ç…§è¡¨ã‹ã‚‰æ‹¡å¼µå­æ¯”è¼ƒ
 	for(int i=0;i<ARRAY_EXT_DLLID_COUNT;i++){
 		if(Array_ExtDLLID[i].lpszExt==strExt){
 			return Array_ExtDLLID[i].DllID;
@@ -81,10 +74,10 @@ DLL_ID GuessDllIDFromFileName(LPCTSTR ArcFileName,CConfigManager &Config)
 	return DLL_ID_UNKNOWN;
 }
 
-//ˆ³kƒ^ƒCƒv‚©‚çDLL‚ÌID‚ğæ“¾
+//åœ§ç¸®ã‚¿ã‚¤ãƒ—ã‹ã‚‰DLLã®IDã‚’å–å¾—
 DLL_ID GetDllIDFromParameterType(PARAMETER_TYPE Type)
 {
-	//QÆ•\‚©‚ç‡’v‚·‚éPARAMETER_TYPEæ“¾
+	//å‚ç…§è¡¨ã‹ã‚‰åˆè‡´ã™ã‚‹PARAMETER_TYPEå–å¾—
 	for(int i=0;i<ARRAY_PARAMETERTYPE_DLLID_COUNT;i++){
 		if(Array_ParameterTypeDLLID[i].ParameterType==Type){
 			return Array_ParameterTypeDLLID[i].DllID;
@@ -130,7 +123,7 @@ CArchiverDLLManager::~CArchiverDLLManager()
 
 void CArchiverDLLManager::Final()
 {
-	//‘SƒNƒŠƒA
+	//å…¨ã‚¯ãƒªã‚¢
 	TRACE(_T("Freeing dlls...\n"));
 
 	Free();
@@ -139,7 +132,7 @@ void CArchiverDLLManager::Final()
 
 void CArchiverDLLManager::Free()
 {
-	//‘SŠJ•ú
+	//å…¨é–‹æ”¾
 	if(ArchiverList.empty())return;
 	for(std::list<std::pair<CArchiverDLL*,DLL_ID> >::iterator ite=ArchiverList.begin();ite!=ArchiverList.end();ite++){
 		(*ite).first->FreeDLL();
@@ -154,18 +147,18 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 
 	if(lpDenyExt && UtilExtMatchSpec(ArcFileName,lpDenyExt))return NULL;
 
-	//-----g—p‚·‚éDLL‚ğw’è‚³‚ê‚Ä‚¢‚é
+	//-----ä½¿ç”¨ã™ã‚‹DLLã‚’æŒ‡å®šã•ã‚Œã¦ã„ã‚‹
 	if(DLL_ID_UNKNOWN!=ForceDLL){
-		CArchiverDLL* Archiver=GetArchiver(ForceDLL);	//ƒ[ƒh‚Å‚«‚È‚¢‚Æ‚«‚É‚ÍƒGƒ‰[ƒƒbƒZ[ƒW
+		CArchiverDLL* Archiver=GetArchiver(ForceDLL);	//ãƒ­ãƒ¼ãƒ‰ã§ããªã„ã¨ãã«ã¯ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 		if(Archiver){
 			if(!Archiver->IsOK()){
 				CString strDummy;
 				Archiver->LoadDLL(*m_lpConfig,strDummy);
 			}
 			if(Archiver->IsOK()){
-				if(!Archiver->IsUnicodeCapable()){		//UNICODE–¢‘Î‰DLL‚È‚çA•¶š‚ğƒ`ƒFƒbƒN‚·‚é
+				if(!Archiver->IsUnicodeCapable()){		//UNICODEæœªå¯¾å¿œDLLãªã‚‰ã€æ–‡å­—ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 					if(!UtilCheckT2A(ArcFileName)){
-						//Œ»İ‚ÌƒƒP[ƒ‹‚Å•\Œ»‚Å‚«‚È‚¢•¶š‚ğg‚Á‚½
+						//ç¾åœ¨ã®ãƒ­ã‚±ãƒ¼ãƒ«ã§è¡¨ç¾ã§ããªã„æ–‡å­—ã‚’ä½¿ã£ãŸ
 						return NULL;
 					}
 				}
@@ -177,22 +170,22 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 		return NULL;
 	}
 
-	//Šg’£q‚©‚ç–Ú¯‚ğ‚Â‚¯‚é
+	//æ‹¡å¼µå­ã‹ã‚‰ç›®æ˜Ÿã‚’ã¤ã‘ã‚‹
 	DLL_ID Type=GuessDllIDFromFileName(ArcFileName,*m_lpConfig);
 	CArchiverDLL* lpGuessedArchiver=GetArchiver(Type,true);
-	TRACE(_T("„‘ªÏ‚İƒA[ƒJƒCƒo‚ª³‚µ‚¢‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN\n"));
+	TRACE(_T("æ¨æ¸¬æ¸ˆã¿ã‚¢ãƒ¼ã‚«ã‚¤ãƒãŒæ­£ã—ã„ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯\n"));
 	if(lpGuessedArchiver){
 		if(lpGuessedArchiver->IsOK()){
-			bool bUnicodeOK=lpGuessedArchiver->IsUnicodeCapable();		//UNICODE–¢‘Î‰DLL‚È‚çA•¶š‚ğƒ`ƒFƒbƒN‚·‚é
-			if(bUnicodeOK||UtilCheckT2A(ArcFileName)){		//•¶š‚ªŒ»İ‚ÌƒƒP[ƒ‹‚Å•\Œ»‚Å‚«‚é‚©‚Ç‚¤‚©
+			bool bUnicodeOK=lpGuessedArchiver->IsUnicodeCapable();		//UNICODEæœªå¯¾å¿œDLLãªã‚‰ã€æ–‡å­—ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
+			if(bUnicodeOK||UtilCheckT2A(ArcFileName)){		//æ–‡å­—ãŒç¾åœ¨ã®ãƒ­ã‚±ãƒ¼ãƒ«ã§è¡¨ç¾ã§ãã‚‹ã‹ã©ã†ã‹
 				if(lpGuessedArchiver->CheckArchive(ArcFileName)){
-					TRACE(_T("„’è‚Í“–‚½‚Á‚Ä‚¢‚½\n"));
+					TRACE(_T("æ¨å®šã¯å½“ãŸã£ã¦ã„ãŸ\n"));
 					return lpGuessedArchiver;
 				}
 			}
 		}
 	}
-	TRACE(_T("‘“–‚è‚É‚æ‚é„‘ª‚ğŠJn\n"));
+	TRACE(_T("ç·å½“ã‚Šã«ã‚ˆã‚‹æ¨æ¸¬ã‚’é–‹å§‹\n"));
 
 	CConfigB2E ConfB2E;
 	CConfigXACRETT ConfXACRETT;
@@ -205,41 +198,41 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 
 		ASSERT(lpArchiver);
 
-		if(&ArcXACRETT==lpArchiver){	//XacRett‚Ìg—p‚ª‹–‰Â‚³‚ê‚Ä‚¢‚éê‡‚Ì‚İƒ[ƒh
+		if(&ArcXACRETT==lpArchiver){	//XacRettã®ä½¿ç”¨ãŒè¨±å¯ã•ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿ãƒ­ãƒ¼ãƒ‰
 			if(!ConfXACRETT.EnableDLL)continue;
-		}else if(&ArcB2E==lpArchiver){	//B2E‚Ìg—p‚ª‹–‰Â‚³‚ê‚Ä‚¢‚éê‡‚Ì‚İƒ[ƒh
+		}else if(&ArcB2E==lpArchiver){	//B2Eã®ä½¿ç”¨ãŒè¨±å¯ã•ã‚Œã¦ã„ã‚‹å ´åˆã®ã¿ãƒ­ãƒ¼ãƒ‰
 			if(!ConfB2E.EnableDLL)continue;
 		}else if(!m_ConfDLL.EnableDLL[(*ite).second]){
 			continue;
 		}
 
 		if(ConfB2E.Priority){
-			//B2E—Dæ‚Ì‚ÍA‚±‚Ìƒ‹[ƒv‚Å‚ÍXacRett‚ğˆ—‚³‚¹‚È‚¢
+			//B2Eå„ªå…ˆã®æ™‚ã¯ã€ã“ã®ãƒ«ãƒ¼ãƒ—ã§ã¯XacRettã‚’å‡¦ç†ã•ã›ãªã„
 			if(&ArcXACRETT==lpArchiver)continue;
 		}
 
-		if(lpGuessedArchiver==lpArchiver)continue;	//Šù‚É“K‡‚µ‚È‚¢‚±‚Æ‚ª•ª‚©‚Á‚Ä‚¢‚é
+		if(lpGuessedArchiver==lpArchiver)continue;	//æ—¢ã«é©åˆã—ãªã„ã“ã¨ãŒåˆ†ã‹ã£ã¦ã„ã‚‹
 		if(!lpArchiver->IsOK()){
 			CString strDummy;
 			lpArchiver->LoadDLL(*m_lpConfig,strDummy);
 		}
 		if(lpArchiver->IsWeakCheckArchive()){
-			continue;	//ƒtƒH[ƒ}ƒbƒgƒ`ƒFƒbƒN‚ªŠÃ‚¢‚Ì‚Å‚ ‚Ä‚É‚È‚ç‚È‚¢
+			continue;	//ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆãƒã‚§ãƒƒã‚¯ãŒç”˜ã„ã®ã§ã‚ã¦ã«ãªã‚‰ãªã„
 		}
 		if(!lpArchiver->IsUnicodeCapable()){
-			//UNICODE–¢‘Î‰DLL‚È‚çA•¶š‚ğƒ`ƒFƒbƒN‚·‚é
+			//UNICODEæœªå¯¾å¿œDLLãªã‚‰ã€æ–‡å­—ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 			if(!UtilCheckT2A(ArcFileName)){
-				//Œ»İ‚ÌƒƒP[ƒ‹‚Å•\Œ»‚Å‚«‚È‚¢•¶š‚ğg‚Á‚½
+				//ç¾åœ¨ã®ãƒ­ã‚±ãƒ¼ãƒ«ã§è¡¨ç¾ã§ããªã„æ–‡å­—ã‚’ä½¿ã£ãŸ
 				continue;
 			}
 		}
 		if(lpArchiver->IsOK()&&lpArchiver->CheckArchive(ArcFileName)){
-			return lpArchiver;	//ƒA[ƒJƒCƒuƒnƒ“ƒhƒ‰Œˆ’è
+			return lpArchiver;	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒãƒ³ãƒ‰ãƒ©æ±ºå®š
 		}
 	}
 
 	if(ConfB2E.Priority){
-		//B2E—Dæ‚Ì‚ÍAŒã‚©‚çXacRett‚ğˆ—
+		//B2Eå„ªå…ˆã®æ™‚ã¯ã€å¾Œã‹ã‚‰XacRettã‚’å‡¦ç†
 		if(ConfXACRETT.EnableDLL){
 			CArchiverDLL* lpArchiver=&ArcXACRETT;
 			if(!lpArchiver->IsOK()){
@@ -248,13 +241,13 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 			}
 			if(lpArchiver->IsUnicodeCapable() || UtilCheckT2A(ArcFileName)){
 				if(lpArchiver->IsOK()&&lpArchiver->CheckArchive(ArcFileName)){
-					return lpArchiver;	//ƒA[ƒJƒCƒuƒnƒ“ƒhƒ‰Œˆ’è
+					return lpArchiver;	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒãƒ³ãƒ‰ãƒ©æ±ºå®š
 				}
 			}
 		}
 	}
 
-	TRACE(_T("DLLŒˆ’è‚É¸”s\n"));
+	TRACE(_T("DLLæ±ºå®šã«å¤±æ•—\n"));
 	return NULL;
 }
 
@@ -274,7 +267,7 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 	}
 
 	if(lpArchiver){
-		//DLL—LŒø/–³Œø‚Ì”»’è
+		//DLLæœ‰åŠ¹/ç„¡åŠ¹ã®åˆ¤å®š
 		if(Type!=DLL_ID_XACRETT && Type!=DLL_ID_B2E && !m_ConfDLL.EnableDLL[Type]){
 			lpArchiver->FreeDLL();
 			if(!bSilent){
@@ -293,7 +286,7 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 			return lpArchiver;
 		}
 	}
-	TRACE(_T("“KØ‚ÈDLL‚Ìæ“¾‚É¸”s\n"));
+	TRACE(_T("é©åˆ‡ãªDLLã®å–å¾—ã«å¤±æ•—\n"));
 	return NULL;
 }
 

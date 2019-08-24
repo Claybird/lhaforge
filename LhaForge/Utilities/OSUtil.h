@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
@@ -39,38 +32,38 @@ struct SHORTCUTINFO{
 	CBitmap cIconBmpSmall;
 };
 
-//ƒVƒ‡[ƒgƒJƒbƒgì¬
+//ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆä½œæˆ
 HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription);
 
-//ƒVƒ‡[ƒgƒJƒbƒg‚Ìî•ñ‚ğæ“¾
+//ã‚·ãƒ§ãƒ¼ãƒˆã‚«ãƒƒãƒˆã®æƒ…å ±ã‚’å–å¾—
 HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir);
 void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info);
 
-//ƒEƒBƒ“ƒhƒE‚ğŠmÀ‚ÉƒtƒHƒAƒOƒ‰ƒEƒ“ƒh‚É‚·‚é
+//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ç¢ºå®Ÿã«ãƒ•ã‚©ã‚¢ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã«ã™ã‚‹
 void UtilSetAbsoluteForegroundWindow(HWND);
 
-//WoW64(64bit OS‚Å‚Ì32bitƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“)‚Å“®‚¢‚Ä‚¢‚ê‚ÎTRUE‚ğ•Ô‚·ŠÖ”
+//WoW64(64bit OSã§ã®32bitã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³)ã§å‹•ã„ã¦ã„ã‚Œã°TRUEã‚’è¿”ã™é–¢æ•°
 BOOL UtilIsWow64();
 
-//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ˆø”‚ğæ“¾(ŒÂ”‚ğ•Ô‚·)
+//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³å¼•æ•°ã‚’å–å¾—(å€‹æ•°ã‚’è¿”ã™)
 int UtilGetCommandLineParams(std::vector<CString>&);
 
-//“Á’è‚ÌƒtƒHƒ‹ƒ_‚ğExplorer‚ÅŠJ‚­
+//ç‰¹å®šã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’Explorerã§é–‹ã
 void UtilNavigateDirectory(LPCTSTR lpszDir);
 
-//ŠÂ‹«•Ï”‚ğQÆ‚µA«‘Œ`®‚Åæ“¾‚·‚é
+//ç’°å¢ƒå¤‰æ•°ã‚’å‚ç…§ã—ã€è¾æ›¸å½¢å¼ã§å–å¾—ã™ã‚‹
 void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo);
 
-//UtilExpandTemplateString()‚Ìƒpƒ‰ƒ[ƒ^“WŠJ‚É•K—v‚Èî•ñ‚ğ\’z‚·‚é
+//UtilExpandTemplateString()ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹ã«å¿…è¦ãªæƒ…å ±ã‚’æ§‹ç¯‰ã™ã‚‹
 void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo);
 
-//ƒAƒCƒRƒ“‚ğ“§–¾“x•t‚«ƒrƒbƒgƒ}ƒbƒv‚É•ÏŠ·‚·‚é
+//ã‚¢ã‚¤ã‚³ãƒ³ã‚’é€æ˜åº¦ä»˜ããƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã«å¤‰æ›ã™ã‚‹
 void UtilMakeDIBFromIcon(CBitmap&,HICON);
 
-//ƒvƒƒZƒX—Dæ“x‚Ìİ’è
+//ãƒ—ãƒ­ã‚»ã‚¹å„ªå…ˆåº¦ã®è¨­å®š
 void UtilSetPriorityClass(DWORD dwPriorityClass);
 
-//ƒfƒBƒŒƒNƒgƒŠ§Œä
+//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¶å¾¡
 class CCurrentDirManager
 {
 	DISALLOW_COPY_AND_ASSIGN(CCurrentDirManager);
@@ -86,5 +79,5 @@ public:
 	}
 };
 
-//ƒNƒŠƒbƒvƒ{[ƒh‚ÉƒeƒLƒXƒg‚ğİ’è
+//ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ãƒ†ã‚­ã‚¹ãƒˆã‚’è¨­å®š
 void UtilSetTextOnClipboard(LPCTSTR lpszText);

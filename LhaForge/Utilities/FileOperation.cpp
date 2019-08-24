@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "FileOperation.h"
@@ -43,19 +36,19 @@
 LPCTSTR UtilGetTempPath()
 {
 	static CPath s_tempPath;
-	if(_tcslen(s_tempPath)==0){		//‰Šúİ’è
-		//ŠÂ‹«•Ï”æ“¾
+	if(_tcslen(s_tempPath)==0){		//åˆæœŸè¨­å®š
+		//ç’°å¢ƒå¤‰æ•°å–å¾—
 		std::map<stdString,stdString> envs;
 		UtilGetEnvInfo(envs);
 		if(!has_key(envs,_T("TMP")) && !has_key(envs,_T("TEMP"))){
-			//%TMP%/%TEMP%‚ª‘¶İ‚µ‚È‚¯‚ê‚Î©‘O‚ÌˆêƒtƒHƒ‹ƒ_‚ğg‚¤(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
+			//%TMP%/%TEMP%ãŒå­˜åœ¨ã—ãªã‘ã‚Œã°è‡ªå‰ã®ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½¿ã†(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
 			TCHAR szPath[_MAX_PATH+1]={0};
 			SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szPath);
 			s_tempPath=szPath;
 			s_tempPath.Append(_T("lhaforge\\temp\\"));
 			UtilMakeSureDirectoryPathExists(s_tempPath);
 		}else{
-			//’Êí‚ÌƒpƒX
+			//é€šå¸¸ã®ãƒ‘ã‚¹
 			std::vector<TCHAR> buffer(GetTempPath(0,NULL)+1);
 			GetTempPath(buffer.size(),&buffer[0]);
 			buffer.back()=_T('\0');
@@ -76,19 +69,19 @@ bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix)
 
 bool UtilDeletePath(LPCTSTR PathName)
 {
-	if( PathIsDirectory(PathName) ) {//ƒfƒBƒŒƒNƒgƒŠ
-		//ƒtƒ@ƒCƒ‹‚Ì‘®«‚ğ•W€‚É–ß‚·
+	if( PathIsDirectory(PathName) ) {//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§ã‚’æ¨™æº–ã«æˆ»ã™
 		if( UtilDeleteDir(PathName, true) )return true;
-	} else if( PathFileExists(PathName) ) {//ƒtƒ@ƒCƒ‹
-		//ƒtƒ@ƒCƒ‹‚Ì‘®«‚ğ•W€‚É–ß‚·
+	} else if( PathFileExists(PathName) ) {//ãƒ•ã‚¡ã‚¤ãƒ«
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§ã‚’æ¨™æº–ã«æˆ»ã™
 		SetFileAttributes(PathName, FILE_ATTRIBUTE_NORMAL);
 		if( DeleteFile(PathName) )return true;
 	}
 	return false;
 }
 
-//bDeleteParent=true‚Ì‚Æ‚«APath©g‚àíœ‚·‚é
-//bDeleteParent=false‚Ì‚Æ‚«‚ÍAPath‚Ì’†g‚¾‚¯íœ‚·‚é
+//bDeleteParent=trueã®ã¨ãã€Pathè‡ªèº«ã‚‚å‰Šé™¤ã™ã‚‹
+//bDeleteParent=falseã®ã¨ãã¯ã€Pathã®ä¸­èº«ã ã‘å‰Šé™¤ã™ã‚‹
 bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
 {
 	std::vector<WIN32_FIND_DATA> lps;
@@ -119,7 +112,7 @@ bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
 			bRet = bRet&&UtilDeleteDir(SubPath, true);
 		}
 		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != FILE_ATTRIBUTE_DIRECTORY ) {
-			// lp.cFileName‚Åƒtƒ@ƒCƒ‹–¼‚ª•ª‚©‚é
+			// lp.cFileNameã§ãƒ•ã‚¡ã‚¤ãƒ«åãŒåˆ†ã‹ã‚‹
 			TCHAR FileName[_MAX_PATH + 1];
 			FILL_ZERO(FileName);
 			_tcsncpy_s(FileName, Path, _MAX_PATH);
@@ -138,11 +131,11 @@ bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
 }
 
 
-//“Ç‚İæ‚èŒ³ƒtƒ@ƒCƒ‹‚ğ‘‚«‚İæƒtƒ@ƒCƒ‹‚Ìseek‚Ì‚ ‚é‰ÓŠ‚©‚çŒã‚ÉƒRƒs[‚µ‚Ä‘‚«‚Ş
-//–ß‚è’l‚ÍƒGƒ‰[‚È‚µ‚È‚ç0,“Ç‚İæ‚èƒGƒ‰[‚Í1,‘‚«‚İƒGƒ‰[‚Í-1
+//èª­ã¿å–ã‚Šå…ƒãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ›¸ãè¾¼ã¿å…ˆãƒ•ã‚¡ã‚¤ãƒ«ã®seekã®ã‚ã‚‹ç®‡æ‰€ã‹ã‚‰å¾Œã«ã‚³ãƒ”ãƒ¼ã—ã¦æ›¸ãè¾¼ã‚€
+//æˆ»ã‚Šå€¤ã¯ã‚¨ãƒ©ãƒ¼ãªã—ãªã‚‰0,èª­ã¿å–ã‚Šã‚¨ãƒ©ãƒ¼ã¯1,æ›¸ãè¾¼ã¿ã‚¨ãƒ©ãƒ¼ã¯-1
 int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom)
 {
-	//16KB‚¸‚ÂƒRƒs[
+	//16KBãšã¤ã‚³ãƒ”ãƒ¼
 	DWORD dwRead=0,dwWrite=0;
 	std::vector<BYTE> Buffer(16*1024);
 	for(;;){
@@ -164,15 +157,15 @@ int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom)
 
 void UtilModifyPath(CString &strPath)
 {
-	// ƒpƒX‚ÌC³
-	strPath.Replace(_T("/"),_T("\\"));	//ƒpƒX‹æØ‚è•¶š
+	// ãƒ‘ã‚¹ã®ä¿®æ­£
+	strPath.Replace(_T("/"),_T("\\"));	//ãƒ‘ã‚¹åŒºåˆ‡ã‚Šæ–‡å­—
 
 	int Ret=0;
 	do{
-		Ret=strPath.Replace(_T("\\\\"),_T("\\"));	//\\‚ğ\‚É’u‚«Š·‚¦‚Ä‚¢‚­
+		Ret=strPath.Replace(_T("\\\\"),_T("\\"));	//\\ã‚’\ã«ç½®ãæ›ãˆã¦ã„ã
 	}while(Ret!=0);
-	strPath.Replace(_T("..\\"),_T("__\\"));	//‘Š‘ÎƒpƒXw’è..‚Í__‚É’u‚«Š·‚¦‚é
-	strPath.Replace(_T(":"),_T("__"));	//ƒhƒ‰ƒCƒu–¼‚à’u‚«Š·‚¦‚é(C:‚©‚çC__‚Ö)
+	strPath.Replace(_T("..\\"),_T("__\\"));	//ç›¸å¯¾ãƒ‘ã‚¹æŒ‡å®š..ã¯__ã«ç½®ãæ›ãˆã‚‹
+	strPath.Replace(_T(":"),_T("__"));	//ãƒ‰ãƒ©ã‚¤ãƒ–åã‚‚ç½®ãæ›ãˆã‚‹(C:ã‹ã‚‰C__ã¸)
 }
 
 BOOL UtilMoveFileToRecycleBin(LPCTSTR lpFileName)
@@ -185,9 +178,9 @@ BOOL UtilMoveFileToRecycleBin(LPCTSTR lpFileName)
 	Buffer.back()=_T('\0');
 
 	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//íœ
-	shfo.pFrom=&Buffer[0];//ƒtƒ@ƒCƒ‹–¼‚ÌƒŠƒXƒg––”ö‚Í\0\0‚ÅI‚í‚é•K—v—L‚è
-	shfo.fFlags=FOF_SILENT/*i’»ó‹µ‚ğ•\¦‚µ‚È‚¢*/|FOF_ALLOWUNDO/*UNDOî•ñ•t‰Á;‚²‚İ” ‚Ö*/|FOF_NOCONFIRMATION/*Šm”Fƒ_ƒCƒAƒƒO‚ğ•\¦‚µ‚È‚¢*/;
+	shfo.wFunc=FO_DELETE;	//å‰Šé™¤
+	shfo.pFrom=&Buffer[0];//ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒªã‚¹ãƒˆæœ«å°¾ã¯\0\0ã§çµ‚ã‚ã‚‹å¿…è¦æœ‰ã‚Š
+	shfo.fFlags=FOF_SILENT/*é€²æ—çŠ¶æ³ã‚’è¡¨ç¤ºã—ãªã„*/|FOF_ALLOWUNDO/*UNDOæƒ…å ±ä»˜åŠ ;ã”ã¿ç®±ã¸*/|FOF_NOCONFIRMATION/*ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã—ãªã„*/;
 	return SHFileOperation(&shfo);
 }
 
@@ -196,7 +189,7 @@ BOOL UtilMoveFileToRecycleBin(const std::list<CString> &fileList)
 	ASSERT(!fileList.empty());
 	if(fileList.empty())return false;
 
-	//ˆø”ì¬
+	//å¼•æ•°ä½œæˆ
 	CString Param;
 	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		Param+=*ite;
@@ -208,13 +201,13 @@ BOOL UtilMoveFileToRecycleBin(const std::list<CString> &fileList)
 	UtilMakeFilterString(Param,&Buffer[0],Buffer.size());
 
 	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//íœ
-	shfo.pFrom=&Buffer[0];//ƒtƒ@ƒCƒ‹–¼‚ÌƒŠƒXƒg––”ö‚Í\0\0‚ÅI‚í‚é•K—v—L‚è
-	shfo.fFlags=FOF_SILENT/*i’»ó‹µ‚ğ•\¦‚µ‚È‚¢*/|FOF_ALLOWUNDO/*UNDOî•ñ•t‰Á;‚²‚İ” ‚Ö*/|FOF_NOCONFIRMATION/*Šm”Fƒ_ƒCƒAƒƒO‚ğ•\¦‚µ‚È‚¢*/;
+	shfo.wFunc=FO_DELETE;	//å‰Šé™¤
+	shfo.pFrom=&Buffer[0];//ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒªã‚¹ãƒˆæœ«å°¾ã¯\0\0ã§çµ‚ã‚ã‚‹å¿…è¦æœ‰ã‚Š
+	shfo.fFlags=FOF_SILENT/*é€²æ—çŠ¶æ³ã‚’è¡¨ç¤ºã—ãªã„*/|FOF_ALLOWUNDO/*UNDOæƒ…å ±ä»˜åŠ ;ã”ã¿ç®±ã¸*/|FOF_NOCONFIRMATION/*ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤ºã—ãªã„*/;
 	return SHFileOperation(&shfo);
 }
 
-//ƒtƒHƒ‹ƒ_“àƒtƒ@ƒCƒ‹(ƒfƒBƒŒƒNƒgƒŠ‚Íœ‚­)‚ğÄ‹AŒŸõ
+//ãƒ•ã‚©ãƒ«ãƒ€å†…ãƒ•ã‚¡ã‚¤ãƒ«(ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¯é™¤ã)ã‚’å†å¸°æ¤œç´¢
 bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString> &rFileList)
 {
 	CFindFile cFindFile;
@@ -237,67 +230,67 @@ bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString> &rFileList)
 	return !rFileList.empty();
 }
 
-//ƒtƒ‹ƒpƒX‚©‚Ââ‘ÎƒpƒX‚Ìæ“¾
+//ãƒ•ãƒ«ãƒ‘ã‚¹ã‹ã¤çµ¶å¯¾ãƒ‘ã‚¹ã®å–å¾—
 PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName)
 {
 	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
 	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ƒtƒ@ƒCƒ‹–¼‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢\n"));
+		TRACE(_T("ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„\n"));
 		return PATHERROR_INVALID;
 	}
 
-	//---â‘ÎƒpƒXæ“¾
+	//---çµ¶å¯¾ãƒ‘ã‚¹å–å¾—
 	TCHAR szAbsPath[_MAX_PATH+1]={0};
 	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ƒ‹[ƒg‚©‚Ç‚¤‚©‚Ìƒ`ƒFƒbƒN‚ğs‚¤
+		TCHAR Buffer[_MAX_PATH+1]={0};	//ãƒ«ãƒ¼ãƒˆã‹ã©ã†ã‹ã®ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†
 		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
 		PathAddBackslash(Buffer);
 		if(PathIsRoot(Buffer)){
-			//ƒhƒ‰ƒCƒu–¼‚¾‚¯‚ªw’è‚³‚ê‚Ä‚¢‚éê‡A
-			//_tfullpath‚Í‚»‚Ìƒhƒ‰ƒCƒu‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğæ“¾‚µ‚Ä‚µ‚Ü‚¤
+			//ãƒ‰ãƒ©ã‚¤ãƒ–åã ã‘ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã€
+			//_tfullpathã¯ãã®ãƒ‰ãƒ©ã‚¤ãƒ–ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—ã—ã¦ã—ã¾ã†
 			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
 		}
 		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("â‘ÎƒpƒXæ“¾¸”s\n"));
+			TRACE(_T("çµ¶å¯¾ãƒ‘ã‚¹å–å¾—å¤±æ•—\n"));
 			return PATHERROR_ABSPATH;
 		}
 	}
 
 	if(!PathFileExists(szAbsPath)&&!PathIsDirectory(szAbsPath)){
-		//ƒpƒX‚ªƒtƒ@ƒCƒ‹‚à‚µ‚­‚ÍƒfƒBƒŒƒNƒgƒŠ‚Æ‚µ‚Ä‘¶İ‚µ‚È‚¢‚È‚çAƒGƒ‰[‚Æ‚·‚é
-		TRACE(_T("ƒtƒ@ƒCƒ‹‚ª‘¶İ‚µ‚È‚¢\n"));
+		//ãƒ‘ã‚¹ãŒãƒ•ã‚¡ã‚¤ãƒ«ã‚‚ã—ãã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ã—ã¦å­˜åœ¨ã—ãªã„ãªã‚‰ã€ã‚¨ãƒ©ãƒ¼ã¨ã™ã‚‹
+		TRACE(_T("ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã—ãªã„\n"));
 		return PATHERROR_NOTFOUND;
 	}
 	if(!GetLongPathName(szAbsPath,szAbsPath,_MAX_PATH)){
-		TRACE(_T("ƒƒ“ƒOƒtƒ@ƒCƒ‹–¼æ“¾¸”s\n"));
+		TRACE(_T("ãƒ­ãƒ³ã‚°ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—å¤±æ•—\n"));
 		return PATHERROR_LONGNAME;
 	}
 	_FullPath=szAbsPath;
 	return PATHERROR_NONE;
 }
 
-//â‘ÎƒpƒX‚Ìæ“¾
+//çµ¶å¯¾ãƒ‘ã‚¹ã®å–å¾—
 bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName)
 {
 	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
 	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ƒtƒ@ƒCƒ‹–¼‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢\n"));
+		TRACE(_T("ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„\n"));
 		return false;
 	}
 
-	//---â‘ÎƒpƒXæ“¾
+	//---çµ¶å¯¾ãƒ‘ã‚¹å–å¾—
 	TCHAR szAbsPath[_MAX_PATH+1]={0};
 	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ƒ‹[ƒg‚©‚Ç‚¤‚©‚Ìƒ`ƒFƒbƒN‚ğs‚¤
+		TCHAR Buffer[_MAX_PATH+1]={0};	//ãƒ«ãƒ¼ãƒˆã‹ã©ã†ã‹ã®ãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†
 		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
 		PathAddBackslash(Buffer);
 		if(PathIsRoot(Buffer)){
-			//ƒhƒ‰ƒCƒu–¼‚¾‚¯‚ªw’è‚³‚ê‚Ä‚¢‚éê‡A
-			//_tfullpath‚Í‚»‚Ìƒhƒ‰ƒCƒu‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğæ“¾‚µ‚Ä‚µ‚Ü‚¤
+			//ãƒ‰ãƒ©ã‚¤ãƒ–åã ã‘ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹å ´åˆã€
+			//_tfullpathã¯ãã®ãƒ‰ãƒ©ã‚¤ãƒ–ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—ã—ã¦ã—ã¾ã†
 			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
 		}
 		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("â‘ÎƒpƒXæ“¾¸”s\n"));
+			TRACE(_T("çµ¶å¯¾ãƒ‘ã‚¹å–å¾—å¤±æ•—\n"));
 			return false;
 		}
 	}
@@ -306,17 +299,17 @@ bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName)
 	return true;
 }
 
-//ƒƒCƒ‹ƒhƒJ[ƒh‚Ì“WŠJ
+//ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰ã®å±•é–‹
 bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList)
 {
 	std::list<CString> tempList;
 	std::list<CString>::const_iterator ite=r_inList.begin();
 	const std::list<CString>::const_iterator end=r_inList.end();
 	for(;ite!=end;++ite){
-		if(-1==(*ite).FindOneOf(_T("*?"))){	//ƒƒCƒ‹ƒh“WŠJ‰Â”\‚È•¶š‚Í‚È‚¢
+		if(-1==(*ite).FindOneOf(_T("*?"))){	//ãƒ¯ã‚¤ãƒ«ãƒ‰å±•é–‹å¯èƒ½ãªæ–‡å­—ã¯ãªã„
 			tempList.push_back(*ite);
 		}else{
-			//ƒƒCƒ‹ƒh“WŠJ
+			//ãƒ¯ã‚¤ãƒ«ãƒ‰å±•é–‹
 			CFindFile cFindFile;
 			BOOL bContinue=cFindFile.FindFile(*ite);
 			while(bContinue){
@@ -335,10 +328,10 @@ bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &
 bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam)
 {
 	std::list<CString> tempList;
-	if(-1==r_inParam.FindOneOf(_T("*?"))){	//ƒƒCƒ‹ƒh“WŠJ‰Â”\‚È•¶š‚Í‚È‚¢
+	if(-1==r_inParam.FindOneOf(_T("*?"))){	//ãƒ¯ã‚¤ãƒ«ãƒ‰å±•é–‹å¯èƒ½ãªæ–‡å­—ã¯ãªã„
 		tempList.push_back(r_inParam);
 	}else{
-		//ƒƒCƒ‹ƒh“WŠJ
+		//ãƒ¯ã‚¤ãƒ«ãƒ‰å±•é–‹
 		CFindFile cFindFile;
 		BOOL bContinue=cFindFile.FindFile(r_inParam);
 		while(bContinue){
@@ -352,7 +345,7 @@ bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam)
 	return true;
 }
 
-//ƒpƒX‚ÌƒfƒBƒŒƒNƒgƒŠ•”•ª‚¾‚¯‚ğæ‚èo‚·
+//ãƒ‘ã‚¹ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªéƒ¨åˆ†ã ã‘ã‚’å–ã‚Šå‡ºã™
 void UtilPathGetDirectoryPart(CString &str)
 {
 	LPTSTR lpszBuf=str.GetBuffer(_MAX_PATH+1);
@@ -361,28 +354,28 @@ void UtilPathGetDirectoryPart(CString &str)
 	str.ReleaseBuffer();
 }
 
-//©•ª‚ÌƒvƒƒOƒ‰ƒ€‚Ìƒtƒ@ƒCƒ‹–¼‚ğ•Ô‚·
+//è‡ªåˆ†ã®ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¿”ã™
 LPCTSTR UtilGetModulePath()
 {
 	static TCHAR s_szExePath[_MAX_PATH+1]={0};
 	if(s_szExePath[0]!=_T('\0'))return s_szExePath;
 
-	GetModuleFileName(GetModuleHandle(NULL), s_szExePath, _MAX_PATH);	//–{‘Ì‚ÌƒpƒXæ“¾
+	GetModuleFileName(GetModuleHandle(NULL), s_szExePath, _MAX_PATH);	//æœ¬ä½“ã®ãƒ‘ã‚¹å–å¾—
 	return s_szExePath;
 }
 
-//©•ª‚ÌƒvƒƒOƒ‰ƒ€‚Ì‚¨‚¢‚Ä‚ ‚éƒfƒBƒŒƒNƒgƒŠ‚ÌƒpƒX–¼‚ğ•Ô‚·
+//è‡ªåˆ†ã®ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®ãŠã„ã¦ã‚ã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ãƒ‘ã‚¹åã‚’è¿”ã™
 LPCTSTR UtilGetModuleDirectoryPath()
 {
 	static TCHAR s_szDirPath[_MAX_PATH+1]={0};
 	if(s_szDirPath[0]!=_T('\0'))return s_szDirPath;
 
-	GetModuleFileName(GetModuleHandle(NULL), s_szDirPath, _MAX_PATH);	//–{‘Ì‚ÌƒpƒXæ“¾
+	GetModuleFileName(GetModuleHandle(NULL), s_szDirPath, _MAX_PATH);	//æœ¬ä½“ã®ãƒ‘ã‚¹å–å¾—
 	PathRemoveFileSpec(s_szDirPath);
 	return s_szDirPath;
 }
 
-//•¡”ŠK‘w‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğˆê‹C‚Éì¬‚·‚é
+//è¤‡æ•°éšå±¤ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä¸€æ°—ã«ä½œæˆã™ã‚‹
 BOOL UtilMakeSureDirectoryPathExists(LPCTSTR _lpszPath)
 {
 #if defined(_UNICODE)||defined(UNICODE)
@@ -390,22 +383,22 @@ BOOL UtilMakeSureDirectoryPathExists(LPCTSTR _lpszPath)
 	path.RemoveFileSpec();
 	path.AddBackslash();
 
-	//TODO:UNICODE”Å‚Ì‚İ‚Åƒ`ƒFƒbƒN‚ğ“ü‚ê‚Ä‚¢‚é‚Ì‚ÅANSIƒrƒ‹ƒh‚É‚Í“K‹Xˆ—‚µ’¼‚·‚×‚«
+	//TODO:UNICODEç‰ˆã®ã¿ã§ãƒã‚§ãƒƒã‚¯ã‚’å…¥ã‚Œã¦ã„ã‚‹ã®ã§ANSIãƒ“ãƒ«ãƒ‰æ™‚ã«ã¯é©å®œå‡¦ç†ã—ç›´ã™ã¹ã
 	CString tmp(path);
-	if(-1!=tmp.Find(_T(" \\"))||-1!=tmp.Find(_T(".\\"))){	//ƒpƒX‚Æ‚µ‚Äˆ—‚Å‚«‚È‚¢ƒtƒ@ƒCƒ‹–¼‚ª‚ ‚é
+	if(-1!=tmp.Find(_T(" \\"))||-1!=tmp.Find(_T(".\\"))){	//ãƒ‘ã‚¹ã¨ã—ã¦å‡¦ç†ã§ããªã„ãƒ•ã‚¡ã‚¤ãƒ«åãŒã‚ã‚‹
 		ASSERT(!"Unacceptable Directory Name");
 		return FALSE;
 	}
 
-	//UNICODE”Å‚Ì‚İ‚Å•K—v‚Èƒ`ƒFƒbƒN
-	if(path.IsRoot())return TRUE;	//ƒhƒ‰ƒCƒuƒ‹[ƒg‚È‚çì¬‚µ‚È‚¢(‚Å‚«‚È‚¢)
+	//UNICODEç‰ˆã®ã¿ã§å¿…è¦ãªãƒã‚§ãƒƒã‚¯
+	if(path.IsRoot())return TRUE;	//ãƒ‰ãƒ©ã‚¤ãƒ–ãƒ«ãƒ¼ãƒˆãªã‚‰ä½œæˆã—ãªã„(ã§ããªã„)
 
 	int nRet=SHCreateDirectoryEx(NULL,path,NULL);
 	switch(nRet){
 	case ERROR_SUCCESS:
 		return TRUE;
 	case ERROR_ALREADY_EXISTS:
-		if(path.IsDirectory())return TRUE;	//‚·‚Å‚ÉƒfƒBƒŒƒNƒgƒŠ‚ª‚ ‚éê‡‚¾‚¯ƒZ[ƒt‚Æ‚·‚é
+		if(path.IsDirectory())return TRUE;	//ã™ã§ã«ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒã‚ã‚‹å ´åˆã ã‘ã‚»ãƒ¼ãƒ•ã¨ã™ã‚‹
 		else return FALSE;
 	default:
 		return FALSE;
@@ -416,50 +409,50 @@ BOOL UtilMakeSureDirectoryPathExists(LPCTSTR _lpszPath)
 #endif//defined(_UNICODE)||defined(UNICODE)
 }
 
-//TCHARƒtƒ@ƒCƒ‹–¼‚ğSJISƒtƒ@ƒCƒ‹–¼‚É•ÏŠ·‚·‚éB³‚µ‚­•ÏŠ·‚Å‚«‚È‚¢ê‡‚É‚ÍAfalse‚ğ•Ô‚·
+//TCHARãƒ•ã‚¡ã‚¤ãƒ«åã‚’SJISãƒ•ã‚¡ã‚¤ãƒ«åã«å¤‰æ›ã™ã‚‹ã€‚æ­£ã—ãå¤‰æ›ã§ããªã„å ´åˆã«ã¯ã€falseã‚’è¿”ã™
 bool UtilPathT2A(CStringA &strA,LPCTSTR lpPath,bool bOnDisk)
 {
 #if defined(_UNICODE)||defined(UNICODE)
 	CStringA strTemp(lpPath);
 	if(strTemp==lpPath){
-		//Œ‡‘¹–³‚­•ÏŠ·‚Å‚«‚½
+		//æ¬ æç„¡ãå¤‰æ›ã§ããŸ
 		strA=strTemp;
 		return true;
 	}
 	if(!bOnDisk){
-		//ƒfƒBƒXƒNã‚Ìƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢‚Ì‚ÅAˆÈ~‚Ì‘ã‘Öè’i‚Í·‚ê‚È‚¢
+		//ãƒ‡ã‚£ã‚¹ã‚¯ä¸Šã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„ã®ã§ã€ä»¥é™ã®ä»£æ›¿æ‰‹æ®µã¯åŸ·ã‚Œãªã„
 		return false;
 	}
-	//ƒVƒ‡[ƒgƒtƒ@ƒCƒ‹–¼‚Å‘ã—p‚µ‚Ä‚İ‚é
+	//ã‚·ãƒ§ãƒ¼ãƒˆãƒ•ã‚¡ã‚¤ãƒ«åã§ä»£ç”¨ã—ã¦ã¿ã‚‹
 	WCHAR szPath[_MAX_PATH+1];
 	GetShortPathNameW(lpPath,szPath,_MAX_PATH+1);
 
-	//Œ‡‘¹–³‚­SJIS‚É•ÏŠ·‚Å‚«‚Ä‚¢‚é‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN‚·‚é
+	//æ¬ æç„¡ãSJISã«å¤‰æ›ã§ãã¦ã„ã‚‹ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 	return UtilPathT2A(strA,szPath,false);
 
 #else//defined(_UNICODE)||defined(UNICODE)
-	//SJIS‚»‚Ì‚Ü‚Ü
+	//SJISãã®ã¾ã¾
 	strA=lpPath;
 	return true;
 #endif//defined(_UNICODE)||defined(UNICODE)
 }
 
-//ƒpƒX‚É‹¤’Ê‚·‚é•”•ª‚ğæ‚èo‚µAŠî’êƒpƒX‚ğæ‚èo‚·
+//ãƒ‘ã‚¹ã«å…±é€šã™ã‚‹éƒ¨åˆ†ã‚’å–ã‚Šå‡ºã—ã€åŸºåº•ãƒ‘ã‚¹ã‚’å–ã‚Šå‡ºã™
 void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
 {
 	bool bFirst=true;
-	size_t ElementsCount=0;	//‹¤’Ê€–Ú”
-	std::vector<CString> PathElements;	//‹¤’Ê€–Ú‚Ì”z—ñ
+	size_t ElementsCount=0;	//å…±é€šé …ç›®æ•°
+	std::vector<CString> PathElements;	//å…±é€šé …ç›®ã®é…åˆ—
 
 	std::list<CString>::const_iterator ite,end;
 	end=PathList.end();
 	for(ite=PathList.begin();ite!=end;++ite){
 		if(!bFirst&&0==ElementsCount){
-			//Šù‚É‹¤’Ê‚µ‚Ä‚¢‚é—v‘f‚ª”z—ñ“à‚É‘¶İ‚µ‚È‚¢‚Æ‚«
+			//æ—¢ã«å…±é€šã—ã¦ã„ã‚‹è¦ç´ ãŒé…åˆ—å†…ã«å­˜åœ¨ã—ãªã„ã¨ã
 			break;
 		}
 
-		//eƒfƒBƒŒƒNƒgƒŠ‚Ü‚Å‚ÅI‚í‚éƒpƒX‚ğì‚é
+		//è¦ªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¾ã§ã§çµ‚ã‚ã‚‹ãƒ‘ã‚¹ã‚’ä½œã‚‹
 		TCHAR Path[_MAX_PATH+1];
 		FILL_ZERO(Path);
 		_tcsncpy_s(Path,*ite,_MAX_PATH);
@@ -467,24 +460,24 @@ void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
 		PathAddBackslash(Path);
 
 		CString buffer;
-		size_t iElement=0;	//ˆê’v‚µ‚Ä‚¢‚éƒpƒX‚Ì—v‘f‚ÌƒJƒEƒ“ƒg—p(ƒ‹[ƒv“à)
-		size_t iIndex=0;	//ƒpƒX“à‚Ì•¶š‚ÌƒCƒ“ƒfƒbƒNƒX
+		size_t iElement=0;	//ä¸€è‡´ã—ã¦ã„ã‚‹ãƒ‘ã‚¹ã®è¦ç´ ã®ã‚«ã‚¦ãƒ³ãƒˆç”¨(ãƒ«ãƒ¼ãƒ—å†…)
+		size_t iIndex=0;	//ãƒ‘ã‚¹å†…ã®æ–‡å­—ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 		const size_t Length=_tcslen(Path);
 		for(;iIndex<Length;iIndex++){
 #if !defined(_UNICODE)&&!defined(UNICODE)
 			if(_MBC_SINGLE==_mbsbtype((const unsigned char *)Path,iIndex)){
 #endif
 				if(_T('\\')==Path[iIndex]){
-					//‰‰ñ‚È‚çƒpƒX‚ğ‹l‚ß‚İA‚»‚¤‚Å‚È‚¯‚ê‚Î—v‘f‚ğ”äŠr
+					//åˆå›ãªã‚‰ãƒ‘ã‚¹ã‚’è©°ã‚è¾¼ã¿ã€ãã†ã§ãªã‘ã‚Œã°è¦ç´ ã‚’æ¯”è¼ƒ
 					if(bFirst){
 						PathElements.push_back(buffer);
 						buffer.Empty();
 						continue;
 					}
 					else{
-						//‘å•¶š¬•¶š‹æ•Ê‚¹‚¸‚É”äŠr
+						//å¤§æ–‡å­—å°æ–‡å­—åŒºåˆ¥ã›ãšã«æ¯”è¼ƒ
 						if(0==PathElements[iElement].CompareNoCase(buffer)){
-							//—v‘f‚ª‹¤’Ê‚µ‚Ä‚¢‚é‚¤‚¿‚ÍOK
+							//è¦ç´ ãŒå…±é€šã—ã¦ã„ã‚‹ã†ã¡ã¯OK
 							iElement++;
 							if(iElement>=ElementsCount)break;
 							else{
@@ -494,8 +487,8 @@ void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
 						}
 						else
 						{
-							//—v‘f”‚ğŒ¸‚ç‚·
-							//0ƒIƒŠƒWƒ“‚Ìi”Ô–Ú‚Å•sˆê’v‚È‚ç‚ÎiŒÂ‚Ü‚Åˆê’v
+							//è¦ç´ æ•°ã‚’æ¸›ã‚‰ã™
+							//0ã‚ªãƒªã‚¸ãƒ³ã®iç•ªç›®ã§ä¸ä¸€è‡´ãªã‚‰ã°iå€‹ã¾ã§ä¸€è‡´
 							ElementsCount=iElement;
 							break;
 						}
@@ -511,7 +504,7 @@ void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
 			ElementsCount=PathElements.size();
 		}
 		else if(ElementsCount>iElement){
-			//ƒpƒX‚ª’Z‚©‚Á‚½ê‡A•sˆê’v‚È‚µ‚Ì‚Ü‚Üˆ—‚ªI—¹‚·‚éê‡‚ª‚ ‚é
+			//ãƒ‘ã‚¹ãŒçŸ­ã‹ã£ãŸå ´åˆã€ä¸ä¸€è‡´ãªã—ã®ã¾ã¾å‡¦ç†ãŒçµ‚äº†ã™ã‚‹å ´åˆãŒã‚ã‚‹
 			ElementsCount=iElement;
 		}
 	}
@@ -526,7 +519,7 @@ void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
 
 const LPCTSTR c_InvalidPathChar=_T("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\"<>|:*?\\/\b\t");
 
-//ƒtƒ@ƒCƒ‹–¼‚Ég‚¦‚È‚¢•¶š—ñ‚ğ’u‚«Š·‚¦‚é
+//ãƒ•ã‚¡ã‚¤ãƒ«åã«ä½¿ãˆãªã„æ–‡å­—åˆ—ã‚’ç½®ãæ›ãˆã‚‹
 void UtilFixFileName(CString &rStr,LPCTSTR lpszOrg,TCHAR replace)
 {
 	rStr=lpszOrg;
@@ -544,7 +537,7 @@ LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr)
 			break;
 		}
 	}
-	//I’[
+	//çµ‚ç«¯
 	return lpStr;
 }
 
@@ -553,25 +546,25 @@ bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,boo
 	LPCTSTR lpEnd=UtilPathNextSeparator(lpStart);
 	if(bSkipMeaningless){
 		while(true){
-			//---–³Œø‚ÈƒpƒX‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN
-			//2•¶šˆÈã‚ÌƒpƒX‚Í—LŒø‚Å‚ ‚é‚ÆŒ©‚È‚·
+			//---ç„¡åŠ¹ãªãƒ‘ã‚¹ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯
+			//2æ–‡å­—ä»¥ä¸Šã®ãƒ‘ã‚¹ã¯æœ‰åŠ¹ã§ã‚ã‚‹ã¨è¦‹ãªã™
 
 			int length=lpEnd-lpStart;
 			if(length==1){
 				if(_T('.')==*lpStart || _T('\\')==*lpStart || _T('/')==*lpStart){
-					//–³Œø‚ÈƒpƒX
-					//Ÿ‚Ì—v‘f‚ğæ‚Á‚Ä‚­‚é
+					//ç„¡åŠ¹ãªãƒ‘ã‚¹
+					//æ¬¡ã®è¦ç´ ã‚’å–ã£ã¦ãã‚‹
 					lpStart=lpEnd;
 					lpEnd=UtilPathNextSeparator(lpStart);
 				}else{
 					break;
 				}
 			}else if(length==0){
-				if(_T('\0')==*lpEnd){	//‚à‚¤ƒpƒX‚Ì—v‘f‚ª‚È‚­‚È‚Á‚½‚Ì‚Å•Ô‚é
+				if(_T('\0')==*lpEnd){	//ã‚‚ã†ãƒ‘ã‚¹ã®è¦ç´ ãŒãªããªã£ãŸã®ã§è¿”ã‚‹
 					return false;
 				}else{
 					lpEnd++;
-					//Ÿ‚Ì—v‘f‚ğæ‚Á‚Ä‚­‚é
+					//æ¬¡ã®è¦ç´ ã‚’å–ã£ã¦ãã‚‹
 					lpStart=lpEnd;
 					lpEnd=UtilPathNextSeparator(lpStart);
 				}
@@ -585,7 +578,7 @@ bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,boo
 	return true;
 }
 
-//Path‚ª'/'‚à‚µ‚­‚Í'\\'‚ÅI‚í‚Á‚Ä‚¢‚é‚È‚çtrue
+//PathãŒ'/'ã‚‚ã—ãã¯'\\'ã§çµ‚ã‚ã£ã¦ã„ã‚‹ãªã‚‰true
 bool UtilPathEndWithSeparator(LPCTSTR lpPath)
 {
 	UINT length=_tcslen(lpPath);
@@ -593,22 +586,22 @@ bool UtilPathEndWithSeparator(LPCTSTR lpPath)
 	return (_T('/')==c || _T('\\')==c);
 }
 
-//ƒpƒX–¼‚ÌÅŒã‚Ì•”•ª‚ğæ‚èo‚·
+//ãƒ‘ã‚¹åã®æœ€å¾Œã®éƒ¨åˆ†ã‚’å–ã‚Šå‡ºã™
 void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath)
 {
 	CString strPath=lpPath;
 	strPath.Replace(_T('\\'),_T('/'));
 	while(true){
 		int idx=strPath.ReverseFind(_T('/'));
-		if(-1==idx){	//‚»‚Ì‚Ü‚Ü
+		if(-1==idx){	//ãã®ã¾ã¾
 			strSection=lpPath;
 			return;
 		}else if(idx<strPath.GetLength()-1){
-			//––”ö‚ªSeparator‚Å‚Í‚È‚¢
+			//æœ«å°¾ãŒSeparatorã§ã¯ãªã„
 			strSection=lpPath+idx+1;
 			return;
-		}else{	//––”ö‚ªSeparator
-			//––”ö‚ğí‚é->í‚Á‚½Œã‚Íƒ‹[ƒv‚ÅÄ“xˆ—;strSection‚É‚ÍSeparator•t‚«‚Ì•¶š‚ªŠi”[‚³‚ê‚é
+		}else{	//æœ«å°¾ãŒSeparator
+			//æœ«å°¾ã‚’å‰Šã‚‹->å‰Šã£ãŸå¾Œã¯ãƒ«ãƒ¼ãƒ—ã§å†åº¦å‡¦ç†;strSectionã«ã¯Separatorä»˜ãã®æ–‡å­—ãŒæ ¼ç´ã•ã‚Œã‚‹
 			strPath.Delete(idx,strPath.GetLength());
 		}
 	}
@@ -616,7 +609,7 @@ void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath)
 
 
 
-//ƒtƒ@ƒCƒ‹‚ğŠÛ‚²‚ÆA‚à‚µ‚­‚Íw’è‚³‚ê‚½‚Æ‚±‚ë‚Ü‚Å“Ç‚İ‚İ(-1‚ÅŠÛ‚²‚Æ)
+//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸¸ã”ã¨ã€ã‚‚ã—ãã¯æŒ‡å®šã•ã‚ŒãŸã¨ã“ã‚ã¾ã§èª­ã¿è¾¼ã¿(-1ã§ä¸¸ã”ã¨)
 bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
 {
 	ASSERT(lpFile);
@@ -627,19 +620,19 @@ bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
 	HANDLE hFile=CreateFile(lpFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(INVALID_HANDLE_VALUE==hFile)return false;
 
-	//4GB‰z‚¦ƒtƒ@ƒCƒ‹‚Íˆµ‚í‚È‚¢‚Ì‚Åƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾‚Í‚±‚ê‚Å‚æ‚¢
+	//4GBè¶Šãˆãƒ•ã‚¡ã‚¤ãƒ«ã¯æ‰±ã‚ãªã„ã®ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—ã¯ã“ã‚Œã§ã‚ˆã„
 	DWORD dwSize=GetFileSize(hFile,NULL);
 
-	//“Ç‚İ‚İ”ÍˆÍ
-	if(-1!=dwLimit){	//”ÍˆÍ§ŒÀ‚³‚ê‚Ä‚¢‚é
+	//èª­ã¿è¾¼ã¿ç¯„å›²
+	if(-1!=dwLimit){	//ç¯„å›²åˆ¶é™ã•ã‚Œã¦ã„ã‚‹
 		dwSize=min(dwSize,dwLimit);
 	}
 
 	cReadBuffer.resize(dwSize);
 	DWORD dwRead,dwIndex=0;
-	//---“Ç‚İ‚İ
+	//---èª­ã¿è¾¼ã¿
 	while(true){
-		const DWORD BLOCKSIZE=1024*10;	//10KB‚²‚Æ‚É“Ç‚İ‚İ
+		const DWORD BLOCKSIZE=1024*10;	//10KBã”ã¨ã«èª­ã¿è¾¼ã¿
 		DWORD readsize=BLOCKSIZE;
 		if(dwIndex+readsize>dwSize){
 			readsize=dwSize-dwIndex;
@@ -649,7 +642,7 @@ bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
 			return false;
 		}
 		dwIndex+=dwRead;
-		if(readsize<BLOCKSIZE)break;	//“Ç‚İØ‚Á‚½
+		if(readsize<BLOCKSIZE)break;	//èª­ã¿åˆ‡ã£ãŸ
 	}
 	CloseHandle(hFile);
 
@@ -662,14 +655,14 @@ bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
 
 bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
 {
-	//sƒoƒbƒtƒ@‚ğƒNƒŠƒA
+	//è¡Œãƒãƒƒãƒ•ã‚¡ã‚’ã‚¯ãƒªã‚¢
 	container.data.clear();
 	container.lines.clear();
 
-	//---“Ç‚İ‚İ
+	//---èª­ã¿è¾¼ã¿
 	std::vector<BYTE> cReadBuffer;
 	if(!UtilReadFile(lpFile,cReadBuffer))return false;
-	//I’[‚Ì0’Ç‰Á
+	//çµ‚ç«¯ã®0è¿½åŠ 
 	cReadBuffer.resize(cReadBuffer.size()+2);
 	cReadBuffer[cReadBuffer.size()-1];
 	cReadBuffer[cReadBuffer.size()-2];
@@ -686,10 +679,10 @@ bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
 	const LPCWSTR end=p+container.data.size();
 	LPCWSTR lastHead=p;
 
-	//‰ğß
+	//è§£é‡ˆ
 	for(;p!=end && *p!=L'\0';p++){
 		if(*p==_T('\n')||*p==_T('\r')){
-			if(lastHead<p){	//‹ós‚Í”ò‚Î‚·
+			if(lastHead<p){	//ç©ºè¡Œã¯é£›ã°ã™
 				container.lines.push_back(lastHead);
 			}
 			lastHead=p+1;

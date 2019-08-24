@@ -1,63 +1,56 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
-//“‡ƒA[ƒJƒCƒoƒvƒƒWƒFƒNƒgd—l‚Ìƒtƒ@ƒCƒ‹‘®«
-#define FA_RDONLY		0x001			// ‘‚«‚İ•ÛŒì‘®«
-#define FA_HIDDEN		0x002			// ‰B‚µ‘®«
-#define FA_SYSTEM		0x004			// ƒVƒXƒeƒ€‘®«
-#define FA_LABEL		0x008			// ƒ{ƒŠƒ…[ƒ€Eƒ‰ƒxƒ‹
-#define FA_DIREC		0x010			// ƒfƒBƒŒƒNƒgƒŠ
-#define FA_ARCH			0x020			// ƒA[ƒJƒCƒu‘®«
-#define FA_ENCRYPTED	0x040			// ƒpƒXƒ[ƒh•ÛŒì‚³‚ê‚½ƒtƒ@ƒCƒ‹
-#define FA_UNKNOWN		0x100			// •s–¾‚È‘®«(LhaForge‚Ì“Æ©Šg’£)
+//çµ±åˆã‚¢ãƒ¼ã‚«ã‚¤ãƒãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆä»•æ§˜ã®ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§
+#define FA_RDONLY		0x001			// æ›¸ãè¾¼ã¿ä¿è­·å±æ€§
+#define FA_HIDDEN		0x002			// éš ã—å±æ€§
+#define FA_SYSTEM		0x004			// ã‚·ã‚¹ãƒ†ãƒ å±æ€§
+#define FA_LABEL		0x008			// ãƒœãƒªãƒ¥ãƒ¼ãƒ ãƒ»ãƒ©ãƒ™ãƒ«
+#define FA_DIREC		0x010			// ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+#define FA_ARCH			0x020			// ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å±æ€§
+#define FA_ENCRYPTED	0x040			// ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ä¿è­·ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«
+#define FA_UNKNOWN		0x100			// ä¸æ˜ãªå±æ€§(LhaForgeã®ç‹¬è‡ªæ‹¡å¼µ)
 
 
-//ƒtƒHƒ‹ƒ_‚Ì¯•Ê•¶š—ñ(Šg’£q)
+//ãƒ•ã‚©ãƒ«ãƒ€ã®è­˜åˆ¥æ–‡å­—åˆ—(æ‹¡å¼µå­)
 const LPCTSTR FOLDER_EXTENSION_STRING=_T("***");
 
-//ƒA[ƒJƒCƒu’†‚Ìƒtƒ@ƒCƒ‹/ƒtƒHƒ‹ƒ_‚ÌƒGƒ“ƒgƒŠ‚ğ•Û
-struct ARCHIVE_ENTRY_INFO{	//ƒtƒ@ƒCƒ‹ƒAƒCƒeƒ€î•ñ•Û
+//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«/ãƒ•ã‚©ãƒ«ãƒ€ã®ã‚¨ãƒ³ãƒˆãƒªã‚’ä¿æŒ
+struct ARCHIVE_ENTRY_INFO{	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¤ãƒ†ãƒ æƒ…å ±ä¿æŒ
 	virtual ~ARCHIVE_ENTRY_INFO(){}
 
-	CString			strFullPath;	//Ši”[‚³‚ê‚½‚Æ‚«‚Ì–¼‘O
-	CString			strExt;			//ƒtƒ@ƒCƒ‹Šg’£q
-	int				nAttribute;		//‘®«;©•ª‚ªƒtƒHƒ‹ƒ_‚©‚Ç‚¤‚©‚È‚Ç‚Ìî•ñ
-	CString			strMethod;		//ˆ³kƒƒ\ƒbƒh
-	WORD			wRatio;			//ˆ³k—¦
+	CString			strFullPath;	//æ ¼ç´ã•ã‚ŒãŸã¨ãã®åå‰
+	CString			strExt;			//ãƒ•ã‚¡ã‚¤ãƒ«æ‹¡å¼µå­
+	int				nAttribute;		//å±æ€§;è‡ªåˆ†ãŒãƒ•ã‚©ãƒ«ãƒ€ã‹ã©ã†ã‹ãªã©ã®æƒ…å ±
+	CString			strMethod;		//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰
+	WORD			wRatio;			//åœ§ç¸®ç‡
 	DWORD			dwCRC;			//CRC
-	LARGE_INTEGER	llOriginalSize;		//Ši”[ƒtƒ@ƒCƒ‹‚Ìˆ³k‘O‚ÌƒTƒCƒY(ƒfƒBƒŒƒNƒgƒŠ‚È‚çA’†‚É“ü‚Á‚Ä‚¢‚éƒtƒ@ƒCƒ‹ƒTƒCƒY‚Ì‡Œv)
-	LARGE_INTEGER	llCompressedSize;	//Ši”[ƒtƒ@ƒCƒ‹‚Ìˆ³kŒã‚ÌƒTƒCƒY(ƒfƒBƒŒƒNƒgƒŠ‚È‚çA’†‚É“ü‚Á‚Ä‚¢‚éƒtƒ@ƒCƒ‹ƒTƒCƒY‚Ì‡Œv)
-	FILETIME		cFileTime;		//Ši”[ƒtƒ@ƒCƒ‹ÅIXV“ú
+	LARGE_INTEGER	llOriginalSize;		//æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®åœ§ç¸®å‰ã®ã‚µã‚¤ã‚º(ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã‚‰ã€ä¸­ã«å…¥ã£ã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã®åˆè¨ˆ)
+	LARGE_INTEGER	llCompressedSize;	//æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®åœ§ç¸®å¾Œã®ã‚µã‚¤ã‚º(ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã‚‰ã€ä¸­ã«å…¥ã£ã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã®åˆè¨ˆ)
+	FILETIME		cFileTime;		//æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«æœ€çµ‚æ›´æ–°æ—¥æ™‚
 
 	bool bSafe;
 };
@@ -69,7 +62,7 @@ struct ARCHIVE_ENTRY_INFO_TREE:public ARCHIVE_ENTRY_INFO{
 	DICT					childrenDict;
 	ARCHIVE_ENTRY_INFO_TREE	*lpParent;
 	CString					strTitle;
-	bool					bDir;			//ƒfƒBƒŒƒNƒgƒŠ‚©‚Ç‚¤‚©
+	bool					bDir;			//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‹ã©ã†ã‹
 
 	size_t GetNumChildren()const{return childrenArray.size();}
 	ARCHIVE_ENTRY_INFO_TREE* GetChild(size_t idx)const;
@@ -91,9 +84,9 @@ struct ARCHIVE_ENTRY_INFO_TREE:public ARCHIVE_ENTRY_INFO{
 		bSafe=true;
 	}
 
-	//©•ªˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğ—ñ‹“
+	//è‡ªåˆ†ä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åˆ—æŒ™
 	void EnumFiles(std::list<CString> &rFileList)const;
 };
 
-//ƒ‹[ƒg‚©‚ç‚İ‚Ä©•ª‚Ü‚Å‚ÌƒpƒX‚ğæ“¾
+//ãƒ«ãƒ¼ãƒˆã‹ã‚‰ã¿ã¦è‡ªåˆ†ã¾ã§ã®ãƒ‘ã‚¹ã‚’å–å¾—
 void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,CString &strPath);

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ArchiverCode/arc_interface.h"
@@ -46,46 +39,46 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 		OutputDir=_T("");
 	}
 
-	//‰ğ“€ŒãƒtƒHƒ‹ƒ_‚ğŠJ‚­‚©‚Ç‚¤‚©
+	//è§£å‡å¾Œãƒ•ã‚©ãƒ«ãƒ€ã‚’é–‹ãã‹ã©ã†ã‹
 	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
 
-	//‰ğ“€ƒtƒHƒ‹ƒ_‚ğ“ñd‚É‚·‚é‚©‚Ç‚¤‚©
+	//è§£å‡æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’äºŒé‡ã«ã™ã‚‹ã‹ã©ã†ã‹
 	CreateDir=(CREATE_OUTPUT_DIR)Config.Data[_T("CreateDir")].GetNParam(0,CREATE_OUTPUT_DIR_LAST_ITEM,CREATE_OUTPUT_DIR_ALWAYS);
 
-	//‰ğ“€ƒtƒ@ƒCƒ‹‚ğŠm”F‚¹‚¸‚Éã‘‚«‚·‚é‚©‚Ç‚¤‚©
+	//è§£å‡æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç¢ºèªã›ãšã«ä¸Šæ›¸ãã™ã‚‹ã‹ã©ã†ã‹
 	ForceOverwrite=Config.Data[_T("ForceOverwrite")].GetNParam(FALSE);
 
-	//‰ğ“€ƒtƒHƒ‹ƒ_–¼‚©‚ç”š‚Æ‹L†‚ğíœ‚·‚é
+	//è§£å‡æ™‚ãƒ•ã‚©ãƒ«ãƒ€åã‹ã‚‰æ•°å­—ã¨è¨˜å·ã‚’å‰Šé™¤ã™ã‚‹
 	RemoveSymbolAndNumber=Config.Data[_T("RemoveSymbolAndNumber")].GetNParam(FALSE);
 
-	//‰ğ“€ƒtƒ@ƒCƒ‹EƒtƒHƒ‹ƒ_‚ªˆê‚Â‚¾‚¯‚ÌƒtƒHƒ‹ƒ_‚ğì‚ç‚È‚¢
+	//è§£å‡æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ãƒ»ãƒ•ã‚©ãƒ«ãƒ€ãŒä¸€ã¤ã ã‘ã®æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œã‚‰ãªã„
 	CreateNoFolderIfSingleFileOnly=Config.Data[_T("CreateNoFolderIfSingleFileOnly")].GetNParam(FALSE);
 
-	//“¯‚É‰ğ“€‚·‚éƒtƒ@ƒCƒ‹”‚ğ§ŒÀ‚·‚é
+	//åŒæ™‚ã«è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã‚’åˆ¶é™ã™ã‚‹
 	LimitExtractFileCount=Config.Data[_T("LimitExtractFileCount")].GetNParam(FALSE);
 
-	//“¯‚É‰ğ“€‚·‚éƒtƒ@ƒCƒ‹”‚ÌãŒÀ
+	//åŒæ™‚ã«è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã®ä¸Šé™
 	MaxExtractFileCount=max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
 
-	//³í‚É‰ğ“€‚Å‚«‚½ˆ³kƒtƒ@ƒCƒ‹‚ğíœ
+	//æ­£å¸¸ã«è§£å‡ã§ããŸåœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤
 	DeleteArchiveAfterExtract=Config.Data[_T("DeleteArchiveAfterExtract")].GetNParam(FALSE);
 
-	//‰ğ“€Œãƒtƒ@ƒCƒ‹‚ğ‚²‚İ” ‚ÉˆÚ“®
+	//è§£å‡å¾Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã”ã¿ç®±ã«ç§»å‹•
 	MoveToRecycleBin=Config.Data[_T("MoveToRecycleBin")].GetNParam(TRUE);
 
-	//Šm”F‚¹‚¸‚ÉƒA[ƒJƒCƒu‚ğíœ/‚²‚İ” ‚ÉˆÚ“®
+	//ç¢ºèªã›ãšã«ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚’å‰Šé™¤/ã”ã¿ç®±ã«ç§»å‹•
 	DeleteNoConfirm=Config.Data[_T("DeleteNoConfirm")].GetNParam(FALSE);
 
-	//‰ğ“€ƒGƒ‰[‚ğŒŸ’m‚Å‚«‚È‚¢ê‡‚àíœ
+	//è§£å‡ã‚¨ãƒ©ãƒ¼ã‚’æ¤œçŸ¥ã§ããªã„å ´åˆã‚‚å‰Šé™¤
 	ForceDelete=Config.Data[_T("ForceDelete")].GetNParam(FALSE);
 
-	//ƒ}ƒ‹ƒ`ƒ{ƒŠƒ…[ƒ€‚àíœ
+	//ãƒãƒ«ãƒãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚‚å‰Šé™¤
 	DeleteMultiVolume=Config.Data[_T("DeleteMultiVolume")].GetNParam(FALSE);
 
-	//ƒpƒXƒ[ƒh“ü—Í‰ñ”‚ğÅ¬‚É‚·‚é‚È‚çTRUE
+	//ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å…¥åŠ›å›æ•°ã‚’æœ€å°ã«ã™ã‚‹ãªã‚‰TRUE
 	MinimumPasswordRequest=Config.Data[_T("MinimumPasswordRequest")].GetNParam(FALSE);
 
-	//‰ğ“€‘ÎÛ‚©‚çŠO‚·Šg’£q
+	//è§£å‡å¯¾è±¡ã‹ã‚‰å¤–ã™æ‹¡å¼µå­
 	if(has_key(Config.Data,_T("DenyExt"))){
 		DenyExt=Config.Data[_T("DenyExt")];
 	}else{
@@ -99,46 +92,46 @@ void CConfigExtract::store(CONFIG_SECTION &Config)const
 
 	Config.Data[_T("OutputDir")]=OutputDir;
 
-	//‰ğ“€ŒãƒtƒHƒ‹ƒ_‚ğŠJ‚­‚©‚Ç‚¤‚©
+	//è§£å‡å¾Œãƒ•ã‚©ãƒ«ãƒ€ã‚’é–‹ãã‹ã©ã†ã‹
 	Config.Data[_T("OpenFolder")]=OpenDir;
 
-	//‰ğ“€ƒtƒHƒ‹ƒ_‚ğ“ñd‚É‚·‚é‚©‚Ç‚¤‚©
+	//è§£å‡æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’äºŒé‡ã«ã™ã‚‹ã‹ã©ã†ã‹
 	Config.Data[_T("CreateDir")]=CreateDir;
 
-	//‰ğ“€ƒtƒ@ƒCƒ‹‚ğŠm”F‚¹‚¸‚Éã‘‚«‚·‚é‚©‚Ç‚¤‚©
+	//è§£å‡æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç¢ºèªã›ãšã«ä¸Šæ›¸ãã™ã‚‹ã‹ã©ã†ã‹
 	Config.Data[_T("ForceOverwrite")]=ForceOverwrite;
 
-	//‰ğ“€ƒtƒHƒ‹ƒ_–¼‚©‚ç”š‚Æ‹L†‚ğíœ‚·‚é
+	//è§£å‡æ™‚ãƒ•ã‚©ãƒ«ãƒ€åã‹ã‚‰æ•°å­—ã¨è¨˜å·ã‚’å‰Šé™¤ã™ã‚‹
 	Config.Data[_T("RemoveSymbolAndNumber")]=RemoveSymbolAndNumber;
 
-	//‰ğ“€ƒtƒ@ƒCƒ‹EƒtƒHƒ‹ƒ_‚ªˆê‚Â‚¾‚¯‚ÌƒtƒHƒ‹ƒ_‚ğì‚ç‚È‚¢
+	//è§£å‡æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ãƒ»ãƒ•ã‚©ãƒ«ãƒ€ãŒä¸€ã¤ã ã‘ã®æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œã‚‰ãªã„
 	Config.Data[_T("CreateNoFolderIfSingleFileOnly")]=CreateNoFolderIfSingleFileOnly;
 
-	//“¯‚É‰ğ“€‚·‚éƒtƒ@ƒCƒ‹”‚ğ§ŒÀ‚·‚é
+	//åŒæ™‚ã«è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã‚’åˆ¶é™ã™ã‚‹
 	Config.Data[_T("LimitExtractFileCount")]=LimitExtractFileCount;
 
-	//“¯‚É‰ğ“€‚·‚éƒtƒ@ƒCƒ‹”‚ÌãŒÀ
+	//åŒæ™‚ã«è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã®ä¸Šé™
 	Config.Data[_T("MaxExtractFileCount")]=MaxExtractFileCount;
 
-	//³í‚É‰ğ“€‚Å‚«‚½ˆ³kƒtƒ@ƒCƒ‹‚ğíœ
+	//æ­£å¸¸ã«è§£å‡ã§ããŸåœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤
 	Config.Data[_T("DeleteArchiveAfterExtract")]=DeleteArchiveAfterExtract;
 
-	//‰ğ“€Œãƒtƒ@ƒCƒ‹‚ğ‚²‚İ” ‚ÉˆÚ“®
+	//è§£å‡å¾Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã”ã¿ç®±ã«ç§»å‹•
 	Config.Data[_T("MoveToRecycleBin")]=MoveToRecycleBin;
 
-	//Šm”F‚¹‚¸‚ÉƒA[ƒJƒCƒu‚ğíœ/‚²‚İ” ‚ÉˆÚ“®
+	//ç¢ºèªã›ãšã«ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‚’å‰Šé™¤/ã”ã¿ç®±ã«ç§»å‹•
 	Config.Data[_T("DeleteNoConfirm")]=DeleteNoConfirm;
 
-	//‰ğ“€ƒGƒ‰[‚ğŒŸ’m‚Å‚«‚È‚¢ê‡‚àíœ
+	//è§£å‡ã‚¨ãƒ©ãƒ¼ã‚’æ¤œçŸ¥ã§ããªã„å ´åˆã‚‚å‰Šé™¤
 	Config.Data[_T("ForceDelete")]=ForceDelete;
 
-	//ƒ}ƒ‹ƒ`ƒ{ƒŠƒ…[ƒ€‚àíœ
+	//ãƒãƒ«ãƒãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚‚å‰Šé™¤
 	Config.Data[_T("DeleteMultiVolume")]=DeleteMultiVolume;
 
-	//ƒpƒXƒ[ƒh“ü—Í‰ñ”‚ğÅ¬‚É‚·‚é‚È‚çTRUE
+	//ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å…¥åŠ›å›æ•°ã‚’æœ€å°ã«ã™ã‚‹ãªã‚‰TRUE
 	Config.Data[_T("MinimumPasswordRequest")]=MinimumPasswordRequest;
 
-	//‰ğ“€‘ÎÛ‚©‚çŠO‚·Šg’£q
+	//è§£å‡å¯¾è±¡ã‹ã‚‰å¤–ã™æ‹¡å¼µå­
 	Config.Data[_T("DenyExt")]=DenyExt;
 }
 

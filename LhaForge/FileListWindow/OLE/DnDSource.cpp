@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "DnDSource.h"
@@ -37,7 +30,7 @@
 
 HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,ARCHIVE_ENTRY_INFO_TREE *lpBase,LPCTSTR lpszOutputDir,CString &strLog)
 {
-	//DnDëŒè€ÉtÉ@ÉCÉãñºÇéÊìæ
+	//DnDÂØæË±°„Éï„Ç°„Ç§„É´Âêç„ÇíÂèñÂæó
 	std::list<stdString> filesList;
 	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();items.end()!=ite;++ite){
 		CString strNodePath;
@@ -48,13 +41,13 @@ HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_E
 		strPath.RemoveBackslash();
 		filesList.push_back((LPCTSTR)strPath);
 	}
-	//èdï°çÌèú
+	//ÈáçË§áÂâäÈô§
 	filesList.sort();
 	filesList.unique();
 
 	HRESULT hRes=E_OUTOFMEMORY;
 	strLog=_T("E_OUTOFMEMORY");
-	//CDataObjectÇçÏê¨ÇµCF_HDROPå`éÆÇÃÉfÅ[É^Çìoò^	
+	//CDataObject„Çí‰ΩúÊàê„ÅóCF_HDROPÂΩ¢Âºè„ÅÆ„Éá„Éº„Çø„ÇíÁôªÈå≤	
 	CDataObject *lpDataObject = new CDataObject();
 	if(lpDataObject->allocate(2)){
 		HANDLE hObject = NULL;
@@ -66,30 +59,30 @@ HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_E
 
 			CreateMedium(CF_HDROP, hObject, &fmt, &medium);
 
-			if(lpDataObject->SetData(&fmt, &medium, TRUE) == S_OK){	//âï˙ÇÕDataObjectÇ…îCÇπÇÈ
+			if(lpDataObject->SetData(&fmt, &medium, TRUE) == S_OK){	//Ëß£Êîæ„ÅØDataObject„Å´‰ªª„Åõ„Çã
 				CDropSource *lpDropSource = new CDropSource(rModel,items,lpszOutputDir,lpBase);
 				ret = ::DoDragDrop(lpDataObject, lpDropSource, DROPEFFECT_COPY,&dwEffect);
 				if(DRAGDROP_S_DROP!=ret){
 					if(ret==DRAGDROP_S_CANCEL){
-						//âìÄÉLÉÉÉìÉZÉãÇÃâ¬î\ê´Ç™Ç†ÇÈ
+						//Ëß£Âáç„Ç≠„É£„É≥„Çª„É´„ÅÆÂèØËÉΩÊÄß„Åå„ÅÇ„Çã
 						if(!lpDropSource->_bRet){
-							//âìÄÇÕÉLÉÉÉìÉZÉãÇ≥ÇÍÇΩ
+							//Ëß£Âáç„ÅØ„Ç≠„É£„É≥„Çª„É´„Åï„Çå„Åü
 							strLog=lpDropSource->_strLog;
 							hRes=E_ABORT;
 						}else{
-							//DnDÇªÇÃÇ‡ÇÃÇÉLÉÉÉìÉZÉãÇµÇΩÇÃÇ≈ÉGÉâÅ[Ç≈ÇÕÇ»Ç¢
+							//DnD„Åù„ÅÆ„ÇÇ„ÅÆ„Çí„Ç≠„É£„É≥„Çª„É´„Åó„Åü„ÅÆ„Åß„Ç®„É©„Éº„Åß„ÅØ„Å™„ÅÑ
 							hRes=S_OK;
 						}
 					}else{
 						hRes=E_FAIL;
 						strLog=CString(MAKEINTRESOURCE(IDS_ERROR_DND_FAILED));
-						//DnDÇ…é∏îs
+						//DnD„Å´Â§±Êïó
 					}
 				}else hRes=S_OK;
 				if(lpDropSource)lpDropSource->Release();
 
-				//äÆóπÇµÇΩÇÃÇ≈çÌèú
-				//:Windows98Ç≈ÇÕÇ±ÇÃÉ^ÉCÉ~ÉìÉOÇ≈çÌèúÇ∑ÇÈÇ∆ÉtÉ@ÉCÉãÇå©Ç¬ÇØÇÁÇÍÇ∏Ç…ÉGÉâÅ[Ç∆Ç»ÇÈ
+				//ÂÆå‰∫Ü„Åó„Åü„ÅÆ„ÅßÂâäÈô§
+				//:Windows98„Åß„ÅØ„Åì„ÅÆ„Çø„Ç§„Éü„É≥„Ç∞„ÅßÂâäÈô§„Åô„Çã„Å®„Éï„Ç°„Ç§„É´„ÇíË¶ã„Å§„Åë„Çâ„Çå„Åö„Å´„Ç®„É©„Éº„Å®„Å™„Çã
 				//UtilDeleteDir(OutputDir);
 			}
 		}
@@ -129,13 +122,13 @@ HDROP COLEDnDSource::CreateHDrop(const std::list<stdString> &filesList)
 		return NULL;
 	}
 
-	// ç\ë¢ëÃÇÃå„ÇÎÇ…ÉtÉ@ÉCÉãñºÇÃÉäÉXÉgÇÉRÉsÅ[Ç∑ÇÈÅB(ÉtÉ@ÉCÉãñº\0ÉtÉ@ÉCÉãñº\0ÉtÉ@ÉCÉãñº\0\0\0)
+	// ÊßãÈÄ†‰Ωì„ÅÆÂæå„Çç„Å´„Éï„Ç°„Ç§„É´Âêç„ÅÆ„É™„Çπ„Éà„Çí„Ç≥„Éî„Éº„Åô„Çã„ÄÇ(„Éï„Ç°„Ç§„É´Âêç\0„Éï„Ç°„Ç§„É´Âêç\0„Éï„Ç°„Ç§„É´Âêç\0\0\0)
 	LPDROPFILES lpDropFile = (LPDROPFILES)::GlobalLock(hDrop);
-	lpDropFile->pFiles = sizeof(DROPFILES);		// ÉtÉ@ÉCÉãñºÇÃÉäÉXÉgÇ‹Ç≈ÇÃÉIÉtÉZÉbÉg
+	lpDropFile->pFiles = sizeof(DROPFILES);		// „Éï„Ç°„Ç§„É´Âêç„ÅÆ„É™„Çπ„Éà„Åæ„Åß„ÅÆ„Ç™„Éï„Çª„ÉÉ„Éà
 	lpDropFile->pt.x = 0;
 	lpDropFile->pt.y = 0;
 	lpDropFile->fNC = FALSE;
-	lpDropFile->fWide = TRUE;					// ÉèÉCÉhÉLÉÉÉâÇÃèÍçáÇÕ TRUE
+	lpDropFile->fWide = TRUE;					// „ÉØ„Ç§„Éâ„Ç≠„É£„É©„ÅÆÂ†¥Âêà„ÅØ TRUE
 
 	wchar_t *buf = (wchar_t *)(&lpDropFile[1]);
 	UtilMakeFilterString(strFiles.c_str(),buf,bufsize/sizeof(strFiles[0]));

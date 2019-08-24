@@ -1,36 +1,29 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
 
-//‹¤’Ê‚µ‚Äinclude‚·‚×‚«ƒtƒ@ƒCƒ‹‚ª‚·‚×‚Ä‘‚¢‚Ä‚ ‚é
-//ƒvƒŠƒRƒ“ƒpƒCƒ‹ƒhƒwƒbƒ_
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
+//å…±é€šã—ã¦includeã™ã¹ããƒ•ã‚¡ã‚¤ãƒ«ãŒã™ã¹ã¦æ›¸ã„ã¦ã‚ã‚‹
+//ãƒ—ãƒªã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ãƒ‰ãƒ˜ãƒƒãƒ€
 
 #pragma once
 //#define WINVER 0x0500
@@ -41,7 +34,7 @@
 #define _ATL_NO_MSIMG
 #define _ATL_NO_OPENGL
 #define ATL_NO_LEAN_AND_MEAN
-#define _ATL_USE_CSTRING_FLOAT	//CString‚ÌFormat‚Å¬”‚ªo—Í‚Å‚«‚é‚æ‚¤‚É‚È‚é
+#define _ATL_USE_CSTRING_FLOAT	//CStringã®Formatã§å°æ•°ãŒå‡ºåŠ›ã§ãã‚‹ã‚ˆã†ã«ãªã‚‹
 
 //#if (defined _DEBUG)||(defined DEBUG)
 //#define _CRTDBG_MAP_ALLOC
@@ -50,12 +43,12 @@
 //#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 //#endif
 
-#define _USE_32BIT_TIME_T	//time_t‚ğ32bit‚É‚·‚é
+#define _USE_32BIT_TIME_T	//time_tã‚’32bitã«ã™ã‚‹
 
-#define _STLP_USE_NEWALLOC	//STL‚Å•W€‚ÌƒAƒƒP[ƒ^‚ğg‚¤
-//#define _STLP_LEAKS_PEDANTIC	//STL‚Ìƒƒ‚ƒŠƒŠ[ƒN‚ğÁ‚·
+#define _STLP_USE_NEWALLOC	//STLã§æ¨™æº–ã®ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ã‚’ä½¿ã†
+//#define _STLP_LEAKS_PEDANTIC	//STLã®ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ã‚¯ã‚’æ¶ˆã™
 
-//ATL‚ÌCString‚ğg‚¤
+//ATLã®CStringã‚’ä½¿ã†
 //(cf.)http://hp.vector.co.jp/authors/VA022575/c/cstring.html
 //#define _WTL_FORWARD_DECLARE_CSTRING
 //#define _ATL_NO_AUTOMATIC_NAMESPACE
@@ -75,7 +68,7 @@ extern CAppModule _Module;
 #include <atldlgs.h>
 #include <atlctrls.h>
 #include <atlframe.h>
-#include <atlddx.h>		// DDX/DDV‚ğg—p‚·‚é‚½‚ß
+#include <atlddx.h>		// DDX/DDVã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚
 #if !defined(_UNICODE)&&!defined(UNICODE)
  #include <mbctype.h>
 #endif//!defined(_UNICODE)&&!defined(UNICODE)
@@ -96,14 +89,14 @@ extern CAppModule _Module;
 
 #include <comcat.h>
 
-#include <atlddx.h>		// DDX/DDV‚ğg—p‚·‚é‚½‚ß
+#include <atlddx.h>		// DDX/DDVã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚
 #include <atlscrl.h>
 #include <Lmcons.h>
 #include <atlpath.h>
 #include <locale.h>
 #include <cctype>
 
-#define WM_USER_WM_SIZE		(WM_APP+1)	//WM_SIZE‚ª—ˆ‚½‚çAPostMessage‚³‚ê‚é;ƒ_ƒCƒAƒƒOƒŠƒTƒCƒY‚ÌƒgƒŠƒbƒN‚Ì‚½‚ß
+#define WM_USER_WM_SIZE		(WM_APP+1)	//WM_SIZEãŒæ¥ãŸã‚‰ã€PostMessageã•ã‚Œã‚‹;ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºã®ãƒˆãƒªãƒƒã‚¯ã®ãŸã‚
 
 #if defined _M_IX86
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -115,14 +108,14 @@ extern CAppModule _Module;
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-//•¶šŒ^‚Ì’è‹`
+//æ–‡å­—å‹ã®å®šç¾©
 #if defined(_UNICODE)||defined(UNICODE)
 typedef std::wstring stdString;
 #else//defined(_UNICODE)||defined(UNICODE)
 typedef std::string stdString;
 #endif//defined(_UNICODE)||defined(UNICODE)
 
-//ŒÂ”‚ğ”‚¦‚éƒ}ƒNƒ
+//å€‹æ•°ã‚’æ•°ãˆã‚‹ãƒã‚¯ãƒ­
 #define COUNTOF(x) (sizeof(x)/sizeof(x[0]))
 
 #define FILL_ZERO(x)	::ZeroMemory(&x,sizeof(x))
@@ -132,7 +125,7 @@ typedef std::string stdString;
 void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #if defined(_DEBUG) || defined(DEBUG)
 #define TRACE UtilDebugTrace
-#else	// Release‚Ì‚Æ‚«
+#else	// Releaseã®ã¨ã
 #define TRACE
 #endif	//_DEBUG
 
@@ -140,7 +133,7 @@ void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #define ENUM_COUNT_AND_LASTITEM(x) x##_ITEM_COUNT,x##_LAST_ITEM=(x##_ITEM_COUNT-1)
 
 
-//ƒGƒ‰[’è”
+//ã‚¨ãƒ©ãƒ¼å®šæ•°
 //NOTE:10100 00000000000 0000000000000000b = 0xA0000000
 //NOTE:00100 00000000000 0000000000000000b = 0x20000000
 #define E_LF_CANNOT_DECIDE_FILENAME		((HRESULT)(0xA0000000|0x001))

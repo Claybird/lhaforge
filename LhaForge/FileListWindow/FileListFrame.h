@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../resource.h"
@@ -35,7 +28,7 @@
 #include "../ConfigCode/ConfigManager.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"
-#include "OLE/DropTarget.h"	//ƒhƒƒbƒvó‚¯“ü‚ê,IDropCommunicator
+#include "OLE/DropTarget.h"	//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œ,IDropCommunicator
 
 const LPCTSTR LHAFORGE_FILE_LIST_CLASS=_T("LhaForgeFileList");
 
@@ -47,28 +40,28 @@ class CFileListFrame:
 	public CUpdateUI<CFileListFrame>,
 	public CMessageFilter,
 	public CIdleHandler,
-	public IDropCommunicator//©‘O‚ÌDnDƒCƒ“ƒ^[ƒtƒFƒCƒX
+	public IDropCommunicator//è‡ªå‰ã®DnDã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
 {
 protected:
-	//bool m_bFirst;		//‰‰ñ•\¦
-	//DLL_ID m_idForceDLL;	//‹­§g—p‚·‚éDLL
+	//bool m_bFirst;		//åˆå›è¡¨ç¤º
+	//DLL_ID m_idForceDLL;	//å¼·åˆ¶ä½¿ç”¨ã™ã‚‹DLL
 
 	CConfigManager		&mr_Config;
 
 	//----------------------
-	// ƒEƒBƒ“ƒhƒEŠÖŒWƒƒ“ƒo
+	// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦é–¢ä¿‚ãƒ¡ãƒ³ãƒ
 	//----------------------
-	CAccelerator			m_AccelEx;		//’Ç‰Á‚ÌƒEƒBƒ“ƒhƒEƒAƒNƒZƒ‰ƒŒ[ƒ^:[ESC]‚ÅƒEƒBƒ“ƒhƒE‚ğ•Â‚¶‚éA“™‚ğ’S“–
+	CAccelerator			m_AccelEx;		//è¿½åŠ ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿:[ESC]ã§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹ã€ç­‰ã‚’æ‹…å½“
 	CFileListTabClient		m_TabClientWnd;
-	CMultiPaneStatusBarCtrl m_StatusBar;		//ƒXƒe[ƒ^ƒXƒo[
-	CRect					m_WindowRect;		// ƒEƒBƒ“ƒhƒEƒTƒCƒY
+	CMultiPaneStatusBarCtrl m_StatusBar;		//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼
+	CRect					m_WindowRect;		// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º
 
-	static CString			ms_strPropString;	// SetProp‚Ì¯•Ê–¼:LhaForge‚ÌƒEƒBƒ“ƒhƒE‚Å‚ ‚é–‚ğ¦‚·
+	static CString			ms_strPropString;	// SetPropã®è­˜åˆ¥å:LhaForgeã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ã‚ã‚‹äº‹ã‚’ç¤ºã™
 protected:
-	//---ƒhƒƒbƒvó‚¯“ü‚ê
-	CDropTarget m_DropTarget;	//ƒhƒƒbƒvó‚¯“ü‚ê‚Ég‚¤
+	//---ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œ
+	CDropTarget m_DropTarget;	//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œã«ä½¿ã†
 	void EnableDropTarget(bool bEnable);
-	//IDropCommunicator‚ÌÀ‘•
+	//IDropCommunicatorã®å®Ÿè£…
 	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
 	HRESULT DragLeave();
 	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
@@ -88,14 +81,14 @@ protected:
 
 	HMENU GetUserAppMenuHandle();
 	HMENU GetSendToMenuHandle();
-	//ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì—ñ‹“
+	//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆ—æŒ™
 	static BOOL CALLBACK EnumFileListWindowProc(HWND hWnd,LPARAM lParam);
-	//Å‰‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì—ñ‹“
+	//æœ€åˆã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆ—æŒ™
 	static BOOL CALLBACK EnumFirstFileListWindowProc(HWND hWnd,LPARAM lParam);
-	//ƒEƒBƒ“ƒhƒEƒvƒƒpƒeƒB‚Ì—ñ‹“
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®åˆ—æŒ™
 	static BOOL CALLBACK EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hData,ULONG_PTR dwData);
 
-	//ƒc[ƒ‹ƒo[ì¬
+	//ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ä½œæˆ
 	HWND CreateToolBarCtrl(HWND hWndParent, UINT nResourceID,HIMAGELIST hImageList);
 protected:
 	//---internal window functions
@@ -110,7 +103,7 @@ protected:
 	void OnListViewStyle(UINT,int,HWND);
 	void OnRefresh(UINT,int,HWND);
 	LRESULT OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled);
-	void OnListMode(UINT,int,HWND);	//•\¦ƒ‚[ƒh•ÏX
+	void OnListMode(UINT,int,HWND);	//è¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰å¤‰æ›´
 	void OnOpenArchive(UINT,int,HWND);
 	void OnCloseTab(UINT,int,HWND);
 	void OnNextTab(UINT,int,HWND);
@@ -125,7 +118,7 @@ protected:
 	LRESULT OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 protected:
-	// ƒƒbƒZ[ƒWƒ}ƒbƒv
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒƒãƒ—
 	BEGIN_MSG_MAP_EX(CFileListFrame)
 		MSG_WM_CREATE(OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY,OnDestroy)

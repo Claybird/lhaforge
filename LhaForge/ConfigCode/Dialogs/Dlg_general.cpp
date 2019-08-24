@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_general.h"
@@ -35,16 +28,16 @@
 
 
 //==============
-// ˆê”Êİ’è‰æ–Ê
+// ä¸€èˆ¬è¨­å®šç”»é¢
 //==============
 LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//----------------------------------------
-	// o—ÍæƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Ì‘Îˆ
+	// å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã®å¯¾å‡¦
 	//----------------------------------------
 	Radio_LostDir[LOSTDIR_ASK_TO_CREATE]=GetDlgItem(IDC_RADIO_LOSTDIR_ASK_TO_CREATE);
 	Radio_LostDir[LOSTDIR_FORCE_CREATE]=GetDlgItem(IDC_RADIO_LOSTDIR_FORCE_CREATE);
@@ -53,7 +46,7 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Radio_LostDir[m_Config.OnDirNotFound].SetCheck(1);
 
 	//-------------------------------------
-	// ˆ³k/‰ğ“€ˆ—‚ÌƒƒO•\¦‚Ìƒ^ƒCƒ~ƒ“ƒO
+	// åœ§ç¸®/è§£å‡å‡¦ç†ã®ãƒ­ã‚°è¡¨ç¤ºã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°
 	//-------------------------------------
 	Radio_LogView[LOGVIEW_ON_ERROR]=GetDlgItem(IDC_RADIO_VIEW_LOG_ON_ERROR);
 	Radio_LogView[LOGVIEW_ALWAYS]=GetDlgItem(IDC_RADIO_VIEW_LOG_ALWAYS);
@@ -62,18 +55,18 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Radio_LogView[m_Config.LogViewEvent].SetCheck(1);
 
 	//----------------------
-	// o—Íæ‚ğŠJ‚­ƒtƒ@ƒCƒ‰
+	// å‡ºåŠ›å…ˆã‚’é–‹ããƒ•ã‚¡ã‚¤ãƒ©
 	//----------------------
 	Check_UseFiler=GetDlgItem(IDC_CHECK_USE_FILER);
 	Check_UseFiler.SetCheck(0!=m_Config.Filer.UseFiler);
 
-	//ƒtƒ@ƒCƒ‰‚ÌƒpƒX
+	//ãƒ•ã‚¡ã‚¤ãƒ©ã®ãƒ‘ã‚¹
 	Edit_FilerPath=GetDlgItem(IDC_EDIT_FILER_PATH);
 	Edit_FilerPath.SetLimitText(_MAX_PATH);
 	Edit_FilerPath.SetWindowText(m_Config.Filer.FilerPath);
 	Edit_FilerPath.EnableWindow(Check_UseFiler.GetCheck());
 
-	//ƒpƒ‰ƒ[ƒ^
+	//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Edit_FilerParam=GetDlgItem(IDC_EDIT_FILER_PARAM);
 	Edit_FilerParam.SetLimitText(_MAX_PATH);
 	Edit_FilerParam.SetWindowText(m_Config.Filer.Param);
@@ -82,11 +75,11 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Button_BrowseFiler=GetDlgItem(IDC_BUTTON_BROWSE_FILER);
 	Button_BrowseFiler.EnableWindow(Check_UseFiler.GetCheck());
 
-	//ˆêƒtƒHƒ‹ƒ_
+	//ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€
 	Edit_TempPath=GetDlgItem(IDC_EDIT_TEMP_PATH);
 	Edit_TempPath.SetLimitText(_MAX_PATH);
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	return TRUE;
@@ -95,17 +88,17 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgGeneral::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
 	}
 
 	//----------------------------------------
-	// o—ÍæƒtƒHƒ‹ƒ_‚ªŒ©‚Â‚©‚ç‚È‚¢ê‡‚Ì‘Îˆ
+	// å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ãŒè¦‹ã¤ã‹ã‚‰ãªã„å ´åˆã®å¯¾å‡¦
 	//----------------------------------------
 	for(int Type=0;Type<COUNTOF(Radio_LostDir);Type++){
 		if(Radio_LostDir[Type].GetCheck()){
@@ -115,7 +108,7 @@ LRESULT CConfigDlgGeneral::OnApply()
 	}
 
 	//-------------------------------------
-	// ˆ³k/‰ğ“€ˆ—‚ÌƒƒO•\¦‚Ìƒ^ƒCƒ~ƒ“ƒO
+	// åœ§ç¸®/è§£å‡å‡¦ç†ã®ãƒ­ã‚°è¡¨ç¤ºã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°
 	//-------------------------------------
 	for(int Type=0;Type<COUNTOF(Radio_LogView);Type++){
 		if(Radio_LogView[Type].GetCheck()){
@@ -125,7 +118,7 @@ LRESULT CConfigDlgGeneral::OnApply()
 	}
 
 	//----------------------
-	// o—Íæ‚ğŠJ‚­ƒtƒ@ƒCƒ‰
+	// å‡ºåŠ›å…ˆã‚’é–‹ããƒ•ã‚¡ã‚¤ãƒ©
 	//----------------------
 	m_Config.Filer.UseFiler=Check_UseFiler.GetCheck();
 	Edit_FilerPath.GetWindowText(m_Config.Filer.FilerPath);
@@ -173,7 +166,7 @@ LRESULT CConfigDlgGeneral::OnBrowseTempPath(WORD wNotifyCode, WORD wID, HWND hWn
 		if(IDOK==dlg.DoModal()){
 			Edit_TempPath.SetWindowText(dlg.GetFolderPath());
 		}else{
-			//ƒLƒƒƒ“ƒZƒ‹
+			//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 			return E_ABORT;
 		}
 	}

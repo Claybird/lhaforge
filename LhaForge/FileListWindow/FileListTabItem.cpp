@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "FileListTabItem.h"
@@ -45,21 +38,21 @@ CFileListTabItem::CFileListTabItem(CConfigManager &rMan):
 
 bool CFileListTabItem::CreateListView(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow &ConfFLW)
 {
-	//--ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒEì¬
+	//--ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆ
 	ListView.Create(hParentWnd,CWindow::rcDefault,NULL,WS_CHILD | /*WS_VISIBLE | */WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_OWNERDATA|LVS_AUTOARRANGE|LVS_SHAREIMAGELISTS|LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
-	//ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹‚ğ‹³‚¦‚é
+	//ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’æ•™ãˆã‚‹
 	ListView.SetFrameWnd(hFrameWnd);
 
-	//ƒXƒ^ƒCƒ‹İ’è
+	//ã‚¹ã‚¿ã‚¤ãƒ«è¨­å®š
 	ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES|LVS_EX_HEADERDRAGDROP);
 
-	//ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€’Ç‰Á
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ è¿½åŠ 
 	if(!ListView.SetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray))return false;
 
-	//•\¦İ’è
+	//è¡¨ç¤ºè¨­å®š
 	UpdateFileListConfig(ConfFLW);
 
-	//ƒ\[ƒgİ’è
+	//ã‚½ãƒ¼ãƒˆè¨­å®š
 	if(ConfFLW.StoreSetting){
 		Model.SetSortKeyType(ConfFLW.SortColumn);
 		Model.SetSortMode(0!=ConfFLW.SortDescending);
@@ -68,7 +61,7 @@ bool CFileListTabItem::CreateListView(HWND hParentWnd,HWND hFrameWnd,const CConf
 		Model.SetSortMode(true);
 	}
 
-	//ƒŠƒXƒgƒrƒ…[ƒXƒ^ƒCƒ‹‚Ìİ’è
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚¹ã‚¿ã‚¤ãƒ«ã®è¨­å®š
 	if(ConfFLW.StoreSetting){
 		DWORD Style=ListView.GetWindowLong(GWL_STYLE);
 		Style&=~(LVS_ICON|LVS_REPORT|LVS_SMALLICON|LVS_LIST);
@@ -83,7 +76,7 @@ bool CFileListTabItem::CreateListView(HWND hParentWnd,HWND hFrameWnd,const CConf
 
 void CFileListTabItem::UpdateFileListConfig(const CConfigFileListWindow& ConfFLW)
 {
-	//•\¦İ’è
+	//è¡¨ç¤ºè¨­å®š
 	ListView.SetDisplayFileSizeInByte(BOOL2bool(ConfFLW.DisplayFileSizeInByte));
 	ListView.SetDisplayPathOnly(BOOL2bool(ConfFLW.DisplayPathOnly));
 	ListView.Invalidate();
@@ -91,10 +84,10 @@ void CFileListTabItem::UpdateFileListConfig(const CConfigFileListWindow& ConfFLW
 
 bool CFileListTabItem::CreateTreeView(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow &ConfFLW)
 {
-	//ƒcƒŠ[ƒrƒ…[ì¬
+	//ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ä½œæˆ
 	TreeView.Create(hParentWnd,CWindow::rcDefault,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN|TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS,WS_EX_CLIENTEDGE);
 
-	//ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹‚ğ‹³‚¦‚é
+	//ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«ã‚’æ•™ãˆã‚‹
 	TreeView.SetFrameWnd(hFrameWnd);
 	return true;
 }
@@ -103,21 +96,21 @@ bool CFileListTabItem::CreateTabItem(HWND hParentWnd,HWND hFrameWnd,const CConfi
 {
 	m_hFrameWnd=hFrameWnd;
 
-	// ƒXƒvƒŠƒbƒ^ƒEƒBƒ“ƒhƒE‚ğì¬
+	// ã‚¹ãƒ—ãƒªãƒƒã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆ
 	CRect rc;
 	GetClientRect(hParentWnd,rc);
 	Splitter.Create(hParentWnd,rc,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-	// ƒXƒvƒŠƒbƒ^ƒEƒBƒ“ƒhƒEŠg’£ƒXƒ^ƒCƒ‹‚ğİ’è
+	// ã‚¹ãƒ—ãƒªãƒƒã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦æ‹¡å¼µã‚¹ã‚¿ã‚¤ãƒ«ã‚’è¨­å®š
 	Splitter.SetSplitterExtendedStyle(0);
 
-	//---ƒcƒŠ[ƒrƒ…[
+	//---ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼
 	if(!CreateTreeView(Splitter,hFrameWnd,ConfFLW))return false;
-	//---ƒŠƒXƒgƒrƒ…[
+	//---ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
 	if(!CreateListView(Splitter,hFrameWnd,ConfFLW))return false;
 
-	//•ªŠ„ƒEƒBƒ“ƒhƒE‚Éİ’è
+	//åˆ†å‰²ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«è¨­å®š
 	Splitter.SetSplitterPanes(TreeView,ListView);
-	// •ªŠ„ƒo[‚ÌˆÊ’u‚ğİ’è
+	// åˆ†å‰²ãƒãƒ¼ã®ä½ç½®ã‚’è¨­å®š
 	Splitter.SetSplitterPos(ConfFLW.TreeWidth);
 	Splitter.UpdateSplitterLayout();
 	return true;
@@ -126,14 +119,14 @@ bool CFileListTabItem::CreateTabItem(HWND hParentWnd,HWND hFrameWnd,const CConfi
 
 HRESULT CFileListTabItem::OpenArchive(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr)
 {
-	//---‰ğÍ
+	//---è§£æ
 	idForceDLL=forceID;
 	HRESULT hr=Model.OpenArchiveFile(lpszArc,forceID,flMode,strErr,lpHandler);
 
 	if(SUCCEEDED(hr)){
-		//ƒcƒŠ[\’z
+		//ãƒ„ãƒªãƒ¼æ§‹ç¯‰
 		TreeView.ConstructTree();
-		while(UtilDoMessageLoop())continue;	//‚±‚±‚ÅƒƒbƒZ[ƒWƒ‹[ƒv‚ğ‰ñ‚³‚È‚¢‚ÆƒcƒŠ[ƒAƒCƒeƒ€‚ª—LŒø‚É‚È‚ç‚È‚¢
+		while(UtilDoMessageLoop())continue;	//ã“ã“ã§ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã‚’å›ã•ãªã„ã¨ãƒ„ãƒªãƒ¼ã‚¢ã‚¤ãƒ†ãƒ ãŒæœ‰åŠ¹ã«ãªã‚‰ãªã„
 		if(ConfFLW.ExpandTree)TreeView.ExpandTree();
 	}
 	return hr;
@@ -160,13 +153,13 @@ void CFileListTabItem::ShowWindow(int nCmdShow)
 
 void CFileListTabItem::OnActivated()
 {
-	//---ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚ğƒCƒxƒ“ƒgƒŠƒXƒi‚É“o˜^
+	//---ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠã«ç™»éŒ²
 	Model.addEventListener(m_hFrameWnd);
 }
 
 void CFileListTabItem::OnDeactivated()
 {
-	//---ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚ğƒCƒxƒ“ƒgƒŠƒXƒi‚©‚ç‰ğœ
+	//---ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ã‚¤ãƒ™ãƒ³ãƒˆãƒªã‚¹ãƒŠã‹ã‚‰è§£é™¤
 	Model.removeEventListener(m_hFrameWnd);
 }
 
@@ -190,8 +183,8 @@ void CFileListTabItem::SetSortColumn(int iCol)
 void CFileListTabItem::ShowTreeView(bool bShow)
 {
 	if(bShow){
-		Splitter.SetSinglePaneMode(SPLIT_PANE_NONE);    // —¼ƒyƒCƒ“•\¦
+		Splitter.SetSinglePaneMode(SPLIT_PANE_NONE);    // ä¸¡ãƒšã‚¤ãƒ³è¡¨ç¤º
 	}else{
-		Splitter.SetSinglePaneMode(SPLIT_PANE_RIGHT);   // ‰EƒyƒCƒ“‚Ì‚İ•\¦
+		Splitter.SetSinglePaneMode(SPLIT_PANE_RIGHT);   // å³ãƒšã‚¤ãƒ³ã®ã¿è¡¨ç¤º
 	}
 }

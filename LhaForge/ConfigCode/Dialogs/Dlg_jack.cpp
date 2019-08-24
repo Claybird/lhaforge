@@ -1,48 +1,41 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_jack.h"
 
 //=================
-// JACKˆê”Êİ’è‰æ–Ê
+// JACKä¸€èˆ¬è¨­å®šç”»é¢
 //=================
 LRESULT CConfigDlgJACK::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//--------------------------------------------
-	// ƒ{ƒŠƒ…[ƒ€ƒTƒCƒY‚ğˆ³k‚Éw’è‚·‚é‚©‚Ç‚¤‚©
+	// ãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚µã‚¤ã‚ºã‚’åœ§ç¸®æ™‚ã«æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	//--------------------------------------------
 	Radio_SpecifyVolumeSize[0]=GetDlgItem(IDC_RADIO_JACK_VOLUME_SIZE_USE_STORED_SETTING);
 	Radio_SpecifyVolumeSize[1]=GetDlgItem(IDC_RADIO_JACK_VOLUME_SIZE_SPECIFY_AT_COMPRESS);
@@ -53,9 +46,9 @@ LRESULT CConfigDlgJACK::OnInitDialog(HWND hWnd, LPARAM lParam)
 		Radio_SpecifyVolumeSize[0].SetCheck(1);
 	}
 	::EnableWindow(GetDlgItem(IDC_EDIT_JACK_VOLUME_SIZE),!m_Config.SpecifyVolumeSizeAtCompress);
-	//ƒ{ƒŠƒ…[ƒ€ƒTƒCƒY
+	//ãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚µã‚¤ã‚º
 	VolumeSize=m_Config.VolumeSize;
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	return TRUE;
@@ -64,15 +57,15 @@ LRESULT CConfigDlgJACK::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgJACK::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//--------------------------------------------
-	// ƒ{ƒŠƒ…[ƒ€ƒTƒCƒY‚ğˆ³k‚Éw’è‚·‚é‚©‚Ç‚¤‚©
+	// ãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚µã‚¤ã‚ºã‚’åœ§ç¸®æ™‚ã«æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	//--------------------------------------------
 	m_Config.SpecifyVolumeSizeAtCompress=Radio_SpecifyVolumeSize[1].GetCheck();
 
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;

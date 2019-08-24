@@ -1,37 +1,30 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
-//LhaForge‚Å‚Ìƒtƒ@ƒCƒ‹ˆ—‚Ì•û–@
+//LhaForgeã§ã®ãƒ•ã‚¡ã‚¤ãƒ«å‡¦ç†ã®æ–¹æ³•
 enum PROCESS_MODE{
 	PROCESS_INVALID,
 	PROCESS_CONFIGURE,
@@ -49,19 +42,19 @@ enum DLL_ID;
 enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
 enum LFPROCESS_PRIORITY;
-//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‰ğß‚ÌŒ‹‰Ê‚ğŠi”[‚·‚é‚½‚ß‚ÌƒNƒ‰ƒX
+//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³è§£é‡ˆã®çµæœã‚’æ ¼ç´ã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹
 class CMDLINEINFO{
 public:
 	CMDLINEINFO();
 	virtual ~CMDLINEINFO(){}
-	std::list<CString> FileList;	//ƒtƒ@ƒCƒ‹–¼ƒŠƒXƒg
-	CString OutputDir;				//o—ÍæƒtƒHƒ‹ƒ_
-	CString OutputFileName;			//o—Íæƒtƒ@ƒCƒ‹–¼
+	std::list<CString> FileList;	//ãƒ•ã‚¡ã‚¤ãƒ«åãƒªã‚¹ãƒˆ
+	CString OutputDir;				//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€
+	CString OutputFileName;			//å‡ºåŠ›å…ˆãƒ•ã‚¡ã‚¤ãƒ«å
 	PARAMETER_TYPE CompressType;
-	int Options;				//ˆ³kƒIƒvƒVƒ‡ƒ“
-	DLL_ID idForceDLL;			//g—p‚ğ‹­§‚·‚éDLL
-	bool bSingleCompression;	//ƒtƒ@ƒCƒ‹‚ğˆê‚Â‚¸‚Âˆ³k‚·‚é‚È‚çtrue
-	CString ConfigPath;			//İ’èƒtƒ@ƒCƒ‹‚ÌƒpƒX
+	int Options;				//åœ§ç¸®ã‚ªãƒ—ã‚·ãƒ§ãƒ³
+	DLL_ID idForceDLL;			//ä½¿ç”¨ã‚’å¼·åˆ¶ã™ã‚‹DLL
+	bool bSingleCompression;	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸€ã¤ãšã¤åœ§ç¸®ã™ã‚‹ãªã‚‰true
+	CString ConfigPath;			//è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹
 	OUTPUT_TO OutputToOverride;
 	CREATE_OUTPUT_DIR CreateDirOverride;
 	int IgnoreTopDirOverride;	//-1:default,0:false,1:true
@@ -72,9 +65,9 @@ public:
 	CString strFormat;
 	CString strLevel;
 
-	CString strSplitSize;	//•ªŠ„ƒ{ƒŠƒ…[ƒ€ƒTƒCƒY
+	CString strSplitSize;	//åˆ†å‰²ãƒœãƒªãƒ¥ãƒ¼ãƒ ã‚µã‚¤ã‚º
 };
 
-//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ğ‰ğß‚·‚é
+//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚’è§£é‡ˆã™ã‚‹
 PROCESS_MODE ParseCommandLine(CConfigManager&,CMDLINEINFO&);
 

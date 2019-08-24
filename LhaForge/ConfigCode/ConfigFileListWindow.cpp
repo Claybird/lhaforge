@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ConfigManager.h"
@@ -40,9 +33,9 @@
 
 void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 {
-	//ÉEÉBÉìÉhÉEÇÃê›íËÇï€ë∂
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆË®≠ÂÆö„Çí‰øùÂ≠ò
 	StoreSetting=Config.Data[_T("StoreSetting")].GetNParam(TRUE);
-	//ÉEÉBÉìÉhÉEÇÃïùÇ∆çÇÇ≥
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆÂπÖ„Å®È´ò„Åï
 	Width=Config.Data[_T("Width")].GetNParam(FILELISTWINDOW_DEFAULT_WIDTH);
 	if(Width<0){
 		Width=FILELISTWINDOW_DEFAULT_WIDTH;
@@ -53,12 +46,12 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 		Height=FILELISTWINDOW_DEFAULT_HEIGHT;
 	}
 
-	//ÉcÉäÅ[ÉrÉÖÅ[ÇÃïù
+	//„ÉÑ„É™„Éº„Éì„É•„Éº„ÅÆÂπÖ
 	TreeWidth=Config.Data[_T("TreeWidth")].GetNParam(FILELISTWINDOW_DEFAULT_TREE_WIDTH);
 	if(TreeWidth<0){
 		TreeWidth=175;
 	}
-	//ÉäÉXÉgÉrÉÖÅ[ÇÃÉXÉ^ÉCÉã(Default:LVS_ICON)
+	//„É™„Çπ„Éà„Éì„É•„Éº„ÅÆ„Çπ„Çø„Ç§„É´(Default:LVS_ICON)
 	ListStyle=Config.Data[_T("ListStyle")].GetNParam(0);
 	if(
 		(LVS_LIST!=ListStyle)&&
@@ -68,48 +61,48 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 	)ListStyle=LVS_ICON;
 
 	//---------
-	//É\Å[ÉgÇÃê›íË
-	//ÉJÉâÉÄ
+	//„ÇΩ„Éº„Éà„ÅÆË®≠ÂÆö
+	//„Ç´„É©„É†
 	SortColumn=Config.Data[_T("SortColumn")].GetNParam(FILEINFO_INVALID,FILEINFO_LAST_ITEM,FILEINFO_FILENAME);
-	//è∏èá/ç~èá
+	//ÊòáÈ†Ü/ÈôçÈ†Ü
 	SortDescending=Config.Data[_T("Descending")].GetNParam(TRUE);
 	//----------
-	//ÉEÉBÉìÉhÉEÇÃà íuÇï€ë∂
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆ‰ΩçÁΩÆ„Çí‰øùÂ≠ò
 	StoreWindowPosition=Config.Data[_T("StoreWindowPosition")].GetNParam(FALSE);
-	//ÉEÉBÉìÉhÉEÇÃç¿ïW
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆÂ∫ßÊ®ô
 	WindowPos_x=Config.Data[_T("x")].GetNParam(0);
 	WindowPos_y=Config.Data[_T("y")].GetNParam(0);
 	//---------
-	//ñ≥à”ñ°Ç»ÉpÉXÇñ≥éãÇ∑ÇÈÇ©
+	//ÁÑ°ÊÑèÂë≥„Å™„Éë„Çπ„ÇíÁÑ°Ë¶ñ„Åô„Çã„Åã
 	IgnoreMeaninglessPath=Config.Data[_T("IgnoreMeaninglessPath")].GetNParam(TRUE);
-	//äKëwç\ë¢Çñ≥éãÇ∑ÇÈÇ©
+	//ÈöéÂ±§ÊßãÈÄ†„ÇíÁÑ°Ë¶ñ„Åô„Çã„Åã
 	FileListMode=(FILELISTMODE)Config.Data[_T("FileListMode")].GetNParam(0,FILELISTMODE_LAST_ITEM,0);
 	//---------
-	//èâÇﬂÇ©ÇÁÉcÉäÅ[ÇìWäJ
+	//Âàù„ÇÅ„Åã„Çâ„ÉÑ„É™„Éº„ÇíÂ±ïÈñã
 	ExpandTree=Config.Data[_T("ExpandTree")].GetNParam(FALSE);
-	//ÉoÉCÉgíPà Ç≈ÉtÉ@ÉCÉãÉTÉCÉYÇï\ãL
+	//„Éê„Ç§„ÉàÂçò‰Ωç„Åß„Éï„Ç°„Ç§„É´„Çµ„Ç§„Ç∫„ÇíË°®Ë®ò
 	DisplayFileSizeInByte = Config.Data[_T("DisplayFileSizeInByte")].GetNParam(FALSE);
-	//ÉtÉãÉpÉXÇÃóìÇ…ÉtÉ@ÉCÉãñºÇï\é¶ÇµÇ»Ç¢
+	//„Éï„É´„Éë„Çπ„ÅÆÊ¨Ñ„Å´„Éï„Ç°„Ç§„É´Âêç„ÇíË°®Á§∫„Åó„Å™„ÅÑ
 	DisplayPathOnly = Config.Data[_T("DisplayPathOnly")].GetNParam(FALSE);
-	//[ESC]ÉLÅ[Ç≈èIóπ
+	//[ESC]„Ç≠„Éº„ÅßÁµÇ‰∫Ü
 	ExitWithEscape=Config.Data[_T("ExitWithEscape")].GetNParam(FALSE);
-	//É^Éuï\é¶ÇégÇÌÇ»Ç¢Ç»ÇÁTRUE
+	//„Çø„ÉñË°®Á§∫„Çí‰Ωø„Çè„Å™„ÅÑ„Å™„ÇâTRUE
 	DisableTab=Config.Data[_T("DisableTab")].GetNParam(FALSE);
-	//ÉEÉBÉìÉhÉEÇàÍÇ¬Ç…ï€Ç¬Ç»ÇÁTRUE
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„Çí‰∏Ä„Å§„Å´‰øù„Å§„Å™„ÇâTRUE
 	KeepSingleInstance=Config.Data[_T("KeepSingleInstance")].GetNParam(FALSE);
 
-	//ÉäÉXÉgÉrÉÖÅ[ÉJÉâÉÄÇÃï¿Ç—èá
+	//„É™„Çπ„Éà„Éì„É•„Éº„Ç´„É©„É†„ÅÆ‰∏¶„Å≥È†Ü
 	{
 		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			//îzóÒèâä˙âª
+			//ÈÖçÂàóÂàùÊúüÂåñ
 			ColumnOrderArray[i]=i;
 		}
 		CString Buffer=Config.Data[_T("ColumnOrder")];
 		if(!Buffer.IsEmpty()){
-			//ÉJÉâÉÄÇÃï¿Ç—èáÇéÊìæ
+			//„Ç´„É©„É†„ÅÆ‰∏¶„Å≥È†Ü„ÇíÂèñÂæó
 			std::vector<int> numArr;
 			UtilStringToIntArray(Buffer, numArr);
-			//ï¿Ç—èáÇÃÉ`ÉFÉbÉN
+			//‰∏¶„Å≥È†Ü„ÅÆ„ÉÅ„Çß„ÉÉ„ÇØ
 			for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
 				int columnPosition = numArr[idx];
 				if(columnPosition<0)columnPosition = -1;
@@ -120,14 +113,14 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 			}
 		}
 	}
-	//ÉäÉXÉgÉrÉÖÅ[ÉJÉâÉÄÇÃïù
+	//„É™„Çπ„Éà„Éì„É•„Éº„Ç´„É©„É†„ÅÆÂπÖ
 	{
-		//îzóÒèâä˙âª
+		//ÈÖçÂàóÂàùÊúüÂåñ
 		for(int i=0;i<COUNTOF(ColumnWidthArray);i++){
 			ColumnWidthArray[i]=-1;
 		}
 		CString Buffer=Config.Data[_T("ColumnWidth")];
-		//ÉJÉâÉÄÇÃïùÇéÊìæ
+		//„Ç´„É©„É†„ÅÆÂπÖ„ÇíÂèñÂæó
 		std::vector<int> numArr;
 		UtilStringToIntArray(Buffer, numArr);
 		for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
@@ -135,93 +128,93 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 		}
 	}
 
-	//ä÷òAïtÇØÇ≈äJÇ≠Çãñâ¬/ãëî€Ç∑ÇÈägí£éq
+	//Èñ¢ÈÄ£‰ªò„Åë„ÅßÈñã„Åè„ÇíË®±ÂèØ/ÊãíÂê¶„Åô„ÇãÊã°ÂºµÂ≠ê
 	if(has_key(Config.Data,_T("OpenAssocAccept"))){
 		OpenAssoc.Accept=Config.Data[_T("OpenAssocAccept")];
 	}else{
 		OpenAssoc.Accept=CString(MAKEINTRESOURCE(IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT));
 	}
 
-	//ãëî€
+	//ÊãíÂê¶
 	if(has_key(Config.Data,_T("OpenAssocDeny"))){
 		OpenAssoc.Deny=Config.Data[_T("OpenAssocDeny")];
 	}else{
 		OpenAssoc.Deny=CString(MAKEINTRESOURCE(IDS_FILELIST_OPENASSOC_DEFAULT_DENY));
 	}
 
-	//%PATHEXT%Ç≈éwíËÇ≥ÇÍÇΩÉtÉ@ÉCÉãÇäJÇ©Ç»Ç¢Ç»ÇÁTRUE
+	//%PATHEXT%„ÅßÊåáÂÆö„Åï„Çå„Åü„Éï„Ç°„Ç§„É´„ÇíÈñã„Åã„Å™„ÅÑ„Å™„ÇâTRUE
 	DenyPathExt=Config.Data[_T("DenyPathExt")].GetNParam(TRUE);
 
-	//ÉJÉXÉ^ÉÄÉcÅ[ÉãÉoÅ[âÊëú
+	//„Ç´„Çπ„Çø„É†„ÉÑ„Éº„É´„Éê„ÉºÁîªÂÉè
 	strCustomToolbarImage=Config.Data[_T("CustomToolbarImage")];
-	//ÉcÅ[ÉãÉoÅ[ï\é¶/îÒï\é¶
+	//„ÉÑ„Éº„É´„Éê„ÉºË°®Á§∫/ÈùûË°®Á§∫
 	ShowToolbar=Config.Data[_T("ShowToolbar")].GetNParam(TRUE);
 
-	//ÉcÉäÅ[ÉrÉÖÅ[ï\é¶/îÒï\é¶
+	//„ÉÑ„É™„Éº„Éì„É•„ÉºË°®Á§∫/ÈùûË°®Á§∫
 	ShowTreeView=Config.Data[_T("ShowTreeView")].GetNParam(TRUE);
 }
 
 void CConfigFileListWindow::loadMenuCommand(CONFIG_SECTION &Config,CMenuCommandItem &mci)
 {
-	//ÅuÉvÉçÉOÉâÉÄÇ≈äJÇ≠ÅvÉÅÉjÉÖÅ[ÇÃÉRÉ}ÉìÉh
-	//ÉvÉçÉOÉâÉÄÇÃÉpÉX
+	//„Äå„Éó„É≠„Ç∞„É©„É†„ÅßÈñã„Åè„Äç„É°„Éã„É•„Éº„ÅÆ„Ç≥„Éû„É≥„Éâ
+	//„Éó„É≠„Ç∞„É©„É†„ÅÆ„Éë„Çπ
 	mci.Path=Config.Data[_T("Path")];
-	//ÉpÉâÉÅÅ[É^
+	//„Éë„É©„É°„Éº„Çø
 	mci.Param=Config.Data[_T("Param")];
-	//ÉfÉBÉåÉNÉgÉä
+	//„Éá„Ç£„É¨„ÇØ„Éà„É™
 	mci.Dir=Config.Data[_T("Dir")];
-	//ÉLÉÉÉvÉVÉáÉì
+	//„Ç≠„É£„Éó„Ç∑„Éß„É≥
 	mci.Caption=Config.Data[_T("Caption")];
 }
 
 
 void CConfigFileListWindow::store(CONFIG_SECTION &Config)const
 {
-	//ÉEÉBÉìÉhÉEÇÃê›íËÇï€ë∂
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆË®≠ÂÆö„Çí‰øùÂ≠ò
 	Config.Data[_T("StoreSetting")]=StoreSetting;
 	if(StoreSetting){
-		//ÉEÉBÉìÉhÉEÇÃïùÇ∆çÇÇ≥
+		//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆÂπÖ„Å®È´ò„Åï
 		Config.Data[_T("Width")]=Width;
 		Config.Data[_T("Height")]=Height;
-		//ÉcÉäÅ[ÉrÉÖÅ[ÇÃïù
+		//„ÉÑ„É™„Éº„Éì„É•„Éº„ÅÆÂπÖ
 		Config.Data[_T("TreeWidth")]=TreeWidth;
-		//ÉäÉXÉgÉrÉÖÅ[ÇÃÉXÉ^ÉCÉã
+		//„É™„Çπ„Éà„Éì„É•„Éº„ÅÆ„Çπ„Çø„Ç§„É´
 		Config.Data[_T("ListStyle")]=ListStyle;
 		//---------
-		//É\Å[ÉgÇÃê›íË
-		//ÉJÉâÉÄ
+		//„ÇΩ„Éº„Éà„ÅÆË®≠ÂÆö
+		//„Ç´„É©„É†
 		Config.Data[_T("SortColumn")]=SortColumn;
-		//è∏èá/ç~èá
+		//ÊòáÈ†Ü/ÈôçÈ†Ü
 		Config.Data[_T("Descending")]=SortDescending;
 	}
 	//----------
-	//ÉEÉBÉìÉhÉEÇÃà íuÇï€ë∂
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆ‰ΩçÁΩÆ„Çí‰øùÂ≠ò
 	Config.Data[_T("StoreWindowPosition")]=StoreWindowPosition;
 	if(StoreWindowPosition){
-		//ÉEÉBÉìÉhÉEÇÃç¿ïW
+		//„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆÂ∫ßÊ®ô
 		Config.Data[_T("x")]=WindowPos_x;
 		Config.Data[_T("y")]=WindowPos_y;
 	}
 	//---------
-	//ñ≥à”ñ°Ç»ÉpÉXÇñ≥éãÇ∑ÇÈÇ©
+	//ÁÑ°ÊÑèÂë≥„Å™„Éë„Çπ„ÇíÁÑ°Ë¶ñ„Åô„Çã„Åã
 	Config.Data[_T("IgnoreMeaninglessPath")]=IgnoreMeaninglessPath;
-	//äKëwç\ë¢Çñ≥éãÇ∑ÇÈÇ©
+	//ÈöéÂ±§ÊßãÈÄ†„ÇíÁÑ°Ë¶ñ„Åô„Çã„Åã
 	Config.Data[_T("FileListMode")]=FileListMode;
 	//---------
-	//èâÇﬂÇ©ÇÁÉcÉäÅ[ÇìWäJ
+	//Âàù„ÇÅ„Åã„Çâ„ÉÑ„É™„Éº„ÇíÂ±ïÈñã
 	Config.Data[_T("ExpandTree")]=ExpandTree;
-	//ÉoÉCÉgíPà Ç≈ÉtÉ@ÉCÉãÉTÉCÉYÇï\ãL
+	//„Éê„Ç§„ÉàÂçò‰Ωç„Åß„Éï„Ç°„Ç§„É´„Çµ„Ç§„Ç∫„ÇíË°®Ë®ò
 	Config.Data[_T("DisplayFileSizeInByte")]=DisplayFileSizeInByte;
-	//ÉtÉãÉpÉXÇÃóìÇ…ÉtÉ@ÉCÉãñºÇï\é¶ÇµÇ»Ç¢
+	//„Éï„É´„Éë„Çπ„ÅÆÊ¨Ñ„Å´„Éï„Ç°„Ç§„É´Âêç„ÇíË°®Á§∫„Åó„Å™„ÅÑ
 	Config.Data[_T("DisplayPathOnly")]=DisplayPathOnly;
-	//[ESC]ÉLÅ[Ç≈èIóπ
+	//[ESC]„Ç≠„Éº„ÅßÁµÇ‰∫Ü
 	Config.Data[_T("ExitWithEscape")]=ExitWithEscape;
-	//É^Éuï\é¶ÇégÇÌÇ»Ç¢Ç»ÇÁTRUE
+	//„Çø„ÉñË°®Á§∫„Çí‰Ωø„Çè„Å™„ÅÑ„Å™„ÇâTRUE
 	Config.Data[_T("DisableTab")]=DisableTab;
-	//ÉEÉBÉìÉhÉEÇàÍÇ¬Ç…ï€Ç¬Ç»ÇÁTRUE
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„Çí‰∏Ä„Å§„Å´‰øù„Å§„Å™„ÇâTRUE
 	Config.Data[_T("KeepSingleInstance")]=KeepSingleInstance;
 
-	//ÉäÉXÉgÉrÉÖÅ[ÉJÉâÉÄÇÃï¿Ç—èá
+	//„É™„Çπ„Éà„Éì„É•„Éº„Ç´„É©„É†„ÅÆ‰∏¶„Å≥È†Ü
 	{
 		CString Buffer;
 		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
@@ -232,7 +225,7 @@ void CConfigFileListWindow::store(CONFIG_SECTION &Config)const
 		}
 		Config.Data[_T("ColumnOrder")]=Buffer;
 	}
-	//ÉäÉXÉgÉrÉÖÅ[ÉJÉâÉÄÇÃïù
+	//„É™„Çπ„Éà„Éì„É•„Éº„Ç´„É©„É†„ÅÆÂπÖ
 	{
 		CString Buffer;
 		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
@@ -243,32 +236,32 @@ void CConfigFileListWindow::store(CONFIG_SECTION &Config)const
 		}
 		Config.Data[_T("ColumnWidth")]=Buffer;
 	}
-	//ä÷òAïtÇØÇ≈äJÇ≠Çãñâ¬/ãëî€Ç∑ÇÈägí£éq
-	//ãñâ¬
+	//Èñ¢ÈÄ£‰ªò„Åë„ÅßÈñã„Åè„ÇíË®±ÂèØ/ÊãíÂê¶„Åô„ÇãÊã°ÂºµÂ≠ê
+	//Ë®±ÂèØ
 	Config.Data[_T("OpenAssocAccept")]=OpenAssoc.Accept;
-	//ãëî€
+	//ÊãíÂê¶
 	Config.Data[_T("OpenAssocDeny")]=OpenAssoc.Deny;
 
-	//%PATHEXT%Ç≈éwíËÇ≥ÇÍÇΩÉtÉ@ÉCÉãÇäJÇ©Ç»Ç¢Ç»ÇÁTRUE
+	//%PATHEXT%„ÅßÊåáÂÆö„Åï„Çå„Åü„Éï„Ç°„Ç§„É´„ÇíÈñã„Åã„Å™„ÅÑ„Å™„ÇâTRUE
 	Config.Data[_T("DenyPathExt")]=DenyPathExt;
 
-	//ÉJÉXÉ^ÉÄÉcÅ[ÉãÉoÅ[âÊëú
+	//„Ç´„Çπ„Çø„É†„ÉÑ„Éº„É´„Éê„ÉºÁîªÂÉè
 	Config.Data[_T("CustomToolbarImage")]=strCustomToolbarImage;
-	//ÉcÅ[ÉãÉoÅ[ï\é¶/îÒï\é¶
+	//„ÉÑ„Éº„É´„Éê„ÉºË°®Á§∫/ÈùûË°®Á§∫
 	Config.Data[_T("ShowToolbar")]=ShowToolbar;
-	//ÉcÉäÅ[ÉrÉÖÅ[ï\é¶/îÒï\é¶
+	//„ÉÑ„É™„Éº„Éì„É•„ÉºË°®Á§∫/ÈùûË°®Á§∫
 	Config.Data[_T("ShowTreeView")]=ShowTreeView;
 }
 
 void CConfigFileListWindow::storeMenuCommand(CONFIG_SECTION &Config,const CMenuCommandItem &mci)const
 {
-	//ÉvÉçÉOÉâÉÄÇÃÉpÉX
+	//„Éó„É≠„Ç∞„É©„É†„ÅÆ„Éë„Çπ
 	Config.Data[_T("Path")]=mci.Path;
-	//ÉpÉâÉÅÅ[É^
+	//„Éë„É©„É°„Éº„Çø
 	Config.Data[_T("Param")]=mci.Param;
-	//ÉfÉBÉåÉNÉgÉä
+	//„Éá„Ç£„É¨„ÇØ„Éà„É™
 	Config.Data[_T("Dir")]=mci.Dir;
-	//ÉLÉÉÉvÉVÉáÉì
+	//„Ç≠„É£„Éó„Ç∑„Éß„É≥
 	Config.Data[_T("Caption")]=mci.Caption;
 }
 
@@ -276,8 +269,8 @@ void CConfigFileListWindow::load(CConfigManager &ConfMan)
 {
 	load(ConfMan.GetSection(_T("FileListWindow")));
 
-	//ÅuÉvÉçÉOÉâÉÄÇ≈äJÇ≠ÅvÉÅÉjÉÖÅ[ÇÃÉRÉ}ÉìÉh
-	//å√Ç¢èÓïÒÇÃîjä¸
+	//„Äå„Éó„É≠„Ç∞„É©„É†„ÅßÈñã„Åè„Äç„É°„Éã„É•„Éº„ÅÆ„Ç≥„Éû„É≥„Éâ
+	//Âè§„ÅÑÊÉÖÂ†±„ÅÆÁ†¥Ê£Ñ
 	MenuCommandArray.clear();
 	for(UINT iIndex=0;iIndex<USERAPP_MAX_NUM;iIndex++){
 		CString strSectionName;
@@ -296,8 +289,8 @@ void CConfigFileListWindow::store(CConfigManager &ConfMan)const
 {
 	store(ConfMan.GetSection(_T("FileListWindow")));
 
-	//ÅuÉvÉçÉOÉâÉÄÇ≈äJÇ≠ÅvÉÅÉjÉÖÅ[ÇÃÉRÉ}ÉìÉh
-	//---å√Ç¢ÉZÉNÉVÉáÉìÇÃîjä¸
+	//„Äå„Éó„É≠„Ç∞„É©„É†„ÅßÈñã„Åè„Äç„É°„Éã„É•„Éº„ÅÆ„Ç≥„Éû„É≥„Éâ
+	//---Âè§„ÅÑ„Çª„ÇØ„Ç∑„Éß„É≥„ÅÆÁ†¥Ê£Ñ
 	for(UINT iIndex=0;iIndex<USERAPP_MAX_NUM;iIndex++){
 		CString strSectionName;
 		strSectionName.Format(_T("UserApp%d"),iIndex);
@@ -307,7 +300,7 @@ void CConfigFileListWindow::store(CConfigManager &ConfMan)const
 			ConfMan.DeleteSection(strSectionName);
 		}
 	}
-	//---ÉfÅ[É^ÇÃè„èëÇ´
+	//---„Éá„Éº„Çø„ÅÆ‰∏äÊõ∏„Åç
 	for(UINT iIndex=0;iIndex<MenuCommandArray.size();iIndex++){
 		CString strSectionName;
 		strSectionName.Format(_T("UserApp%d"),iIndex);

@@ -1,53 +1,46 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "FileListModel.h"
 #include "ShellDataManager.h"
 #include "OLE/DnDSource.h"
-#include "OLE/DropTarget.h"	//ƒhƒƒbƒvó‚¯“ü‚ê,IDropCommunicator
+#include "OLE/DropTarget.h"	//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œ,IDropCommunicator
 #include "../Utilities/TemporaryDirMgr.h"
 #include "../resource.h"
 #include "FileListMessages.h"
 #include "../Utilities/OSUtil.h"
 
 struct CConfigFileListWindow;
-class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public IDropCommunicator//©‘O‚ÌƒCƒ“ƒ^[ƒtƒFƒCƒX
+class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public IDropCommunicator//è‡ªå‰ã®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ã‚¤ã‚¹
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CListViewCtrl::GetWndClassName())
 	BOOL PreTranslateMessage(MSG* pMsg){return FALSE;}
 
 	//----------------------
-	//IDropCommunicator‚ÌÀ‘•
+	//IDropCommunicatorã®å®Ÿè£…
 	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
 	HRESULT DragLeave();
 	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
@@ -56,12 +49,12 @@ protected:
 	BEGIN_MSG_MAP_EX(CFileListView)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		MSG_WM_CONTEXTMENU(OnContextMenu)	//‰EƒNƒŠƒbƒNƒƒjƒ…[
+		MSG_WM_CONTEXTMENU(OnContextMenu)	//å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_SELECT_ALL,OnSelectAll)
 		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListNewContent)
 		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
 		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
-		NOTIFY_CODE_HANDLER(NM_RCLICK, OnColumnRClick)	//ƒJƒ‰ƒ€ƒwƒbƒ_‚ğ‰EƒNƒŠƒbƒN
+		NOTIFY_CODE_HANDLER(NM_RCLICK, OnColumnRClick)	//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã‚’å³ã‚¯ãƒªãƒƒã‚¯
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_DELETE_SELECTED,OnDelete)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED,OnExtractItem)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,OnExtractItem)
@@ -81,15 +74,15 @@ protected:
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_BEGINDRAG, OnBeginDrag)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_GETINFOTIP, OnGetInfoTip)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ODFINDITEM, OnFindItem)	//ƒL[ƒ^ƒCƒv‚Å‚ÌŒŸõ
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ODFINDITEM, OnFindItem)	//ã‚­ãƒ¼ã‚¿ã‚¤ãƒ—ã§ã®æ¤œç´¢
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_COLUMNCLICK, OnSortItem)
-		CHAIN_MSG_MAP_ALT(CCustomDraw<CFileListView>, 1)	// CCustomDrawƒNƒ‰ƒX‚Öƒ`ƒF[ƒ“
+		CHAIN_MSG_MAP_ALT(CCustomDraw<CFileListView>, 1)	// CCustomDrawã‚¯ãƒ©ã‚¹ã¸ãƒã‚§ãƒ¼ãƒ³
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 protected:
-	int m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//ƒJƒ‰ƒ€ƒCƒ“ƒfƒbƒNƒX‚ÆƒTƒuƒAƒCƒeƒ€”Ô†‚Ì‘Î‰
+	int m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//ã‚«ãƒ©ãƒ ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ã¨ã‚µãƒ–ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·ã®å¯¾å¿œ
 	/*
-		Config.FileListWindow.ColumnOrderArray?‚É‚ÍAƒJƒ‰ƒ€‚ª•À‚Ñ‡‚ÉFILEINFO_TYPE‚Ì’l‚Å“ü‚Á‚Ä‚¢‚é(”ñ•\¦€–Ú‚Í-1)B
+		Config.FileListWindow.ColumnOrderArray?ã«ã¯ã€ã‚«ãƒ©ãƒ ãŒä¸¦ã³é †ã«FILEINFO_TYPEã®å€¤ã§å…¥ã£ã¦ã„ã‚‹(éè¡¨ç¤ºé …ç›®ã¯-1)ã€‚
 		m_ColumnIndexArray[colIdx] = FILEINFO_TYPE
 	*/
 
@@ -103,12 +96,12 @@ protected:
 	bool	m_bPathOnly;
 	HWND	m_hFrameWnd;
 
-	COLEDnDSource	m_DnDSource;	//DnDƒnƒ“ƒhƒ‰
-	CDropTarget		m_DropTarget;	//ƒhƒƒbƒvó‚¯“ü‚ê‚Ég‚¤
-	int				m_nDropHilight;		//ƒhƒƒbƒvƒnƒCƒ‰ƒCƒgó‘Ô‚É‚ ‚éƒAƒCƒeƒ€‚ÌƒCƒ“ƒfƒbƒNƒX
+	COLEDnDSource	m_DnDSource;	//DnDãƒãƒ³ãƒ‰ãƒ©
+	CDropTarget		m_DropTarget;	//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œã«ä½¿ã†
+	int				m_nDropHilight;		//ãƒ‰ãƒ­ãƒƒãƒ—ãƒã‚¤ãƒ©ã‚¤ãƒˆçŠ¶æ…‹ã«ã‚ã‚‹ã‚¢ã‚¤ãƒ†ãƒ ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
 
 protected:
-	//---ƒCƒxƒ“ƒgƒnƒ“ƒhƒ‰
+	//---ã‚¤ãƒ™ãƒ³ãƒˆãƒãƒ³ãƒ‰ãƒ©
 	LRESULT OnCreate(LPCREATESTRUCT lpcs);
 	LRESULT OnDestroy();
 	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -123,42 +116,42 @@ protected:
 	void OnSelectAll(UINT,int,HWND);
 	void OnDelete(UINT,int,HWND);
 	void OnContextMenu(HWND,CPoint&);
-	void OnExtractItem(UINT,int,HWND);	//‘I‘ğƒtƒ@ƒCƒ‹‚ğ‰ğ“€
-	void OnFindItem(UINT,int,HWND);	//ƒtƒ@ƒCƒ‹ŒŸõ
-	void OnShowCustomizeColumn(UINT,int,HWND);	//ƒJƒ‰ƒ€ƒwƒbƒ_•ÒWƒƒjƒ…[‚ğ•\¦
-	void OnOpenAssociation(UINT,int,HWND);	//ˆêƒtƒHƒ‹ƒ_‚É“WŠJ‚µ‚½ƒtƒ@ƒCƒ‹‚ğŠÖ˜A•t‚¯‚ÅŠJ‚­
-	void OnExtractTemporary(UINT,int,HWND);	//ˆêƒtƒHƒ‹ƒ_‚É“WŠJ
-	void OnClearTemporary(UINT,int,HWND);	//ˆêƒtƒHƒ‹ƒ_‚ğ‹ó‚É‚·‚é
+	void OnExtractItem(UINT,int,HWND);	//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã‚’è§£å‡
+	void OnFindItem(UINT,int,HWND);	//ãƒ•ã‚¡ã‚¤ãƒ«æ¤œç´¢
+	void OnShowCustomizeColumn(UINT,int,HWND);	//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤º
+	void OnOpenAssociation(UINT,int,HWND);	//ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã«å±•é–‹ã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’é–¢é€£ä»˜ã‘ã§é–‹ã
+	void OnExtractTemporary(UINT,int,HWND);	//ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã«å±•é–‹
+	void OnClearTemporary(UINT,int,HWND);	//ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã‚’ç©ºã«ã™ã‚‹
 	void OnAddItems(UINT,int,HWND);
 
-	//ƒRƒ}ƒ“ƒhƒnƒ“ƒhƒ‰
+	//ã‚³ãƒãƒ³ãƒ‰ãƒãƒ³ãƒ‰ãƒ©
 	void OnCopyInfo(UINT,int,HWND);
 	void OnOpenWithUserApp(UINT,int,HWND);
 public:
-	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//ƒJƒ‰ƒ€ƒwƒbƒ_‚ğ‰EƒNƒŠƒbƒN
+	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã‚’å³ã‚¯ãƒªãƒƒã‚¯
 	void SortItem(int iCol);
-	//ƒJƒXƒ^ƒ€ƒhƒ[
+	//ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼
 	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd);
 	DWORD OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd);
 protected:
 	//---internal functions
-	//ƒtƒ@ƒCƒ‹î•ñæ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±å–å¾—
 	static void FormatFileSizeInBytes(CString&,const LARGE_INTEGER&);
 	void FormatFileSize(CString&,const LARGE_INTEGER&);
 	static void FormatFileTime(CString&,const FILETIME&);
 	static void FormatAttribute(CString&,int);
 	static void FormatCRC(CString &strBuffer,DWORD dwCRC);
 	static void FormatRatio(CString &strBuffer,WORD wRatio);
-	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 	void OpenAssociation(const std::list<CString> &filesList);
-	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰(LhaForgeİ’è)
-	bool OnSendToApp(UINT nID);	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰(SendToƒRƒ}ƒ“ƒh)
+	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã®ãƒãƒ³ãƒ‰ãƒ©(LhaForgeè¨­å®š)
+	bool OnSendToApp(UINT nID);	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã®ãƒãƒ³ãƒ‰ãƒ©(SendToã‚³ãƒãƒ³ãƒ‰)
 	HRESULT AddItems(const std::list<CString> &fileList,LPCTSTR strDest);
 	void UpdateSortIcon();
 public:
 	CFileListView(CConfigManager&,CFileListModel& rModel);
 	virtual ~CFileListView(){}
-	bool SetColumnState(const int* pColumnOrderArray, const int* pFileInfoWidthArray);	//ƒŠƒXƒgƒrƒ…[‚ÌƒJƒ‰ƒ€‚ğƒZƒbƒg‚·‚é
+	bool SetColumnState(const int* pColumnOrderArray, const int* pFileInfoWidthArray);	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚«ãƒ©ãƒ ã‚’ã‚»ãƒƒãƒˆã™ã‚‹
 	void GetColumnState(int* pColumnOrderArray, int* pFileInfoWidthArray);
 
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}

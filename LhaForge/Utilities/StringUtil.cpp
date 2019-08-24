@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "StringUtil.h"
@@ -44,7 +37,7 @@ void UtilTrimString(CStringW &strTarget,LPCWSTR lpszSubject)
 	strTarget=strTarget.Left(idx+1);
 }
 
-//MFCƒXƒ^ƒCƒ‹‚ÅCFileDialog‚ÌƒtƒBƒ‹ƒ^[•¶š—ñ‚ğì‚é
+//MFCã‚¹ã‚¿ã‚¤ãƒ«ã§CFileDialogã®ãƒ•ã‚£ãƒ«ã‚¿ãƒ¼æ–‡å­—åˆ—ã‚’ä½œã‚‹
 void UtilMakeFilterString(LPCTSTR lpszIn,LPTSTR lpszOut,int outSize)
 {
 	ASSERT(outSize>=2);
@@ -66,21 +59,21 @@ void UtilMakeFilterString(LPCTSTR lpszIn,LPTSTR lpszOut,int outSize)
 	*lpChar=_T('\0');
 }
 
-//TCHARƒtƒ@ƒCƒ‹–¼‚ªSJISƒtƒ@ƒCƒ‹–¼‚Å•\Œ»‚Å‚«‚é‚©ƒ`ƒFƒbƒN‚·‚é
+//TCHARãƒ•ã‚¡ã‚¤ãƒ«åãŒSJISãƒ•ã‚¡ã‚¤ãƒ«åã§è¡¨ç¾ã§ãã‚‹ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 bool UtilCheckT2A(LPCTSTR lpPath)
 {
 #if defined(_UNICODE)||defined(UNICODE)
-	//Œ‡‘¹–³‚­•ÏŠ·‚Å‚«‚Ä‚¢‚é‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN‚·‚é
+	//æ¬ æç„¡ãå¤‰æ›ã§ãã¦ã„ã‚‹ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 	CStringA strTempA(lpPath);
 	CStringW strTempW(strTempA);
 	return (strTempW==lpPath);
 #else//defined(_UNICODE)||defined(UNICODE)
-	//SJIS‚»‚Ì‚Ü‚Ü
+	//SJISãã®ã¾ã¾
 	return true;
 #endif//defined(_UNICODE)||defined(UNICODE)
 }
 
-//•¡”ƒtƒ@ƒCƒ‹‚Ì‚¤‚¿Aˆê‚Â‚Å‚àUNICODEê—pƒtƒ@ƒCƒ‹–¼‚ª‚ ‚ê‚Îfalse
+//è¤‡æ•°ãƒ•ã‚¡ã‚¤ãƒ«ã®ã†ã¡ã€ä¸€ã¤ã§ã‚‚UNICODEå°‚ç”¨ãƒ•ã‚¡ã‚¤ãƒ«åãŒã‚ã‚Œã°false
 bool UtilCheckT2AList(const std::list<CString> &strList)
 {
 	for(std::list<CString>::const_iterator ite=strList.begin();ite!=strList.end();++ite){
@@ -90,7 +83,7 @@ bool UtilCheckT2AList(const std::list<CString> &strList)
 }
 
 
-//“K“–‚È•¶šƒR[ƒh->UNICODE
+//é©å½“ãªæ–‡å­—ã‚³ãƒ¼ãƒ‰->UNICODE
 bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage)
 {
 #if defined(_UNICODE)||defined(UNICODE)
@@ -104,7 +97,7 @@ bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uS
 			strRet=((LPCWSTR)lpcByte)+1;
 		}else if(*((LPCWSTR)lpcByte)==0xFFFE){
 			//UTF16BE
-			//ƒGƒ“ƒfƒBƒAƒ“•ÏŠ·
+			//ã‚¨ãƒ³ãƒ‡ã‚£ã‚¢ãƒ³å¤‰æ›
 			std::vector<BYTE> cArray(dwSize-2);
 			_swab((char*)const_cast<LPBYTE>(lpcByte+2),(char*)&cArray[0],dwSize-2);
 			strRet=(LPCWSTR)&cArray[0];
@@ -119,10 +112,10 @@ bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uS
 			if(lpcByte[0]==0xEF && lpcByte[1]==0xBB && lpcByte[2]==0xBF){	//BOM check
 				lpcByte+=3;
 			}
-			std::vector<wchar_t> buf(::MultiByteToWideChar(CP_UTF8,0,(LPCSTR)lpcByte,-1,NULL,0));	//ƒoƒbƒtƒ@Šm•Û
-			//•ÏŠ·
+			std::vector<wchar_t> buf(::MultiByteToWideChar(CP_UTF8,0,(LPCSTR)lpcByte,-1,NULL,0));	//ãƒãƒƒãƒ•ã‚¡ç¢ºä¿
+			//å¤‰æ›
 			if(!::MultiByteToWideChar(CP_UTF8,0,(LPCSTR)lpcByte,-1,&buf[0],buf.size())){
-				TRACE(_T("•¶šƒR[ƒh•ÏŠ·¸”s(UTF8->UTF16)"));
+				TRACE(_T("æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›å¤±æ•—(UTF8->UTF16)"));
 				return false;
 			}
 			strRet=(LPCWSTR)&buf[0];
@@ -138,26 +131,26 @@ bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uS
 #endif//defined(_UNICODE)||defined(UNICODE)
 }
 
-//“K“–‚È“ü—Í•¶š‚Ì•¶šƒR[ƒh‚ğ„’è‚µAUNICODE(UTF16)‚É•ÏŠ·
+//é©å½“ãªå…¥åŠ›æ–‡å­—ã®æ–‡å­—ã‚³ãƒ¼ãƒ‰ã‚’æ¨å®šã—ã€UNICODE(UTF16)ã«å¤‰æ›
 void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize)
 {
 #if defined(_UNICODE)||defined(UNICODE)
 	if(*((LPCWSTR)lpcByte)==0xFEFF){
 		//UTF16LE
-		TRACE(_T("“ü—ÍƒeƒLƒXƒg‚ÍUTF-16LE‚Æ„’è‚³‚ê‚é\n"));
+		TRACE(_T("å…¥åŠ›ãƒ†ã‚­ã‚¹ãƒˆã¯UTF-16LEã¨æ¨å®šã•ã‚Œã‚‹\n"));
 		strRet=((LPCWSTR)lpcByte)+1;
 	}else if(*((LPCWSTR)lpcByte)==0xFFFE){
 		//UTF16BE
-		//ƒGƒ“ƒfƒBƒAƒ“•ÏŠ·
-		TRACE(_T("“ü—ÍƒeƒLƒXƒg‚ÍUTF-16BE‚Æ„’è‚³‚ê‚é\n"));
+		//ã‚¨ãƒ³ãƒ‡ã‚£ã‚¢ãƒ³å¤‰æ›
+		TRACE(_T("å…¥åŠ›ãƒ†ã‚­ã‚¹ãƒˆã¯UTF-16BEã¨æ¨å®šã•ã‚Œã‚‹\n"));
 		std::vector<BYTE> cArray(dwSize-2);
 		_swab((char*)const_cast<LPBYTE>(lpcByte+2),(char*)&cArray[0],dwSize-2);
 		strRet=(LPCWSTR)&cArray[0];
 	}else if(lpcByte[0]==0xEF && lpcByte[1]==0xBB && lpcByte[2]==0xBF){	//BOM check
-		TRACE(_T("“ü—ÍƒeƒLƒXƒg‚ÍUTF-8 with BOM‚Æ„’è‚³‚ê‚é\n"));
+		TRACE(_T("å…¥åŠ›ãƒ†ã‚­ã‚¹ãƒˆã¯UTF-8 with BOMã¨æ¨å®šã•ã‚Œã‚‹\n"));
 		UtilToUNICODE(strRet,lpcByte,dwSize,UTILCP_UTF8);
 	}else{
-		TRACE(_T("“ü—ÍƒeƒLƒXƒg‚Í”ñUNICODE(UTF16)‚Æ„’è‚³‚ê‚é\n"));
+		TRACE(_T("å…¥åŠ›ãƒ†ã‚­ã‚¹ãƒˆã¯éUNICODE(UTF16)ã¨æ¨å®šã•ã‚Œã‚‹\n"));
 		strRet=CStringA((LPCSTR)lpcByte);
 	}
 #else//defined(_UNICODE)||defined(UNICODE)
@@ -170,10 +163,10 @@ void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize)
 bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc)
 {
 #if defined(_UNICODE)||defined(UNICODE)
-	cArray.resize(::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,NULL,0,NULL,NULL));	//ƒoƒbƒtƒ@Šm•Û
-	//•ÏŠ·
+	cArray.resize(::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,NULL,0,NULL,NULL));	//ãƒãƒƒãƒ•ã‚¡ç¢ºä¿
+	//å¤‰æ›
 	if(!::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,(LPSTR)&cArray[0],cArray.size(),NULL,NULL)){
-		TRACE(_T("•¶šƒR[ƒh•ÏŠ·¸”s(UTF16->UTF8)"));
+		TRACE(_T("æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›å¤±æ•—(UTF16->UTF8)"));
 		return false;
 	}
 	return true;
@@ -187,7 +180,7 @@ inline bool between(WCHAR a,WCHAR begin,WCHAR end){
 	return (begin<=a && a<=end);
 }
 
-//UNICODE‚Æ‚µ‚ÄˆÀ‘S‚È‚çtrue
+//UNICODEã¨ã—ã¦å®‰å…¨ãªã‚‰true
 bool UtilIsSafeUnicode(LPCTSTR lpChar)
 {
 #if defined(_UNICODE)||defined(UNICODE)
@@ -208,12 +201,12 @@ bool UtilIsSafeUnicode(LPCTSTR lpChar)
 	const static UINT len=COUNTOF(chars);
 	for(;*lpChar!=L'\0';lpChar++){
 		WCHAR c=*lpChar;
-		//’P“Æ•¶š‚Æ‚Ì”äŠr
+		//å˜ç‹¬æ–‡å­—ã¨ã®æ¯”è¼ƒ
 		for(UINT i=0;i<len;i++){
 			if(c==chars[i])return false;
 		}
 
-		//”ÍˆÍ‚Ì‚ ‚é•¶š‚Æ‚Ì”äŠr
+		//ç¯„å›²ã®ã‚ã‚‹æ–‡å­—ã¨ã®æ¯”è¼ƒ
 		if(between(c,0x200b,0x200f))return false;
 		if(between(c,0x202a,0x202e))return false;
 		if(between(c,0x2060,0x2063))return false;
@@ -227,12 +220,12 @@ bool UtilIsSafeUnicode(LPCTSTR lpChar)
 }
 
 
-//w’è‚³‚ê‚½ƒtƒH[ƒ}ƒbƒg‚Å‘‚©‚ê‚½•¶š—ñ‚ğ“WŠJ‚·‚é
+//æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã§æ›¸ã‹ã‚ŒãŸæ–‡å­—åˆ—ã‚’å±•é–‹ã™ã‚‹
 void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env)
 {
 	strOut=lpszFormat;
 	for(std::map<stdString,CString>::const_iterator ite=env.begin();ite!=env.end();++ite){
-		//%‚Ån‚Ü‚éƒuƒƒbƒN‚ÍŠÂ‹«•Ï”‚ÆŒ©‚È‚·‚Ì‚Å{}‚É‚æ‚éCü‚Ís‚í‚È‚¢
+		//%ã§å§‹ã¾ã‚‹ãƒ–ãƒ­ãƒƒã‚¯ã¯ç’°å¢ƒå¤‰æ•°ã¨è¦‹ãªã™ã®ã§{}ã«ã‚ˆã‚‹ä¿®é£¾ã¯è¡Œã‚ãªã„
 		stdString strKey=( (*ite).first[0]==L'%' ? (*ite).first : _T("{")+(*ite).first+_T("}") );
 		strOut.Replace(strKey.c_str(),(*ite).second);
 	}
@@ -249,7 +242,7 @@ void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd)
 }
 
 
-//•¶š—ñ‚ğ•ª‰ğ‚µ”’l”z—ñ‚Æ‚µ‚Äæ“¾
+//æ–‡å­—åˆ—ã‚’åˆ†è§£ã—æ•°å€¤é…åˆ—ã¨ã—ã¦å–å¾—
 void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
 {
 	numArr.clear();

@@ -1,40 +1,33 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 
 #include "Association.h"
 
-//ŠÖ˜A•t‚¯‚ğæ“¾
-//Ext‚Ìî•ñ‚ğŒ³‚ÉAFileType‚Æ‚»‚ÌIcon‚É‚Â‚¢‚Ä’²‚×‚é
+//é–¢é€£ä»˜ã‘ã‚’å–å¾—
+//Extã®æƒ…å ±ã‚’å…ƒã«ã€FileTypeã¨ãã®Iconã«ã¤ã„ã¦èª¿ã¹ã‚‹
 bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 {
 	if(AssocInfo.Ext.IsEmpty()){
@@ -47,9 +40,9 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 		TRACE(_T("AssocGetAssociation():Failed to Open '%s'\n"),AssocInfo.Ext);
 		return false;
 	}
-	//Šg’£q‚ğ¬•¶š‚Å“ˆê‚·‚é
+	//æ‹¡å¼µå­ã‚’å°æ–‡å­—ã§çµ±ä¸€ã™ã‚‹
 	AssocInfo.Ext.MakeLower();
-	//Šg’£q‚É‘Î‰‚·‚éFileTypeæ“¾
+	//æ‹¡å¼µå­ã«å¯¾å¿œã™ã‚‹FileTypeå–å¾—
 	std::vector<BYTE> Buffer;
 	DWORD dwRead=0;
 	::RegQueryValueEx(hKey, NULL, NULL, NULL, NULL,&dwRead);
@@ -62,13 +55,13 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 	}
 	CString FileType=(TCHAR*)&Buffer.at(0);
 
-	//ƒIƒŠƒWƒiƒ‹‚ÌFileType
+	//ã‚ªãƒªã‚¸ãƒŠãƒ«ã®FileType
 	/*
-	1.FileType‚ª–³‚¢‚Æ‚«AOrgFIleType=.???\OrgFileType(NULL‚É‚à‚È‚è‚¤‚é)
-	2.FileType‚ªLhaForgeArchive_*ˆÈŠO‚ÌAOrgFileType=.???\(Default)
-	3.FileType‚ªLhaForgeArchive_*‚Ì‚Æ‚«AOrgFileType=.???\OrgFileType
+	1.FileTypeãŒç„¡ã„ã¨ãã€OrgFIleType=.???\OrgFileType(NULLã«ã‚‚ãªã‚Šã†ã‚‹)
+	2.FileTypeãŒLhaForgeArchive_*ä»¥å¤–ã®æ™‚ã€OrgFileType=.???\(Default)
+	3.FileTypeãŒLhaForgeArchive_*ã®ã¨ãã€OrgFileType=.???\OrgFileType
 	*/
-	//1.‚Æ3.‚Ì‚Æ‚«
+	//1.ã¨3.ã®ã¨ã
 	if(0==FileType.Left(_tcslen(ASSOC_PREFIX)).CompareNoCase(ASSOC_PREFIX)){
 		AssocInfo.bOrgStatus=true;
 	}
@@ -88,13 +81,13 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 			AssocInfo.OrgFileType=(TCHAR*)&Buffer.at(0);
 		}
 	}
-	else{	//2.‚Ì‚Æ‚«
+	else{	//2.ã®ã¨ã
 		AssocInfo.OrgFileType=FileType;
 		::RegCloseKey(hKey);
 	}
 
 	//------------------------------
-	// FileType‚©‚çƒAƒCƒRƒ“î•ñæ“¾
+	// FileTypeã‹ã‚‰ã‚¢ã‚¤ã‚³ãƒ³æƒ…å ±å–å¾—
 	//------------------------------
 	CString KeyNameBuffer=FileType;
 	KeyNameBuffer+=_T("\\DefaultIcon");
@@ -113,7 +106,7 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 		TRACE(_T("AssocGetAssociation():Failed to Get IconInfo\n"));
 		return false;
 	}
-	//ƒAƒCƒRƒ“î•ñ‚Ìæ“¾
+	//ã‚¢ã‚¤ã‚³ãƒ³æƒ…å ±ã®å–å¾—
 	AssocInfo.IconFile=(TCHAR*)&Buffer.at(0);
 	AssocInfo.IconIndex=PathParseIconLocation(AssocInfo.IconFile.GetBuffer(_MAX_PATH*2));
 	AssocInfo.IconFile.ReleaseBuffer();
@@ -123,10 +116,10 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 	AssocInfo.OrgIconIndex=AssocInfo.IconIndex;
 
 	//----------------------------
-	// Shell\Open‚ÌƒRƒ}ƒ“ƒh‚ğ“Ç‚Ş
+	// Shell\Openã®ã‚³ãƒãƒ³ãƒ‰ã‚’èª­ã‚€
 	//----------------------------
 	if(!AssocInfo.bOrgStatus){
-		//ŠÖ˜A•t‚¯‚³‚ê‚Ä‚¢‚È‚¢
+		//é–¢é€£ä»˜ã‘ã•ã‚Œã¦ã„ãªã„
 		return true;
 	}
 	KeyNameBuffer=FileType;

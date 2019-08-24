@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "shellmanager.h"
@@ -39,52 +32,52 @@
 const int CLSID_STRING_SIZE=(39 + 1);
 
 //---IA32
-//‰EƒNƒŠƒbƒNƒƒjƒ…[ƒnƒ“ƒhƒ‰
+//å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ©
 // {713B479F-6F2B-48e9-B545-5591CCFE398F}
 static const GUID CLSID_ShellExtShellMenu32 = 
 { 0x713b479f, 0x6f2b, 0x48e9, { 0xb5, 0x45, 0x55, 0x91, 0xcc, 0xfe, 0x39, 0x8f } };
 
-//‰Eƒhƒ‰ƒbƒOƒƒjƒ…[ƒnƒ“ƒhƒ‰
+//å³ãƒ‰ãƒ©ãƒƒã‚°ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ©
 // {5E5B692B-D6ED-4103-A1FA-9A71A93DAC88}
 static const GUID CLSID_ShellExtDragMenu32 = 
 { 0x5e5b692b, 0xd6ed, 0x4103, { 0xa1, 0xfa, 0x9a, 0x71, 0xa9, 0x3d, 0xac, 0x88 } };
 
 //---AMD64
-//‰EƒNƒŠƒbƒNƒƒjƒ…[ƒnƒ“ƒhƒ‰
+//å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ©
 // {B7584D74-DE0C-4db5-80DD-42EEEDF42665}
 static const GUID CLSID_ShellExtShellMenu64 = 
 { 0xb7584d74, 0xde0c, 0x4db5, { 0x80, 0xdd, 0x42, 0xee, 0xed, 0xf4, 0x26, 0x65 } };
 
-//‰Eƒhƒ‰ƒbƒOƒƒjƒ…[ƒnƒ“ƒhƒ‰
+//å³ãƒ‰ãƒ©ãƒƒã‚°ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ©
 // {00521ADB-148D-45c9-8021-7446EE35609D}
 static const GUID CLSID_ShellExtDragMenu64 = 
 { 0x521adb, 0x148d, 0x45c9, { 0x80, 0x21, 0x74, 0x46, 0xee, 0x35, 0x60, 0x9d } };
 
 
 //-------------------------------------------------------------------------
-// ShellRegisterServer			Šg’£ƒVƒFƒ‹‚ğ“o˜^
+// ShellRegisterServer			æ‹¡å¼µã‚·ã‚§ãƒ«ã‚’ç™»éŒ²
 //-------------------------------------------------------------------------
 bool ShellRegisterServer(HWND hWnd,LPCTSTR inDllPath)
 {
-	// ƒ‰ƒCƒuƒ‰ƒŠ‚ğƒ[ƒh
+	// ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‚’ãƒ­ãƒ¼ãƒ‰
 	HINSTANCE theDllH = ::LoadLibrary(inDllPath);
 	if(!theDllH){
-		// ƒ[ƒho—ˆ‚Ü‚¹‚ñ‚Å‚µ‚½
+		// ãƒ­ãƒ¼ãƒ‰å‡ºæ¥ã¾ã›ã‚“ã§ã—ãŸ
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_LOAD,inDllPath);
 		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
 		return false;
 	}
 
-	// ƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg‚ğ’T‚µ‚ÄÀs
+	// ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆã‚’æ¢ã—ã¦å®Ÿè¡Œ
 	FARPROC lpDllEntryPoint;
 	(FARPROC&)lpDllEntryPoint = ::GetProcAddress(theDllH,"DllRegisterServer");
 	if(lpDllEntryPoint){
-		// “o˜^
+		// ç™»éŒ²
 		(*lpDllEntryPoint)();
 //		MessageBeep(MB_OK);
 	}else{
-		// DllRegisterServer ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ
+		// DllRegisterServer ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_FUNCTION_GET,inDllPath,_T("DllRegisterServer"));
 		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
@@ -96,29 +89,29 @@ bool ShellRegisterServer(HWND hWnd,LPCTSTR inDllPath)
 }
 
 //-------------------------------------------------------------------------
-// ShellUnregisterServer			Šg’£ƒVƒFƒ‹‚ğ‰ğœ
+// ShellUnregisterServer			æ‹¡å¼µã‚·ã‚§ãƒ«ã‚’è§£é™¤
 //-------------------------------------------------------------------------
 bool ShellUnregisterServer(HWND hWnd,LPCTSTR inDllPath)
 {
-	// ƒ‰ƒCƒuƒ‰ƒŠ‚ğƒ[ƒh
+	// ãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‚’ãƒ­ãƒ¼ãƒ‰
 	HINSTANCE theDllH = ::LoadLibrary(inDllPath);
 	if(!theDllH){
-		// Û°ÄŞo—ˆ‚Ü‚¹‚ñ‚Å‚µ‚½
+		// ï¾›ï½°ï¾„ï¾å‡ºæ¥ã¾ã›ã‚“ã§ã—ãŸ
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_LOAD,inDllPath);
 		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
 		return false;
 	}
 
-	// ƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg‚ğ’T‚µ‚ÄÀs
+	// ã‚¨ãƒ³ãƒˆãƒªãƒ¼ãƒã‚¤ãƒ³ãƒˆã‚’æ¢ã—ã¦å®Ÿè¡Œ
 	FARPROC	lpDllEntryPoint;
 	(FARPROC&)lpDllEntryPoint = ::GetProcAddress(theDllH,"DllUnregisterServer");
 	if(lpDllEntryPoint){
-		// “o˜^
+		// ç™»éŒ²
 		(*lpDllEntryPoint)();
 //		MessageBeep(MB_OK);
 	}else{
-		// DllUnregisterServer ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ
+		// DllUnregisterServer ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_FUNCTION_GET,inDllPath,_T("DllUnregisterServer"));
 		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
@@ -131,55 +124,55 @@ bool ShellUnregisterServer(HWND hWnd,LPCTSTR inDllPath)
 
 
 /*-------------------------------------------------------------------------*/
-// CLSIDtoSTRING			ƒNƒ‰ƒXID‚ğ•¶š—ñ‚É•ÏŠ·
+// CLSIDtoSTRING			ã‚¯ãƒ©ã‚¹IDã‚’æ–‡å­—åˆ—ã«å¤‰æ›
 /*-------------------------------------------------------------------------*/
 void CLSIDtoSTRING(REFCLSID inClsid,CString &outCLSID)
 {
 	WCHAR theCLSID[CLSID_STRING_SIZE];
 
-	// ƒNƒ‰ƒXID‚ğ•¶š—ñ‚É•ÏŠ·‚·‚éB
+	// ã‚¯ãƒ©ã‚¹IDã‚’æ–‡å­—åˆ—ã«å¤‰æ›ã™ã‚‹ã€‚
 	StringFromGUID2(inClsid, theCLSID,CLSID_STRING_SIZE);
 	outCLSID=theCLSID;
 }
 
 //-------------------------------------------------------------------------
-// ShellRegistCheck		Šg’£Shell‚ªŒ»İ“o˜^‚³‚ê‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN
+// ShellRegistCheck		æ‹¡å¼µShellãŒç¾åœ¨ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯
 //-------------------------------------------------------------------------
 bool _ShellRegistCheck(const GUID inGUID)
 {
 	bool Result=false;
-	// ƒNƒ‰ƒXID‚©‚çAƒŒƒWƒXƒgƒŠƒL[–¼‚ğì¬‚·‚é
+	// ã‚¯ãƒ©ã‚¹IDã‹ã‚‰ã€ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã‚­ãƒ¼åã‚’ä½œæˆã™ã‚‹
 	CString theCLSID;
 	CLSIDtoSTRING(inGUID, theCLSID);
 
-	// ƒL[‚ğì¬
+	// ã‚­ãƒ¼ã‚’ä½œæˆ
 	CString theKey=_T("CLSID\\")+theCLSID;
 
-	// ƒŒƒWƒXƒgƒŠ‚ÉƒL[‚ª‚ ‚é‚©‚Ç‚¤‚©’T‚·
+	// ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã«ã‚­ãƒ¼ãŒã‚ã‚‹ã‹ã©ã†ã‹æ¢ã™
 
-	// w’èƒL[‚ÌƒI[ƒvƒ“
+	// æŒ‡å®šã‚­ãƒ¼ã®ã‚ªãƒ¼ãƒ—ãƒ³
 	HKEY theKeyChildH;
 	int flag=KEY_READ;
 	if(UtilIsWow64())flag|=KEY_WOW64_64KEY;
 	LONG theRes=::RegOpenKeyEx(HKEY_CLASSES_ROOT, theKey, 0, flag, &theKeyChildH);
-	//w’èƒL[‚ÌƒI[ƒvƒ“
+	//æŒ‡å®šã‚­ãƒ¼ã®ã‚ªãƒ¼ãƒ—ãƒ³
 	if(theRes != ERROR_SUCCESS){
 		return Result;
 	}
 
-	//w’èƒL[‚É•¶š‚ªŠÖ˜A‚Ã‚¯‚ç‚ê‚Ä‚¢‚ê‚Î‘æˆêƒ`ƒFƒbƒN“Ë”j
+	//æŒ‡å®šã‚­ãƒ¼ã«æ–‡å­—ãŒé–¢é€£ã¥ã‘ã‚‰ã‚Œã¦ã„ã‚Œã°ç¬¬ä¸€ãƒã‚§ãƒƒã‚¯çªç ´
 	DWORD dwLength=0;
 	::RegQueryValueEx(theKeyChildH, NULL, NULL, NULL, NULL,&dwLength);
 	if(dwLength>1){
-		//‘æ“ñƒ`ƒFƒbƒN
-		// qƒGƒ“ƒgƒŠ‚Ì—ñ‹“
+		//ç¬¬äºŒãƒã‚§ãƒƒã‚¯
+		// å­ã‚¨ãƒ³ãƒˆãƒªã®åˆ—æŒ™
 		TCHAR		theBuffer[256];
 		DWORD		theSize = 256;
 		FILETIME	theTime;
 		DWORD		theIdx = 0;
 		while(S_OK==::RegEnumKeyEx(theKeyChildH, theIdx, theBuffer, &theSize, NULL, NULL, NULL, &theTime)){
 			if(_tcsicmp(theBuffer,_T("InprocServer32")) == 0){
-				// ƒrƒ“ƒSI
+				// ãƒ“ãƒ³ã‚´ï¼
 				Result = true;
 				break;
 			}

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArchiverUNRAR.h"
@@ -56,20 +49,20 @@ LOAD_RESULT CArchiverUNRAR::LoadDLL(CConfigManager &ConfMan,CString &strErr)
 {
 	FreeDLL();
 
-	//Šî’êƒNƒ‰ƒX‚Ìƒƒ\ƒbƒh‚ğŒÄ‚Ô
+	//åŸºåº•ã‚¯ãƒ©ã‚¹ã®ãƒ¡ã‚½ãƒƒãƒ‰ã‚’å‘¼ã¶
 	LOAD_RESULT res=CArchiverDLL::LoadDLL(ConfMan,strErr);
 	if(LOAD_RESULT_OK!=res){
 		return res;
 	}
 
-	//UNICODEƒ‚[ƒhİ’è—p
+	//UNICODEãƒ¢ãƒ¼ãƒ‰è¨­å®šç”¨
 	CStringA strFunctionName;
 	strFunctionName=m_AstrPrefix+"SetUnicodeMode";
 	ArchiverSetUnicodeMode=(COMMON_ARCHIVER_SETUNICODEMODE)GetProcAddress(m_hInstDLL,strFunctionName);
 	if(NULL==ArchiverSetUnicodeMode){
 		m_bUTF8=false;
 	}
-	//‚±‚±‚ÅUNICODEƒ‚[ƒh‚Éİ’è: UNICODE”ñ‘Î‰”ÅDLL‚È‚ç‰½‚à‚µ‚È‚¢
+	//ã“ã“ã§UNICODEãƒ¢ãƒ¼ãƒ‰ã«è¨­å®š: UNICODEéå¯¾å¿œç‰ˆDLLãªã‚‰ä½•ã‚‚ã—ãªã„
 	if(ArchiverSetUnicodeMode && ArchiverSetUnicodeMode(TRUE)){
 		m_bUTF8=true;
 	}else{
@@ -90,8 +83,8 @@ void CArchiverUNRAR::FreeDLL()
 	}
 }
 
-//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Éƒtƒ@ƒCƒ‹–¼‚ğƒGƒXƒP[ƒv‚ğÀs‚µ‚½ã‚Å‘‚«‚ŞB
-//—LŒø‚Èƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆNULL‚Å‚È‚¢ƒtƒ@ƒCƒ‹–¼‚ğ“n‚·‚±‚ÆB
+//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚’å®Ÿè¡Œã—ãŸä¸Šã§æ›¸ãè¾¼ã‚€ã€‚
+//æœ‰åŠ¹ãªãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨NULLã§ãªã„ãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ¸¡ã™ã“ã¨ã€‚
 void CArchiverUNRAR::WriteResponceFile(HANDLE hFile,LPCTSTR fname)
 {
 	if(m_bUTF8){
@@ -100,7 +93,7 @@ void CArchiverUNRAR::WriteResponceFile(HANDLE hFile,LPCTSTR fname)
 		strPath.QuoteSpaces();
 
 		DWORD dwWritten=0;
-		//ƒtƒ@ƒCƒ‹–¼+‰üs‚ğo—Í
+		//ãƒ•ã‚¡ã‚¤ãƒ«å+æ”¹è¡Œã‚’å‡ºåŠ›
 		std::vector<BYTE> cArray;
 		UtilToUTF8(cArray,strPath+_T("\r\n"));
 		WriteFile(hFile,&cArray[0],(cArray.size()-1)*sizeof(BYTE),&dwWritten,NULL);
@@ -111,12 +104,12 @@ void CArchiverUNRAR::WriteResponceFile(HANDLE hFile,LPCTSTR fname)
 
 bool CArchiverUNRAR::Compress(LPCTSTR,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int,LPCTSTR,LPCTSTR,LPCTSTR,CString &)
 {
-	//RAR‚Í‰ğ“€‚Ì‚İ
+	//RARã¯è§£å‡ã®ã¿
 	ASSERT(false);
 	return false;
 }
 
-//bSafeArchive‚Í–³‹‚³‚ê‚é
+//bSafeArchiveã¯ç„¡è¦–ã•ã‚Œã‚‹
 bool CArchiverUNRAR::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtract &Config,bool,LPCTSTR OutputDir,CString &strLog)
 {
 	if(!IsOK()){
@@ -124,25 +117,25 @@ bool CArchiverUNRAR::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigEx
 	}
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
-	//o—ÍæˆÚ“®
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
+	//å‡ºåŠ›å…ˆç§»å‹•
 	CCurrentDirManager currentDir(OutputDir);
 
-	//‰ğ“€ƒpƒ‰ƒ[ƒ^
+	//è§£å‡ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("-x ")		//‰ğ“€
-		_T("-e2 ")		//ƒZƒLƒ…ƒŠƒeƒBƒŒƒxƒ‹(Šî€ƒfƒBƒŒƒNƒgƒŠˆÈŠO‚É“WŠJ‚³‚ê‚é‚æ‚¤‚ÈƒpƒX‚ğ‰Â”\‚ÈŒÀ‚è‚Ç‚¤‚É‚©‚µ‚Ü‚·)
+		_T("-x ")		//è§£å‡
+		_T("-e2 ")		//ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ãƒ¬ãƒ™ãƒ«(åŸºæº–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥å¤–ã«å±•é–‹ã•ã‚Œã‚‹ã‚ˆã†ãªãƒ‘ã‚¹ã‚’å¯èƒ½ãªé™ã‚Šã©ã†ã«ã‹ã—ã¾ã™)
 	;
 	if(Config.ForceOverwrite){
-		//‹­§ã‘‚«
+		//å¼·åˆ¶ä¸Šæ›¸ã
 		Param+=_T("-o ");
 	}
 
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
@@ -150,7 +143,7 @@ bool CArchiverUNRAR::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigEx
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
@@ -169,21 +162,21 @@ bool CArchiverUNRAR::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigEx
 }
 
 //=========================================================
-// UnrarGetFileName()‚Ìo—ÍŒ‹‰Ê‚ğŠî‚ÉAŠi”[‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªƒpƒX
-// î•ñ‚ğ‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©”»•Ê‚µA“ñdƒtƒHƒ‹ƒ_ì¬‚ğ–h‚®
+// UnrarGetFileName()ã®å‡ºåŠ›çµæœã‚’åŸºã«ã€æ ¼ç´ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒãƒ‘ã‚¹
+// æƒ…å ±ã‚’æŒã£ã¦ã„ã‚‹ã‹ã©ã†ã‹åˆ¤åˆ¥ã—ã€äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆã‚’é˜²ã
 //=========================================================
 bool CArchiverUNRAR::ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,bool bSkipDir,bool &bInFolder,bool &,CString &BaseDir,CString &strErr)
 {
 	if(bSkipDir){
-		TRACE(_T("“ñdƒtƒHƒ‹ƒ_”»’è‰ñ”ğ\n"));
+		TRACE(_T("äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€åˆ¤å®šå›é¿\n"));
 		return true;
 	}
 	if(IsHeaderEncrypted(ArcFileName)){
-		//ƒwƒbƒ_ˆÃ†‰»Ï‚İ?
+		//ãƒ˜ãƒƒãƒ€æš—å·åŒ–æ¸ˆã¿?
 		CConfigExtract ConfExtract;
 		ConfExtract.load(ConfMan);
 		if(ConfExtract.MinimumPasswordRequest){
-			//ƒpƒXƒ[ƒh“ü—Í‰ñ”‚ğÅ¬ŒÀ‚É;“ñd”»’è‚ğƒXƒLƒbƒv‚·‚é
+			//ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å…¥åŠ›å›æ•°ã‚’æœ€å°é™ã«;äºŒé‡åˆ¤å®šã‚’ã‚¹ã‚­ãƒƒãƒ—ã™ã‚‹
 			bInFolder=false;
 			return true;
 		}
@@ -199,7 +192,7 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 	}
 
 	//==============================================
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	//==============================================
 	TCHAR ResponceFileName[_MAX_PATH+1];
 	FILL_ZERO(ResponceFileName);
@@ -209,7 +202,7 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 	}
 	ASSERT(0!=_tcslen(ResponceFileName));
 
-	//‰ğ“€‘ÎÛƒtƒ@ƒCƒ‹‚ğƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚É‘‚«o‚·
+	//è§£å‡å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãå‡ºã™
 	{
 		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 		if(INVALID_HANDLE_VALUE==hFile){
@@ -225,41 +218,41 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 		}
 		CloseHandle(hFile);
 	}
-	//o—ÍæˆÚ“®
+	//å‡ºåŠ›å…ˆç§»å‹•
 	CCurrentDirManager currentDir(OutputDir);
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
 	CString Param;
 
-	//‰ğ“€ƒpƒ‰ƒ[ƒ^
+	//è§£å‡ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	if(bUsePath){
-		Param+=_T("-x ");	//ƒpƒX•t‚«‰ğ“€
+		Param+=_T("-x ");	//ãƒ‘ã‚¹ä»˜ãè§£å‡
 	}else{
-		Param+=_T("-e ");		//ƒpƒX–³‚µ‰ğ“€
+		Param+=_T("-e ");		//ãƒ‘ã‚¹ç„¡ã—è§£å‡
 	}
 	Param+=
-		_T("-s ")		//Œµ–§‚É”äŠr
-		_T("-e2 ")		//ƒZƒLƒ…ƒŠƒeƒBƒŒƒxƒ‹(Šî€ƒfƒBƒŒƒNƒgƒŠˆÈŠO‚É“WŠJ‚³‚ê‚é‚æ‚¤‚ÈƒpƒX‚ğ‰Â”\‚ÈŒÀ‚è‚Ç‚¤‚É‚©‚µ‚Ü‚·)
+		_T("-s ")		//å³å¯†ã«æ¯”è¼ƒ
+		_T("-e2 ")		//ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ãƒ¬ãƒ™ãƒ«(åŸºæº–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥å¤–ã«å±•é–‹ã•ã‚Œã‚‹ã‚ˆã†ãªãƒ‘ã‚¹ã‚’å¯èƒ½ãªé™ã‚Šã©ã†ã«ã‹ã—ã¾ã™)
 	;
 
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//o—ÍæƒtƒHƒ‹ƒ_
+	//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€
 	Param+=_T("\"");
 	Param+=OutputDir;
 	Param+=_T("\" ");
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹–¼w’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\nCommandline Parameter:%s\n"),Param);
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\nCommandline Parameter:%s\n"),Param);
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
@@ -273,7 +266,7 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 		Ret=ArchiveHandler(NULL,CT2A(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
 		strLog=&szLog[0];
 	}
-	//g‚Á‚½ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÍÁ‹
+	//ä½¿ã£ãŸãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ¶ˆå»
 	DeleteFile(ResponceFileName);
 
 	return 0==Ret;
@@ -287,16 +280,16 @@ ARCRESULT CArchiverUNRAR::TestArchive(LPCTSTR ArcFileName,CString &strLog)
 		return TEST_ERROR;
 	}
 
-	//CheckArchive‚É‚æ‚éƒeƒXƒg‚ªÀ‘•‚³‚ê‚Ä‚¢‚é
-	strLog.Format(IDS_TESTARCHIVE_WITH_CHECKARCHIVE,ArcFileName,GetName());	//API‚É‚æ‚éƒ`ƒFƒbƒN
+	//CheckArchiveã«ã‚ˆã‚‹ãƒ†ã‚¹ãƒˆãŒå®Ÿè£…ã•ã‚Œã¦ã„ã‚‹
+	strLog.Format(IDS_TESTARCHIVE_WITH_CHECKARCHIVE,ArcFileName,GetName());	//APIã«ã‚ˆã‚‹ãƒã‚§ãƒƒã‚¯
 	strLog+=_T("\r\n\r\n");
 
 	if(ArchiverCheckArchive(m_bUTF8 ? (LPCSTR)C2UTF8(ArcFileName) : CT2A(ArcFileName),CHECKARCHIVE_FULLCRC|CHECKARCHIVE_NOT_ASK_PASSWORD)){
-		//³í
+		//æ­£å¸¸
 		strLog+=CString(MAKEINTRESOURCE(IDS_TESTARCHIVE_RESULT_OK));
 		return TEST_OK;
 	}else{
-		//ˆÙí
+		//ç•°å¸¸
 		strLog+=CString(MAKEINTRESOURCE(IDS_TESTARCHIVE_RESULT_NG));
 		return TEST_NG;
 	}
@@ -383,21 +376,21 @@ bool CArchiverUNRAR::InspectArchiveGetMethodString(CString &strMethod)
 			return false;
 		}
 
-		//\0‚ÅI‚í‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©•ÛØ‚Å‚«‚È‚¢
+		//\0ã§çµ‚ã‚ã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ä¿è¨¼ã§ããªã„
 		char szBuffer[32]={0};
 
 		if(ArchiverGetMethod){
 			if(0!=ArchiverGetMethod(m_hInspectArchive,szBuffer,31)){
-				//\‘¢‘Ì‚©‚çæ“¾
+				//æ§‹é€ ä½“ã‹ã‚‰å–å¾—
 				strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
 			}
 		}
 		else{
-			//\‘¢‘Ì‚©‚çæ“¾
+			//æ§‹é€ ä½“ã‹ã‚‰å–å¾—
 			strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
 		}
 
-		//î•ñŠi”[
+		//æƒ…å ±æ ¼ç´
 		UtilToUNICODE(strMethod,(LPCBYTE)szBuffer,9,UTILCP_UTF8);
 		return true;
 	}else{

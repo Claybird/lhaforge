@@ -1,48 +1,41 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_zip.h"
 #include "../../Dialogs/SevenZipVolumeSizeDlg.h"
 
 //=================
-// ZIPˆê”Êİ’è‰æ–Ê
+// ZIPä¸€èˆ¬è¨­å®šç”»é¢
 //=================
 LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 	//----------------
-	// ˆ³kŒ`®‚Ì‘I‘ğ
+	// åœ§ç¸®å½¢å¼ã®é¸æŠ
 	//----------------
 	Radio_CompressType[ZIP_COMPRESS_DEFLATE]=GetDlgItem(IDC_RADIO_ZIP_DEFLATE);
 	Radio_CompressType[ZIP_COMPRESS_DEFLATE64]=GetDlgItem(IDC_RADIO_ZIP_DEFLATE64);
@@ -54,7 +47,7 @@ LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Radio_CompressType[m_Config.CompressType].SetCheck(1);
 
 	//------------------
-	// ˆ³kƒŒƒxƒ‹‚Ì‘I‘ğ
+	// åœ§ç¸®ãƒ¬ãƒ™ãƒ«ã®é¸æŠ
 	//------------------
 	Radio_CompressLevel[ZIP_COMPRESS_LEVEL0]=GetDlgItem(IDC_RADIO_ZIP_COMPRESS_LEVEL_0);
 	Radio_CompressLevel[ZIP_COMPRESS_LEVEL5]=GetDlgItem(IDC_RADIO_ZIP_COMPRESS_LEVEL_5);
@@ -64,21 +57,21 @@ LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 
 	//---------------
-	// Deflate‚Ìİ’è
+	// Deflateã®è¨­å®š
 	//---------------
-	//ƒƒ‚ƒŠƒTƒCƒY
+	//ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º
 	::SendMessage(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_MEMORY_SIZE),EM_LIMITTEXT,3,NULL);
 	Check_SpecifyDeflateMemorySize=GetDlgItem(IDC_CHECK_ZIP_SPECIFY_MEMORY_SIZE);
 	Check_SpecifyDeflateMemorySize.SetCheck(m_Config.SpecifyDeflateMemorySize);
 	::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_MEMORY_SIZE),m_Config.SpecifyDeflateMemorySize);
-	//ƒpƒX”
+	//ãƒ‘ã‚¹æ•°
 	::SendMessage(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_PASS_NUMBER),EM_LIMITTEXT,1,NULL);
 	Check_SpecifyDeflatePassNumber=GetDlgItem(IDC_CHECK_ZIP_SPECIFY_PASS_NUMBER);
 	Check_SpecifyDeflatePassNumber.SetCheck(m_Config.SpecifyDeflatePassNumber);
 	::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_PASS_NUMBER),m_Config.SpecifyDeflatePassNumber);
 
 	//------------------
-	// •ªŠ„ƒTƒCƒY‚Ìİ’è
+	// åˆ†å‰²ã‚µã‚¤ã‚ºã®è¨­å®š
 	//------------------
 	::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_SPLIT_SIZE), m_Config.SpecifySplitSize);
 	::EnableWindow(GetDlgItem(IDC_COMBO_ZIP_SPLIT_SIZE_UNIT), m_Config.SpecifySplitSize);
@@ -89,7 +82,7 @@ LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 	}
 	Combo_SizeUnit.SetCurSel(m_Config.SplitSizeUnit);
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	return TRUE;
@@ -98,10 +91,10 @@ LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgZIP::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//----------------
-	// ˆ³kŒ`®‚Ì‘I‘ğ
+	// åœ§ç¸®å½¢å¼ã®é¸æŠ
 	//----------------
 	for(int Type=0;Type<COUNTOF(Radio_CompressType);Type++){
 		if(Radio_CompressType[Type].GetCheck()){
@@ -111,7 +104,7 @@ LRESULT CConfigDlgZIP::OnApply()
 	}
 
 	//------------------
-	// ˆ³kƒŒƒxƒ‹‚Ì‘I‘ğ
+	// åœ§ç¸®ãƒ¬ãƒ™ãƒ«ã®é¸æŠ
 	//------------------
 	for(int Type=0;Type<COUNTOF(Radio_CompressLevel);Type++){
 		if(Radio_CompressLevel[Type].GetCheck()){
@@ -121,22 +114,22 @@ LRESULT CConfigDlgZIP::OnApply()
 	}
 
 	//------------------
-	// •ªŠ„ƒTƒCƒY‚Ìİ’è
+	// åˆ†å‰²ã‚µã‚¤ã‚ºã®è¨­å®š
 	//------------------
 	m_Config.SplitSizeUnit = Combo_SizeUnit.GetCurSel();
 
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
 	}
 	//---------------
-	// Deflate‚Ìİ’è
+	// Deflateã®è¨­å®š
 	//---------------
-	//ƒƒ‚ƒŠƒTƒCƒY
+	//ãƒ¡ãƒ¢ãƒªã‚µã‚¤ã‚º
 	m_Config.SpecifyDeflateMemorySize=Check_SpecifyDeflateMemorySize.GetCheck();
-	//ƒpƒX”
+	//ãƒ‘ã‚¹æ•°
 	m_Config.SpecifyDeflatePassNumber=Check_SpecifyDeflatePassNumber.GetCheck();
 	return TRUE;
 }

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../resource.h"
@@ -59,7 +52,7 @@ void TraceLastError()
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // ƒfƒtƒHƒ‹ƒgŒ¾Œê
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¨€èª
 		(LPTSTR)&lpMsgBuf, 0, NULL);
 	TRACE(_T("API Error : %s"),lpMsgBuf);
 	LocalFree(lpMsgBuf);
@@ -67,14 +60,14 @@ void TraceLastError()
 
 #endif
 
-//ƒGƒ‰[ƒƒbƒZ[ƒW•\¦
+//ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤º
 int ErrorMessage(LPCTSTR msg)
 {
 	TRACE(_T("ErrorMessage:")),TRACE(msg),TRACE(_T("\n"));
 	return MessageBox(NULL,msg,UtilGetMessageCaption(),MB_OK|MB_ICONSTOP);
 }
 
-//ƒƒbƒZ[ƒWƒLƒƒƒvƒVƒ‡ƒ“‚ğæ“¾
+//ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³ã‚’å–å¾—
 LPCTSTR UtilGetMessageCaption()
 {
 	const static CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
@@ -83,7 +76,7 @@ LPCTSTR UtilGetMessageCaption()
 
 void UtilGetLastErrorMessage(CString &strMsg)
 {
-	//ÀsƒGƒ‰[
+	//å®Ÿè¡Œã‚¨ãƒ©ãƒ¼
 	LPVOID lpMsgBuf;
 	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -96,7 +89,7 @@ void UtilGetLastErrorMessage(CString &strMsg)
 }
 
 
-//”z—ñ‚Ì’†‚Éw’è‚³‚ê‚½”š‚ª—L‚ê‚Î‚»‚ÌˆÊ’u‚ğ•Ô‚·
+//é…åˆ—ã®ä¸­ã«æŒ‡å®šã•ã‚ŒãŸæ•°å­—ãŒæœ‰ã‚Œã°ãã®ä½ç½®ã‚’è¿”ã™
 int UtilCheckNumberArray(const int *lpcArray,int size,int c)
 {
 	for(int i=0;i<size;i++){
@@ -105,7 +98,7 @@ int UtilCheckNumberArray(const int *lpcArray,int size,int c)
 	return -1;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚ªw’è‚µ‚½ƒpƒ^[ƒ“‚É“–‚Ä‚Í‚Ü‚ê‚Îtrue
+//ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã—ãŸãƒ‘ã‚¿ãƒ¼ãƒ³ã«å½“ã¦ã¯ã¾ã‚Œã°true
 bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
 {
 	const CString strBuf=lpPattern;
@@ -119,14 +112,14 @@ bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
 		}else{
 			strMatchSpec=strBuf.Mid(CopyFrom,Index-CopyFrom);
 		}
-		if(!strMatchSpec.IsEmpty()){	//Šg’£qŠm”F
-			if(strMatchSpec[0]!=L'.')strMatchSpec=L'.'+strMatchSpec;	//.‚©‚çn‚Ü‚é‚æ‚¤‚É•â‚¤
+		if(!strMatchSpec.IsEmpty()){	//æ‹¡å¼µå­ç¢ºèª
+			if(strMatchSpec[0]!=L'.')strMatchSpec=L'.'+strMatchSpec;	//.ã‹ã‚‰å§‹ã¾ã‚‹ã‚ˆã†ã«è£œã†
 			strMatchSpec.Insert(0,_T("*"));	//.ext->*.ext
 			if(PathMatchSpec(lpszPath,strMatchSpec)){
 				return true;
 			}
 		}
-		if(-1==Index){	//ŒŸõI—¹
+		if(-1==Index){	//æ¤œç´¢çµ‚äº†
 			break;
 		}else{
 			Index++;
@@ -136,7 +129,7 @@ bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
 	return false;
 }
 
-//ƒtƒ@ƒCƒ‹–¼‚ªw’è‚µ‚½2‚Â‚ÌğŒ‚Å[‹–‰Â]‚³‚ê‚é‚©‚Ç‚¤‚©;‹‘”Û‚ª—Dæ
+//ãƒ•ã‚¡ã‚¤ãƒ«åãŒæŒ‡å®šã—ãŸ2ã¤ã®æ¡ä»¶ã§[è¨±å¯]ã•ã‚Œã‚‹ã‹ã©ã†ã‹;æ‹’å¦ãŒå„ªå…ˆ
 bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly)
 {
 	if(UtilExtMatchSpec(lpszPath,lpDeny)){
@@ -152,7 +145,7 @@ bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bD
 	return false;
 }
 
-//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ğ“Ç‚İæ‚é
+//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿å–ã‚‹
 bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,std::list<CString> &FileList)
 {
 	ASSERT(lpszRespFile);
@@ -162,20 +155,20 @@ bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,st
 	HANDLE hFile=CreateFile(lpszRespFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(INVALID_HANDLE_VALUE==hFile)return false;
 
-	//4GB‰z‚¦ƒtƒ@ƒCƒ‹‚Íˆµ‚í‚È‚¢
+	//4GBè¶Šãˆãƒ•ã‚¡ã‚¤ãƒ«ã¯æ‰±ã‚ãªã„
 	const DWORD dwSize=GetFileSize(hFile,NULL);
 	std::vector<BYTE> cReadBuffer;
 	cReadBuffer.resize(dwSize+2);
 	DWORD dwRead;
-	//---“Ç‚İ‚İ
+	//---èª­ã¿è¾¼ã¿
 	if(!ReadFile(hFile,&cReadBuffer[0],dwSize,&dwRead,NULL)||dwSize!=dwRead){
 		CloseHandle(hFile);
 		return false;
 	}
 	CloseHandle(hFile);
 
-	//---•¶šƒR[ƒh•ÏŠ·
-	//I’[•¶š’Ç‰Á
+	//---æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›
+	//çµ‚ç«¯æ–‡å­—è¿½åŠ 
 	switch(uSrcCodePage){
 	case UTILCP_SJIS:
 	case UTILCP_UTF8:	//FALLTHROUGH
@@ -188,19 +181,19 @@ bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,st
 		ASSERT(!"This code canno be run");
 		return false;
 	}
-	//•¶šƒR[ƒh•ÏŠ·
+	//æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›
 	CString strBuffer;
 	if(!UtilToUNICODE(strBuffer,&cReadBuffer[0],cReadBuffer.size(),uSrcCodePage))return false;
 
 	LPCTSTR p=strBuffer;
 	const LPCTSTR end=p+strBuffer.GetLength()+1;
-	//‰ğß
+	//è§£é‡ˆ
 	CString strLine;
 	for(;p!=end;p++){
 		if(*p==_T('\n')||*p==_T('\r')||*p==_T('\0')){
 			if(!strLine.IsEmpty()){
 				CPath tmpPath(strLine);
-				tmpPath.UnquoteSpaces();	//""‚ğŠO‚·
+				tmpPath.UnquoteSpaces();	//""ã‚’å¤–ã™
 				FileList.push_back(tmpPath);
 			}
 			strLine.Empty();
@@ -211,7 +204,7 @@ bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,st
 	return true;
 }
 
-//INI‚É”š‚ğ•¶š—ñ‚Æ‚µ‚Ä‘‚«‚Ş
+//INIã«æ•°å­—ã‚’æ–‡å­—åˆ—ã¨ã—ã¦æ›¸ãè¾¼ã‚€
 BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName)
 {
 	TCHAR Buffer[32]={0};
@@ -220,7 +213,7 @@ BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,L
 }
 
 
-//INI‚Éw’è‚³‚ê‚½ƒZƒNƒVƒ‡ƒ“‚ª‚ ‚é‚È‚çtrue‚ğ•Ô‚·
+//INIã«æŒ‡å®šã•ã‚ŒãŸã‚»ã‚¯ã‚·ãƒ§ãƒ³ãŒã‚ã‚‹ãªã‚‰trueã‚’è¿”ã™
 bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName)
 {
 	TCHAR szBuffer[10];
@@ -228,7 +221,7 @@ bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName)
 	return dwRead>0;
 }
 
-//•¶š—ñ‚ğ“ü—Í‚³‚¹‚é
+//æ–‡å­—åˆ—ã‚’å…¥åŠ›ã•ã›ã‚‹
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
 {
 	CInputDialog dlg(lpszMessage,strInput);
@@ -236,28 +229,28 @@ bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
 }
 
 
-//—^‚¦‚ç‚ê‚½ƒtƒ@ƒCƒ‹–¼‚ªƒ}ƒ‹ƒ`ƒ{ƒŠƒ…[ƒ€‘ŒÉ‚ÆŒ©‚È‚¹‚é‚È‚çtrue‚ğ•Ô‚·
+//ä¸ãˆã‚‰ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«åãŒãƒãƒ«ãƒãƒœãƒªãƒ¥ãƒ¼ãƒ æ›¸åº«ã¨è¦‹ãªã›ã‚‹ãªã‚‰trueã‚’è¿”ã™
 bool UtilIsMultiVolume(LPCTSTR lpszPath,CString &r_strFindParam)
 {
-	//‰Šú‰»
+	//åˆæœŸåŒ–
 	r_strFindParam.Empty();
 
 	CPath strPath(lpszPath);
-	if(strPath.IsDirectory())return false;	//ƒfƒBƒŒƒNƒgƒŠ‚È‚ç–³ğŒ‚É•Ô‚é
+	if(strPath.IsDirectory())return false;	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã‚‰ç„¡æ¡ä»¶ã«è¿”ã‚‹
 
-	strPath.StripPath();	//ƒtƒ@ƒCƒ‹–¼‚Ì‚İ‚É
-	int nExt=strPath.FindExtension();	//Šg’£q‚Ì.‚ÌˆÊ’u
-	if(-1==nExt)return false;	//Šg’£q‚ÍŒ©‚Â‚©‚ç‚¸
+	strPath.StripPath();	//ãƒ•ã‚¡ã‚¤ãƒ«åã®ã¿ã«
+	int nExt=strPath.FindExtension();	//æ‹¡å¼µå­ã®.ã®ä½ç½®
+	if(-1==nExt)return false;	//æ‹¡å¼µå­ã¯è¦‹ã¤ã‹ã‚‰ãš
 
 	CString strExt((LPCTSTR)strPath+nExt);
-	strExt.MakeLower();	//¬•¶š‚É
+	strExt.MakeLower();	//å°æ–‡å­—ã«
 	if(strExt==_T(".rar")){
 		//---RAR
 		if(strPath.MatchSpec(_T("*.part*.rar"))){
-			//ŒŸõ•¶š—ñ‚Ìì¬
+			//æ¤œç´¢æ–‡å­—åˆ—ã®ä½œæˆ
 			CPath tempPath(lpszPath);
-			tempPath.RemoveExtension();	//.rar‚Ìíœ
-			tempPath.RemoveExtension();	//.part??‚Ìíœ
+			tempPath.RemoveExtension();	//.rarã®å‰Šé™¤
+			tempPath.RemoveExtension();	//.part??ã®å‰Šé™¤
 			tempPath.AddExtension(_T(".part*.rar"));
 
 			r_strFindParam=(CString)tempPath;
@@ -266,12 +259,12 @@ bool UtilIsMultiVolume(LPCTSTR lpszPath,CString &r_strFindParam)
 			return false;
 		}
 	}
-	//TODO:g—p•p“x‚ÆÀ‘•‚ÌŠÈ•Ö‚³‚ğl‚¦‚Ärar‚Ì‚İ‘Î‰‚Æ‚·‚é
+	//TODO:ä½¿ç”¨é »åº¦ã¨å®Ÿè£…ã®ç°¡ä¾¿ã•ã‚’è€ƒãˆã¦rarã®ã¿å¯¾å¿œã¨ã™ã‚‹
 	return false;
 }
 
 
-//‹­§“I‚ÉƒƒbƒZ[ƒWƒ‹[ƒv‚ğ‰ñ‚·
+//å¼·åˆ¶çš„ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã‚’å›ã™
 bool UtilDoMessageLoop()
 {
 	MSG msg;
@@ -293,34 +286,34 @@ VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD)
 }
 
 
-//•W€‚Ìİ’èƒtƒ@ƒCƒ‹‚ÌƒpƒX‚ğæ“¾
-//bUserCommon‚Íƒ†[ƒU[ŠÔ‚Å‹¤’Êİ’è‚ğg‚¤ê‡‚Étrue‚ª‘ã“ü‚³‚ê‚é
-//lpszDir‚ÍApplicationData‚É“ü‚ê‚é‚Æ‚«‚É•K—v‚ÈƒfƒBƒŒƒNƒgƒŠ–¼
-//lpszFile‚Í’T‚·ƒtƒ@ƒCƒ‹–¼
+//æ¨™æº–ã®è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹ã‚’å–å¾—
+//bUserCommonã¯ãƒ¦ãƒ¼ã‚¶ãƒ¼é–“ã§å…±é€šè¨­å®šã‚’ä½¿ã†å ´åˆã«trueãŒä»£å…¥ã•ã‚Œã‚‹
+//lpszDirã¯ApplicationDataã«å…¥ã‚Œã‚‹ã¨ãã«å¿…è¦ãªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå
+//lpszFileã¯æ¢ã™ãƒ•ã‚¡ã‚¤ãƒ«å
 void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon)
 {
-	//---ƒ†[ƒU[ŠÔ‚Å‹¤’Ê‚Ìİ’è‚ğ—p‚¢‚é
-	//LhaForgeƒtƒHƒ‹ƒ_‚Æ“¯‚¶êŠ‚ÉINI‚ª‚ ‚ê‚Îg—p‚·‚é
+	//---ãƒ¦ãƒ¼ã‚¶ãƒ¼é–“ã§å…±é€šã®è¨­å®šã‚’ç”¨ã„ã‚‹
+	//LhaForgeãƒ•ã‚©ãƒ«ãƒ€ã¨åŒã˜å ´æ‰€ã«INIãŒã‚ã‚Œã°ä½¿ç”¨ã™ã‚‹
 	{
 		TCHAR szCommonIniPath[_MAX_PATH+1]={0};
 		_tcsncpy_s(szCommonIniPath,UtilGetModuleDirectoryPath(),_MAX_PATH);
 		PathAppend(szCommonIniPath,lpszFile);
 		if(PathFileExists(szCommonIniPath)){
-			//‹¤’Êİ’è
+			//å…±é€šè¨­å®š
 			bUserCommon=true;
 			strPath=szCommonIniPath;
 			TRACE(_T("Common INI(Old Style) '%s' found.\n"),strPath);
 			return;
 		}
 	}
-	//CSIDL_COMMON_APPDATA‚ÉINI‚ª‚ ‚ê‚Îg—p‚·‚é
+	//CSIDL_COMMON_APPDATAã«INIãŒã‚ã‚Œã°ä½¿ç”¨ã™ã‚‹
 	{
 		TCHAR szCommonIniPath[_MAX_PATH+1]={0};
 		SHGetFolderPath(NULL,CSIDL_COMMON_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szCommonIniPath);
 		PathAppend(szCommonIniPath,lpszDir);
 		PathAppend(szCommonIniPath,lpszFile);
 		if(PathFileExists(szCommonIniPath)){
-			//‹¤’Êİ’è
+			//å…±é€šè¨­å®š
 			bUserCommon=true;
 			strPath=szCommonIniPath;
 			TRACE(_T("Common INI '%s' found.\n"),strPath);
@@ -330,10 +323,10 @@ void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bo
 
 	//--------------------
 
-	//---ƒ†[ƒU[•Êİ’è‚ğ—p‚¢‚é
-	//LhaForgeƒCƒ“ƒXƒg[ƒ‹ƒtƒHƒ‹ƒ_ˆÈ‰º‚Éƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚éê‡A‚»‚ê‚ğg—p
+	//---ãƒ¦ãƒ¼ã‚¶ãƒ¼åˆ¥è¨­å®šã‚’ç”¨ã„ã‚‹
+	//LhaForgeã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ãƒ•ã‚©ãƒ«ãƒ€ä»¥ä¸‹ã«ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹å ´åˆã€ãã‚Œã‚’ä½¿ç”¨
 	{
-		//ƒ†[ƒU[–¼æ“¾
+		//ãƒ¦ãƒ¼ã‚¶ãƒ¼åå–å¾—
 		TCHAR UserName[UNLEN+1]={0};
 		DWORD Length=UNLEN;
 		GetUserName(UserName,&Length);
@@ -353,8 +346,8 @@ void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bo
 			return;
 		}
 	}
-	//---ƒfƒtƒHƒ‹ƒg
-	//CSIDL_APPDATA‚ÉINI‚ª‚ ‚ê‚Îg—p‚·‚é:Vista‚Å‚Í‚±‚êˆÈŠO‚ÍƒAƒNƒZƒXŒ ŒÀ•s‘«‚É‚È‚é‰Â”\«‚ª‚ ‚é
+	//---ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+	//CSIDL_APPDATAã«INIãŒã‚ã‚Œã°ä½¿ç”¨ã™ã‚‹:Vistaã§ã¯ã“ã‚Œä»¥å¤–ã¯ã‚¢ã‚¯ã‚»ã‚¹æ¨©é™ä¸è¶³ã«ãªã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
 	TCHAR szIniPath[_MAX_PATH+1]={0};
 	SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szIniPath);
 	PathAppend(szIniPath,lpszDir);

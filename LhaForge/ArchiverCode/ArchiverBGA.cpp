@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArchiverBGA.h"
@@ -63,7 +56,7 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	TRACE(_T("ArcFileName=%s\n"),ArcFileName);
 
 	//==============================================
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	//==============================================
 	TCHAR ResponceFileName[_MAX_PATH+1];
 	FILL_ZERO(ResponceFileName);
@@ -74,13 +67,13 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	ASSERT(0!=_tcslen(ResponceFileName));
 
 	//============================================
-	// ©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	//============================================
 	TCHAR SFXTemporaryFileName[_MAX_PATH+1];
 	FILL_ZERO(SFXTemporaryFileName);
 	bool bSFX=(0!=(Options&COMPRESS_SFX));
 	if(bSFX){
-		//2’iŠKì¬‚·‚é
+		//2æ®µéšä½œæˆã™ã‚‹
 		if(!UtilGetTemporaryFileName(SFXTemporaryFileName,_T("sfx"))){
 			strLog=CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_CREATE));
 			return false;
@@ -89,7 +82,7 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	}
 
 	//====================================================
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹“à‚Éˆ³k‘ÎÛƒtƒ@ƒCƒ‹–¼‚ğ‹L“ü‚·‚é
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«å†…ã«åœ§ç¸®å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¨˜å…¥ã™ã‚‹
 	//====================================================
 	{
 		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
@@ -98,7 +91,7 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 			return false;
 		}
 
-		TRACE(_T("ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«‚İ\n"));
+		TRACE(_T("ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãè¾¼ã¿\n"));
 		std::list<CString>::iterator ite;
 		for(ite=ParamList.begin();ite!=ParamList.end();ite++){
 			WriteResponceFile(hFile,*ite);
@@ -107,16 +100,16 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	}
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
 
-	//ˆ³kƒpƒ‰ƒ[ƒ^
+	//åœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("a ")		//ˆ³k
-		_T("-a ")		//‘S‘®«‚ğ‘ÎÛ
+		_T("a ")		//åœ§ç¸®
+		_T("-a ")		//å…¨å±æ€§ã‚’å¯¾è±¡
 	;
 
 	CConfigBGA Config;
@@ -141,7 +134,7 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 		}
 	}
 
-	//o—Íæƒtƒ@ƒCƒ‹–¼w’è
+	//å‡ºåŠ›å…ˆãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	if(bSFX){
 		Param+=_T("\"");
 		Param+=SFXTemporaryFileName;
@@ -152,7 +145,7 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 		Param+=_T("\" ");
 	}
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹–¼w’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
@@ -160,17 +153,17 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
 	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
 	strLog=&szLog[0];
 
-	//g‚Á‚½ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÍÁ‹
+	//ä½¿ã£ãŸãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ¶ˆå»
 	DeleteFile(ResponceFileName);
 
-	//ƒGƒ‰[ƒƒOo—Í
+	//ã‚¨ãƒ©ãƒ¼æ™‚ãƒ­ã‚°å‡ºåŠ›
 	if(!bSFX||0!=Ret){
 		if(bSFX){
 			DeleteFile(SFXTemporaryFileName);
@@ -179,21 +172,21 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	}
 
 	//====================
-	// ©ŒÈ‰ğ“€‘ŒÉ‚É•ÏŠ·
+	// è‡ªå·±è§£å‡æ›¸åº«ã«å¤‰æ›
 	//====================
-	//•ÏŠ·ƒpƒ‰ƒ[ƒ^
-	Param=_T("s ");		//•ÏŠ·
+	//å¤‰æ›ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	Param=_T("s ");		//å¤‰æ›
 
 	Param+=_T("\"");
-	Param+=SFXTemporaryFileName;	//•ÏŠ·Œ³ƒtƒ@ƒCƒ‹–¼
+	Param+=SFXTemporaryFileName;	//å¤‰æ›å…ƒãƒ•ã‚¡ã‚¤ãƒ«å
 	Param+=_T("\" ");
 
 	//------------------------------------------------------------------------------------------
-	//’ˆÓ:
-	// ©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹–¼‚Íƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼‚ÌŠg’£q‚ğ.exe‚É•Ï‚¦‚½‚à‚Ì‚É‚È‚Á‚Ä‚¢‚é
+	//æ³¨æ„:
+	// è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«åã¯ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åã®æ‹¡å¼µå­ã‚’.exeã«å¤‰ãˆãŸã‚‚ã®ã«ãªã£ã¦ã„ã‚‹
 	//------------------------------------------------------------------------------------------
 
-	//o—ÍæƒtƒHƒ‹ƒ_(ƒeƒ“ƒ|ƒ‰ƒŠƒtƒHƒ‹ƒ_)‚ğw’è
+	//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€(ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚©ãƒ«ãƒ€)ã‚’æŒ‡å®š
 	CString strDir(SFXTemporaryFileName);
 	UtilPathGetDirectoryPart(strDir);
 	Param+=_T("\"");
@@ -204,15 +197,15 @@ bool CArchiverBGA::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CC
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter(SFX):%s\n"),Param);
 
-	TRACE(_T("SFX—pArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("SFXç”¨ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	std::vector<char> LogSFX(LOG_BUFFER_SIZE);
 	LogSFX[0]='\0';
 	Ret=ArchiveHandler(NULL,CT2A(Param),&LogSFX[0],LOG_BUFFER_SIZE-1);
 	strLog+=&LogSFX[0];
 
 	DeleteFile(SFXTemporaryFileName);
-	if(!Ret){	//³íI—¹
-		//•ÏŠ·Œã‚Ì©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹–¼‚ğo‚·
+	if(!Ret){	//æ­£å¸¸çµ‚äº†æ™‚
+		//å¤‰æ›å¾Œã®è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å‡ºã™
 		PathRemoveExtension(SFXTemporaryFileName);
 		PathAddExtension(SFXTemporaryFileName,_T(".exe"));
 		MoveFile(SFXTemporaryFileName,ArcFileName);
@@ -230,32 +223,32 @@ bool CArchiverBGA::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtr
 		strLog.Format(IDS_ERROR_DANGEROUS_ARCHIVE,ArcFileName);
 		return false;
 	}
-	//o—ÍæˆÚ“®
+	//å‡ºåŠ›å…ˆç§»å‹•
 	CCurrentDirManager currentDir(OutputDir);
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
 
-	//‰ğ“€ƒpƒ‰ƒ[ƒ^
+	//è§£å‡ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("x ")		//ƒpƒX•t‚«‰ğ“€
-		_T("-a ")		//‘S‘®«‰ğ“€
+		_T("x ")		//ãƒ‘ã‚¹ä»˜ãè§£å‡
+		_T("-a ")		//å…¨å±æ€§è§£å‡
 	;
 	if(Config.ForceOverwrite){
-		//‹­§ã‘‚«
+		//å¼·åˆ¶ä¸Šæ›¸ã
 		Param+=_T("-o ");
 	}
 
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//o—Íæw’è
+	//å‡ºåŠ›å…ˆæŒ‡å®š
 	Param+=_T("\"");
 	Param+=_T(".\\");//OutputDir;
 	Param+=_T("\"");
@@ -263,7 +256,7 @@ bool CArchiverBGA::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtr
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
 	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
@@ -275,9 +268,9 @@ bool CArchiverBGA::Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtr
 
 
 //=========================================================
-// BgaGetFileName()‚Ìo—ÍŒ‹‰Ê‚ğŠî‚ÉAŠi”[‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªƒpƒX
-//î•ñ‚ğ‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©”»•Ê‚µA“ñdƒtƒHƒ‹ƒ_ì¬‚ğ–h‚®
-// ˆÀ‘SŠm”F‚às‚¤
+// BgaGetFileName()ã®å‡ºåŠ›çµæœã‚’åŸºã«ã€æ ¼ç´ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒãƒ‘ã‚¹
+//æƒ…å ±ã‚’æŒã£ã¦ã„ã‚‹ã‹ã©ã†ã‹åˆ¤åˆ¥ã—ã€äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆã‚’é˜²ã
+// å®‰å…¨ç¢ºèªã‚‚è¡Œã†
 //=========================================================
 bool CArchiverBGA::ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,bool,bool &bInFolder,bool &bSafeArchive,CString &BaseDir,CString &strErr)
 {
@@ -290,10 +283,10 @@ bool CArchiverBGA::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCT
 		return false;
 	}
 
-	//o—ÍæˆÚ“®
+	//å‡ºåŠ›å…ˆç§»å‹•
 	CCurrentDirManager currentDir(OutputDir);
 	//==============================================
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	//==============================================
 	TCHAR ResponceFileName[_MAX_PATH+1];
 	FILL_ZERO(ResponceFileName);
@@ -303,7 +296,7 @@ bool CArchiverBGA::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCT
 	}
 	ASSERT(0!=_tcslen(ResponceFileName));
 
-	//‰ğ“€‘ÎÛƒtƒ@ƒCƒ‹‚ğƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚É‘‚«o‚·
+	//è§£å‡å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãå‡ºã™
 	{
 		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 		if(INVALID_HANDLE_VALUE==hFile){
@@ -320,38 +313,38 @@ bool CArchiverBGA::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCT
 	}
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
 	CString Param;
 
-	//‰ğ“€ƒpƒ‰ƒ[ƒ^
+	//è§£å‡ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("x ")			//‰ğ“€
-		_T("-a ")			//‘S‘®«‰ğ“€
+		_T("x ")			//è§£å‡
+		_T("-a ")			//å…¨å±æ€§è§£å‡
 	;
-	if(!bUsePath)Param+=_T("-j ");		//ƒpƒX–³‹
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	if(!bUsePath)Param+=_T("-j ");		//ãƒ‘ã‚¹ç„¡è¦–
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//o—ÍæƒtƒHƒ‹ƒ_
+	//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€
 	Param+=_T("\"");
 	Param+=OutputDir;
 	Param+=_T("\" ");
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹–¼w’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
 
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\nCommandline Parameter:%s\n"),Param);
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\nCommandline Parameter:%s\n"),Param);
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
 	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
 	strLog=&szLog[0];
-	//g‚Á‚½ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÍÁ‹
+	//ä½¿ã£ãŸãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ¶ˆå»
 	DeleteFile(ResponceFileName);
 
 	return 0==Ret;
@@ -364,7 +357,7 @@ bool CArchiverBGA::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,con
 	}
 
 	//==============================================
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	//==============================================
 	TCHAR ResponceFileName[_MAX_PATH+1];
 	FILL_ZERO(ResponceFileName);
@@ -374,7 +367,7 @@ bool CArchiverBGA::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,con
 	}
 	ASSERT(0!=_tcslen(ResponceFileName));
 
-	//íœ‘ÎÛƒtƒ@ƒCƒ‹‚ğƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚É‘‚«o‚·
+	//å‰Šé™¤å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«æ›¸ãå‡ºã™
 	{
 		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 		if(INVALID_HANDLE_VALUE==hFile){
@@ -391,32 +384,32 @@ bool CArchiverBGA::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,con
 	}
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
 	CString Param;
 
-	//íœƒpƒ‰ƒ[ƒ^
+	//å‰Šé™¤ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("d ")		//íœ
-		_T("-i ")		//Šm”F‚µ‚È‚¢
+		_T("d ")		//å‰Šé™¤
+		_T("-i ")		//ç¢ºèªã—ãªã„
 	;
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹–¼w’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\nCommandline Parameter:%s\n"),Param);
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\nCommandline Parameter:%s\n"),Param);
 	//char szLog[LOG_BUFFER_SIZE]={0};
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
 	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
 	strLog=&szLog[0];
-	//g‚Á‚½ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÍÁ‹
+	//ä½¿ã£ãŸãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ¶ˆå»
 	DeleteFile(ResponceFileName);
 
 	return 0==Ret;
@@ -424,7 +417,7 @@ bool CArchiverBGA::DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,con
 
 bool CArchiverBGA::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
 {
-	// ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹—pƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼æ“¾
+	// ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ç”¨ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	TCHAR ResponceFileName[_MAX_PATH+1];
 	FILL_ZERO(ResponceFileName);
 	if(!UtilGetTemporaryFileName(ResponceFileName,_T("bga"))){
@@ -433,92 +426,92 @@ bool CArchiverBGA::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const st
 	}
 	ASSERT(0!=_tcslen(ResponceFileName));
 
-	//===ˆê“I‚Éƒtƒ@ƒCƒ‹‚ğƒRƒs[
-	//---\‚ÅI‚í‚éŠî“_ƒpƒX‚ğæ“¾
+	//===ä¸€æ™‚çš„ã«ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼
+	//---\ã§çµ‚ã‚ã‚‹åŸºç‚¹ãƒ‘ã‚¹ã‚’å–å¾—
 	CPath strBasePath;
 	UtilGetBaseDirectory(strBasePath,FileList);
 	TRACE(_T("%s\n"),strBasePath);
 
-	//---ƒeƒ“ƒ|ƒ‰ƒŠ‚É‘ÎÛƒtƒ@ƒCƒ‹‚ğƒRƒs[
-	//ƒeƒ“ƒ|ƒ‰ƒŠ€”õ
+	//---ãƒ†ãƒ³ãƒãƒ©ãƒªã«å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚³ãƒ”ãƒ¼
+	//ãƒ†ãƒ³ãƒãƒ©ãƒªæº–å‚™
 	CTemporaryDirectoryManager tdm(_T("lhaf"));
 	CPath strDestPath(tdm.GetDirPath());
 	strDestPath+=lpDestDir;
 	UtilMakeSureDirectoryPathExists(strDestPath);
 
-	// ˆ³k‘ÎÛƒtƒ@ƒCƒ‹–¼‚ğC³‚·‚é
+	// åœ§ç¸®å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ä¿®æ­£ã™ã‚‹
 	const int BasePathLength=((CString)strBasePath).GetLength();
-	CString strSrcFiles;	//ƒRƒs[Œ³ƒtƒ@ƒCƒ‹‚Ìˆê——
-	CString strDestFiles;	//ƒRƒs[æƒtƒ@ƒCƒ‹‚Ìˆê——
+	CString strSrcFiles;	//ã‚³ãƒ”ãƒ¼å…ƒãƒ•ã‚¡ã‚¤ãƒ«ã®ä¸€è¦§
+	CString strDestFiles;	//ã‚³ãƒ”ãƒ¼å…ˆãƒ•ã‚¡ã‚¤ãƒ«ã®ä¸€è¦§
 	std::list<CString>::const_iterator ite;
 	for(ite=FileList.begin();ite!=FileList.end();++ite){
-		//ƒx[ƒXƒpƒX‚ğŒ³‚É‘Š‘ÎƒpƒXæ“¾ : ‹¤’Ê‚Å‚ ‚éŠî’êƒpƒX‚Ì•¶š”•ª‚¾‚¯ƒJƒbƒg‚·‚é
+		//ãƒ™ãƒ¼ã‚¹ãƒ‘ã‚¹ã‚’å…ƒã«ç›¸å¯¾ãƒ‘ã‚¹å–å¾— : å…±é€šã§ã‚ã‚‹åŸºåº•ãƒ‘ã‚¹ã®æ–‡å­—æ•°åˆ†ã ã‘ã‚«ãƒƒãƒˆã™ã‚‹
 		LPCTSTR lpSrc((LPCTSTR)(*ite)+BasePathLength);
 
-		//‘—‚è‘¤ƒtƒ@ƒCƒ‹–¼w’è
-		strSrcFiles+=(strBasePath+lpSrc);	//PathAppend‘Š“–
+		//é€ã‚Šå´ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
+		strSrcFiles+=(strBasePath+lpSrc);	//PathAppendç›¸å½“
 		strSrcFiles+=_T('|');
-		//ó‚¯‘¤ƒtƒ@ƒCƒ‹–¼w’è
+		//å—ã‘å´ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 		strDestFiles+=strDestPath+lpSrc;
 		strDestFiles+=_T('|');
 	}
 	strSrcFiles+=_T('|');
 	strDestFiles+=_T('|');
 
-	//'|'‚ğ'\0'‚É•ÏŠ·‚·‚é
+	//'|'ã‚’'\0'ã«å¤‰æ›ã™ã‚‹
 	std::vector<TCHAR> srcBuf(strSrcFiles.GetLength()+1);
 	UtilMakeFilterString(strSrcFiles,&srcBuf[0],srcBuf.size());
 	std::vector<TCHAR> destBuf(strDestFiles.GetLength()+1);
 	UtilMakeFilterString(strDestFiles,&destBuf[0],destBuf.size());
 
-	//ƒtƒ@ƒCƒ‹‘€ì“à—e
+	//ãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œå†…å®¹
 	SHFILEOPSTRUCT fileOp={0};
 	fileOp.wFunc=FO_COPY;
 	fileOp.fFlags=FOF_MULTIDESTFILES|FOF_NOCONFIRMATION|FOF_NOCONFIRMMKDIR|FOF_NOCOPYSECURITYATTRIBS|FOF_NO_CONNECTED_ELEMENTS;
 	fileOp.pFrom=&srcBuf[0];
 	fileOp.pTo=&destBuf[0];
 
-	//ƒRƒs[Às
+	//ã‚³ãƒ”ãƒ¼å®Ÿè¡Œ
 	if(::SHFileOperation(&fileOp)){
-		//ƒGƒ‰[
+		//ã‚¨ãƒ©ãƒ¼
 		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY));
 		return false;
 	}else if(fileOp.fAnyOperationsAborted){
-		//ƒLƒƒƒ“ƒZƒ‹
+		//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL));
 		return false;
 	}
 
-	//ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠİ’è
+	//ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªè¨­å®š
 	::SetCurrentDirectory(tdm.GetDirPath());
-	// “¯‚ÉAƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹“à‚ÉƒA[ƒJƒCƒu–¼‚¨‚æ‚Ñˆ³k‘ÎÛƒtƒ@ƒCƒ‹–¼‚ğ‹L“ü‚·‚é
+	// åŒæ™‚ã«ã€ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«å†…ã«ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–åãŠã‚ˆã³åœ§ç¸®å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¨˜å…¥ã™ã‚‹
 	{
 		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 		if(INVALID_HANDLE_VALUE==hFile){
 			strLog=CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_ACCESS));
 			return false;
 		}
-		//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«‚İ
-		//‘S‚Äˆ³k
+		//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãè¾¼ã¿
+		//å…¨ã¦åœ§ç¸®
 		WriteResponceFile(hFile,_T("*"));
 		CloseHandle(hFile);
 	}
 
 
 	//===========================
-	// DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è
+	// DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š
 	//===========================
-	TRACE(_T("DLL‚É“n‚·ƒIƒvƒVƒ‡ƒ“‚Ìİ’è\n"));
+	TRACE(_T("DLLã«æ¸¡ã™ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è¨­å®š\n"));
 
-	CString Param;//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ ƒpƒ‰ƒ[ƒ^ ƒoƒbƒtƒ@
+	CString Param;//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ ãƒãƒƒãƒ•ã‚¡
 
-	//ˆ³kƒpƒ‰ƒ[ƒ^
+	//åœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	Param+=
-		_T("a ")		//ˆ³k
-		_T("-a ")		//‘S‘®«‚ğ‘ÎÛ
+		_T("a ")		//åœ§ç¸®
+		_T("-a ")		//å…¨å±æ€§ã‚’å¯¾è±¡
 	;
 
-	//ƒtƒ@ƒCƒ‹‚Ìí—Ş‚É‰‚¶‚½ƒpƒ‰ƒ[ƒ^‚ğw’è
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã®ç¨®é¡ã«å¿œã˜ãŸãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æŒ‡å®š
 	CConfigBGA Config;
 	Config.load(ConfMan);
 	CString level;
@@ -537,15 +530,15 @@ bool CArchiverBGA::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const st
 		break;
 	default:
 		ASSERT(!"This code cannot be run");
-		//ƒGƒ‰[ˆ—‚ª–Ê“|‚È‚Ì‚Å•ú‚Á‚Ä‚¨‚­B•Ê‚Éw’è‚ª–³‚­‚Ä‚à‚ ‚é’ö“x‚Í“®‚­‚Ì‚ÅB
+		//ã‚¨ãƒ©ãƒ¼å‡¦ç†ãŒé¢å€’ãªã®ã§æ”¾ã£ã¦ãŠãã€‚åˆ¥ã«æŒ‡å®šãŒç„¡ãã¦ã‚‚ã‚ã‚‹ç¨‹åº¦ã¯å‹•ãã®ã§ã€‚
 	}
 
-	//ƒA[ƒJƒCƒuƒtƒ@ƒCƒ‹–¼w’è
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"");
 	Param+=ArcFileName;
 	Param+=_T("\" ");
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹–¼w’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 	Param+=_T("\"@");
 	Param+=ResponceFileName;
 	Param+=_T("\"");
@@ -553,13 +546,13 @@ bool CArchiverBGA::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const st
 	ASSERT(!Param.IsEmpty());
 	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
 
-	TRACE(_T("ArchiveHandlerŒÄ‚Ño‚µ\n"));
+	TRACE(_T("ArchiveHandlerå‘¼ã³å‡ºã—\n"));
 	std::vector<char> szLog(LOG_BUFFER_SIZE);
 	szLog[0]='\0';
 	int Ret=ArchiveHandler(NULL,CT2A(Param),&szLog[0],LOG_BUFFER_SIZE-1);
 	strLog=&szLog[0];
 
-	//g‚Á‚½ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÍÁ‹
+	//ä½¿ã£ãŸãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ¶ˆå»
 	DeleteFile(ResponceFileName);
 
 	return 0==Ret;

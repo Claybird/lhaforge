@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ConfigManager.h"
@@ -40,15 +33,15 @@
 CConfigManager::CConfigManager()
 {
 	TRACE(_T("CConfigManager()\n"));
-	//---Caldix‚ÌINIƒtƒ@ƒCƒ‹–¼
+	//---Caldixã®INIãƒ•ã‚¡ã‚¤ãƒ«å
 	TCHAR szIniPath[_MAX_PATH+1]={0};
 	_tcsncpy_s(szIniPath,UtilGetModuleDirectoryPath(),_MAX_PATH);
 	PathAppend(szIniPath,CALDIX_INI_FILE_NAME);
 	if(PathFileExists(szIniPath)){
-		//LhaForgeƒtƒHƒ‹ƒ_‚Æ“¯‚¶êŠ‚ÉINI‚ª‚ ‚ê‚Îg—p‚·‚é
+		//LhaForgeãƒ•ã‚©ãƒ«ãƒ€ã¨åŒã˜å ´æ‰€ã«INIãŒã‚ã‚Œã°ä½¿ç”¨ã™ã‚‹
 		m_strCaldixIniPath=szIniPath;
 	}else{
-		//CSIDL_COMMON_APPDATA‚ÉINI‚ğ—pˆÓ‚µAg—p‚·‚é
+		//CSIDL_COMMON_APPDATAã«INIã‚’ç”¨æ„ã—ã€ä½¿ç”¨ã™ã‚‹
 		SHGetFolderPath(NULL,CSIDL_COMMON_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szIniPath);
 		PathAppend(szIniPath,PROGRAMDIR_NAME);
 		PathAddBackslash(szIniPath);
@@ -57,7 +50,7 @@ CConfigManager::CConfigManager()
 		m_strCaldixIniPath=szIniPath;
 	}
 
-	//---LhaForge.ini/LFCaldix.ini‚ÌêŠ
+	//---LhaForge.ini/LFCaldix.iniã®å ´æ‰€
 	UtilGetDefaultFilePath(m_strIniPath,PROGRAMDIR_NAME,INI_FILE_NAME,m_bUserCommon);
 }
 
@@ -69,7 +62,7 @@ CConfigManager::~CConfigManager()
 void CConfigManager::SetConfigFile(LPCTSTR lpszFile)
 {
 	if(!lpszFile){
-		//NULL‚ğ“n‚³‚ê‚½‚çƒfƒtƒHƒ‹ƒgİ’è‚É
+		//NULLã‚’æ¸¡ã•ã‚ŒãŸã‚‰ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¨­å®šã«
 		UtilGetDefaultFilePath(m_strIniPath,PROGRAMDIR_NAME,INI_FILE_NAME,m_bUserCommon);
 		return;
 	}
@@ -82,7 +75,7 @@ bool CConfigManager::LoadConfig(CString &strErr)
 {
 	m_Config.clear();
 	if(PathFileExists(m_strIniPath)){
-		//“Ç‚İ‚İ
+		//èª­ã¿è¾¼ã¿
 		std::list<CONFIG_SECTION> sections;
 		if(!UtilReadSectionedConfig(m_strIniPath,sections,strErr))return false;
 
@@ -110,10 +103,10 @@ bool CConfigManager::LoadConfig(CString &strErr)
 
 bool CConfigManager::SaveConfig(CString &strErr)
 {
-	// ©•ª‚Ìƒo[ƒWƒ‡ƒ“‚ğ‹Lq
+	// è‡ªåˆ†ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚’è¨˜è¿°
 	GetSection(_T("LhaForge")).Data[_T("Version")]=CString(MAKEINTRESOURCE(IDS_LHAFORGE_VERSION_STRING));
 
-	//•Û‘¶
+	//ä¿å­˜
 	std::list<CONFIG_SECTION> tmpList;
 	for(CONFIG_DICT::const_iterator ite=m_Config.begin();ite!=m_Config.end();++ite){
 		tmpList.push_back((*ite).second);
@@ -128,10 +121,10 @@ void CConfigManager::WriteUpdateTime(time_t LastTime)
 {
 	LPCTSTR SectionName=_T("Update");
 
-	//XVƒLƒƒƒ“ƒZƒ‹‚È‚ÇALFCaldix.ini‚ğLhaForge‚ªXV‚·‚é•K—v‚ª‚ ‚é‚Æ‚«
-	//---LFCaldix.ini‚É‹L˜^
+	//æ›´æ–°ã‚­ãƒ£ãƒ³ã‚»ãƒ«æ™‚ãªã©ã€LFCaldix.iniã‚’LhaForgeãŒæ›´æ–°ã™ã‚‹å¿…è¦ãŒã‚ã‚‹ã¨ã
+	//---LFCaldix.iniã«è¨˜éŒ²
 	UtilWritePrivateProfileInt(SectionName,_T("LastTime"),LastTime,m_strCaldixIniPath);
-	//---ƒ†[ƒU[—pƒtƒ@ƒCƒ‹‚É‹L˜^
+	//---ãƒ¦ãƒ¼ã‚¶ãƒ¼ç”¨ãƒ•ã‚¡ã‚¤ãƒ«ã«è¨˜éŒ²
 	UtilWritePrivateProfileInt(SectionName,_T("LastTime"),LastTime,m_strIniPath);
 }
 

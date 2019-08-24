@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ShellDataManager.h"
@@ -37,10 +30,10 @@ int CShellDataManager::GetIconIndex(LPCTSTR Ext)
 {
 	std::hash_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
 	if(ite!=ShellDataMap.end()){
-		//ä˘Ç…ìoò^Ç≥ÇÍÇƒÇ¢ÇΩ
+		//Êó¢„Å´ÁôªÈå≤„Åï„Çå„Å¶„ÅÑ„Åü
 		return (*ite).second.IconIndex;
 	}
-	//É}ÉbÉvÇ…ñ¢ìoò^ÇæÇ¡ÇΩÇÁìoò^Ç∑ÇÈ
+	//„Éû„ÉÉ„Éó„Å´Êú™ÁôªÈå≤„Å†„Å£„Åü„ÇâÁôªÈå≤„Åô„Çã
 
 	ite=RegisterData(Ext);
 	return (*ite).second.IconIndex;
@@ -50,10 +43,10 @@ LPCTSTR CShellDataManager::GetTypeName(LPCTSTR Ext)
 {
 	std::hash_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
 	if(ite!=ShellDataMap.end()){
-		//ä˘Ç…ìoò^Ç≥ÇÍÇƒÇ¢ÇΩ
+		//Êó¢„Å´ÁôªÈå≤„Åï„Çå„Å¶„ÅÑ„Åü
 		return (*ite).second.TypeName;
 	}
-	//É}ÉbÉvÇ…ñ¢ìoò^ÇæÇ¡ÇΩÇÁìoò^Ç∑ÇÈ
+	//„Éû„ÉÉ„Éó„Å´Êú™ÁôªÈå≤„Å†„Å£„Åü„ÇâÁôªÈå≤„Åô„Çã
 
 	ite=RegisterData(Ext);
 	return (*ite).second.TypeName;
@@ -62,12 +55,12 @@ LPCTSTR CShellDataManager::GetTypeName(LPCTSTR Ext)
 std::hash_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute)
 {
 	SHELLDATA ShellData;
-	//ÉtÉ@ÉCÉã ÉAÉCÉRÉì ÉCÉìÉfÉbÉNÉXéÊìæ
+	//„Éï„Ç°„Ç§„É´ „Ç¢„Ç§„Ç≥„É≥ „Ç§„É≥„Éá„ÉÉ„ÇØ„ÇπÂèñÂæó
 	SHFILEINFO shfi;
 	SHGetFileInfo(Ext ? Ext : _T("dummy"),Attribute,&shfi,sizeof(shfi),SHGFI_USEFILEATTRIBUTES|SHGFI_ICON|SHGFI_LARGEICON|SHGFI_SYSICONINDEX);
 	ShellData.IconIndex=shfi.iIcon;
 
-	//ÉtÉ@ÉCÉãå`éÆñºéÊìæ
+	//„Éï„Ç°„Ç§„É´ÂΩ¢ÂºèÂêçÂèñÂæó
 	SHGetFileInfo(Ext ? Ext : _T("dummy"),Attribute,&shfi,sizeof(shfi),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME);
 	ShellData.TypeName=shfi.szTypeName;
 
@@ -84,7 +77,7 @@ void CShellDataManager::Init()
 	SHFILEINFO shfi;
 	ImageListLarge=(HIMAGELIST)SHGetFileInfo(_T(""),0,&shfi,sizeof(shfi),SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
 	ImageListSmall=(HIMAGELIST)SHGetFileInfo(_T(""),0,&shfi,sizeof(shfi),SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
-	//ÉAÉCÉRÉì(ÉtÉHÉãÉ_óp)Çíäèo
+	//„Ç¢„Ç§„Ç≥„É≥(„Éï„Ç©„É´„ÉÄÁî®)„ÇíÊäΩÂá∫
 	RegisterData(NULL,FILE_ATTRIBUTE_DIRECTORY);
 }
 

@@ -1,64 +1,57 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_openaction.h"
 
 //======================
-// ŠÖ˜A•t‚¯“®ìİ’è‰æ–Ê
+// é–¢é€£ä»˜ã‘å‹•ä½œè¨­å®šç”»é¢
 //======================
 LRESULT CConfigDlgOpenAction::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//----------------
-	// ŠJ‚­“®ì‚Ìİ’è
+	// é–‹ãå‹•ä½œã®è¨­å®š
 	//----------------
-	//---’Êí
+	//---é€šå¸¸
 	Radio_OpenAction[OPENACTION_EXTRACT]=GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT);
 	Radio_OpenAction[OPENACTION_LIST]=GetDlgItem(IDC_RADIO_OPENACTION_LIST);
 	Radio_OpenAction[OPENACTION_TEST]=GetDlgItem(IDC_RADIO_OPENACTION_TEST);
 	Radio_OpenAction[OPENACTION_ASK]=GetDlgItem(IDC_RADIO_OPENACTION_ASK);
 
 	Radio_OpenAction[m_Config.OpenAction].SetCheck(true);
-	//---Shift‰Ÿ‰º
+	//---ShiftæŠ¼ä¸‹æ™‚
 	Radio_OpenAction_Shift[OPENACTION_EXTRACT]=GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_SHIFT);
 	Radio_OpenAction_Shift[OPENACTION_LIST]=GetDlgItem(IDC_RADIO_OPENACTION_LIST_SHIFT);
 	Radio_OpenAction_Shift[OPENACTION_TEST]=GetDlgItem(IDC_RADIO_OPENACTION_TEST_SHIFT);
 	Radio_OpenAction_Shift[OPENACTION_ASK]=GetDlgItem(IDC_RADIO_OPENACTION_ASK_SHIFT);
 
 	Radio_OpenAction_Shift[m_Config.OpenAction_Shift].SetCheck(true);
-	//---Ctrl‰Ÿ‰º
+	//---CtrlæŠ¼ä¸‹æ™‚
 	Radio_OpenAction_Ctrl[OPENACTION_EXTRACT]=GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_CTRL);
 	Radio_OpenAction_Ctrl[OPENACTION_LIST]=GetDlgItem(IDC_RADIO_OPENACTION_LIST_CTRL);
 	Radio_OpenAction_Ctrl[OPENACTION_TEST]=GetDlgItem(IDC_RADIO_OPENACTION_TEST_CTRL);
@@ -72,26 +65,26 @@ LRESULT CConfigDlgOpenAction::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgOpenAction::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//----------------
-	// ŠJ‚­“®ì‚Ìİ’è
+	// é–‹ãå‹•ä½œã®è¨­å®š
 	//----------------
-	//---’Êí
+	//---é€šå¸¸
 	for(int i=0;i<COUNTOF(Radio_OpenAction);i++){
 		if(Radio_OpenAction[i].GetCheck()){
 			m_Config.OpenAction=(OPENACTION)i;
 			break;
 		}
 	}
-	//---Shift‰Ÿ‰º
+	//---ShiftæŠ¼ä¸‹æ™‚
 	for(int i=0;i<COUNTOF(Radio_OpenAction_Shift);i++){
 		if(Radio_OpenAction_Shift[i].GetCheck()){
 			m_Config.OpenAction_Shift=(OPENACTION)i;
 			break;
 		}
 	}
-	//---Ctrl‰Ÿ‰º
+	//---CtrlæŠ¼ä¸‹æ™‚
 	for(int i=0;i<COUNTOF(Radio_OpenAction_Ctrl);i++){
 		if(Radio_OpenAction_Ctrl[i].GetCheck()){
 			m_Config.OpenAction_Ctrl=(OPENACTION)i;

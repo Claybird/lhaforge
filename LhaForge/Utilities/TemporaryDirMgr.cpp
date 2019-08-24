@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "TemporaryDirMgr.h"
@@ -44,19 +37,19 @@ CTemporaryDirectoryManager::~CTemporaryDirectoryManager()
 	Finish();
 }
 
-//ˆêo—ÍƒtƒHƒ‹ƒ_‚ğŠm•Û
+//ä¸€æ™‚å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€ã‚’ç¢ºä¿
 void CTemporaryDirectoryManager::Prepare()
 {
 	Finish();
 	//%TEMP%\%prefix%0000\filename...
 	int Count=0;
-	while(true){	//ˆê‰ğ“€æŠm•Û
+	while(true){	//ä¸€æ™‚è§£å‡å…ˆç¢ºä¿
 		CPath Buffer=UtilGetTempPath();
 		CString Name;
 		Name.Format(_T("%s%d"),m_strPrefix,Count);
 		Count++;
 
-		//‘¶İƒ`ƒFƒbƒN
+		//å­˜åœ¨ãƒã‚§ãƒƒã‚¯
 		Buffer.Append(Name);
 //		TRACE(_T("%s\n"),Buffer);
 		if(!PathFileExists(Buffer)){
@@ -73,27 +66,27 @@ void CTemporaryDirectoryManager::Prepare()
 
 bool CTemporaryDirectoryManager::Finish()
 {
-	//ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğíœ(eƒfƒBƒŒƒNƒgƒŠ‚àŠÜ‚ß‚Ä)
+	//ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å‰Šé™¤(è¦ªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚‚å«ã‚ã¦)
 
 	if(m_strDirPath.IsEmpty())return false;
 	
-	//ƒtƒHƒ‹ƒ_‰ğ•ú
+	//ãƒ•ã‚©ãƒ«ãƒ€è§£æ”¾
 	if(!UtilDeleteDir(m_strDirPath,true))return false;
 
-	//ƒtƒHƒ‹ƒ_–¼ƒNƒŠƒA
+	//ãƒ•ã‚©ãƒ«ãƒ€åã‚¯ãƒªã‚¢
 	m_strDirPath.Empty();
 	return true;
 }
 
 bool CTemporaryDirectoryManager::ClearSubDir()
 {
-	//ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚Ì“à—e‚ğíœ(ƒTƒuƒfƒBƒŒƒNƒgƒŠ“à—e‚Ì‚İ)
+	//ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®å†…å®¹ã‚’å‰Šé™¤(ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…å®¹ã®ã¿)
 	if(m_strDirPath.IsEmpty())return false;
 
-	//’†g‚Ìíœ‚É¸”s
+	//ä¸­èº«ã®å‰Šé™¤ã«å¤±æ•—
 	if(!UtilDeleteDir(m_strDirPath,false)){
 		if(!PathIsDirectory(m_strDirPath)){
-			//‘ÎÛƒfƒBƒŒƒNƒgƒŠ‚ª‘¶İ‚µ‚Ä‚¢‚È‚¯‚ê‚ÎAŠm•Û‚µ‚Ä‚¨‚­
+			//å¯¾è±¡ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå­˜åœ¨ã—ã¦ã„ãªã‘ã‚Œã°ã€ç¢ºä¿ã—ã¦ãŠã
 			if(UtilMakeSureDirectoryPathExists(m_strDirPath))return true;
 		}
 		return false;
@@ -117,11 +110,11 @@ bool CTemporaryDirectoryManager::DeleteAllTemporaryDir(LPCTSTR lpszPrefix)
 		TempPath.Append(strTemp);
 	}
 
-	//”š
+	//æ•°å­—
 	const TCHAR DigitArray[]=_T("0123456789");
 	const int DigitArrayLength=COUNTOF(DigitArray);
 
-	//ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğ’T‚·
+	//ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ¢ã™
 	CFindFile cFindFile;
 
 	BOOL bContinue=cFindFile.FindFile(TempPath);
@@ -129,7 +122,7 @@ bool CTemporaryDirectoryManager::DeleteAllTemporaryDir(LPCTSTR lpszPrefix)
 	bool bRet=true;
 	while(bContinue){
 		if(cFindFile.IsDirectory()){
-			//prefix‚ÌŒã‚ª”š‚Ì‚İ‚È‚çíœ
+			//prefixã®å¾ŒãŒæ•°å­—ã®ã¿ãªã‚‰å‰Šé™¤
 			CString strDirName(cFindFile.GetFileName());
 			strDirName.Delete(0,_tcslen(lpszPrefix));
 			if(!strDirName.IsEmpty()){
@@ -137,7 +130,7 @@ bool CTemporaryDirectoryManager::DeleteAllTemporaryDir(LPCTSTR lpszPrefix)
 					strDirName.Remove(DigitArray[i]);
 				}
 
-				//íœ
+				//å‰Šé™¤
 				if(strDirName.IsEmpty()){
 					bRet=bRet&&UtilDeleteDir(cFindFile.GetFilePath(),true);
 				}

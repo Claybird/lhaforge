@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "Dlg_Base.h"
@@ -37,7 +30,7 @@
 #include "../ConfigFileListWindow.h"
 
 //==================================
-// ÉtÉ@ÉCÉãàÍóóÉEÉBÉìÉhÉEÇÃê›íËçÄñ⁄
+// „Éï„Ç°„Ç§„É´‰∏ÄË¶ß„Ç¶„Ç£„É≥„Éâ„Ç¶„ÅÆË®≠ÂÆöÈ†ÖÁõÆ
 //==================================
 class CConfigDlgFileListWindow : public CDialogImpl<CConfigDlgFileListWindow>,public CWinDataExchange<CConfigDlgFileListWindow>,public CMessageFilter,public IConfigDlgBase
 {
@@ -48,8 +41,8 @@ protected:
 		return IsDialogMessage(pMsg);
 	}
 
-	void OnClearTemporary(UINT,int,HWND);	//écÇ¡ÇƒÇµÇ‹Ç¡ÇΩÉeÉìÉ|ÉâÉäÉfÉBÉåÉNÉgÉäÇçÌèú
-	void OnResetExt(UINT,int,HWND);			//ã÷é~ÅEãñâ¬ägí£éqÇÃÉäÉZÉbÉg
+	void OnClearTemporary(UINT,int,HWND);	//ÊÆã„Å£„Å¶„Åó„Åæ„Å£„Åü„ÉÜ„É≥„Éù„É©„É™„Éá„Ç£„É¨„ÇØ„Éà„É™„ÇíÂâäÈô§
+	void OnResetExt(UINT,int,HWND);			//Á¶ÅÊ≠¢„ÉªË®±ÂèØÊã°ÂºµÂ≠ê„ÅÆ„É™„Çª„ÉÉ„Éà
 
 	CButton Radio_FileListMode[FILELISTMODE_ITEM_COUNT];
 
@@ -60,7 +53,7 @@ protected:
 	void OnBrowseCustomToolbarImage(UINT, int, HWND);
 
 	std::vector<CMenuCommandItem> m_MenuCommandArray;
-	CMenuCommandItem *m_lpMenuCommandItem;	//ï“èWíÜÇÃÉRÉ}ÉìÉhÉAÉCÉeÉÄ
+	CMenuCommandItem *m_lpMenuCommandItem;	//Á∑®ÈõÜ‰∏≠„ÅÆ„Ç≥„Éû„É≥„Éâ„Ç¢„Ç§„ÉÜ„É†
 
 	LRESULT OnGetDispInfo(LPNMHDR pnmh);
 	LRESULT OnSelect(LPNMHDR pnmh);
@@ -72,7 +65,7 @@ protected:
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_FILELISTWINDOW };
 
-	// DDXÉ}ÉbÉv
+	// DDX„Éû„ÉÉ„Éó
 	BEGIN_DDX_MAP(CConfigDlgFileListWindow)
 		DDX_CHECK(IDC_CHECK_STORE_FILELISTWINDOW_SETTING, m_Config.StoreSetting)
 		DDX_CHECK(IDC_CHECK_STORE_FILELISTWINDOW_POSITION, m_Config.StoreWindowPosition)
@@ -90,9 +83,9 @@ public:
 		DDX_CHECK(IDC_CHECK_DENY_PATHEXT,m_Config.DenyPathExt)
 	END_DDX_MAP()
 
-	// ÉÅÉbÉZÅ[ÉWÉ}ÉbÉv
+	// „É°„ÉÉ„Çª„Éº„Ç∏„Éû„ÉÉ„Éó
 	BEGIN_MSG_MAP_EX(CConfigDlgFileListWindow)
-		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)	//âºëzÉäÉXÉgÉrÉÖÅ[
+		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)	//‰ªÆÊÉ≥„É™„Çπ„Éà„Éì„É•„Éº
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnSelect)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_CLEAR_TEMPORARY,OnClearTemporary)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_RESET_OPENASSOC_ACCEPT,OnResetExt)

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../Utilities/Utility.h"
@@ -35,12 +28,12 @@
 #include "../Utilities/ConfigFile.h"
 
 //----------
-// İ’èŠÇ—
+// è¨­å®šç®¡ç†
 //----------
-//INIƒtƒ@ƒCƒ‹–¼
+//INIãƒ•ã‚¡ã‚¤ãƒ«å
 const LPCTSTR INI_FILE_NAME=_T("LhaForge.ini");
 const LPCTSTR CALDIX_INI_FILE_NAME=_T("LFCaldix.ini");
-const LPCTSTR PROGRAMDIR_NAME=_T("LhaForge");	//ApplicationData‚É“ü‚ê‚é‚Æ‚«‚É•K—v‚ÈƒfƒBƒŒƒNƒgƒŠ–¼
+const LPCTSTR PROGRAMDIR_NAME=_T("LhaForge");	//ApplicationDataã«å…¥ã‚Œã‚‹ã¨ãã«å¿…è¦ãªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå
 
 
 enum PARAMETER_TYPE;
@@ -48,8 +41,8 @@ enum PARAMETER_TYPE;
 class CConfigManager;
 struct IConfigConverter{
 protected:
-	virtual void load(CONFIG_SECTION&)=0;	//İ’è‚ğCONFIG_SECTION‚©‚ç“Ç‚İ‚Ş
-	virtual void store(CONFIG_SECTION&)const=0;	//İ’è‚ğCONFIG_SECTION‚É‘‚«‚Ş
+	virtual void load(CONFIG_SECTION&)=0;	//è¨­å®šã‚’CONFIG_SECTIONã‹ã‚‰èª­ã¿è¾¼ã‚€
+	virtual void store(CONFIG_SECTION&)const=0;	//è¨­å®šã‚’CONFIG_SECTIONã«æ›¸ãè¾¼ã‚€
 public:
 	virtual ~IConfigConverter(){}
 	virtual void load(CConfigManager&)=0;
@@ -57,7 +50,7 @@ public:
 };
 
 //====================================
-// İ’èŠÇ—ƒNƒ‰ƒX
+// è¨­å®šç®¡ç†ã‚¯ãƒ©ã‚¹
 //====================================
 
 class CConfigManager
@@ -65,14 +58,14 @@ class CConfigManager
 protected:
 	CString m_strIniPath;
 	CString m_strCaldixIniPath;
-	bool m_bUserCommon;	//ƒ†[ƒU[ŠÔ‚Å‹¤’Ê‚Ìİ’è‚ğg‚¤ê‡‚Ítrue;•\¦‚Åg‚¤‚½‚ß‚¾‚¯‚É—pˆÓ
+	bool m_bUserCommon;	//ãƒ¦ãƒ¼ã‚¶ãƒ¼é–“ã§å…±é€šã®è¨­å®šã‚’ä½¿ã†å ´åˆã¯true;è¡¨ç¤ºã§ä½¿ã†ãŸã‚ã ã‘ã«ç”¨æ„
 	typedef std::map<stdString,CONFIG_SECTION,less_ignorecase> CONFIG_DICT;
 	CONFIG_DICT m_Config;
 	CONFIG_DICT m_CaldixConfig;
 public:
 	CConfigManager();
 	virtual ~CConfigManager();
-	void SetConfigFile(LPCTSTR);	//İ’èƒtƒ@ƒCƒ‹‚ğw’è
+	void SetConfigFile(LPCTSTR);	//è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’æŒ‡å®š
 	bool LoadConfig(CString &strErr);
 	bool SaveConfig(CString &strErr);
 	CONFIG_SECTION &GetSection(LPCTSTR lpszSection);
@@ -80,6 +73,6 @@ public:
 	void DeleteSection(LPCTSTR lpszSection);
 	bool HasSection(LPCTSTR lpszSection)const;
 	void WriteUpdateTime(time_t=time(NULL));
-	bool IsUserCommon(){return m_bUserCommon;}	//ƒ†[ƒU[ŠÔ‹¤’Êİ’èH
+	bool IsUserCommon(){return m_bUserCommon;}	//ãƒ¦ãƒ¼ã‚¶ãƒ¼é–“å…±é€šè¨­å®šï¼Ÿ
 };
 

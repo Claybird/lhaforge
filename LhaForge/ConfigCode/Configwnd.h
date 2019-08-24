@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../Utilities/Utility.h"
@@ -59,7 +52,7 @@
 #include "./Dialogs/Dlg_DLL.h"
 
 //====================================
-// İ’è€–Ú‚ğ‚Ü‚Æ‚ß‚é
+// è¨­å®šé …ç›®ã‚’ã¾ã¨ã‚ã‚‹
 //====================================
 class CConfigDialog : public CDialogImpl<CConfigDialog>,public CDialogResize<CConfigDialog>
 {
@@ -88,23 +81,23 @@ protected:
 	CConfigDlgFileListWindow		PageFileListWindow;
 	CConfigDlgDLL					PageDLL;
 
-	HWND						hActiveDialogWnd;	//ƒAƒNƒeƒBƒu‚Èƒ_ƒCƒAƒƒO
+	HWND						hActiveDialogWnd;	//ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 	CTreeViewCtrl				SelectTreeView;
 
-	//ƒ_ƒCƒAƒƒO‚ğ“\‚è•t‚¯‚é‚½‚ß‚ÌƒXƒNƒ[ƒ‹ƒRƒ“ƒeƒi
+	//ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è²¼ã‚Šä»˜ã‘ã‚‹ãŸã‚ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚³ãƒ³ãƒ†ãƒŠ
 	CScrollContainer			ScrollWindow;
 
 	CConfigManager				&mr_Config;
 
-	CString						m_strAssistINI;	//ƒAƒVƒXƒ^ƒ“ƒg‚ğŒÄ‚Ño‚·‚½‚ß‚Ég‚¤INI–¼
-	UINT						m_nAssistRequireCount;//ƒAƒVƒXƒ^ƒ“ƒg‚ğŒÄ‚Ô•K—v‚ª‚ ‚ê‚Î”ñ0;QÆƒJƒEƒ“ƒ^•û®
+	CString						m_strAssistINI;	//ã‚¢ã‚·ã‚¹ã‚¿ãƒ³ãƒˆã‚’å‘¼ã³å‡ºã™ãŸã‚ã«ä½¿ã†INIå
+	UINT						m_nAssistRequireCount;//ã‚¢ã‚·ã‚¹ã‚¿ãƒ³ãƒˆã‚’å‘¼ã¶å¿…è¦ãŒã‚ã‚Œã°é0;å‚ç…§ã‚«ã‚¦ãƒ³ã‚¿æ–¹å¼
 
 
 	std::set<IConfigDlgBase*> m_ConfigDlgList;
 public:
 	enum{IDD = IDD_DIALOG_CONFIG};
 
-	// ƒƒbƒZ[ƒWƒ}ƒbƒv
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒƒãƒ—
 	BEGIN_MSG_MAP_EX(CConfigDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTreeSelect)
@@ -115,7 +108,7 @@ public:
 		MESSAGE_HANDLER(WM_USER_WM_SIZE,OnUserSize)
 	END_MSG_MAP()
 
-	// ƒ_ƒCƒAƒƒOƒŠƒTƒCƒYƒ}ƒbƒv
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºãƒãƒƒãƒ—
 	BEGIN_DLGRESIZE_MAP(CConfigDialog)
 		DLGRESIZE_CONTROL(IDC_TREE_SELECT_PROPPAGE,			DLSZ_SIZE_Y)
 		DLGRESIZE_CONTROL(IDC_STATIC_FRAME,					DLSZ_SIZE_X | DLSZ_SIZE_Y)
@@ -134,11 +127,11 @@ public:
 	void OnOK(UINT uNotifyCode, int nID, HWND hWndCtl);
 	void OnCancel(UINT uNotifyCode, int nID, HWND hWndCtl);
 
-	//LFAssist.exe‚É“n‚·INI‚Ì–¼‘O(UAC‰ñ”ğ‚Ì‚½‚ß)
+	//LFAssist.exeã«æ¸¡ã™INIã®åå‰(UACå›é¿ã®ãŸã‚)
 	LPCTSTR GetAssistantFile(){return m_strAssistINI;}
-	//UAC‰ñ”ğ‚Ì‚½‚ßLFAssist.exe‚ğŒÄ‚Ô‚±‚Æ‚ğ—v¿(—v¿ƒJƒEƒ“ƒg‚ğ‘‚â‚·)
+	//UACå›é¿ã®ãŸã‚LFAssist.exeã‚’å‘¼ã¶ã“ã¨ã‚’è¦è«‹(è¦è«‹ã‚«ã‚¦ãƒ³ãƒˆã‚’å¢—ã‚„ã™)
 	void RequireAssistant();
-	//UAC‰ñ”ğ‚Ì‚½‚ßLFAssist.exe‚ğŒÄ‚Ô‚±‚Æ‚ğ‚â‚ß‚é(—v¿ƒJƒEƒ“ƒg‚ğŒ¸‚ç‚·)
+	//UACå›é¿ã®ãŸã‚LFAssist.exeã‚’å‘¼ã¶ã“ã¨ã‚’ã‚„ã‚ã‚‹(è¦è«‹ã‚«ã‚¦ãƒ³ãƒˆã‚’æ¸›ã‚‰ã™)
 	void UnrequireAssistant();
 };
 

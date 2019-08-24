@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../ArchiverCode/ArcEntryInfo.h"
@@ -42,13 +35,13 @@ struct IArchiveContentUpdateHandler{
 
 
 /*
- * ƒA[ƒJƒCƒu“à‚Ìƒtƒ@ƒCƒ‹\‘¢‚ğ•Û
+ * ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å†…ã®ãƒ•ã‚¡ã‚¤ãƒ«æ§‹é€ ã‚’ä¿æŒ
  */
 class CArchiverDLL;
 enum DLL_ID;
 class CArchiveFileContent{
 protected:
-	//ƒtƒ@ƒCƒ‹î•ñ
+	//ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 	ARCHIVE_ENTRY_INFO_TREE m_Root;
 
 	//Semi-Auto Garbage Collector
@@ -59,13 +52,13 @@ protected:
 	bool			m_bExtractEachSupported;
 	bool			m_bReadOnly;
 
-	bool			m_bEncrypted;	//­‚È‚­‚Æ‚àˆê‚Â‚Ìƒtƒ@ƒCƒ‹‚ªˆÃ†‰»‚³‚ê‚Ä‚¢‚é‚È‚çtrue
+	bool			m_bEncrypted;	//å°‘ãªãã¨ã‚‚ä¸€ã¤ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒæš—å·åŒ–ã•ã‚Œã¦ã„ã‚‹ãªã‚‰true
 
 protected:
 	//---internal functions
 	ARCHIVE_ENTRY_INFO_TREE* ForceFindEntry(ARCHIVE_ENTRY_INFO_TREE* lpParent,LPCTSTR lpName);
 
-	//bMatchPath:true‚È‚çƒpƒX‚àŠÜ‚ßŒŸõAfalse‚È‚çƒtƒ@ƒCƒ‹–¼‚Ì‚İŒŸõ
+	//bMatchPath:trueãªã‚‰ãƒ‘ã‚¹ã‚‚å«ã‚æ¤œç´¢ã€falseãªã‚‰ãƒ•ã‚¡ã‚¤ãƒ«åã®ã¿æ¤œç´¢
 	void FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
 
 	void PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE*);
@@ -76,7 +69,7 @@ public:
 	CArchiveFileContent();
 	virtual ~CArchiveFileContent();
 
-	//ˆ—‘ÎÛƒA[ƒJƒCƒu–¼‚ğæ“¾
+	//å‡¦ç†å¯¾è±¡ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–åã‚’å–å¾—
 	void SetArchiveFileName(LPCTSTR lpFile){m_pathArcFileName=lpFile;}
 	LPCTSTR GetArchiveFileName()const{return m_pathArcFileName;}
 	const CArchiverDLL* GetArchiver()const{return m_lpArchiver;}
@@ -97,12 +90,12 @@ public:
 	bool IsArchiveEncrypted()const{return m_bEncrypted;}
 	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
 
-	//lpTopˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğŒŸõ
+	//lpTopä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ¤œç´¢
 	void FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
 
-	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ƒtƒ@ƒCƒ‹‚ğ’Ç‰Áˆ³k
+	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¿½åŠ åœ§ç¸®
 	bool ExtractItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog);
-	//bOverwrite:true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+	//bOverwrite:trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
 	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
 };

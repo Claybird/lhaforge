@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "FileListView.h"
@@ -56,12 +49,12 @@ LRESULT CFileListView::OnCreate(LPCREATESTRUCT lpcs)
 	LRESULT lRes=DefWindowProc();
 	//SetFont(AtlGetDefaultGuiFont());
 
-	// ƒCƒ[ƒWƒŠƒXƒgì¬
+	// ã‚¤ãƒ¡ãƒ¼ã‚¸ãƒªã‚¹ãƒˆä½œæˆ
 	m_ShellDataManager.Init();
 	SetImageList(m_ShellDataManager.GetImageList(true),LVSIL_NORMAL);
 	SetImageList(m_ShellDataManager.GetImageList(false),LVSIL_SMALL);
 
-	//ƒJƒ‰ƒ€ƒwƒbƒ_‚Ìƒ\[ƒgƒAƒCƒRƒ“
+	//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã®ã‚½ãƒ¼ãƒˆã‚¢ã‚¤ã‚³ãƒ³
 	m_SortImageList.CreateFromImage(MAKEINTRESOURCE(IDB_BITMAP_SORTMARK),16,1,CLR_DEFAULT,IMAGE_BITMAP,LR_CREATEDIBSECTION);
 
 	mr_Model.addEventListener(m_hWnd);
@@ -73,13 +66,13 @@ LRESULT CFileListView::OnDestroy()
 /*	CConfigFileListWindow ConfFLW;
 	ConfFLW.load(mr_Config);
 
-	//ƒEƒBƒ“ƒhƒEİ’è‚Ì•Û‘¶
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®šã®ä¿å­˜
 	if( ConfFLW.StoreSetting ) {
-		//ƒŠƒXƒgƒrƒ…[‚ÌƒXƒ^ƒCƒ‹
+		//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¹ã‚¿ã‚¤ãƒ«
 		ConfFLW.ListStyle = GetWindowLong(GWL_STYLE) % ( 0x0004 );
 
 		ConfFLW.FileListMode = mr_Model.GetListMode();
-		//ƒJƒ‰ƒ€‚Ì•À‚Ñ‡EƒJƒ‰ƒ€‚Ì•
+		//ã‚«ãƒ©ãƒ ã®ä¸¦ã³é †ãƒ»ã‚«ãƒ©ãƒ ã®å¹…
 		GetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray);
 
 		ConfFLW.store(mr_Config);
@@ -98,7 +91,7 @@ LRESULT CFileListView::OnDestroy()
 
 bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFileInfoWidthArray)
 {
-	//Šù‘¶‚ÌƒJƒ‰ƒ€‚ğíœ
+	//æ—¢å­˜ã®ã‚«ãƒ©ãƒ ã‚’å‰Šé™¤
 	if(GetHeader().IsWindow()){
 		int nCount=GetHeader().GetItemCount();
 		for(;nCount>0;nCount--){
@@ -107,9 +100,9 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 	}
 
 //========================================
-//      ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€’Ç‰Á
+//      ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ è¿½åŠ 
 //========================================
-//ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€‚ğ’Ç‰Á‚·‚é‚½‚ß‚Ìƒ}ƒNƒ
+//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ ã‚’è¿½åŠ ã™ã‚‹ãŸã‚ã®ãƒã‚¯ãƒ­
 #define ADD_COLUMNITEM(x,width,pos) \
 {if(-1!=UtilCheckNumberArray(pColumnOrderArray,FILEINFO_ITEM_COUNT,FILEINFO_##x)){\
 	int nIndex=InsertColumn(FILEINFO_##x, CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_##x)), pos, width,-1);\
@@ -119,37 +112,37 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 
 	memset(m_ColumnIndexArray,-1,sizeof(m_ColumnIndexArray));
 
-	//ƒtƒ@ƒCƒ‹–¼
+	//ãƒ•ã‚¡ã‚¤ãƒ«å
 	ADD_COLUMNITEM(FILENAME,100,LVCFMT_LEFT);
-	//ƒtƒ‹ƒpƒX–¼
+	//ãƒ•ãƒ«ãƒ‘ã‚¹å
 	ADD_COLUMNITEM(FULLPATH,200,LVCFMT_LEFT);
-	//ƒtƒ@ƒCƒ‹ƒTƒCƒY
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º
 	ADD_COLUMNITEM(ORIGINALSIZE,90,LVCFMT_RIGHT);
-	//ƒtƒ@ƒCƒ‹í—Ş
+	//ãƒ•ã‚¡ã‚¤ãƒ«ç¨®é¡
 	ADD_COLUMNITEM(TYPENAME,120,LVCFMT_LEFT);
-	//XV“ú
+	//æ›´æ–°æ—¥æ™‚
 	ADD_COLUMNITEM(FILETIME,120,LVCFMT_LEFT);
-	//‘®«
+	//å±æ€§
 	ADD_COLUMNITEM(ATTRIBUTE,60,LVCFMT_LEFT);
-	//ˆ³kŒãƒTƒCƒY
+	//åœ§ç¸®å¾Œã‚µã‚¤ã‚º
 	ADD_COLUMNITEM(COMPRESSEDSIZE,90,LVCFMT_RIGHT);
-	//ˆ³kƒƒ\ƒbƒh
+	//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰
 	ADD_COLUMNITEM(METHOD,60,LVCFMT_LEFT);
-	//ˆ³k—¦
+	//åœ§ç¸®ç‡
 	ADD_COLUMNITEM(RATIO,60,LVCFMT_RIGHT);
 	//CRC
 	ADD_COLUMNITEM(CRC,60,LVCFMT_LEFT);
 
 
 	//----------------------
-	// ƒJƒ‰ƒ€‚Ì•À‚Ñ‡‚ğİ’è
+	// ã‚«ãƒ©ãƒ ã®ä¸¦ã³é †ã‚’è¨­å®š
 	//----------------------
 	int Count=0;
 	for(;Count<FILEINFO_ITEM_COUNT;Count++){
-		//—LŒø‚ÈƒAƒCƒeƒ€”‚ğ‹‚ß‚é
+		//æœ‰åŠ¹ãªã‚¢ã‚¤ãƒ†ãƒ æ•°ã‚’æ±‚ã‚ã‚‹
 		if(-1==pColumnOrderArray[Count])break;
 	}
-	//•À‚Ñ‡‚ğ•ÏŠ·
+	//ä¸¦ã³é †ã‚’å¤‰æ›
 	int TemporaryArray[FILEINFO_ITEM_COUNT];
 
 	for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
@@ -167,7 +160,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 		SetColumnWidth(TemporaryArray[i], pFileInfoWidthArray[i]);
 	}
 
-	//ƒJƒ‰ƒ€ƒwƒbƒ_‚Ìƒ\[ƒgƒAƒCƒRƒ“
+	//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã®ã‚½ãƒ¼ãƒˆã‚¢ã‚¤ã‚³ãƒ³
 	if(GetHeader().IsWindow()){
 		GetHeader().SetImageList(m_SortImageList);
 	}
@@ -177,14 +170,14 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 
 void CFileListView::GetColumnState(int* pColumnOrderArray, int *pFileInfoWidthArray)
 {
-	//ƒJƒ‰ƒ€‚Ì•À‚Ñ‡æ“¾
+	//ã‚«ãƒ©ãƒ ã®ä¸¦ã³é †å–å¾—
 	const int nCount=GetHeader().GetItemCount();
 	ASSERT(nCount<=FILEINFO_ITEM_COUNT);
 
 	int TemporaryArray[FILEINFO_ITEM_COUNT];
 	memset(TemporaryArray,-1,sizeof(TemporaryArray));
 	GetColumnOrderArray(nCount,TemporaryArray);
-	//•À‚Ñ‡‚ğ•ÏŠ·
+	//ä¸¦ã³é †ã‚’å¤‰æ›
 	memset(pColumnOrderArray,-1,FILEINFO_ITEM_COUNT*sizeof(int));
 	for(int i=0;i<nCount;i++){
 		pColumnOrderArray[i]=m_ColumnIndexArray[TemporaryArray[i]];
@@ -225,7 +218,7 @@ LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lPa
 		}
 	}
 
-	//ƒtƒ@ƒCƒ‹ƒhƒƒbƒv‚Ìó‚¯“ü‚ê:ó‚¯“ü‚ê‹‘”Û‚ÍDragOver‚ªs‚¤
+	//ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‰ãƒ­ãƒƒãƒ—ã®å—ã‘å…¥ã‚Œ:å—ã‘å…¥ã‚Œæ‹’å¦ã¯DragOverãŒè¡Œã†
 	EnableDropTarget(true);
 	return 0;
 }
@@ -243,30 +236,30 @@ LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 {
 	TRACE(__FUNCTIONW__ _T("\n"));
 	//----------------------------------------------------------------------
-	//‘I‘ğƒAƒCƒeƒ€‚ª•¡”‚Ì:
-	// ‘I‘ğ‚ğŠÖ˜A•t‚¯‚ÅŠJ‚­
-	//Shift‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½:
-	// ‘I‘ğ‚ğŠÖ˜A•t‚¯‚ÅŠJ‚­
-	//‘I‘ğƒAƒCƒeƒ€‚ªˆê‚Â‚¾‚¯‚Ì:
-	// ƒtƒHƒ‹ƒ_‚ğƒ_ƒuƒ‹ƒNƒŠƒbƒN‚µ‚½/Enter‚ğ‰Ÿ‚µ‚½ê‡‚É‚Í‚»‚ÌƒtƒHƒ‹ƒ_‚ğŠJ‚­
-	// ‘I‘ğ‚ªƒtƒ@ƒCƒ‹‚¾‚Á‚½ê‡‚É‚ÍŠÖ˜A•t‚¯‚ÅŠJ‚­
+	//é¸æŠã‚¢ã‚¤ãƒ†ãƒ ãŒè¤‡æ•°ã®æ™‚:
+	// é¸æŠã‚’é–¢é€£ä»˜ã‘ã§é–‹ã
+	//ShiftãŒæŠ¼ã•ã‚Œã¦ã„ãŸæ™‚:
+	// é¸æŠã‚’é–¢é€£ä»˜ã‘ã§é–‹ã
+	//é¸æŠã‚¢ã‚¤ãƒ†ãƒ ãŒä¸€ã¤ã ã‘ã®æ™‚:
+	// ãƒ•ã‚©ãƒ«ãƒ€ã‚’ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯ã—ãŸ/Enterã‚’æŠ¼ã—ãŸå ´åˆã«ã¯ãã®ãƒ•ã‚©ãƒ«ãƒ€ã‚’é–‹ã
+	// é¸æŠãŒãƒ•ã‚¡ã‚¤ãƒ«ã ã£ãŸå ´åˆã«ã¯é–¢é€£ä»˜ã‘ã§é–‹ã
 	//----------------------------------------------------------------------
 
-	//‘I‘ğƒAƒCƒeƒ€‚ª•¡”‚Ì
-	//‚à‚µShift‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚çAŠÖ˜A•t‚¯‚ÅŠJ‚­
+	//é¸æŠã‚¢ã‚¤ãƒ†ãƒ ãŒè¤‡æ•°ã®æ™‚
+	//ã‚‚ã—ShiftãŒæŠ¼ã•ã‚Œã¦ã„ãŸã‚‰ã€é–¢é€£ä»˜ã‘ã§é–‹ã
 	if(GetKeyState(VK_SHIFT)<0||GetSelectedCount()>=2){
 		OpenAssociation(false,true);
 		return 0;
 	}
 
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğæ“¾
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’å–å¾—
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 	if(items.empty())return 0;
 	ARCHIVE_ENTRY_INFO_TREE* lpNode=*(items.begin());
 
 	if(lpNode->bDir){
-		//ŠK‘w\‘¢‚ğ–³‹‚·‚éê‡‚É‚ÍA‚±‚Ì“®ì‚Í–³‹‚³‚ê‚é
+		//éšå±¤æ§‹é€ ã‚’ç„¡è¦–ã™ã‚‹å ´åˆã«ã¯ã€ã“ã®å‹•ä½œã¯ç„¡è¦–ã•ã‚Œã‚‹
 		if(mr_Model.GetListMode()==FILELIST_TREE){
 			mr_Model.MoveDownDir(lpNode);
 		}
@@ -277,9 +270,9 @@ LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 }
 
 
-//ƒJƒ‰ƒ€•\¦‚ÌOn/Off‚ğØ‚è‘Ö‚¦‚é
-//•\¦’†:ŠY“–ƒJƒ‰ƒ€‚ğ”ñ•\¦‚É‚µA”z—ñ‚ğ‹l‚ß‚é
-//”ñ•\¦:g‚í‚ê‚Ä‚¢‚È‚¢•”•ª‚Éw’èƒJƒ‰ƒ€‚ğ’Ç‰Á
+//ã‚«ãƒ©ãƒ è¡¨ç¤ºã®On/Offã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹
+//è¡¨ç¤ºä¸­:è©²å½“ã‚«ãƒ©ãƒ ã‚’éè¡¨ç¤ºã«ã—ã€é…åˆ—ã‚’è©°ã‚ã‚‹
+//éè¡¨ç¤º:ä½¿ã‚ã‚Œã¦ã„ãªã„éƒ¨åˆ†ã«æŒ‡å®šã‚«ãƒ©ãƒ ã‚’è¿½åŠ 
 void _ToggleColumn(int *lpArray,size_t size,FILEINFO_TYPE type)
 {
 	ASSERT(lpArray);
@@ -287,7 +280,7 @@ void _ToggleColumn(int *lpArray,size_t size,FILEINFO_TYPE type)
 
 	for(size_t i=0;i<size;i++){
 		if(type==lpArray[i]){
-			//”z—ñ‚ğ‹l‚ß‚é
+			//é…åˆ—ã‚’è©°ã‚ã‚‹
 			for(size_t j=i;j<size-1;j++){
 				lpArray[j]=lpArray[j+1];
 			}
@@ -302,16 +295,16 @@ void _ToggleColumn(int *lpArray,size_t size,FILEINFO_TYPE type)
 }
 
 
-//ƒJƒ‰ƒ€ƒwƒbƒ_‚ğ¶/‰EƒNƒŠƒbƒN
+//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã‚’å·¦/å³ã‚¯ãƒªãƒƒã‚¯
 LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
 	if(pnmh->hwndFrom!=GetHeader()){
-		//ƒƒbƒZ[ƒW‚Íˆ—‚µ‚È‚©‚Á‚½‚±‚Æ‚É‚·‚é
+		//ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¯å‡¦ç†ã—ãªã‹ã£ãŸã“ã¨ã«ã™ã‚‹
 		bHandled = FALSE;
 		return 0;
 	}
 
-	//‰EƒNƒŠƒbƒNƒƒjƒ…[•\¦
+	//å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º
 	POINT point;
 	GetCursorPos(&point);
 	CMenu cMenu;
@@ -319,7 +312,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	CMenuHandle cSubMenu(cMenu.GetSubMenu(0));
 
 	//--------------------------------
-	// Šeƒƒjƒ…[ƒAƒCƒeƒ€‚Ì—LŒøE–³Œø
+	// å„ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¢ã‚¤ãƒ†ãƒ ã®æœ‰åŠ¹ãƒ»ç„¡åŠ¹
 	//--------------------------------
 
 	int columnOrderArray[FILEINFO_ITEM_COUNT];
@@ -346,13 +339,13 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		cSubMenu.CheckMenuItem(menuTable[i].nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 
-	//ƒƒjƒ…[•\¦:‘I‘ğ‚µ‚½ƒRƒ}ƒ“ƒh‚ª•Ô‚Á‚Ä‚­‚é
+	//ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º:é¸æŠã—ãŸã‚³ãƒãƒ³ãƒ‰ãŒè¿”ã£ã¦ãã‚‹
 	int nRet=cSubMenu.TrackPopupMenu(TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTALIGN|TPM_RIGHTBUTTON,point.x, point.y, m_hWnd,NULL);
 	if(0==nRet){
 		//Not Selected
 		return 0;
 	}else if(ID_MENUITEM_LISTVIEW_COLUMN_RESET==nRet){
-		//‰Šú‰»
+		//åˆæœŸåŒ–
 		for(size_t i=0;i<COUNTOF(columnOrderArray);i++){
 			columnOrderArray[i]=i;
 		}
@@ -370,7 +363,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 }
 
 
-//ƒL[“ü—Í‚É‚æ‚éƒtƒ@ƒCƒ‹ŒŸõ
+//ã‚­ãƒ¼å…¥åŠ›ã«ã‚ˆã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ¤œç´¢
 LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 {
 	ARCHIVE_ENTRY_INFO_TREE* lpCurrent=mr_Model.GetCurrentNode();
@@ -383,10 +376,10 @@ LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 	LPNMLVFINDITEM lpFindInfo = (LPNMLVFINDITEM)pnmh;
 	int iStart=lpFindInfo->iStart;
 	if(iStart<0)iStart=0;
-	if(lpFindInfo->lvfi.flags & LVFI_STRING || lpFindInfo->lvfi.flags & LVFI_PARTIAL){	//ƒtƒ@ƒCƒ‹–¼‚ÅŒŸõ
+	if(lpFindInfo->lvfi.flags & LVFI_STRING || lpFindInfo->lvfi.flags & LVFI_PARTIAL){	//ãƒ•ã‚¡ã‚¤ãƒ«åã§æ¤œç´¢
 		LPCTSTR lpFindString=lpFindInfo->lvfi.psz;
 		size_t nLength=_tcslen(lpFindString);
-		//‘O•ûˆê’v‚ÅŒŸõ
+		//å‰æ–¹ä¸€è‡´ã§æ¤œç´¢
 		for(int i=iStart;i<iCount;i++){
 			ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(i);
 			ASSERT(lpNode);
@@ -411,7 +404,7 @@ LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 
 
 
-//ƒ\[ƒg
+//ã‚½ãƒ¼ãƒˆ
 LRESULT CFileListView::OnSortItem(LPNMHDR pnmh)
 {
 	LPNMLISTVIEW lpNMLV=(LPNMLISTVIEW)pnmh;
@@ -428,7 +421,7 @@ void CFileListView::SortItem(int iCol)
 	if(iCol==mr_Model.GetSortKeyType()){
 		if(mr_Model.GetSortMode()){
 			mr_Model.SetSortMode(false);
-		}else{	//ƒ\[ƒg‰ğœ
+		}else{	//ã‚½ãƒ¼ãƒˆè§£é™¤
 			mr_Model.SetSortKeyType(FILEINFO_INVALID);
 			mr_Model.SetSortMode(true);
 		}
@@ -443,12 +436,12 @@ void CFileListView::SortItem(int iCol)
 void CFileListView::UpdateSortIcon()
 {
 	if(!IsWindow())return;
-	//ƒ\[ƒgó‘Ô‚ğŒ³‚ÉƒJƒ‰ƒ€‚ğ•ÏX‚·‚é
+	//ã‚½ãƒ¼ãƒˆçŠ¶æ…‹ã‚’å…ƒã«ã‚«ãƒ©ãƒ ã‚’å¤‰æ›´ã™ã‚‹
 	CHeaderCtrl hc=GetHeader();
 	ASSERT(hc.IsWindow());
 	if(hc.IsWindow()){
 		int count=hc.GetItemCount();
-		//ƒAƒCƒRƒ“‰ğœ
+		//ã‚¢ã‚¤ã‚³ãƒ³è§£é™¤
 		for(int i=0;i<count;i++){
 			HDITEM hdi={0};
 			hdi.mask=HDI_FORMAT;
@@ -459,7 +452,7 @@ void CFileListView::UpdateSortIcon()
 			}
 		}
 
-		//ƒAƒCƒRƒ“ƒZƒbƒg
+		//ã‚¢ã‚¤ã‚³ãƒ³ã‚»ãƒƒãƒˆ
 		int iCol=mr_Model.GetSortKeyType();
 		if(iCol!=FILEINFO_INVALID && iCol<count){
 			HDITEM hdi={0};
@@ -474,7 +467,7 @@ void CFileListView::UpdateSortIcon()
 	}
 }
 
-//ƒJƒXƒ^ƒ€ƒhƒ[
+//ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼
 DWORD CFileListView::OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 {
 	if(lpnmcd->hdr.hwndFrom == m_hWnd)
@@ -491,7 +484,7 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(lpnmcd->dwItemSpec);
 		if(lpNode){
 			if(!lpNode->bSafe){
-				//ŠëŒ¯‚ÈƒA[ƒJƒCƒu‚È‚Ì‚ÅF‚ğ•t‚¯‚é
+				//å±é™ºãªã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãªã®ã§è‰²ã‚’ä»˜ã‘ã‚‹
 				lpnmlv->clrText = RGB(255, 255, 255);
 				lpnmlv->clrTextBk = RGB(255, 0, 0);
 			}
@@ -501,7 +494,7 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 }
 
 
-//‰¼‘zƒŠƒXƒgƒrƒ…[‚ÌƒAƒCƒeƒ€æ“¾‚É”½‰
+//ä»®æƒ³ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¢ã‚¤ãƒ†ãƒ å–å¾—ã«åå¿œ
 LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
@@ -510,33 +503,33 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	//ASSERT(lpNode);
 	if(!lpNode)return 0;
 
-	//“Y‚¦šƒ`ƒFƒbƒN
+	//æ·»ãˆå­—ãƒã‚§ãƒƒã‚¯
 	ASSERT(pstLVDInfo->item.iSubItem>=0 && pstLVDInfo->item.iSubItem<FILEINFO_ITEM_COUNT);
 	if(pstLVDInfo->item.iSubItem<0||pstLVDInfo->item.iSubItem>=FILEINFO_ITEM_COUNT)return 0;
 
 	CString strBuffer;
 	LPCTSTR lpText=NULL;
 	switch(m_ColumnIndexArray[pstLVDInfo->item.iSubItem]){
-	case FILEINFO_FILENAME:	//ƒtƒ@ƒCƒ‹–¼
+	case FILEINFO_FILENAME:	//ãƒ•ã‚¡ã‚¤ãƒ«å
 		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strTitle;
 		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->strExt);
 		break;
-	case FILEINFO_FULLPATH:	//Ši”[ƒpƒX
+	case FILEINFO_FULLPATH:	//æ ¼ç´ãƒ‘ã‚¹
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if(m_bPathOnly){
-				//'\\'‚Å‚Í‚È‚­'/'‚ÅƒpƒX‚ª‹æØ‚ç‚ê‚Ä‚¢‚ê‚Îtrue
+				//'\\'ã§ã¯ãªã'/'ã§ãƒ‘ã‚¹ãŒåŒºåˆ‡ã‚‰ã‚Œã¦ã„ã‚Œã°true
 				bool bSlash = (-1!=lpNode->strFullPath.Find(_T('/')));
-				//ˆê“x’u‚«Š·‚¦
+				//ä¸€åº¦ç½®ãæ›ãˆ
 				strBuffer = lpNode->strFullPath;
 				strBuffer.Replace(_T('/'),_T('\\'));
 
-				//ƒtƒ@ƒCƒ‹–¼œ‹
+				//ãƒ•ã‚¡ã‚¤ãƒ«åé™¤å»
 				TCHAR buf[_MAX_PATH+1];
 				_tcsncpy_s(buf, strBuffer, COUNTOF(buf));
 				PathRemoveBackslash(buf);
 				PathRemoveFileSpec(buf);
 				if(_tcslen(buf)==0){
-					//‰½‚à‚È‚­‚È‚Á‚½A‚Â‚Ü‚èƒ‹[ƒgƒfƒBƒŒƒNƒgƒŠ‚É‚ ‚é
+					//ä½•ã‚‚ãªããªã£ãŸã€ã¤ã¾ã‚Šãƒ«ãƒ¼ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ã‚ã‚‹
 					strBuffer = _T("\\");
 				}else{
 					PathAddBackslash(buf);
@@ -544,7 +537,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 				}
 
 				if(bSlash){
-					//Œ³‚É–ß‚·’u‚«Š·‚¦
+					//å…ƒã«æˆ»ã™ç½®ãæ›ãˆ
 					strBuffer.Replace(_T('\\'),_T('/'));
 				}
 				lpText = strBuffer;
@@ -553,37 +546,37 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	case FILEINFO_ORIGINALSIZE:	//ƒTƒCƒY(ˆ³k‘O)
+	case FILEINFO_ORIGINALSIZE:	//ã‚µã‚¤ã‚º(åœ§ç¸®å‰)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			FormatFileSize(strBuffer,lpNode->llOriginalSize);
 			lpText=strBuffer;
 		}
 		break;
-	case FILEINFO_COMPRESSEDSIZE:	//ƒTƒCƒY(ˆ³kŒã)
+	case FILEINFO_COMPRESSEDSIZE:	//ã‚µã‚¤ã‚º(åœ§ç¸®å¾Œ)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			FormatFileSize(strBuffer,lpNode->llCompressedSize);
 			lpText=strBuffer;
 		}
 		break;
-	case FILEINFO_TYPENAME:	//ƒtƒ@ƒCƒ‹ƒ^ƒCƒv
+	case FILEINFO_TYPENAME:	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—
 		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->strExt);
 		break;
-	case FILEINFO_FILETIME:	//ƒtƒ@ƒCƒ‹“ú
+	case FILEINFO_FILETIME:	//ãƒ•ã‚¡ã‚¤ãƒ«æ—¥æ™‚
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			FormatFileTime(strBuffer,lpNode->cFileTime);
 			lpText=strBuffer;
 		}
 		break;
-	case FILEINFO_ATTRIBUTE:	//‘®«
+	case FILEINFO_ATTRIBUTE:	//å±æ€§
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			FormatAttribute(strBuffer,lpNode->nAttribute);
 			lpText=strBuffer;
 		}
 		break;
-	case FILEINFO_METHOD:	//ˆ³kƒƒ\ƒbƒh
+	case FILEINFO_METHOD:	//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰
 		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strMethod;
 		break;
-	case FILEINFO_RATIO:	//ˆ³k—¦
+	case FILEINFO_RATIO:	//åœ§ç¸®ç‡
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			FormatRatio(strBuffer,lpNode->wRatio);
 			lpText=strBuffer;
@@ -603,7 +596,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	return 0;
 }
 
-//‰¼‘zƒŠƒXƒgƒrƒ…[‚Ìƒc[ƒ‹ƒ`ƒbƒvæ“¾‚É”½‰
+//ä»®æƒ³ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ãƒ„ãƒ¼ãƒ«ãƒãƒƒãƒ—å–å¾—ã«åå¿œ
 LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 {
 	LPNMLVGETINFOTIP pGetInfoTip=(LPNMLVGETINFOTIP)pnmh;
@@ -614,35 +607,35 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	CString strInfo;
 	CString strBuffer;
 
-	//ƒtƒ@ƒCƒ‹–¼
+	//ãƒ•ã‚¡ã‚¤ãƒ«å
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILENAME));
 	strInfo+=_T(" : ");	strInfo+=lpNode->strTitle;		strInfo+=_T("\n");
-	//Ši”[ƒpƒX
+	//æ ¼ç´ãƒ‘ã‚¹
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FULLPATH));
 	strInfo+=_T(" : ");	strInfo+=lpNode->strFullPath;	strInfo+=_T("\n");
-	//ˆ³k‘OƒTƒCƒY
+	//åœ§ç¸®å‰ã‚µã‚¤ã‚º
 	FormatFileSize(strBuffer,lpNode->llOriginalSize);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_ORIGINALSIZE));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//ƒtƒ@ƒCƒ‹ƒ^ƒCƒv
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚¿ã‚¤ãƒ—
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
 	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->strExt);	strInfo+=_T("\n");
-	//ƒtƒ@ƒCƒ‹“ú
+	//ãƒ•ã‚¡ã‚¤ãƒ«æ—¥æ™‚
 	FormatFileTime(strBuffer,lpNode->cFileTime);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//‘®«
+	//å±æ€§
 	FormatAttribute(strBuffer,lpNode->nAttribute);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_ATTRIBUTE));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//ˆ³kŒãƒTƒCƒY
+	//åœ§ç¸®å¾Œã‚µã‚¤ã‚º
 	FormatFileSize(strBuffer,lpNode->llCompressedSize);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_COMPRESSEDSIZE));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//ˆ³kƒƒ\ƒbƒh
+	//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_METHOD));
 	strInfo+=_T(" : ");	strInfo+=lpNode->strMethod;	strInfo+=_T("\n");
-	//ˆ³k—¦
+	//åœ§ç¸®ç‡
 	FormatRatio(strBuffer,lpNode->wRatio);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_RATIO));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
@@ -653,16 +646,16 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 
 	if(lpNode->nAttribute&FA_DIREC){
 		//--------------
-		// ƒfƒBƒŒƒNƒgƒŠ
+		// ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 		//--------------
-		//qƒm[ƒh‚Ì”‚ğ•\¦
+		//å­ãƒãƒ¼ãƒ‰ã®æ•°ã‚’è¡¨ç¤º
 		strInfo+=_T("\n");
 		strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_SUBITEM));
 		strInfo+=_T(" : ");
 		strInfo.AppendFormat(IDS_FILELIST_ITEMCOUNT,lpNode->GetNumChildren());
 	}
 
-	//InfoTip‚Éİ’è
+	//InfoTipã«è¨­å®š
 	_tcsncpy_s(pGetInfoTip->pszText,pGetInfoTip->cchTextMax,strInfo,pGetInfoTip->cchTextMax);
 	return 0;
 }
@@ -694,10 +687,10 @@ void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
 		MAKEINTRESOURCE(IDS_ORDERUNIT_MEGABYTE),
 		MAKEINTRESOURCE(IDS_ORDERUNIT_GIGABYTE),
 		MAKEINTRESOURCE(IDS_ORDERUNIT_TERABYTE),
-	};	//ƒTƒCƒY‚Ì’PˆÊ
+	};	//ã‚µã‚¤ã‚ºã®å˜ä½
 	static const int MAX_ORDERUNIT=COUNTOF(OrderUnit);
 
-	if(bInByte){	//ƒtƒ@ƒCƒ‹ƒTƒCƒY‚ğƒoƒCƒg’PˆÊ‚Å•\‹L‚·‚é
+	if(bInByte){	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºã‚’ãƒã‚¤ãƒˆå˜ä½ã§è¡¨è¨˜ã™ã‚‹
 		FormatFileSizeInBytes(Info,_Size);
 		return;
 	}
@@ -707,10 +700,10 @@ void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
 		if(Size.QuadPart<1024*1024){
 			break;
 		}
-		Size.QuadPart=Int64ShrlMod32(Size.QuadPart,10);	//1024‚ÅŠ„‚é
+		Size.QuadPart=Int64ShrlMod32(Size.QuadPart,10);	//1024ã§å‰²ã‚‹
 	}
 	if(0==Order && Size.QuadPart<1024){
-		//1KB‚É–‚½‚È‚¢‚Ì‚ÅƒoƒCƒg’PˆÊ‚Å‚»‚Ì‚Ü‚Ü•\‹L
+		//1KBã«æº€ãŸãªã„ã®ã§ãƒã‚¤ãƒˆå˜ä½ã§ãã®ã¾ã¾è¡¨è¨˜
 		FormatFileSizeInBytes(Info,_Size);
 	}else{
 		TCHAR Buffer[64]={0};
@@ -719,7 +712,7 @@ void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
 			Order++;
 			Info.Format(OrderUnit[Order],SizeToDisplay);
 		}else{
-			//‰ß‘åƒTƒCƒY
+			//éå¤§ã‚µã‚¤ã‚º
 			Info.Format(OrderUnit[Order],Size.QuadPart);
 		}
 	}
@@ -762,13 +755,13 @@ void CFileListView::FormatAttribute(CString &strBuffer,int nAttribute)
 
 void CFileListView::FormatRatio(CString &strBuffer,WORD wRatio)
 {
-	if(0xFFFF==wRatio)strBuffer=_T("?????");	//æ“¾¸”s
+	if(0xFFFF==wRatio)strBuffer=_T("?????");	//å–å¾—å¤±æ•—
 	else strBuffer.Format(_T("%.1f%%"),(double)wRatio/10.0);
 }
 
 void CFileListView::FormatCRC(CString &strBuffer,DWORD dwCRC)
 {
-	if(-1==dwCRC)strBuffer=_T("?????");	//æ“¾¸”s
+	if(-1==dwCRC)strBuffer=_T("?????");	//å–å¾—å¤±æ•—
 	else strBuffer.Format(_T("%08x"),dwCRC);
 }
 
@@ -782,7 +775,7 @@ void CFileListView::OnClearTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListView::OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+	//trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 	const bool bOverwrite=(nID==ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE);
 	OpenAssociation(bOverwrite,true);
 }
@@ -790,27 +783,27 @@ void CFileListView::OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListView::OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//ã‘‚«‚Í‚·‚é‚ªAŠJ‚©‚È‚¢
+	//ä¸Šæ›¸ãã¯ã™ã‚‹ãŒã€é–‹ã‹ãªã„
 	OpenAssociation(true,false);
 }
 
-//bOverwrite:true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+//bOverwrite:trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 {
 	if(!mr_Model.IsExtractEachSupported()){
-		//‘I‘ğƒtƒ@ƒCƒ‹‚Ì‰ğ“€‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢
+		//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®è§£å‡ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		return false;
 	}
 
-	if(!mr_Model.CheckArchiveExists()){	//‘¶İ‚µ‚È‚¢‚È‚çƒGƒ‰[
+	if(!mr_Model.CheckArchiveExists()){	//å­˜åœ¨ã—ãªã„ãªã‚‰ã‚¨ãƒ©ãƒ¼
 		CString msg;
 		msg.Format(IDS_ERROR_FILE_NOT_FOUND,mr_Model.GetArchiveFileName());
 		ErrorMessage(msg);
 		return false;
 	}
 
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 
@@ -832,7 +825,7 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 void CFileListView::OpenAssociation(const std::list<CString> &filesList)
 {
 	for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
-		//‹‘”Û‚³‚ê‚½‚çã‘‚«‚à’Ç‰Á‰ğ“€‚à‚µ‚È‚¢;ƒfƒBƒŒƒNƒgƒŠ‚È‚ç‹‘”Û‚Ì‚İƒ`ƒFƒbƒN
+		//æ‹’å¦ã•ã‚ŒãŸã‚‰ä¸Šæ›¸ãã‚‚è¿½åŠ è§£å‡ã‚‚ã—ãªã„;ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã‚‰æ‹’å¦ã®ã¿ãƒã‚§ãƒƒã‚¯
 		bool bDenyOnly=BOOL2bool(::PathIsDirectory(*ite));//lpNode->bDir;
 		if(UtilPathAcceptSpec(*ite,mr_Model.GetOpenAssocExtDeny(),mr_Model.GetOpenAssocExtAccept(),bDenyOnly)){
 			::ShellExecute(GetDesktopWindow(),NULL,*ite,NULL,NULL,SW_SHOW);
@@ -846,7 +839,7 @@ void CFileListView::OpenAssociation(const std::list<CString> &filesList)
 
 HRESULT CFileListView::AddItems(const std::list<CString> &fileList,LPCTSTR strDest)
 {
-	//’Ç‰ÁŠJn
+	//è¿½åŠ é–‹å§‹
 	::EnableWindow(m_hFrameWnd,FALSE);
 	CString strLog;
 
@@ -858,14 +851,14 @@ HRESULT CFileListView::AddItems(const std::list<CString> &fileList,LPCTSTR strDe
 	if(FAILED(hr) || S_FALSE==hr){
 		CString msg;
 		switch(hr){
-		case E_LF_SAME_INPUT_AND_OUTPUT:	//ƒA[ƒJƒCƒu©g‚ğ’Ç‰Á‚µ‚æ‚¤‚Æ‚µ‚½
+		case E_LF_SAME_INPUT_AND_OUTPUT:	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–è‡ªèº«ã‚’è¿½åŠ ã—ã‚ˆã†ã¨ã—ãŸ
 			msg.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT,mr_Model.GetArchiveFileName());
 			ErrorMessage(msg);
 			break;
-		case E_LF_UNICODE_NOT_SUPPORTED:	//ƒtƒ@ƒCƒ‹–¼‚ÉUNICODE•¶š‚ğ‚Âƒtƒ@ƒCƒ‹‚ğˆ³k‚µ‚æ‚¤‚Æ‚µ‚½
+		case E_LF_UNICODE_NOT_SUPPORTED:	//ãƒ•ã‚¡ã‚¤ãƒ«åã«UNICODEæ–‡å­—ã‚’æŒã¤ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åœ§ç¸®ã—ã‚ˆã†ã¨ã—ãŸ
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
 			break;
-		case S_FALSE:	//’Ç‰Áˆ—‚É–â‘è
+		case S_FALSE:	//è¿½åŠ å‡¦ç†ã«å•é¡Œ
 			{
 				CLogDialog LogDialog;
 				LogDialog.SetData(strLog);
@@ -877,7 +870,7 @@ HRESULT CFileListView::AddItems(const std::list<CString> &fileList,LPCTSTR strDe
 		}
 		return E_INVALIDARG;
 	}
-	//ƒA[ƒJƒCƒuXV
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–æ›´æ–°
 	::PostMessage(m_hFrameWnd,WM_FILELIST_REFRESH,0,0);
 	return S_OK;
 }
@@ -887,20 +880,20 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	ASSERT(mr_Model.IsAddItemsSupported());
 	if(!mr_Model.IsAddItemsSupported())return;
 
-	CString strDest;	//•ú‚è‚Şæ
-	//ƒJƒŒƒ“ƒgƒtƒHƒ‹ƒ_‚É’Ç‰Á
+	CString strDest;	//æ”¾ã‚Šè¾¼ã‚€å…ˆ
+	//ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ 
 	ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
 
 	std::list<CString> fileList;
-	if(nID==ID_MENUITEM_ADD_FILE){		//ƒtƒ@ƒCƒ‹’Ç‰Á
-		//u‘S‚Ä‚Ìƒtƒ@ƒCƒ‹v‚ÌƒtƒBƒ‹ƒ^•¶š‚ğì‚é
+	if(nID==ID_MENUITEM_ADD_FILE){		//ãƒ•ã‚¡ã‚¤ãƒ«è¿½åŠ 
+		//ã€Œå…¨ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«ã€ã®ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—ã‚’ä½œã‚‹
 		CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
 		std::vector<TCHAR> filter(strAnyFile.GetLength()+1);
 		UtilMakeFilterString(strAnyFile,&filter[0],filter.size());
 
 		CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR|OFN_DONTADDTORECENT|OFN_PATHMUSTEXIST|OFN_HIDEREADONLY|OFN_ALLOWMULTISELECT,&filter[0]);
 		if(IDOK==dlg.DoModal()){
-			//ƒtƒ@ƒCƒ‹–¼æ‚èo‚µ
+			//ãƒ•ã‚¡ã‚¤ãƒ«åå–ã‚Šå‡ºã—
 			CString tmp;
 			if(dlg.GetFirstPathName(tmp)){
 				do{
@@ -908,7 +901,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 				}while(dlg.GetNextPathName(tmp));
 			}
 		}
-	}else{		//ƒtƒHƒ‹ƒ_’Ç‰Á
+	}else{		//ãƒ•ã‚©ãƒ«ãƒ€è¿½åŠ 
 		CLFFolderDialog dlg(m_hFrameWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		if(IDOK==dlg.DoModal()){
 			fileList.push_back(dlg.GetFolderPath());
@@ -916,7 +909,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	if(!fileList.empty()){
-		//’Ç‰ÁŠJn
+		//è¿½åŠ é–‹å§‹
 		AddItems(fileList,strDest);
 	}
 }
@@ -925,17 +918,17 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 void CFileListView::EnableDropTarget(bool bEnable)
 {
 	if(bEnable){
-		//ƒhƒƒbƒvó‚¯“ü‚êİ’è
+		//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œè¨­å®š
 		::RegisterDragDrop(m_hWnd,&m_DropTarget);
 	}else{
-		//ƒhƒƒbƒv‚ğó‚¯“ü‚ê‚È‚¢
+		//ãƒ‰ãƒ­ãƒƒãƒ—ã‚’å—ã‘å…¥ã‚Œãªã„
 		::RevokeDragDrop(m_hWnd);
 	}
 }
 
 
 //---------------------------------------------------------
-//    IDropCommunicator‚ÌÀ‘•:ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚É‚æ‚éˆ³k
+//    IDropCommunicatorã®å®Ÿè£…:ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã«ã‚ˆã‚‹åœ§ç¸®
 //---------------------------------------------------------
 HRESULT CFileListView::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
@@ -944,7 +937,7 @@ HRESULT CFileListView::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwE
 
 HRESULT CFileListView::DragLeave()
 {
-	//‘S‚Ä‚ÌƒnƒCƒ‰ƒCƒg‚ğ–³Œø‚É
+	//å…¨ã¦ã®ãƒã‚¤ãƒ©ã‚¤ãƒˆã‚’ç„¡åŠ¹ã«
 	SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 	m_nDropHilight=-1;
 	return S_OK;
@@ -952,24 +945,24 @@ HRESULT CFileListView::DragLeave()
 
 HRESULT CFileListView::DragOver(IDataObject *,POINTL &pt,DWORD &dwEffect)
 {
-	//ƒtƒH[ƒ}ƒbƒg‚É‘Î‰‚µ‚½ˆ—‚ğ‚·‚é
-	if(!m_DropTarget.QueryFormat(CF_HDROP) || !mr_Model.IsAddItemsSupported()){	//ƒtƒ@ƒCƒ‹ê—p
-		//ƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢‚Ì‚Å‹‘”Û
+	//ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã«å¯¾å¿œã—ãŸå‡¦ç†ã‚’ã™ã‚‹
+	if(!m_DropTarget.QueryFormat(CF_HDROP) || !mr_Model.IsAddItemsSupported()){	//ãƒ•ã‚¡ã‚¤ãƒ«å°‚ç”¨
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„ã®ã§æ‹’å¦
 		dwEffect = DROPEFFECT_NONE;
 	}else{
-		//---ƒhƒƒbƒvæƒAƒCƒeƒ€‚ğæ“¾
+		//---ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã‚¢ã‚¤ãƒ†ãƒ ã‚’å–å¾—
 		CPoint ptTemp(pt.x,pt.y);
 		ScreenToClient(&ptTemp);
 		int nIndex=HitTest(ptTemp,NULL);
 
-		//---‚¿‚ç‚Â‚«‚ğ‰Ÿ‚³‚¦‚é‚½‚ßA‘O‚Æ“¯‚¶ƒAƒCƒeƒ€‚ªƒnƒCƒ‰ƒCƒg‚³‚ê‚é‚È‚çƒnƒCƒ‰ƒCƒg‚ğƒNƒŠƒA‚µ‚È‚¢
+		//---ã¡ã‚‰ã¤ãã‚’æŠ¼ã•ãˆã‚‹ãŸã‚ã€å‰ã¨åŒã˜ã‚¢ã‚¤ãƒ†ãƒ ãŒãƒã‚¤ãƒ©ã‚¤ãƒˆã•ã‚Œã‚‹ãªã‚‰ãƒã‚¤ãƒ©ã‚¤ãƒˆã‚’ã‚¯ãƒªã‚¢ã—ãªã„
 		if(nIndex!=m_nDropHilight){
-			//‘S‚Ä‚ÌƒnƒCƒ‰ƒCƒg‚ğ–³Œø‚É
+			//å…¨ã¦ã®ãƒã‚¤ãƒ©ã‚¤ãƒˆã‚’ç„¡åŠ¹ã«
 			SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 			m_nDropHilight=-1;
 			ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
-			if(lpNode){		//ƒAƒCƒeƒ€ã‚ÉDnD
-				//ƒAƒCƒeƒ€‚ªƒtƒHƒ‹ƒ_‚¾‚Á‚½‚çƒnƒCƒ‰ƒCƒg
+			if(lpNode){		//ã‚¢ã‚¤ãƒ†ãƒ ä¸Šã«DnD
+				//ã‚¢ã‚¤ãƒ†ãƒ ãŒãƒ•ã‚©ãƒ«ãƒ€ã ã£ãŸã‚‰ãƒã‚¤ãƒ©ã‚¤ãƒˆ
 				if(lpNode->bDir){
 					SetItemState( nIndex, LVIS_DROPHILITED, LVIS_DROPHILITED);
 					m_nDropHilight=nIndex;
@@ -981,79 +974,79 @@ HRESULT CFileListView::DragOver(IDataObject *,POINTL &pt,DWORD &dwEffect)
 	return S_OK;
 }
 
-//ƒtƒ@ƒCƒ‹‚Ìƒhƒƒbƒv
+//ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‰ãƒ­ãƒƒãƒ—
 HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
-	//‘S‚Ä‚ÌƒnƒCƒ‰ƒCƒg‚ğ–³Œø‚É
+	//å…¨ã¦ã®ãƒã‚¤ãƒ©ã‚¤ãƒˆã‚’ç„¡åŠ¹ã«
 	SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 	m_nDropHilight=-1;
 
-	//ƒtƒ@ƒCƒ‹æ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«å–å¾—
 	std::list<CString> fileList;
 	if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
 		dwEffect = DROPEFFECT_COPY;
 
-		//---ƒhƒƒbƒvæ‚ğ“Á’è
+		//---ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã‚’ç‰¹å®š
 		CPoint ptTemp(pt.x,pt.y);
 		ScreenToClient(&ptTemp);
 		int nIndex=HitTest(ptTemp,NULL);
 
-		CString strDest;	//•ú‚è‚Şæ
+		CString strDest;	//æ”¾ã‚Šè¾¼ã‚€å…ˆ
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
-		if(lpNode){		//ƒAƒCƒeƒ€ã‚ÉDnD
-			//ƒAƒCƒeƒ€‚ªƒtƒHƒ‹ƒ_‚¾‚Á‚½‚ç‚»‚ÌƒtƒHƒ‹ƒ_‚É’Ç‰Á
+		if(lpNode){		//ã‚¢ã‚¤ãƒ†ãƒ ä¸Šã«DnD
+			//ã‚¢ã‚¤ãƒ†ãƒ ãŒãƒ•ã‚©ãƒ«ãƒ€ã ã£ãŸã‚‰ãã®ãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ 
 			if(lpNode->bDir){
 				ArcEntryInfoTree_GetNodePathRelative(lpNode,mr_Model.GetRootNode(),strDest);
 			}else{
-				//ƒJƒŒƒ“ƒgƒtƒHƒ‹ƒ_‚É’Ç‰Á
+				//ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ 
 				ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
 			}
-		}else{	//ƒAƒCƒeƒ€ŠO‚ÉDnD->ƒJƒŒƒ“ƒgƒtƒHƒ‹ƒ_‚É’Ç‰Á
+		}else{	//ã‚¢ã‚¤ãƒ†ãƒ å¤–ã«DnD->ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã«è¿½åŠ 
 			ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
 		}
 		TRACE(_T("Target:%s\n"),(LPCTSTR)strDest);
 
-		//’Ç‰ÁŠJn
+		//è¿½åŠ é–‹å§‹
 		return AddItems(fileList,strDest);
 	}else{
-		//ó‚¯“ü‚ê‚Å‚«‚È‚¢Œ`®
+		//å—ã‘å…¥ã‚Œã§ããªã„å½¢å¼
 		dwEffect = DROPEFFECT_NONE;
 		return S_FALSE;	//S_OK
 	}
 }
 
 //-----------------------------
-// ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚É‚æ‚é‰ğ“€
+// ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã«ã‚ˆã‚‹è§£å‡
 //-----------------------------
 
 LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 {
 	if(!mr_Model.IsExtractEachSupported()){
-		//‘I‘ğƒtƒ@ƒCƒ‹‚Ì‰ğ“€‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢
+		//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®è§£å‡ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„
 		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		MessageBeep(MB_ICONASTERISK);
 		return 0;
 	}
 
-	if(!mr_Model.CheckArchiveExists()){	//‘¶İ‚µ‚È‚¢‚È‚çƒGƒ‰[
+	if(!mr_Model.CheckArchiveExists()){	//å­˜åœ¨ã—ãªã„ãªã‚‰ã‚¨ãƒ©ãƒ¼
 		return 0;
 	}
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
-	if(items.empty()){	//–{—ˆ‚ ‚è“¾‚È‚¢
+	if(items.empty()){	//æœ¬æ¥ã‚ã‚Šå¾—ãªã„
 		ASSERT(!"This code cannot be run");
 		return 0;
 	}
 
 	if(!m_TempDirMgr.ClearSubDir()){
-		//ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğ‹ó‚Éo—ˆ‚È‚¢
+		//ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ç©ºã«å‡ºæ¥ãªã„
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CANT_CLEAR_TEMPDIR)));
 		return 0;
 	}else{
 		::EnableWindow(m_hFrameWnd,FALSE);
 
-		//ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚Å‰ğ“€
+		//ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã§è§£å‡
 		CString strLog;
 		HRESULT hr=m_DnDSource.DragDrop(mr_Model,items,mr_Model.GetCurrentNode(),m_TempDirMgr.GetDirPath(),strLog);
 		if(FAILED(hr)){
@@ -1082,8 +1075,8 @@ void CFileListView::OnSelectAll(UINT,int,HWND)
 void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	if(!mr_Model.IsDeleteItemsSupported()){
-		//‘I‘ğƒtƒ@ƒCƒ‹‚Ìíœ‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢
-		if(1==uNotifyCode){	//ƒAƒNƒZƒ‰ƒŒ[ƒ^‚©‚ç‘€ì
+		//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®å‰Šé™¤ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„
+		if(1==uNotifyCode){	//ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿ã‹ã‚‰æ“ä½œ
 			MessageBeep(MB_OK);
 		}else{
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_DELETE_SELECTED_NOT_SUPPORTED)));
@@ -1091,29 +1084,29 @@ void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		return;// false;
 	}
 
-	//‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 
-	//ƒtƒ@ƒCƒ‹‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¯‚ê‚ÎƒGƒ‰[
+	//ãƒ•ã‚¡ã‚¤ãƒ«ãŒé¸æŠã•ã‚Œã¦ã„ãªã‘ã‚Œã°ã‚¨ãƒ©ãƒ¼
 	ASSERT(!items.empty());
 	if(items.empty()){
 		return;// false;
 	}
 
-	//Á‹Šm”F
+	//æ¶ˆå»ç¢ºèª
 	if(IDYES!=MessageBox(CString(MAKEINTRESOURCE(IDS_ASK_FILELIST_DELETE_SELECTED)),UtilGetMessageCaption(),MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION)){
 		return;
 	}
 
 	//----------------
-	// ƒtƒ@ƒCƒ‹‚ğˆ—
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡¦ç†
 	//----------------
-	//ƒEƒBƒ“ƒhƒE‚ğg—p•s‰Â‚É
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨ä¸å¯ã«
 	::EnableWindow(m_hFrameWnd,FALSE);
 	CString strLog;
 	bool bRet=mr_Model.DeleteItems(items,strLog);
-	//ƒEƒBƒ“ƒhƒE‚ğg—p‰Â”\‚É
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨å¯èƒ½ã«
 	::EnableWindow(m_hFrameWnd,TRUE);
 	SetForegroundWindow(m_hFrameWnd);
 	if(!bRet){
@@ -1122,23 +1115,23 @@ void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		LogDlg.DoModal(m_hFrameWnd);
 	}
 
-	//ƒA[ƒJƒCƒu“à—eXV
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å†…å®¹æ›´æ–°
 	::PostMessage(m_hFrameWnd,WM_FILELIST_REFRESH,NULL,NULL);
 }
 
-//ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğŠJ‚­
+//ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’é–‹ã
 void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 {
-	//‰½‚à‘I‘ğ‚µ‚Ä‚¢‚È‚¯‚ê‚Î•\¦‚µ‚È‚¢
+	//ä½•ã‚‚é¸æŠã—ã¦ã„ãªã‘ã‚Œã°è¡¨ç¤ºã—ãªã„
 	if(GetSelectedCount()==0)return;
 
 	if(-1==Point.x&&-1==Point.y){
-		//ƒL[ƒ{[ƒh‚©‚ç‚Ì“ü—Í‚Å‚ ‚éê‡
-		//ƒŠƒXƒgƒrƒ…[‚Ì¶ã‚É•\¦‚·‚é
+		//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‹ã‚‰ã®å…¥åŠ›ã§ã‚ã‚‹å ´åˆ
+		//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®å·¦ä¸Šã«è¡¨ç¤ºã™ã‚‹
 		Point.x=Point.y=0;
 		ClientToScreen(&Point);
 	}else{
-		//ƒ}ƒEƒX‰Eƒ{ƒ^ƒ“‚ªƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì*ƒJƒ‰ƒ€*‚Å‰Ÿ‚³‚ê‚½‚Ì‚Å‚ ‚ê‚Î•Ô‚é
+		//ãƒã‚¦ã‚¹å³ãƒœã‚¿ãƒ³ãŒãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®*ã‚«ãƒ©ãƒ *ã§æŠ¼ã•ã‚ŒãŸã®ã§ã‚ã‚Œã°è¿”ã‚‹
 		HDHITTESTINFO hdHitTestInfo={0};
 		hdHitTestInfo.pt=Point;
 		GetHeader().ScreenToClient(&hdHitTestInfo.pt);
@@ -1148,23 +1141,23 @@ void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 		}
 	}
 
-	//•”•ª‰ğ“€‚ªg—p‚Å‚«‚È‚¢‚È‚çAƒƒjƒ…[‚ğ•\¦‚·‚éˆÓ–¡‚ª‚È‚¢
-	//TODO:íœƒƒjƒ…[‚Í‚Ç‚¤‚·‚é?•”•ª‰ğ“€‚Å‚«‚¸‚Éíœ‰Â”\‚Í‚Ù‚Ú‚ ‚è“¾‚È‚¢
+	//éƒ¨åˆ†è§£å‡ãŒä½¿ç”¨ã§ããªã„ãªã‚‰ã€ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹æ„å‘³ãŒãªã„
+	//TODO:å‰Šé™¤ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã¯ã©ã†ã™ã‚‹?éƒ¨åˆ†è§£å‡ã§ããšã«å‰Šé™¤å¯èƒ½ã¯ã»ã¼ã‚ã‚Šå¾—ãªã„
 	if(!mr_Model.IsExtractEachSupported()){
 		MessageBeep(MB_ICONASTERISK);
 		return;
 	}
 
-	//---‰EƒNƒŠƒbƒNƒƒjƒ…[•\¦
+	//---å³ã‚¯ãƒªãƒƒã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º
 	CMenu cMenu;
 	cMenu.LoadMenu(IDR_FILELIST_POPUP);
 	CMenuHandle cSubMenu(cMenu.GetSubMenu(0));
 
-	//ƒRƒ}ƒ“ƒh‚ğ’Ç‰Á‚·‚é‚½‚ß‚ÌƒTƒuƒƒjƒ…[‚ğ’T‚·
+	//ã‚³ãƒãƒ³ãƒ‰ã‚’è¿½åŠ ã™ã‚‹ãŸã‚ã®ã‚µãƒ–ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’æ¢ã™
 	int MenuCount=cSubMenu.GetMenuItemCount();
 	int iIndex=-1;
 	for(int i=0;i<=MenuCount;i++){
-		if(-1==cSubMenu.GetMenuItemID(i)){	//ƒ|ƒbƒvƒAƒbƒv‚Ìe
+		if(-1==cSubMenu.GetMenuItemID(i)){	//ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®è¦ª
 			iIndex=i;
 			break;
 		}
@@ -1180,7 +1173,7 @@ void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 
 void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 	std::list<ARCHIVE_ENTRY_INFO_TREE*>::iterator ite=items.begin();
@@ -1290,16 +1283,16 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 void CFileListView::OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	if(nID<ID_MENUITEM_USERAPP_END){
-		//LhaForgeİ’è‚ÌƒRƒ}ƒ“ƒh
+		//LhaForgeè¨­å®šã®ã‚³ãƒãƒ³ãƒ‰
 		OnUserApp(MenuCommand_GetCmdArray(),nID-ID_MENUITEM_USERAPP_BEGIN);
 	}else{
-		//SendTo‚ÌƒRƒ}ƒ“ƒh
+		//SendToã®ã‚³ãƒãƒ³ãƒ‰
 		OnSendToApp(nID-ID_MENUITEM_USERAPP_END);
 	}
 }
 
 
-bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
+bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID)	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã®ãƒãƒ³ãƒ‰ãƒ©
 {
 	ASSERT(!menuCommandArray.empty());
 	ASSERT(nID<menuCommandArray.size());
@@ -1307,7 +1300,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 	if(!mr_Model.IsOK())return false;
 
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 
@@ -1322,20 +1315,20 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 		}
 	}
 
-	//---Àsî•ñæ“¾
-	//ƒpƒ‰ƒ[ƒ^“WŠJ‚É•K—v‚Èî•ñ
+	//---å®Ÿè¡Œæƒ…å ±å–å¾—
+	//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹ã«å¿…è¦ãªæƒ…å ±
 	std::map<stdString,CString> envInfo;
 	UtilMakeExpandInformation(envInfo);
 
-	//ƒRƒ}ƒ“ƒhEƒpƒ‰ƒ[ƒ^“WŠJ
+	//ã‚³ãƒãƒ³ãƒ‰ãƒ»ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹
 	CString strCmd,strParam,strDir;
-	UtilExpandTemplateString(strCmd,  menuCommandArray[nID].Path, envInfo);	//ƒRƒ}ƒ“ƒh
-	UtilExpandTemplateString(strParam,menuCommandArray[nID].Param,envInfo);	//ƒpƒ‰ƒ[ƒ^
-	UtilExpandTemplateString(strDir,  menuCommandArray[nID].Dir,  envInfo);	//ƒfƒBƒŒƒNƒgƒŠ
+	UtilExpandTemplateString(strCmd,  menuCommandArray[nID].Path, envInfo);	//ã‚³ãƒãƒ³ãƒ‰
+	UtilExpandTemplateString(strParam,menuCommandArray[nID].Param,envInfo);	//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
+	UtilExpandTemplateString(strDir,  menuCommandArray[nID].Dir,  envInfo);	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 
-	//ˆø”’uŠ·
+	//å¼•æ•°ç½®æ›
 	if(-1!=strParam.Find(_T("%F"))){
-		//ƒtƒ@ƒCƒ‹ˆê——‚ğ˜AŒ‹‚µ‚Äì¬
+		//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’é€£çµã—ã¦ä½œæˆ
 		CString strFileList;
 		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
 			CPath path=*ite;
@@ -1344,7 +1337,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 			strFileList+=_T(" ");
 		}
 		strParam.Replace(_T("%F"),strFileList);
-		//---Às
+		//---å®Ÿè¡Œ
 		::ShellExecute(GetDesktopWindow(),NULL,strCmd,strParam,strDir,SW_SHOW);
 	}else if(-1!=strParam.Find(_T("%S"))){
 		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
@@ -1353,7 +1346,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 			CString strParamTmp=strParam;
 			strParamTmp.Replace(_T("%S"),(LPCTSTR)path);
-			//---Às
+			//---å®Ÿè¡Œ
 			::ShellExecute(GetDesktopWindow(),NULL,strCmd,strParamTmp,strDir,SW_SHOW);
 		}
 	}else{
@@ -1363,7 +1356,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	return true;
 }
 
-bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
+bool CFileListView::OnSendToApp(UINT nID)	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã®ãƒãƒ³ãƒ‰ãƒ©
 {
 	ASSERT(MenuCommand_GetNumSendToCmd());
 	ASSERT(nID<MenuCommand_GetNumSendToCmd());
@@ -1371,8 +1364,8 @@ bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
 
 	if(!mr_Model.IsOK())return false;
 
-	//---‘I‘ğ‰ğ“€ŠJn
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//---é¸æŠè§£å‡é–‹å§‹
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 
@@ -1387,10 +1380,10 @@ bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
 		}
 	}
 
-	//ˆø”’uŠ·
+	//å¼•æ•°ç½®æ›
 	const std::vector<SHORTCUTINFO>& sendToCmd=MenuCommand_GetSendToCmdArray();
 	if(PathIsDirectory(sendToCmd[nID].strCmd)){
-		//‘ÎÛ‚ÍƒfƒBƒŒƒNƒgƒŠ‚È‚Ì‚ÅAƒRƒs[
+		//å¯¾è±¡ã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã®ã§ã€ã‚³ãƒ”ãƒ¼
 		CString strFiles;
 		for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
 			CPath file=*ite;
@@ -1405,27 +1398,27 @@ bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
 
 		CPath destDir=sendToCmd[nID].strCmd;
 		destDir.AddBackslash();
-		//Windows•W€‚ÌƒRƒs[“®ì
+		//Windowsæ¨™æº–ã®ã‚³ãƒ”ãƒ¼å‹•ä½œ
 		SHFILEOPSTRUCT fileOp={0};
 		fileOp.wFunc=FO_COPY;
 		fileOp.fFlags=FOF_NOCONFIRMMKDIR|FOF_NOCOPYSECURITYATTRIBS|FOF_NO_CONNECTED_ELEMENTS;
 		fileOp.pFrom=&srcBuf[0];
 		fileOp.pTo=destDir;
 
-		//ƒRƒs[Às
+		//ã‚³ãƒ”ãƒ¼å®Ÿè¡Œ
 		if(::SHFileOperation(&fileOp)){
-			//ƒGƒ‰[
+			//ã‚¨ãƒ©ãƒ¼
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY)));
 			return false;
 		}else if(fileOp.fAnyOperationsAborted){
-			//ƒLƒƒƒ“ƒZƒ‹
+			//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL)));
 			return false;
 		}
 		return true;
 	}else{
-		//‘—‚èæ‚ÍƒvƒƒOƒ‰ƒ€
-		//ƒtƒ@ƒCƒ‹ˆê——‚ğ˜AŒ‹‚µ‚Äì¬
+		//é€ã‚Šå…ˆã¯ãƒ—ãƒ­ã‚°ãƒ©ãƒ 
+		//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’é€£çµã—ã¦ä½œæˆ
 		CString strFileList;
 		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
 			CPath path=*ite;
@@ -1434,7 +1427,7 @@ bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
 			strFileList+=_T(" ");
 		}
 		CString strParam=sendToCmd[nID].strParam+_T(" ")+strFileList;
-		//---Às
+		//---å®Ÿè¡Œ
 		CPath cmd=sendToCmd[nID].strCmd;
 		cmd.QuoteSpaces();
 		CPath workDir=sendToCmd[nID].strWorkingDir;
@@ -1447,28 +1440,28 @@ bool CFileListView::OnSendToApp(UINT nID)	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­v‚Ìƒnƒ“ƒhƒ‰
 
 void CFileListView::OnExtractItem(UINT,int nID,HWND)
 {
-	//ƒA[ƒJƒCƒu‚Æ“¯‚¶ƒtƒHƒ‹ƒ_‚É‰ğ“€‚·‚éê‡‚Ítrue
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã¨åŒã˜ãƒ•ã‚©ãƒ«ãƒ€ã«è§£å‡ã™ã‚‹å ´åˆã¯true
 	const bool bSameDir=(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR==nID);
 
 	if(!mr_Model.IsOK()){
 		return;// false;
 	}
 	if(!mr_Model.IsExtractEachSupported()){
-		//‘I‘ğƒtƒ@ƒCƒ‹‚Ì‰ğ“€‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢
+		//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®è§£å‡ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		return;// false;
 	}
 
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
 	GetSelectedItems(items);
 	if(items.empty()){
-		//‘I‘ğ‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ª‚È‚¢
+		//é¸æŠã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
 		return;// false;
 	}
 
-	//‰ğ“€
+	//è§£å‡
 	CString strLog;
 	HRESULT hr=mr_Model.ExtractItems(m_hFrameWnd,bSameDir,items,mr_Model.GetCurrentNode(),strLog);
 
@@ -1497,7 +1490,7 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListView::OnShowCustomizeColumn(UINT,int,HWND)
 {
-	//ƒJƒ‰ƒ€ƒwƒbƒ_•ÒWƒƒjƒ…[‚ğ•\¦‚·‚é‚½‚ßAƒJƒ‰ƒ€ƒwƒbƒ_‚Ì‰EƒNƒŠƒbƒN‚ğƒGƒ~ƒ…ƒŒ[ƒg
+	//ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ç·¨é›†ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤ºã™ã‚‹ãŸã‚ã€ã‚«ãƒ©ãƒ ãƒ˜ãƒƒãƒ€ã®å³ã‚¯ãƒªãƒƒã‚¯ã‚’ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
 	BOOL bTemp;
 	NMHDR nmhdr;
 	nmhdr.hwndFrom=GetHeader();

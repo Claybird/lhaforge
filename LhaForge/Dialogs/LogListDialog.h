@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../resource.h"
@@ -38,26 +31,26 @@ class CLogListDialog:public CDialogImpl<CLogListDialog>,public CDialogResize<CLo
 protected:
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 
-	//CSplitterWindow	m_SplitterWindow;	// ƒXƒvƒŠƒbƒ^ƒEƒBƒ“ƒhƒE
-	CListViewCtrl	m_ItemListView;		// ƒtƒ@ƒCƒ‹ˆê——
-	CEdit			m_MsgEdit;			// ŒŸ¸Œ‹‰Ê‚ÌƒƒbƒZ[ƒW•\¦—p
-	CEdit			m_PathEdit;			// ŒŸ¸Œ‹‰Ê‚Ìƒtƒ@ƒCƒ‹–¼•\¦—p
+	//CSplitterWindow	m_SplitterWindow;	// ã‚¹ãƒ—ãƒªãƒƒã‚¿ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦
+	CListViewCtrl	m_ItemListView;		// ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§
+	CEdit			m_MsgEdit;			// æ¤œæŸ»çµæœã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸è¡¨ç¤ºç”¨
+	CEdit			m_PathEdit;			// æ¤œæŸ»çµæœã®ãƒ•ã‚¡ã‚¤ãƒ«åè¡¨ç¤ºç”¨
 
-	std::vector<ARCLOG>	m_LogArray;		//ŒŸ¸Œ‹‰Ê‚Ì”z—ñ
-	bool				m_bAllOK;		//‚·‚×‚Ä‚ªOK‚È‚çtrue
-	CString				m_strCaption;	//ƒ_ƒCƒAƒƒO‚ÌƒLƒƒƒvƒVƒ‡ƒ“
+	std::vector<ARCLOG>	m_LogArray;		//æ¤œæŸ»çµæœã®é…åˆ—
+	bool				m_bAllOK;		//ã™ã¹ã¦ãŒOKãªã‚‰true
+	CString				m_strCaption;	//ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³
 
 	//--------------
-	// ƒŠƒXƒgƒrƒ…[
+	// ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼
 	//--------------
-	LRESULT OnGetDispInfo(LPNMHDR pnmh);	//‰¼‘zƒŠƒXƒgƒrƒ…[‚Ìƒf[ƒ^æ“¾
-	LRESULT OnItemChanged(LPNMHDR pnmh);	//‘I‘ğ‚Ì•ÏX
-	LRESULT OnSortItem(LPNMHDR pnmh);		//ƒ\[ƒg
-	int m_nSortColumn;						//ƒ\[ƒg‚Ég‚Á‚½—ñ
-	bool m_bSortDescending;					//ƒ\[ƒg‚ª¸‡‚È‚çfalse
+	LRESULT OnGetDispInfo(LPNMHDR pnmh);	//ä»®æƒ³ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ãƒ‡ãƒ¼ã‚¿å–å¾—
+	LRESULT OnItemChanged(LPNMHDR pnmh);	//é¸æŠã®å¤‰æ›´
+	LRESULT OnSortItem(LPNMHDR pnmh);		//ã‚½ãƒ¼ãƒˆ
+	int m_nSortColumn;						//ã‚½ãƒ¼ãƒˆã«ä½¿ã£ãŸåˆ—
+	bool m_bSortDescending;					//ã‚½ãƒ¼ãƒˆãŒæ˜‡é †ãªã‚‰false
 
 
-	// ƒƒbƒZ[ƒWƒ}ƒbƒv
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒƒãƒ—
 	BEGIN_MSG_MAP_EX(CLogListDialog)
 		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)
 		MSG_WM_INITDIALOG(OnInitDialog)
@@ -66,8 +59,8 @@ protected:
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnItemChanged)
 		MSG_WM_CTLCOLORSTATIC(OnCtrlColorEdit)
 		NOTIFY_CODE_HANDLER_EX(LVN_COLUMNCLICK, OnSortItem)
-		CHAIN_MSG_MAP(CCustomDraw<CLogListDialog>)    // CCustomDrawƒNƒ‰ƒX‚Öƒ`ƒF[ƒ“
-		CHAIN_MSG_MAP(CDialogResize<CLogListDialog>)    // CDialogResizeƒNƒ‰ƒX‚Ö‚Ìƒ`ƒF[ƒ“
+		CHAIN_MSG_MAP(CCustomDraw<CLogListDialog>)    // CCustomDrawã‚¯ãƒ©ã‚¹ã¸ãƒã‚§ãƒ¼ãƒ³
+		CHAIN_MSG_MAP(CDialogResize<CLogListDialog>)    // CDialogResizeã‚¯ãƒ©ã‚¹ã¸ã®ãƒã‚§ãƒ¼ãƒ³
 //		REFLECT_NOTIFICATIONS()
 	END_MSG_MAP()
 
@@ -75,7 +68,7 @@ protected:
 		EndDialog(nID);
 	}
 
-	// ƒ_ƒCƒAƒƒOƒŠƒTƒCƒYƒ}ƒbƒv
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºãƒãƒƒãƒ—
 	BEGIN_DLGRESIZE_MAP(CLogListDialog)
 		DLGRESIZE_CONTROL(IDC_LIST_LOGINFO_ITEMS,DLSZ_SIZE_X | DLSZ_SIZE_Y)
 		DLGRESIZE_CONTROL(IDC_STATIC_MOVABLE1,DLSZ_MOVE_X)
@@ -85,16 +78,16 @@ protected:
 		DLGRESIZE_CONTROL(IDC_EDIT_LOGINFO_MSG,DLSZ_MOVE_X|DLSZ_SIZE_X|DLSZ_SIZE_Y)
 	END_DLGRESIZE_MAP()
 
-	//ƒJƒXƒ^ƒ€ƒhƒ[
+	//ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼
 	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW);
 	DWORD OnItemPrePaint(int nID, LPNMCUSTOMDRAW);
 
-	//ƒRƒ“ƒgƒ[ƒ‹‚ÌF:“Ç‚İæ‚èê—pƒGƒfƒBƒbƒg
+	//ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®è‰²:èª­ã¿å–ã‚Šå°‚ç”¨ã‚¨ãƒ‡ã‚£ãƒƒãƒˆ
 	HBRUSH OnCtrlColorEdit(HDC,HWND);
 public:
 	CLogListDialog(LPCTSTR lpszCaption):m_strCaption(lpszCaption),m_nSortColumn(-1),m_bSortDescending(false){}
 	enum {IDD = IDD_DIALOG_LOGLIST};
 
-	//ƒƒOî•ñ‚ğƒZƒbƒg
+	//ãƒ­ã‚°æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
 	void SetLogArray(const std::vector<ARCLOG>&);
 };

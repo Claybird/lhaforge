@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "Dlg_Base.h"
@@ -37,7 +30,7 @@
 #include "../AssocSettings.h"
 
 //====================================
-// ä÷òAïtÇØèÓïÒ
+// Èñ¢ÈÄ£‰ªò„ÅëÊÉÖÂ†±
 //====================================
 
 enum ASSOC_TYPE{
@@ -98,15 +91,15 @@ protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
 	}
-	CString m_strAssocDesired;	//ïWèÄìIÇ»ä÷òAïtÇØÉpÉX;Ç±ÇÍÇ∆àŸÇ»Ç¡ÇƒÇ¢ÇΩèÍçáÇ…ÇÕä÷òAïtÇØèÓïÒÇÃïœçXÉtÉâÉOÇÇΩÇƒÇƒÇ®Ç≠
+	CString m_strAssocDesired;	//Ê®ôÊ∫ñÁöÑ„Å™Èñ¢ÈÄ£‰ªò„Åë„Éë„Çπ;„Åì„Çå„Å®Áï∞„Å™„Å£„Å¶„ÅÑ„ÅüÂ†¥Âêà„Å´„ÅØÈñ¢ÈÄ£‰ªò„ÅëÊÉÖÂ†±„ÅÆÂ§âÊõ¥„Éï„É©„Ç∞„Çí„Åü„Å¶„Å¶„Åä„Åè
 
-	CIcon Icon_SystemDefault;	//ä÷òAïtÇØÇ™Ç»Ç¢éûÇÃÉAÉCÉRÉì
+	CIcon Icon_SystemDefault;	//Èñ¢ÈÄ£‰ªò„Åë„Åå„Å™„ÅÑÊôÇ„ÅÆ„Ç¢„Ç§„Ç≥„É≥
 
 	CConfigDialog	&mr_ConfigDlg;
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_ASSOCIATION };
 
-	// ÉÅÉbÉZÅ[ÉWÉ}ÉbÉv
+	// „É°„ÉÉ„Çª„Éº„Ç∏„Éû„ÉÉ„Éó
 	BEGIN_MSG_MAP_EX(CConfigDlgAssociation)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_RANGE_HANDLER(IDC_CHECK_ASSOCIATION_LZH,IDC_CHECK_ASSOCIATION_ISO, OnCheckAssoc)
@@ -149,7 +142,7 @@ protected:
 public:
 	enum {IDD = IDD_DIALOG_ICON_SELECT};
 
-	// É_ÉCÉAÉçÉOÉäÉTÉCÉYÉ}ÉbÉv
+	// „ÉÄ„Ç§„Ç¢„É≠„Ç∞„É™„Çµ„Ç§„Ç∫„Éû„ÉÉ„Éó
 	BEGIN_DLGRESIZE_MAP(CIconSelectDialog)
 		DLGRESIZE_CONTROL(IDC_BUTTON_BROWSE_DEFAULT_ICON,	DLSZ_MOVE_X)
 		DLGRESIZE_CONTROL(IDC_EDIT_ICON_PATH,				DLSZ_SIZE_X)
@@ -159,19 +152,19 @@ public:
 		DLGRESIZE_CONTROL(IDCANCEL,							DLSZ_MOVE_X | DLSZ_MOVE_Y)
 	END_DLGRESIZE_MAP()
 
-	// DDXÉ}ÉbÉv
+	// DDX„Éû„ÉÉ„Éó
 	BEGIN_DDX_MAP(CIconSelectDialog)
 		DDX_TEXT(IDC_EDIT_ICON_PATH,IconPath)
 	END_DDX_MAP()
 
-	// ÉÅÉbÉZÅ[ÉWÉ}ÉbÉv
+	// „É°„ÉÉ„Çª„Éº„Ç∏„Éû„ÉÉ„Éó
 	BEGIN_MSG_MAP_EX(CIconSelectDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_BROWSE_ICON, OnBrowse)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_BROWSE_DEFAULT_ICON, OnBrowseDefault)
 		COMMAND_ID_HANDLER_EX(IDOK, OnOK)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
-		CHAIN_MSG_MAP(CDialogResize<CIconSelectDialog>)    // CDialogResizeÉNÉâÉXÇ÷ÇÃÉ`ÉFÅ[Éì
+		CHAIN_MSG_MAP(CDialogResize<CIconSelectDialog>)    // CDialogResize„ÇØ„É©„Çπ„Å∏„ÅÆ„ÉÅ„Çß„Éº„É≥
 	END_MSG_MAP()
 
 	CIconSelectDialog(ASSOCINFO&);

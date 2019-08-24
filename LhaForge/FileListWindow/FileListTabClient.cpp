@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "FileListTabClient.h"
@@ -91,18 +84,18 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,cons
 	ASSERT(pItem);
 	if(!pItem)return E_HANDLE;
 
-	//d•¡ƒI[ƒvƒ“–h~ƒIƒuƒWƒFƒNƒg‚ğƒZƒbƒg
+	//é‡è¤‡ã‚ªãƒ¼ãƒ—ãƒ³é˜²æ­¢ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã‚»ãƒƒãƒˆ
 	pItem->hMutex=hMutex;
 	pItem->strMutexName=lpMutexName;
 
-	//u‚¨‘Ò‚¿‚­‚¾‚³‚¢vƒ_ƒCƒAƒƒO‚ğ•\¦
+	//ã€ŒãŠå¾…ã¡ãã ã•ã„ã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	CWaitDialog WaitDialog;
 	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
 	AnimationUpdater au;
 	au.lpDialog=&WaitDialog;
 
 	m_rFrameWnd.EnableWindow(FALSE);
-	//---‰ğÍ
+	//---è§£æ
 	HRESULT hr=pItem->OpenArchive(lpszArc,forceID,ConfFLW,ConfFLW.FileListMode,&au,strErr);
 	if(FAILED(hr)){
 		m_rFrameWnd.EnableWindow(TRUE);
@@ -112,13 +105,13 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,cons
 		m_rFrameWnd.EnableWindow(TRUE);
 		WaitDialog.DestroyWindow();
 		SetPageTitle(idx,PathFindFileName(pItem->Model.GetArchiveFileName()));
-		// ƒcƒŠ[ƒrƒ…[‚ÉƒtƒH[ƒJƒX‚ğ‚½‚¹‚é
+		// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’æŒãŸã›ã‚‹
 		pItem->TreeView.SetFocus();
 		pItem->ShowTreeView(m_bShowTreeView);
 		dispatchEvent(WM_FILELIST_MODELCHANGED);
 		dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 
-		//ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚ÌƒvƒƒpƒeƒB‚Æ‚µ‚Ä“o˜^
+		//ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã¨ã—ã¦ç™»éŒ²
 		::SetProp(m_rFrameWnd,lpMutexName,pItem);
 
 		FitClient();
@@ -135,7 +128,7 @@ void CFileListTabClient::ShowTabCtrl(bool bShow)
 
 void CFileListTabClient::UpdateClientArea()
 {
-	//ƒ^ƒu”ñ•\¦‚Ìê‡‚ÉƒEƒBƒ“ƒhƒEƒTƒCƒY‚ğƒNƒ‰ƒCƒAƒ“ƒgˆê”t‚ÉL‚°‚é
+	//ã‚¿ãƒ–éè¡¨ç¤ºã®å ´åˆã«ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºã‚’ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆä¸€æ¯ã«åºƒã’ã‚‹
 	if(!m_bShowTab){
 		CRect rcTab;
 		m_tab.GetWindowRect(rcTab);
@@ -157,7 +150,7 @@ void CFileListTabClient::FitClient()
 		ASSERT(pTab);
 		if(pTab){
 			//TODO:dirty hack
-			//‚±‚ê‚ğs‚¤‚ÆAƒŠƒXƒgƒrƒ…[‚ÌƒXƒNƒ[ƒ‹ƒo[‚ª•œŠˆ‚·‚é
+			//ã“ã‚Œã‚’è¡Œã†ã¨ã€ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ãƒãƒ¼ãŒå¾©æ´»ã™ã‚‹
 			//pTab->Splitter.SetRedraw(FALSE);
 			//SetRedraw(FALSE);
 			int pos=pTab->Splitter.GetSplitterPos();
@@ -169,7 +162,7 @@ void CFileListTabClient::FitClient()
 
 int CFileListTabClient::CreateNewTab(const CConfigFileListWindow& ConfFLW)
 {
-	//--ƒCƒ“ƒXƒ^ƒ“ƒXŠm•Û
+	//--ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ç¢ºä¿
 	CFileListTabItem* pItem=new CFileListTabItem(m_rConfig);
 	m_GC.Add(pItem);
 	if(!pItem->CreateTabItem(m_hWnd,m_rFrameWnd,ConfFLW)){
@@ -178,12 +171,12 @@ int CFileListTabClient::CreateNewTab(const CConfigFileListWindow& ConfFLW)
 	}
 	int idx=GetPageCount();
 
-	//--Œ»ó•Û‘¶
+	//--ç¾çŠ¶ä¿å­˜
 	if(idx>0){
 		OnDeactivateTab((CFileListTabItem*)GetPageData(GetActivePage()));
 	}
 
-	//--ƒ^ƒu’Ç‰Á
+	//--ã‚¿ãƒ–è¿½åŠ 
 	AddPage(pItem->Splitter,_T(""),-1,pItem);
 
 	FitClient();
@@ -196,7 +189,7 @@ void CFileListTabClient::RemoveTab(int idx)
 	if(idx<0)return;
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
 
-	//ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚ÌƒvƒƒpƒeƒB‚Æ‚µ‚Ä“o˜^
+	//ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã¨ã—ã¦ç™»éŒ²
 	::RemoveProp(m_rFrameWnd,pItem->strMutexName);
 
 	if(idx==GetActivePage()){
@@ -326,23 +319,23 @@ void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
 	}
 
 	ConfFLW.TreeWidth=m_nTreeWidth;
-	//ƒ\[ƒgİ’è
+	//ã‚½ãƒ¼ãƒˆè¨­å®š
 	ConfFLW.SortColumn=m_nSortKeyType;
 	ConfFLW.SortDescending=m_bSortDescending;
 
-	//ƒŠƒXƒgƒrƒ…[‚ÌƒXƒ^ƒCƒ‹
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¹ã‚¿ã‚¤ãƒ«
 	if(GetPageCount()>0){
 		m_dwListStyle=GetCurrentTab()->GetListViewStyle()%(0x0004);
 	}
 	ConfFLW.ListStyle=m_dwListStyle;
 
 	ConfFLW.FileListMode=m_ListMode;
-	//ƒJƒ‰ƒ€‚Ì•À‚Ñ‡
+	//ã‚«ãƒ©ãƒ ã®ä¸¦ã³é †
 	memcpy(ConfFLW.ColumnOrderArray, m_ColumnIndexArray, sizeof(m_ColumnIndexArray));
-	//ƒJƒ‰ƒ€‚Ì•
+	//ã‚«ãƒ©ãƒ ã®å¹…
 	memcpy(ConfFLW.ColumnWidthArray, m_FileInfoWidth, sizeof(m_FileInfoWidth));
 
-	//ƒcƒŠ[ƒrƒ…[
+	//ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼
 	ConfFLW.ShowTreeView=m_bShowTreeView;
 }
 
@@ -356,18 +349,18 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		pItem->ListView.DeleteAllItems();
 		pItem->ListView.SetItemCount(0);
 
-		//ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚Ì•Û‘¶‚Æ•œŒ³‚ğs‚¤
+		//ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¿å­˜ã¨å¾©å…ƒã‚’è¡Œã†
 		std::stack<CString> dirStack;
 		pItem->Model.GetDirStack(dirStack);
 
-		//u‚¨‘Ò‚¿‚­‚¾‚³‚¢vƒ_ƒCƒAƒƒO‚ğ•\¦
+		//ã€ŒãŠå¾…ã¡ãã ã•ã„ã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 		CWaitDialog WaitDialog;
 		WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
 		AnimationUpdater au;
 		au.lpDialog=&WaitDialog;
 
 		m_rFrameWnd.EnableWindow(FALSE);
-		//---‰ğÍ
+		//---è§£æ
 		CString strErr;
 		HRESULT hr=pItem->Model.ReopenArchiveFile(flMode,strErr,&au);
 		m_rFrameWnd.EnableWindow(TRUE);
@@ -378,7 +371,7 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		}
 		pItem->Model.SetDirStack(dirStack);
 
-		// ƒcƒŠ[ƒrƒ…[‚ÉƒtƒH[ƒJƒX‚ğ‚½‚¹‚é
+		// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’æŒãŸã›ã‚‹
 //		m_lpCurrentTab->TreeView.SetFocus();
 	}
 	return S_OK;
@@ -386,7 +379,7 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 
 bool CFileListTabClient::ReopenArchiveFileAll()
 {
-	//u‚¨‘Ò‚¿‚­‚¾‚³‚¢vƒ_ƒCƒAƒƒO‚ğ•\¦
+	//ã€ŒãŠå¾…ã¡ãã ã•ã„ã€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º
 	CWaitDialog WaitDialog;
 	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
 	AnimationUpdater au;
@@ -400,11 +393,11 @@ bool CFileListTabClient::ReopenArchiveFileAll()
 			pItem->ListView.DeleteAllItems();
 			pItem->ListView.SetItemCount(0);
 
-			//ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚Ì•Û‘¶‚Æ•œŒ³‚ğs‚¤
+			//ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¿å­˜ã¨å¾©å…ƒã‚’è¡Œã†
 			std::stack<CString> dirStack;
 			pItem->Model.GetDirStack(dirStack);
 
-			//---‰ğÍ
+			//---è§£æ
 			CString strErr;
 			HRESULT hr=pItem->Model.ReopenArchiveFile(m_ListMode,strErr,&au);
 			if(FAILED(hr)){
@@ -510,7 +503,7 @@ void CFileListTabClient::SetCurrentTab(HANDLE hHandle)
 }
 
 
-//ƒRƒ“ƒeƒLƒXƒgƒƒjƒ…[‚ğŠJ‚­
+//ã‚³ãƒ³ãƒ†ã‚­ã‚¹ãƒˆãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’é–‹ã
 LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 {
 	int idx = pnmh->idFrom;
@@ -524,7 +517,7 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 
 	TBVCONTEXTMENUINFO* pInfo=(TBVCONTEXTMENUINFO*)pnmh;
 
-	UINT nCmd = (UINT)cSubMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN,pInfo->pt.x,pInfo->pt.y,m_hWnd);	//ƒƒjƒ…[•\¦
+	UINT nCmd = (UINT)cSubMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN,pInfo->pt.x,pInfo->pt.y,m_hWnd);	//ãƒ¡ãƒ‹ãƒ¥ãƒ¼è¡¨ç¤º
 	switch(nCmd){
 	case ID_TABMENU_CLOSE:
 		RemoveTab(idx);
@@ -542,7 +535,7 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 		//canceled
 		break;
 	default:
-		//ƒRƒ}ƒ“ƒh‚ğ‘¼‚É“Š‚°‚é
+		//ã‚³ãƒãƒ³ãƒ‰ã‚’ä»–ã«æŠ•ã’ã‚‹
 		SendMessage(WM_COMMAND,MAKEWPARAM(nCmd,0),NULL);
 		break;
 	}
@@ -565,12 +558,12 @@ void CFileListTabClient::OnExtractArchive(UINT,int nID,HWND)
 {
 	CFileListTabItem* pItem=GetCurrentTab();
 	if(pItem){
-		//ƒEƒBƒ“ƒhƒE‚ğg—p•s‰Â‚É
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨ä¸å¯ã«
 		::EnableWindow(m_rFrameWnd,FALSE);
 
 		bool bRet=pItem->Model.ExtractArchive();
 
-		//ƒEƒBƒ“ƒhƒE‚ğg—p‰Â”\‚É
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨å¯èƒ½ã«
 		::EnableWindow(m_rFrameWnd,TRUE);
 		SetForegroundWindow(m_rFrameWnd);
 
@@ -583,7 +576,7 @@ void CFileListTabClient::OnExtractArchive(UINT,int nID,HWND)
 
 void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
 {
-	//ƒEƒBƒ“ƒhƒE‚ğg—p•s‰Â‚É
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨ä¸å¯ã«
 	::EnableWindow(m_rFrameWnd,FALSE);
 
 	int tabIndex=0;
@@ -609,7 +602,7 @@ void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
 	if(GetPageCount()>0){
 		SetCurrentTab(0);
 	}
-	//ƒEƒBƒ“ƒhƒE‚ğg—p‰Â”\‚É
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨å¯èƒ½ã«
 	::EnableWindow(m_rFrameWnd,TRUE);
 	SetForegroundWindow(m_rFrameWnd);
 }
@@ -618,12 +611,12 @@ void CFileListTabClient::OnTestArchive(UINT,int,HWND)
 {
 	CFileListTabItem* pItem=GetCurrentTab();
 	if(pItem){
-		//ƒEƒBƒ“ƒhƒE‚ğg—p•s‰Â‚É
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨ä¸å¯ã«
 		::EnableWindow(m_rFrameWnd,FALSE);
 
 		pItem->Model.TestArchive();
 
-		//ƒEƒBƒ“ƒhƒE‚ğg—p‰Â”\‚É
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½¿ç”¨å¯èƒ½ã«
 		::EnableWindow(m_rFrameWnd,TRUE);
 		SetForegroundWindow(m_rFrameWnd);
 	}

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ConfigCode/ConfigManager.h"
@@ -59,7 +52,7 @@ class COpenActionDialog : public CDialogImpl<COpenActionDialog>
 {
 public:
 	enum {IDD = IDD_DIALOG_OPENACTION_SELECT};
-	// ƒƒbƒZ[ƒWƒ}ƒbƒv
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒƒãƒ—
 	BEGIN_MSG_MAP_EX(COpenActionDialog)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_EXTRACT, OnButton)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_LIST, OnButton)
@@ -73,7 +66,7 @@ public:
 };
 
 
-//ŠJ‚­“®ì‚ğ‘I‘ğ
+//é–‹ãå‹•ä½œã‚’é¸æŠ
 PROCESS_MODE SelectOpenAction()
 {
 	COpenActionDialog Dialog;
@@ -91,7 +84,7 @@ PROCESS_MODE SelectOpenAction()
 
 //-----------
 
-//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ğ‰ğß‚µƒtƒ@ƒCƒ‹‚Ìˆ—•û–@‚ğŒˆ’è‚·‚é
+//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚’è§£é‡ˆã—ãƒ•ã‚¡ã‚¤ãƒ«ã®å‡¦ç†æ–¹æ³•ã‚’æ±ºå®šã™ã‚‹
 PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	std::vector<CString> ParamsArray;
@@ -107,42 +100,42 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	TRACE(_T("---End Dump---\n\n"));
 #endif
 
-	const bool bPressedShift=GetKeyState(VK_SHIFT)<0;	//SHIFT‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
-	const bool bPressedControl=GetKeyState(VK_CONTROL)<0;	//CONTROL‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+	const bool bPressedShift=GetKeyState(VK_SHIFT)<0;	//SHIFTãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
+	const bool bPressedControl=GetKeyState(VK_CONTROL)<0;	//CONTROLãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 	PROCESS_MODE ProcessMode=PROCESS_AUTOMATIC;
 
-	//ƒfƒtƒHƒ‹ƒg’l“Ç‚İ‚İ
+	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤èª­ã¿è¾¼ã¿
 	CString strErr;
 	if(!ConfigManager.LoadConfig(strErr))ErrorMessage(strErr);
 
-	UTIL_CODEPAGE uCodePage=UTILCP_SJIS;	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÌƒR[ƒhƒy[ƒWw’è
+	UTIL_CODEPAGE uCodePage=UTILCP_SJIS;	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚³ãƒ¼ãƒ‰ãƒšãƒ¼ã‚¸æŒ‡å®š
 
 	for(int iIndex=1;iIndex<nArgc;iIndex++){
-		if(0!=_tcsncmp(_T("/"),ParamsArray[iIndex],1)){//ƒIƒvƒVƒ‡ƒ“‚Å‚Í‚È‚¢
-			//ƒtƒ@ƒCƒ‹‚Æ‚İ‚È‚µAˆ—‘ÎÛƒtƒ@ƒCƒ‹‚ÌƒŠƒXƒg‚É‹l‚ß‚Ş
-			//ˆÈ‰º‚Íƒtƒ@ƒCƒ‹–¼‚Ìˆ—
-			if(0>=_tcslen(ParamsArray[iIndex])){	//ˆø”‚ªNULL‚È‚ç–³‹
+		if(0!=_tcsncmp(_T("/"),ParamsArray[iIndex],1)){//ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã§ã¯ãªã„
+			//ãƒ•ã‚¡ã‚¤ãƒ«ã¨ã¿ãªã—ã€å‡¦ç†å¯¾è±¡ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒªã‚¹ãƒˆã«è©°ã‚è¾¼ã‚€
+			//ä»¥ä¸‹ã¯ãƒ•ã‚¡ã‚¤ãƒ«åã®å‡¦ç†
+			if(0>=_tcslen(ParamsArray[iIndex])){	//å¼•æ•°ãŒNULLãªã‚‰ç„¡è¦–
 				continue;
 			}
 			cli.FileList.push_back(ParamsArray[iIndex]);
 		}else{
 			//------------------
-			// ƒIƒvƒVƒ‡ƒ“‚Ì‰ğÍ
+			// ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®è§£æ
 			//------------------
 			CString Parameter(ParamsArray[iIndex]);
-			//¬•¶š‚É•ÏŠ·
+			//å°æ–‡å­—ã«å¤‰æ›
 			Parameter.MakeLower();
-			if(0==_tcsncmp(_T("/cfg"),Parameter,4)){//İ’èƒtƒ@ƒCƒ‹–¼w’è
+			if(0==_tcsncmp(_T("/cfg"),Parameter,4)){//è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 				if(0==_tcsncmp(_T("/cfg:"),Parameter,5)){
-					//o—Íƒtƒ@ƒCƒ‹–¼‚ÌØ‚èo‚µ;‚±‚Ì“_‚Å""‚ÍŠO‚ê‚Ä‚¢‚é
+					//å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åã®åˆ‡ã‚Šå‡ºã—;ã“ã®æ™‚ç‚¹ã§""ã¯å¤–ã‚Œã¦ã„ã‚‹
 					cli.ConfigPath=(LPCTSTR)ParamsArray[iIndex]+5;
 
-					//---ŠÂ‹«•Ï”(LhaForge“Æ©’è‹`•Ï”)“WŠJ
-					//ƒpƒ‰ƒ[ƒ^“WŠJ‚É•K—v‚Èî•ñ
+					//---ç’°å¢ƒå¤‰æ•°(LhaForgeç‹¬è‡ªå®šç¾©å¤‰æ•°)å±•é–‹
+					//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹ã«å¿…è¦ãªæƒ…å ±
 					std::map<stdString,CString> envInfo;
 					UtilMakeExpandInformation(envInfo);
 
-					//ƒRƒ}ƒ“ƒhEƒpƒ‰ƒ[ƒ^“WŠJ
+					//ã‚³ãƒãƒ³ãƒ‰ãƒ»ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿å±•é–‹
 					UtilExpandTemplateString(cli.ConfigPath, cli.ConfigPath, envInfo);
 				}else if(_T("/cfg")==Parameter){
 					cli.ConfigPath.Empty();
@@ -152,16 +145,16 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-				//İ’èƒtƒ@ƒCƒ‹‚Ìw’è‚ª—L‚ê‚ÎƒZƒbƒg‚·‚é;–³‚¯‚ê‚ÎƒfƒtƒHƒ‹ƒg‚É–ß‚·
+				//è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®æŒ‡å®šãŒæœ‰ã‚Œã°ã‚»ãƒƒãƒˆã™ã‚‹;ç„¡ã‘ã‚Œã°ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã«æˆ»ã™
 				if(cli.ConfigPath.IsEmpty()){
 					ConfigManager.SetConfigFile(NULL);
 				}else{
 					ConfigManager.SetConfigFile(cli.ConfigPath);
 				}
-				//•ÏXŒã‚Ì’l“Ç‚İ‚İ
+				//å¤‰æ›´å¾Œã®å€¤èª­ã¿è¾¼ã¿
 				if(!ConfigManager.LoadConfig(strErr))ErrorMessage(strErr);
 				TRACE(_T("ConfigPath=%s\n"),cli.ConfigPath);
-			}else if(0==_tcsncmp(_T("/cp"),Parameter,3)){//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚ÌƒR[ƒhƒy[ƒWw’è
+			}else if(0==_tcsncmp(_T("/cp"),Parameter,3)){//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚³ãƒ¼ãƒ‰ãƒšãƒ¼ã‚¸æŒ‡å®š
 				if(0==_tcsncmp(_T("/cp:"),Parameter,4)){
 					CString cp((LPCTSTR)Parameter+4);
 					cp.MakeLower();
@@ -178,31 +171,31 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 						return PROCESS_INVALID;
 					}
 				}else if(_T("/cp")==Parameter){
-					uCodePage=UTILCP_SJIS;	//ƒfƒtƒHƒ‹ƒg‚É–ß‚·
+					uCodePage=UTILCP_SJIS;	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã«æˆ»ã™
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/c"),Parameter,2)){//ˆ³k‚ğw¦‚³‚ê‚Ä‚¢‚é
+			}else if(0==_tcsncmp(_T("/c"),Parameter,2)){//åœ§ç¸®ã‚’æŒ‡ç¤ºã•ã‚Œã¦ã„ã‚‹
 				ProcessMode=PROCESS_COMPRESS;
 				//----------------
-				// ˆ³kŒ`®‚Ì‰ğ“Ç
+				// åœ§ç¸®å½¢å¼ã®è§£èª­
 				//----------------
-				if(_T("/c")==Parameter){	//Œ`®‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢ê‡
+				if(_T("/c")==Parameter){	//å½¢å¼ãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„å ´åˆ
 					cli.CompressType=PARAMETER_UNDEFINED;
 				}else if(0!=_tcsncmp(_T("/c:"),Parameter,3)){
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
-				}else if(DLL_ID_B2E==cli.idForceDLL){	//B2E‚Åˆ³k‚·‚éê‡
-					//ˆ³k•û®–¼‚Ì‚İØ‚è‚¾‚µ
+				}else if(DLL_ID_B2E==cli.idForceDLL){	//B2Eã§åœ§ç¸®ã™ã‚‹å ´åˆ
+					//åœ§ç¸®æ–¹å¼åã®ã¿åˆ‡ã‚Šã ã—
 					cli.strFormat=(LPCTSTR)Parameter+3;
 				}else{
 					cli.CompressType=PARAMETER_UNDEFINED;
-					//ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ƒpƒ‰ƒ[ƒ^‚ÆŒ`®‚Ì‘Î‰•\‚©‚ç’T‚·
+					//ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã¨å½¢å¼ã®å¯¾å¿œè¡¨ã‹ã‚‰æ¢ã™
 					for(int i=0;i<COMPRESS_PARAM_COUNT;i++){
 						if(CompressParameterArray[i].Param==Parameter){
 							cli.CompressType=CompressParameterArray[i].Type;
@@ -217,45 +210,45 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 						return PROCESS_INVALID;
 					}
 
-					//CONTROLƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚é‚È‚çAŒÂ•Êˆ³k
+					//CONTROLã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ã‚‹ãªã‚‰ã€å€‹åˆ¥åœ§ç¸®
 					if(bPressedControl){
 						cli.bSingleCompression=true;
 					}
 				}
-			}else if(_T("/e")==Parameter){//‰ğ“€‚ğw¦‚³‚ê‚Ä‚¢‚é
+			}else if(_T("/e")==Parameter){//è§£å‡ã‚’æŒ‡ç¤ºã•ã‚Œã¦ã„ã‚‹
 				if(bPressedShift){
-					ProcessMode=PROCESS_LIST;	//SHIFTƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚ç‰{——ƒ‚[ƒh
+					ProcessMode=PROCESS_LIST;	//SHIFTã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ãŸã‚‰é–²è¦§ãƒ¢ãƒ¼ãƒ‰
 				}else if(bPressedControl){
-					ProcessMode=PROCESS_TEST;	//CTRLƒL[‚ª‰Ÿ‚³‚ê‚Ä‚¢‚½‚çŒŸ¸ƒ‚[ƒh
+					ProcessMode=PROCESS_TEST;	//CTRLã‚­ãƒ¼ãŒæŠ¼ã•ã‚Œã¦ã„ãŸã‚‰æ¤œæŸ»ãƒ¢ãƒ¼ãƒ‰
 				}else{
 					ProcessMode=PROCESS_EXTRACT;
 				}
-			}else if(_T("/l")==Parameter){//ƒtƒ@ƒCƒ‹ˆê——•\¦
+			}else if(_T("/l")==Parameter){//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§è¡¨ç¤º
 				ProcessMode=PROCESS_LIST;
-			}else if(_T("/t")==Parameter){//ƒA[ƒJƒCƒuƒeƒXƒg
+			}else if(_T("/t")==Parameter){//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãƒ†ã‚¹ãƒˆ
 				ProcessMode=PROCESS_TEST;
-			}else if(_T("/m")==Parameter){//ˆ—•û–@‘I‘ğ
+			}else if(_T("/m")==Parameter){//å‡¦ç†æ–¹æ³•é¸æŠ
 				CConfigOpenAction ConfOpenAction;
 				ConfOpenAction.load(ConfigManager);
 				OPENACTION OpenAction;
-				if(bPressedShift){	//---Shift‰Ÿ‰º
+				if(bPressedShift){	//---ShiftæŠ¼ä¸‹æ™‚
 					OpenAction=ConfOpenAction.OpenAction_Shift;
-				}else if(bPressedControl){	//---Ctrl‰Ÿ‰º
+				}else if(bPressedControl){	//---CtrlæŠ¼ä¸‹æ™‚
 					OpenAction=ConfOpenAction.OpenAction_Ctrl;
-				}else{	//---’Êí
+				}else{	//---é€šå¸¸æ™‚
 					OpenAction=ConfOpenAction.OpenAction;
 				}
 				switch(OpenAction){
-				case OPENACTION_EXTRACT://‰ğ“€
+				case OPENACTION_EXTRACT://è§£å‡
 					ProcessMode=PROCESS_EXTRACT;
 					break;
-				case OPENACTION_LIST:	//‰{——
+				case OPENACTION_LIST:	//é–²è¦§
 					ProcessMode=PROCESS_LIST;
 					break;
-				case OPENACTION_TEST:	//ŒŸ¸
+				case OPENACTION_TEST:	//æ¤œæŸ»
 					ProcessMode=PROCESS_TEST;
 					break;
-				case OPENACTION_ASK:	//–ˆ‰ñŠm”F
+				case OPENACTION_ASK:	//æ¯å›ç¢ºèª
 					ProcessMode=SelectOpenAction();
 					if(ProcessMode==PROCESS_INVALID){
 						return PROCESS_INVALID;
@@ -265,32 +258,32 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ASSERT(!"This code must not be run");
 					return PROCESS_INVALID;
 				}
-			}else if(_T("/!")==Parameter||_T("/xacrett")==Parameter){//XacRett.DLL‚ğg—p
+			}else if(_T("/!")==Parameter||_T("/xacrett")==Parameter){//XacRett.DLLã‚’ä½¿ç”¨
 				cli.idForceDLL=DLL_ID_XACRETT;
-			}else if(_T("/b2e")==Parameter){//B2E32.dll‚ğg—p
+			}else if(_T("/b2e")==Parameter){//B2E32.dllã‚’ä½¿ç”¨
 				cli.idForceDLL=DLL_ID_B2E;
-			}else if(_T("/b2esfx")==Parameter){//B2E32.dll‚ğg—p‚µ‚Ä©ŒÈ‰ğ“€‚Éˆ³k
+			}else if(_T("/b2esfx")==Parameter){//B2E32.dllã‚’ä½¿ç”¨ã—ã¦è‡ªå·±è§£å‡ã«åœ§ç¸®
 				cli.Options|=COMPRESS_SFX;
-			}else if(_T("/s")==Parameter){//ƒtƒ@ƒCƒ‹‚ğˆê‚Â‚¸‚Âˆ³k
+			}else if(_T("/s")==Parameter){//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸€ã¤ãšã¤åœ§ç¸®
 				cli.bSingleCompression=true;
-			}else if(0==_tcsncmp(_T("/o"),Parameter,2)){//o—ÍæƒtƒHƒ‹ƒ_w’è
+			}else if(0==_tcsncmp(_T("/o"),Parameter,2)){//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€æŒ‡å®š
 				if(0==_tcsncmp(_T("/o:"),Parameter,3)){
-					//o—ÍæƒtƒHƒ‹ƒ_‚ÌØ‚èo‚µ;‚±‚Ì“_‚Å""‚ÍŠO‚ê‚Ä‚¢‚é
+					//å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ã®åˆ‡ã‚Šå‡ºã—;ã“ã®æ™‚ç‚¹ã§""ã¯å¤–ã‚Œã¦ã„ã‚‹
 					cli.OutputDir=(LPCTSTR)Parameter+3;
 					cli.OutputToOverride=(OUTPUT_TO)-1;
 				}else if(_T("/o")==Parameter){
 					cli.OutputDir.Empty();
 					cli.OutputToOverride=(OUTPUT_TO)-1;
 				}else if(_T("/od")==Parameter){
-					//ƒfƒXƒNƒgƒbƒv‚Éo—Í
+					//ãƒ‡ã‚¹ã‚¯ãƒˆãƒƒãƒ—ã«å‡ºåŠ›
 					cli.OutputDir.Empty();
 					cli.OutputToOverride=OUTPUT_TO_DESKTOP;
 				}else if(_T("/os")==Parameter){
-					//“¯ˆêƒfƒBƒŒƒNƒgƒŠ‚Éo—Í
+					//åŒä¸€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«å‡ºåŠ›
 					cli.OutputDir.Empty();
 					cli.OutputToOverride=OUTPUT_TO_SAME_DIR;
 				}else if(_T("/oa")==Parameter){
-					//–ˆ‰ñ•·‚­
+					//æ¯å›èã
 					cli.OutputDir.Empty();
 					cli.OutputToOverride=OUTPUT_TO_ALWAYS_ASK_WHERE;
 				}else{
@@ -300,26 +293,26 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					return PROCESS_INVALID;
 				}
 				TRACE(_T("OutputDir=%s\n"),cli.OutputDir);
-			}else if(0==_tcsncmp(_T("/@"),Parameter,2)&&Parameter.GetLength()>2){//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹w’è
+			}else if(0==_tcsncmp(_T("/@"),Parameter,2)&&Parameter.GetLength()>2){//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«æŒ‡å®š
 				CString strFile;
 				if(PATHERROR_NONE!=UtilGetCompletePathName(strFile,(LPCTSTR)Parameter+2)||
 					!UtilReadFromResponceFile(strFile,uCodePage,cli.FileList)){
-					//“Ç‚İ‚İ¸”s
+					//èª­ã¿è¾¼ã¿å¤±æ•—
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹w’è(“Ç‚İæ‚èŒãíœ)
+			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«æŒ‡å®š(èª­ã¿å–ã‚Šå¾Œå‰Šé™¤)
 				CString strFile;
 				if(PATHERROR_NONE!=UtilGetCompletePathName(strFile,(LPCTSTR)Parameter+2)||
 					!UtilReadFromResponceFile(strFile,uCodePage,cli.FileList)){
-					//“Ç‚İ‚İ¸”s
+					//èª­ã¿è¾¼ã¿å¤±æ•—
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
-				else DeleteFile(strFile);	//íœ
-			}else if(0==_tcsncmp(_T("/f"),Parameter,2)){//o—Íƒtƒ@ƒCƒ‹–¼w’è
+				else DeleteFile(strFile);	//å‰Šé™¤
+			}else if(0==_tcsncmp(_T("/f"),Parameter,2)){//å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åæŒ‡å®š
 				if(0==_tcsncmp(_T("/f:"),Parameter,3)){
-					//o—Íƒtƒ@ƒCƒ‹–¼‚ÌØ‚èo‚µ;‚±‚Ì“_‚Å""‚ÍŠO‚ê‚Ä‚¢‚é
+					//å‡ºåŠ›ãƒ•ã‚¡ã‚¤ãƒ«åã®åˆ‡ã‚Šå‡ºã—;ã“ã®æ™‚ç‚¹ã§""ã¯å¤–ã‚Œã¦ã„ã‚‹
 					cli.OutputFileName=(LPCTSTR)Parameter+3;
 				}else if(_T("/f")==Parameter){
 					cli.OutputFileName.Empty();
@@ -330,11 +323,11 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					return PROCESS_INVALID;
 				}
 				TRACE(_T("OutputFileName=%s\n"),cli.OutputFileName);
-			}else if(0==_tcsncmp(_T("/method:"),Parameter,8)){//ˆ³kƒƒ\ƒbƒhw’è
+			}else if(0==_tcsncmp(_T("/method:"),Parameter,8)){//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰æŒ‡å®š
 				cli.strMethod=(LPCTSTR)Parameter+8;
-			}else if(0==_tcsncmp(_T("/level:"),Parameter,7)){//ˆ³kƒƒ\ƒbƒhw’è
+			}else if(0==_tcsncmp(_T("/level:"),Parameter,7)){//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰æŒ‡å®š
 				cli.strLevel=(LPCTSTR)Parameter+7;
-			}else if(0==_tcsncmp(_T("/mkdir:"),Parameter,7)){//‰ğ“€‚Ìo—ÍƒfƒBƒŒƒNƒgƒŠ§Œä
+			}else if(0==_tcsncmp(_T("/mkdir:"),Parameter,7)){//è§£å‡æ™‚ã®å‡ºåŠ›ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¶å¾¡
 				CString mode=(LPCTSTR)Parameter+7;
 				if(_T("no")==mode){
 					cli.CreateDirOverride=CREATE_OUTPUT_DIR_NEVER;
@@ -348,7 +341,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/popdir:"),Parameter,8)){//‰ğ“€‚Ìo—ÍƒfƒBƒŒƒNƒgƒŠ§Œä
+			}else if(0==_tcsncmp(_T("/popdir:"),Parameter,8)){//è§£å‡æ™‚ã®å‡ºåŠ›ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¶å¾¡
 				CString mode=(LPCTSTR)Parameter+8;
 				if(_T("no")==mode){
 					cli.IgnoreTopDirOverride=0;
@@ -360,9 +353,9 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(_T("/popdir")==Parameter){//‰ğ“€‚Ìo—ÍƒfƒBƒŒƒNƒgƒŠ§Œä
+			}else if(_T("/popdir")==Parameter){//è§£å‡æ™‚ã®å‡ºåŠ›ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¶å¾¡
 				cli.IgnoreTopDirOverride=1;
-			}else if(0==_tcsncmp(_T("/delete:"),Parameter,8)){//ˆ—Œã‚Éƒ\[ƒX‚ğíœ‚·‚é‚©
+			}else if(0==_tcsncmp(_T("/delete:"),Parameter,8)){//å‡¦ç†å¾Œã«ã‚½ãƒ¼ã‚¹ã‚’å‰Šé™¤ã™ã‚‹ã‹
 				CString mode=(LPCTSTR)Parameter+8;
 				if(_T("no")==mode){
 					cli.DeleteAfterProcess=0;
@@ -374,9 +367,9 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(_T("/delete")==Parameter){//ˆ—Œã‚Éíœ
+			}else if(_T("/delete")==Parameter){//å‡¦ç†å¾Œã«å‰Šé™¤
 				cli.DeleteAfterProcess=1;
-			}else if(0==_tcsncmp(_T("/priority:"),Parameter,10)){	//ƒvƒƒZƒX—Dæ“x
+			}else if(0==_tcsncmp(_T("/priority:"),Parameter,10)){	//ãƒ—ãƒ­ã‚»ã‚¹å„ªå…ˆåº¦
 				CString mode=(LPCTSTR)Parameter+10;
 					 if(_T("low")==mode)	cli.PriorityOverride=LFPRIOTITY_LOW;
 				else if(_T("lower")==mode)	cli.PriorityOverride=LFPRIOTITY_LOWER;
@@ -389,9 +382,9 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/volume:"),Parameter,8)){	//•ªŠ„ƒTƒCƒY
+			}else if(0==_tcsncmp(_T("/volume:"),Parameter,8)){	//åˆ†å‰²ã‚µã‚¤ã‚º
 				cli.strSplitSize=((LPCTSTR)ParamsArray[iIndex])+8;
-			}else{	//–¢’m‚ÌƒIƒvƒVƒ‡ƒ“
+			}else{	//æœªçŸ¥ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 				CString msg;
 				msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
 				ErrorMessage(msg);
@@ -400,32 +393,32 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		}
 	}
 	if(cli.FileList.empty()){
-		//ƒXƒCƒbƒ`‚Ì‚İ‚ªw’è‚³‚ê‚Ä‚¢‚½ê‡‚É‚Íİ’è‰æ–Ê‚ğ•\¦‚³‚¹‚é
+		//ã‚¹ã‚¤ãƒƒãƒã®ã¿ãŒæŒ‡å®šã•ã‚Œã¦ã„ãŸå ´åˆã«ã¯è¨­å®šç”»é¢ã‚’è¡¨ç¤ºã•ã›ã‚‹
 		//------
-		// ‘¶İ‚µ‚È‚¢ƒtƒ@ƒCƒ‹‚ªw’è‚³‚ê‚Ä‚¢‚½ê‡‚É‚ÍƒGƒ‰[‚ª•Ô‚Á‚Ä‚¢‚é‚Ì‚ÅA
-		// ‚±‚±‚Åƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ª‹ó‚Å‚ ‚ê‚Îƒtƒ@ƒCƒ‹‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢‚Æ”»’f‚Å‚«‚éB
+		// å­˜åœ¨ã—ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ãŸå ´åˆã«ã¯ã‚¨ãƒ©ãƒ¼ãŒè¿”ã£ã¦ã„ã‚‹ã®ã§ã€
+		// ã“ã“ã§ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆãŒç©ºã§ã‚ã‚Œã°ãƒ•ã‚¡ã‚¤ãƒ«ãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„ã¨åˆ¤æ–­ã§ãã‚‹ã€‚
 		//return PROCESS_CONFIGURE;
 	}else{
-		//ƒƒCƒ‹ƒhƒJ[ƒh‚Ì“WŠJ
+		//ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰ã®å±•é–‹
 		UtilPathExpandWild(cli.FileList,cli.FileList);
 	}
-	//---ƒtƒ@ƒCƒ‹–¼‚Ìƒtƒ‹ƒpƒX‚È‚Çƒ`ƒFƒbƒN
+	//---ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒ•ãƒ«ãƒ‘ã‚¹ãªã©ãƒã‚§ãƒƒã‚¯
 	for(std::list<CString>::iterator ite=cli.FileList.begin();ite!=cli.FileList.end();ite++){
 		CPath strAbsPath;
 		switch(UtilGetCompletePathName(strAbsPath,*ite)){
 		case PATHERROR_NONE:
-			//¬Œ÷
+			//æˆåŠŸ
 			break;
 		case PATHERROR_INVALID:
-			//ƒpƒ‰ƒ[ƒ^w’è‚ª•s³
-			ASSERT(!"ƒpƒ‰ƒ[ƒ^w’è‚ª•s³");
+			//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æŒ‡å®šãŒä¸æ­£
+			ASSERT(!"ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿æŒ‡å®šãŒä¸æ­£");
 			return PROCESS_INVALID;
 		case PATHERROR_ABSPATH:
-			//â‘ÎƒpƒX‚Ìæ“¾‚É¸”s
+			//çµ¶å¯¾ãƒ‘ã‚¹ã®å–å¾—ã«å¤±æ•—
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
 			return PROCESS_INVALID;
 		case PATHERROR_NOTFOUND:
-			//ƒtƒ@ƒCƒ‹‚à‚µ‚­‚ÍƒtƒHƒ‹ƒ_‚ª‘¶İ‚µ‚È‚¢
+			//ãƒ•ã‚¡ã‚¤ãƒ«ã‚‚ã—ãã¯ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã—ãªã„
 			{
 				CString msg;
 				msg.Format(IDS_ERROR_FILE_NOT_FOUND,*ite);
@@ -433,22 +426,22 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			}
 			return PROCESS_INVALID;
 		case PATHERROR_LONGNAME:
-			//ƒƒ“ƒOƒtƒ@ƒCƒ‹–¼æ“¾¸”s
+			//ãƒ­ãƒ³ã‚°ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—å¤±æ•—
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_LONGNAME)));
 			return PROCESS_INVALID;
 		}
 
-		//ƒpƒX–¼‚ÌÅŒã‚ª\‚ÅI‚í‚Á‚Ä‚¢‚½‚ç\‚ğæ‚èœ‚­
+		//ãƒ‘ã‚¹åã®æœ€å¾ŒãŒ\ã§çµ‚ã‚ã£ã¦ã„ãŸã‚‰\ã‚’å–ã‚Šé™¤ã
 		strAbsPath.RemoveBackslash();
 		TRACE(strAbsPath),TRACE(_T("\n"));
 
-		//’lXV
+		//å€¤æ›´æ–°
 		*ite=(CString)strAbsPath;
 	}
-	//o—ÍƒtƒHƒ‹ƒ_‚ªw’è‚³‚ê‚Ä‚¢‚½‚çA‚»‚ê‚ğâ‘ÎƒpƒX‚É•ÏŠ·
+	//å‡ºåŠ›ãƒ•ã‚©ãƒ«ãƒ€ãŒæŒ‡å®šã•ã‚Œã¦ã„ãŸã‚‰ã€ãã‚Œã‚’çµ¶å¯¾ãƒ‘ã‚¹ã«å¤‰æ›
 	if(!cli.OutputDir.IsEmpty()){
 		if(!UtilGetAbsPathName(cli.OutputDir,cli.OutputDir)){
-			//â‘ÎƒpƒX‚Ìæ“¾‚É¸”s
+			//çµ¶å¯¾ãƒ‘ã‚¹ã®å–å¾—ã«å¤±æ•—
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
 			return PROCESS_INVALID;
 		}

@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_compress_general.h"
@@ -37,16 +30,16 @@
 #include "../../compress.h"
 
 //==================
-// ˆ³kˆê”Êİ’è‰æ–Ê
+// åœ§ç¸®ä¸€èˆ¬è¨­å®šç”»é¢
 //==================
 LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//------------------
-	// ˆ³ko—Íæƒ^ƒCƒv
+	// åœ§ç¸®å‡ºåŠ›å…ˆã‚¿ã‚¤ãƒ—
 	//------------------
 	Radio_CompressTo[OUTPUT_TO_DESKTOP]=GetDlgItem(IDC_RADIO_COMPRESS_TO_DESKTOP);
 	Radio_CompressTo[OUTPUT_TO_SAME_DIR]=GetDlgItem(IDC_RADIO_COMPRESS_TO_SAME_DIR);
@@ -56,7 +49,7 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Radio_CompressTo[m_Config.OutputDirType].SetCheck(1);
 
 	//----------------------------------------------------
-	// o—ÍæƒtƒHƒ‹ƒ_‚ÌƒpƒX‚ğƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚Éİ’è
+	// å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ‘ã‚¹ã‚’ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã«è¨­å®š
 	//----------------------------------------------------
 	Edit_CompressOutputDirPath=GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR);
 	Edit_CompressOutputDirPath.SetLimitText(_MAX_PATH);
@@ -64,13 +57,13 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	Button_CompressToFolder=GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER);
 
-	//o—Íæ‚ğw’è‚·‚é‚½‚ß‚Ìƒ{ƒ^ƒ“‚ÆƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚Ì—LŒø–³Œø‚ğØ‚è‘Ö‚¦
+	//å‡ºåŠ›å…ˆã‚’æŒ‡å®šã™ã‚‹ãŸã‚ã®ãƒœã‚¿ãƒ³ã¨ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®æœ‰åŠ¹ç„¡åŠ¹ã‚’åˆ‡ã‚Šæ›¿ãˆ
 	bool bActive=(OUTPUT_TO_SPECIFIC_DIR==m_Config.OutputDirType);
 	Edit_CompressOutputDirPath.EnableWindow(bActive);
 	Button_CompressToFolder.EnableWindow(bActive);
 
 	//--------------------------------
-	// “¯‚Éˆ³k‚·‚éƒtƒ@ƒCƒ‹”‚ÌãŒÀ
+	// åŒæ™‚ã«åœ§ç¸®ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã®ä¸Šé™
 	//--------------------------------
 	UpDown_MaxCompressFileCount=GetDlgItem(IDC_SPIN_MAX_COMPRESS_FILECOUNT);
 
@@ -80,11 +73,11 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	UpDown_MaxCompressFileCount.EnableWindow(m_Config.LimitCompressFileCount);
 	::EnableWindow(GetDlgItem(IDC_EDIT_MAX_COMPRESS_FILECOUNT),m_Config.LimitCompressFileCount);
 
-	//u“¯‚Éˆ³k‚·‚éƒtƒ@ƒCƒ‹”‚ğ§ŒÀ‚·‚évƒ`ƒFƒbƒNƒ{ƒbƒNƒX
+	//ã€ŒåŒæ™‚ã«åœ§ç¸®ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã‚’åˆ¶é™ã™ã‚‹ã€ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹
 	Check_LimitCompressFileCount=GetDlgItem(IDC_CHECK_LIMIT_COMPRESS_FILECOUNT);
 
 	//--------------------------
-	// ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^
+	// ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 	//--------------------------
 	Check_UseDefaultParameter=GetDlgItem(IDC_CHECK_USE_DEFAULTPARAMETER);
 	Edit_DefaultParameterInfo=GetDlgItem(IDC_EDIT_DEFAULTPARAMETER);
@@ -94,18 +87,18 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	SetParameterInfo();
 
 	//----------------------------------
-	// ˆ³kŒãŒ³ƒtƒ@ƒCƒ‹‚ğíœ‚·‚é‹@”\
+	// åœ§ç¸®å¾Œå…ƒãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã™ã‚‹æ©Ÿèƒ½
 	//----------------------------------
-	//u‰ğ“€Œãˆ³kƒtƒ@ƒCƒ‹‚ğíœ‚·‚évƒ`ƒFƒbƒNƒ{ƒbƒNƒX
+	//ã€Œè§£å‡å¾Œåœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã™ã‚‹ã€ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹
 	Check_DeleteAfterCompress=GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS);
-	//u‚²‚İ” ‚ÖˆÚ“®‚·‚évƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚Ì—LŒø–³Œø
+	//ã€Œã”ã¿ç®±ã¸ç§»å‹•ã™ã‚‹ã€ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã®æœ‰åŠ¹ç„¡åŠ¹
 	::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN),m_Config.DeleteAfterCompress);
-	//uŠm”F‚µ‚È‚¢v‚Ì—LŒø–³Œø
+	//ã€Œç¢ºèªã—ãªã„ã€ã®æœ‰åŠ¹ç„¡åŠ¹
 	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM),m_Config.DeleteAfterCompress);
-	//‹­§íœ‚Ì—LŒø–³Œø
+	//å¼·åˆ¶å‰Šé™¤ã®æœ‰åŠ¹ç„¡åŠ¹
 	::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE),m_Config.DeleteAfterCompress);
 
-	//DDXî•ñİ’è
+	//DDXæƒ…å ±è¨­å®š
 	DoDataExchange(FALSE);
 
 	return TRUE;
@@ -114,10 +107,10 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgCompressGeneral::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//------------------
-	// ˆ³ko—Íæƒ^ƒCƒv
+	// åœ§ç¸®å‡ºåŠ›å…ˆã‚¿ã‚¤ãƒ—
 	//------------------
 	for(int Type=0;Type<COUNTOF(Radio_CompressTo);Type++){
 		if(Radio_CompressTo[Type].GetCheck()){
@@ -126,17 +119,17 @@ LRESULT CConfigDlgCompressGeneral::OnApply()
 		}
 	}
 	//----------------------
-	// o—ÍæƒtƒHƒ‹ƒ_‚ÌƒpƒX
+	// å‡ºåŠ›å…ˆãƒ•ã‚©ãƒ«ãƒ€ã®ãƒ‘ã‚¹
 	//----------------------
 	Edit_CompressOutputDirPath.GetWindowText(m_Config.OutputDir);
 
 	//--------------------------------
-	// “¯‚Éˆ³k‚·‚éƒtƒ@ƒCƒ‹”‚ÌãŒÀ
+	// åŒæ™‚ã«åœ§ç¸®ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã®ä¸Šé™
 	//--------------------------------
 	m_Config.MaxCompressFileCount=UpDown_MaxCompressFileCount.GetPos();
 
 	//---------------
-	// DDXƒf[ƒ^æ“¾
+	// DDXãƒ‡ãƒ¼ã‚¿å–å¾—
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
@@ -183,7 +176,7 @@ LRESULT CConfigDlgCompressGeneral::OnCheckLimitCompressFileCount(WORD wNotifyCod
 	return 0;
 }
 
-//ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^‚Ì—LŒø–³Œø
+//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æœ‰åŠ¹ç„¡åŠ¹
 LRESULT CConfigDlgCompressGeneral::OnCheckUseDefaultParameter(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
@@ -193,21 +186,21 @@ LRESULT CConfigDlgCompressGeneral::OnCheckUseDefaultParameter(WORD wNotifyCode, 
 	return 0;
 }
 
-//ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^‚Ì‘I‘ğ
+//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®é¸æŠ
 LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
 		int Options=-1;
-		bool bSingleCompression=false;	//–³‹‚³‚ê‚é
+		bool bSingleCompression=false;	//ç„¡è¦–ã•ã‚Œã‚‹
 		bool bB2ESFX=false;
 		CString strB2EFormat,strB2EMethod;
 
-		//Œ`®‘I‘ğƒ_ƒCƒAƒƒO
+		//å½¢å¼é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°
 		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression,strB2EFormat,strB2EMethod,bB2ESFX);
-		if(CompressType==PARAMETER_UNDEFINED)return 1;	//ƒLƒƒƒ“ƒZƒ‹
+		if(CompressType==PARAMETER_UNDEFINED)return 1;	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 
-		if(CompressType!=PARAMETER_B2E){	//’ÊíDLL‚ğg—p
-			//‘I‘ğƒ_ƒCƒAƒƒO‚ÌğŒ‚Éˆê’v‚·‚éƒpƒ‰ƒ[ƒ^‚ğŒŸõ
+		if(CompressType!=PARAMETER_B2E){	//é€šå¸¸DLLã‚’ä½¿ç”¨
+			//é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®æ¡ä»¶ã«ä¸€è‡´ã™ã‚‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ¤œç´¢
 			int Index=0;
 			for(;Index<COMPRESS_PARAM_COUNT;Index++){
 				if(CompressType==CompressParameterArray[Index].Type){
@@ -217,20 +210,20 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 				}
 			}
 			if(Index>=COMPRESS_PARAM_COUNT){
-				//ˆê——‚Éw’è‚³‚ê‚½ˆ³k•û®‚ª‚È‚¢
-				//‚Â‚Ü‚èAƒTƒ|[ƒg‚µ‚Ä‚¢‚È‚¢ˆ³k•û®‚¾‚Á‚½‚Æ‚«
+				//ä¸€è¦§ã«æŒ‡å®šã•ã‚ŒãŸåœ§ç¸®æ–¹å¼ãŒãªã„
+				//ã¤ã¾ã‚Šã€ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ãªã„åœ§ç¸®æ–¹å¼ã ã£ãŸã¨ã
 				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 				return 1;
 			}else{
-				//İ’è‚ğ•Û‘¶
+				//è¨­å®šã‚’ä¿å­˜
 				m_Config.DefaultType=CompressType;
 				m_Config.DefaultOptions=Options;
 
-				SetParameterInfo();//Edit‚ÉŒ»İ‚Ìƒpƒ‰ƒ[ƒ^‚Ìî•ñ‚ğ•\¦‚·‚é
+				SetParameterInfo();//Editã«ç¾åœ¨ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹
 				return 0;
 			}
-		}else{	//B2E32.dll‚ğg—p
-			//ƒpƒ‰ƒ[ƒ^
+		}else{	//B2E32.dllã‚’ä½¿ç”¨
+			//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 			if(bB2ESFX){
 				m_Config.DefaultOptions=TRUE;
 			}else{
@@ -239,7 +232,7 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 			m_Config.DefaultType=CompressType;
 			m_Config.DefaultB2EFormat=strB2EFormat;
 			m_Config.DefaultB2EMethod=strB2EMethod;
-			SetParameterInfo();//Edit‚ÉŒ»İ‚Ìƒpƒ‰ƒ[ƒ^‚Ìî•ñ‚ğ•\¦‚·‚é
+			SetParameterInfo();//Editã«ç¾åœ¨ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹
 			return 0;
 		}
 	}
@@ -247,13 +240,13 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 }
 
 
-void CConfigDlgCompressGeneral::SetParameterInfo()//Edit‚ÉŒ»İ‚Ìƒpƒ‰ƒ[ƒ^‚Ìî•ñ‚ğ•\¦‚·‚é
+void CConfigDlgCompressGeneral::SetParameterInfo()//Editã«ç¾åœ¨ã®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹
 {
 	if(m_Config.DefaultType==PARAMETER_UNDEFINED){
-		//–¢’è‹`
+		//æœªå®šç¾©
 		Edit_DefaultParameterInfo.SetWindowText(_T(""));
-	}else if(m_Config.DefaultType!=PARAMETER_B2E){	//’ÊíDLL‚ğg—p
-		//‘I‘ğƒ_ƒCƒAƒƒO‚ÌğŒ‚Éˆê’v‚·‚éƒpƒ‰ƒ[ƒ^‚ğŒŸõ
+	}else if(m_Config.DefaultType!=PARAMETER_B2E){	//é€šå¸¸DLLã‚’ä½¿ç”¨
+		//é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®æ¡ä»¶ã«ä¸€è‡´ã™ã‚‹ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ¤œç´¢
 		int Index=0;
 		for(;Index<COMPRESS_PARAM_COUNT;Index++){
 			if(m_Config.DefaultType==CompressParameterArray[Index].Type){
@@ -263,19 +256,19 @@ void CConfigDlgCompressGeneral::SetParameterInfo()//Edit‚ÉŒ»İ‚Ìƒpƒ‰ƒ[ƒ^‚Ìî•ñ
 			}
 		}
 		if(Index>=COMPRESS_PARAM_COUNT){
-			//ˆê——‚Éw’è‚³‚ê‚½ˆ³k•û®‚ª‚È‚¢
-			//‚Â‚Ü‚èAƒTƒ|[ƒg‚µ‚Ä‚¢‚È‚¢ˆ³k•û®‚¾‚Á‚½‚Æ‚«
+			//ä¸€è¦§ã«æŒ‡å®šã•ã‚ŒãŸåœ§ç¸®æ–¹å¼ãŒãªã„
+			//ã¤ã¾ã‚Šã€ã‚µãƒãƒ¼ãƒˆã—ã¦ã„ãªã„åœ§ç¸®æ–¹å¼ã ã£ãŸã¨ã
 			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 		}
 		else{
-			//³í‚Èİ’è
+			//æ­£å¸¸ãªè¨­å®š
 			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
 		}
-	}else{	//B2E32.dll‚ğg—p
+	}else{	//B2E32.dllã‚’ä½¿ç”¨
 		CString strInfo;
 		BOOL bB2ESFX=m_Config.DefaultOptions;
 		if(bB2ESFX){
-			//©ŒÈ‰ğ“€
+			//è‡ªå·±è§£å‡
 			strInfo.Format(IDS_FORMAT_NAME_B2E_SFX,m_Config.DefaultB2EFormat,m_Config.DefaultB2EMethod);
 		}else{
 			strInfo.Format(IDS_FORMAT_NAME_B2E,m_Config.DefaultB2EFormat,m_Config.DefaultB2EMethod);
@@ -285,7 +278,7 @@ void CConfigDlgCompressGeneral::SetParameterInfo()//Edit‚ÉŒ»İ‚Ìƒpƒ‰ƒ[ƒ^‚Ìî•ñ
 }
 
 
-//‰ğ“€Œãíœ‚Ìİ’è‚É‡‚í‚¹‚Äƒ`ƒFƒbƒNƒ{ƒbƒNƒX‚Ì—LŒø–³Œø‚ğŒˆ‚ß‚é
+//è§£å‡å¾Œå‰Šé™¤ã®è¨­å®šã«åˆã‚ã›ã¦ãƒã‚§ãƒƒã‚¯ãƒœãƒƒã‚¯ã‚¹ã®æœ‰åŠ¹ç„¡åŠ¹ã‚’æ±ºã‚ã‚‹
 LRESULT CConfigDlgCompressGeneral::OnCheckDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){

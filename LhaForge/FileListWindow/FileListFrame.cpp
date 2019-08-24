@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "FileListFrame.h"
@@ -60,7 +53,7 @@ BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 	if(CFrameWindowImpl<CFileListFrame>::PreTranslateMessage(pMsg)){
 		return TRUE;
 	}
-	//’Ç‰Á‚ÌƒAƒNƒZƒ‰ƒŒ[ƒ^
+	//è¿½åŠ ã®ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿
 	if(!m_AccelEx.IsNull()&&m_AccelEx.TranslateAccelerator(m_hWnd, pMsg)){
 		return TRUE;
 	}
@@ -73,42 +66,42 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	CConfigFileListWindow ConfFLW;
 	ConfFLW.load(mr_Config);
 //========================================
-//      ƒtƒŒ[ƒ€ƒEƒBƒ“ƒhƒE‚Ì‰Šú‰»
+//      ãƒ•ãƒ¬ãƒ¼ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆæœŸåŒ–
 //========================================
-	//ƒEƒBƒ“ƒhƒEƒvƒƒpƒeƒB‚Ìİ’è:LhaForgeƒEƒBƒ“ƒhƒE‚Å‚ ‚é–‚ğ¦‚·
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®è¨­å®š:LhaForgeã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã§ã‚ã‚‹äº‹ã‚’ç¤ºã™
 	::SetProp(m_hWnd,ms_strPropString,m_hWnd);
 
-	//ƒEƒBƒ“ƒhƒE‚ÌƒTƒCƒY‚Ìİ’è
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚µã‚¤ã‚ºã®è¨­å®š
 	if(ConfFLW.StoreSetting){
-		if(ConfFLW.StoreWindowPosition){	//ƒEƒBƒ“ƒhƒEˆÊ’u‚ğ•œŒ³‚·‚éê‡
+		if(ConfFLW.StoreWindowPosition){	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½ç½®ã‚’å¾©å…ƒã™ã‚‹å ´åˆ
 			MoveWindow(ConfFLW.WindowPos_x,ConfFLW.WindowPos_y,ConfFLW.Width,ConfFLW.Height);
 		}else{
 			CRect Rect;
 			GetWindowRect(Rect);
 			MoveWindow(Rect.left,Rect.top,ConfFLW.Width,ConfFLW.Height);
 		}
-	}else if(ConfFLW.StoreWindowPosition){	//ƒEƒBƒ“ƒhƒEˆÊ’u‚¾‚¯•œŒ³‚·‚éê‡
+	}else if(ConfFLW.StoreWindowPosition){	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½ç½®ã ã‘å¾©å…ƒã™ã‚‹å ´åˆ
 		CRect Rect;
 		GetWindowRect(Rect);
 		MoveWindow(ConfFLW.WindowPos_x,ConfFLW.WindowPos_y,Rect.Width(),Rect.Height());
 	}
-	//ƒEƒBƒ“ƒhƒEƒTƒCƒYæ“¾
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºå–å¾—
 	GetWindowRect(m_WindowRect);
 
-	// ‘å‚«‚¢ƒAƒCƒRƒ“İ’è
+	// å¤§ãã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIcon = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXICON),::GetSystemMetrics(SM_CYICON));
 	SetIcon(hIcon, TRUE);
-	// ¬‚³‚¢ƒAƒCƒRƒ“İ’è
+	// å°ã•ã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
 	if(ConfFLW.ShowToolbar){
-		// ƒŠƒo[‚ğì¬
+		// ãƒªãƒãƒ¼ã‚’ä½œæˆ
 		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
-		// ƒc[ƒ‹ƒo[‚ğì¬‚µ‚Äƒoƒ“ƒh‚É’Ç‰Á
+		// ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’ä½œæˆã—ã¦ãƒãƒ³ãƒ‰ã«è¿½åŠ 
 		HIMAGELIST hImageList=NULL;
 		if(!ConfFLW.strCustomToolbarImage.IsEmpty()){
-			//ƒJƒXƒ^ƒ€ƒc[ƒ‹ƒo[
+			//ã‚«ã‚¹ã‚¿ãƒ ãƒ„ãƒ¼ãƒ«ãƒãƒ¼
 			hImageList = ImageList_LoadImage(NULL, ConfFLW.strCustomToolbarImage, 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
 		}
 		HWND hWndToolBar=CreateToolBarCtrl(m_hWnd,IDR_MAINFRAME,hImageList);//CreateSimpleToolBarCtrl(m_hWnd,IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
@@ -117,7 +110,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		SizeSimpleReBarBands();
 	}
 
-	// ƒXƒe[ƒ^ƒXƒo[‚ğì¬
+	// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼ã‚’ä½œæˆ
 	m_hWndStatusBar=m_StatusBar.Create(m_hWnd);
 	UIAddStatusBar(m_hWndStatusBar);
 	int nPanes[] = {ID_DEFAULT_PANE, IDS_PANE_ITEMCOUNT_INITIAL,IDS_PANE_DLL_NAME_INITIAL};
@@ -128,20 +121,20 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
 	}
 
-	//===ŠÖ˜A‚Ã‚¯‚ÅŠJ‚­‹–‰Â/‹‘”Û‚Ìİ’è
+	//===é–¢é€£ã¥ã‘ã§é–‹ãè¨±å¯/æ‹’å¦ã®è¨­å®š
 	SetOpenAssocLimitation(ConfFLW);
 
 //========================================
-//      ƒ^ƒuƒRƒ“ƒgƒ[ƒ‹‚Ì‰Šú‰»
+//      ã‚¿ãƒ–ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®åˆæœŸåŒ–
 //========================================
 	m_TabClientWnd.Create(m_hWnd,rcDefault,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN );
 	m_TabClientWnd.addEventListener(m_hWnd);
 
-	//ƒ^ƒu‚ğg‚í‚È‚¢‚È‚ç”ñ•\¦‚É
+	//ã‚¿ãƒ–ã‚’ä½¿ã‚ãªã„ãªã‚‰éè¡¨ç¤ºã«
 	if(ConfFLW.DisableTab)m_TabClientWnd.ShowTabCtrl(false);
 
 	//---------
-	//ƒŠƒXƒgƒrƒ…[ƒXƒ^ƒCƒ‹‘I‘ğ—pƒƒjƒ…[ƒo[‚Ìƒ‰ƒWƒIƒ`ƒFƒbƒN‚ğ—LŒø‚É‚·‚é
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚¹ã‚¿ã‚¤ãƒ«é¸æŠç”¨ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ¼ã®ãƒ©ã‚¸ã‚ªãƒã‚§ãƒƒã‚¯ã‚’æœ‰åŠ¹ã«ã™ã‚‹
 	{
 		CMenuHandle menuView = GetMenu();
 		CMenuItemInfo mii;
@@ -157,9 +150,9 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		menuView.SetMenuItemInfo(ID_MENUITEM_LISTMODE_FLAT_FILESONLY, FALSE, &mii);
 	}
 
-	//ƒŠƒXƒgƒrƒ…[ƒXƒ^ƒCƒ‹‚Ìİ’è
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚¹ã‚¿ã‚¤ãƒ«ã®è¨­å®š
 	if(ConfFLW.StoreSetting){
-		//Œ»İ‚Ì•\¦İ’è‚Ìƒƒjƒ…[‚Éƒ`ƒFƒbƒN‚ğ•t‚¯‚é
+		//ç¾åœ¨ã®è¡¨ç¤ºè¨­å®šã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ãƒã‚§ãƒƒã‚¯ã‚’ä»˜ã‘ã‚‹
 		switch(ConfFLW.ListStyle){
 		case LVS_SMALLICON:
 			UISetCheck(ID_MENUITEM_LISTVIEW_SMALLICON, TRUE);
@@ -177,7 +170,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 			ASSERT(!"Error");
 			break;
 		}
-		//Œ»İ‚Ì•\¦ƒ‚[ƒh‚Éƒ`ƒFƒbƒN‚ğ‚Â‚¯‚é
+		//ç¾åœ¨ã®è¡¨ç¤ºãƒ¢ãƒ¼ãƒ‰ã«ãƒã‚§ãƒƒã‚¯ã‚’ã¤ã‘ã‚‹
 		switch(ConfFLW.FileListMode){
 		case FILELIST_TREE:
 			UISetCheck(ID_MENUITEM_LISTMODE_TREE, TRUE);
@@ -201,27 +194,27 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	UpdateLayout();
 
 //========================================
-//      ƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰‚Ìİ’è
+//      ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ã®è¨­å®š
 //========================================
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
 //========================================
-//      ’Ç‰Á‚ÌƒL[ƒ{[ƒhƒAƒNƒZƒ‰ƒŒ[ƒ^
+//      è¿½åŠ ã®ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿
 //========================================
 	if(ConfFLW.ExitWithEscape){
 		m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 	}
 
-	//ƒƒjƒ…[XV
+	//ãƒ¡ãƒ‹ãƒ¥ãƒ¼æ›´æ–°
 	EnableEntryExtractOperationMenu(false);
 	EnableEntryDeleteOperationMenu(false);
 	EnableAddItemsMenu(false);
 
 //========================================
-//    ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚ÌƒRƒ}ƒ“ƒh
+//    ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒãƒ³ãƒ‰
 //========================================
 	MenuCommand_MakeSendToCommands();
 	MenuCommand_UpdateUserAppCommands(ConfFLW);
@@ -231,12 +224,12 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	DrawMenuBar();
 
 //==============================
-// ƒEƒBƒ“ƒhƒE‚ğƒAƒNƒeƒBƒu‚É‚·‚é
+// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
 //==============================
 	UtilSetAbsoluteForegroundWindow(m_hWnd);
 	UpdateLayout();
 
-	//DnD‚É‚æ‚éƒtƒ@ƒCƒ‹‰{——‚ğ‰Â”\‚É
+	//DnDã«ã‚ˆã‚‹ãƒ•ã‚¡ã‚¤ãƒ«é–²è¦§ã‚’å¯èƒ½ã«
 	EnableDropTarget(true);
 	return 0;
 }
@@ -244,11 +237,11 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 HMENU CFileListFrame::GetUserAppMenuHandle()
 {
 	CMenuHandle cMenu=GetMenu();
-	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:ƒ}ƒWƒbƒNƒiƒ“ƒo[
+	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:ãƒã‚¸ãƒƒã‚¯ãƒŠãƒ³ãƒãƒ¼
 	int MenuCount=cSubMenu.GetMenuItemCount();
 	int iIndex=-1;
 	for(int i=0;i<=MenuCount;i++){
-		if(-1==cSubMenu.GetMenuItemID(i)){	//ƒ|ƒbƒvƒAƒbƒv‚Ìe
+		if(-1==cSubMenu.GetMenuItemID(i)){	//ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®è¦ª
 			iIndex=i;
 			break;
 		}
@@ -262,11 +255,11 @@ HMENU CFileListFrame::GetUserAppMenuHandle()
 HMENU CFileListFrame::GetSendToMenuHandle()
 {
 	CMenuHandle cMenu=GetMenu();
-	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:ƒ}ƒWƒbƒNƒiƒ“ƒo[
+	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:ãƒã‚¸ãƒƒã‚¯ãƒŠãƒ³ãƒãƒ¼
 	int MenuCount=cSubMenu.GetMenuItemCount();
 	int iIndex=-1;
 	for(int i=0;i<=MenuCount;i++){
-		if(-1==cSubMenu.GetMenuItemID(i)){	//ƒ|ƒbƒvƒAƒbƒv‚Ìe
+		if(-1==cSubMenu.GetMenuItemID(i)){	//ãƒãƒƒãƒ—ã‚¢ãƒƒãƒ—ã®è¦ª
 			iIndex=i;
 			break;
 		}
@@ -280,22 +273,22 @@ HMENU CFileListFrame::GetSendToMenuHandle()
 
 LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-	//ƒEƒBƒ“ƒhƒEƒvƒƒpƒeƒB‚Ì‰ğœ
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®è§£é™¤
 	RemoveProp(m_hWnd,ms_strPropString);
 
 	CConfigFileListWindow ConfFLW;
 	ConfFLW.load(mr_Config);
 
 	bool bSave=false;
-	//ƒEƒBƒ“ƒhƒEİ’è‚Ì•Û‘¶
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®šã®ä¿å­˜
 	if(ConfFLW.StoreSetting){
-		//ƒEƒBƒ“ƒhƒEƒTƒCƒY
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º
 		ConfFLW.Width=m_WindowRect.Width();
 		ConfFLW.Height=m_WindowRect.Height();
 
 		m_TabClientWnd.StoreSettings(ConfFLW);
 
-		if(ConfFLW.StoreWindowPosition){	//ƒEƒBƒ“ƒhƒEˆÊ’u‚ğ•Û‘¶
+		if(ConfFLW.StoreWindowPosition){	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½ç½®ã‚’ä¿å­˜
 			ConfFLW.WindowPos_x=m_WindowRect.left;
 			ConfFLW.WindowPos_y=m_WindowRect.top;
 		}
@@ -303,7 +296,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 		ConfFLW.store(mr_Config);
 		bSave=true;
 	}
-	if(ConfFLW.StoreWindowPosition){	//ƒEƒBƒ“ƒhƒEˆÊ’u‚¾‚¯•Û‘¶
+	if(ConfFLW.StoreWindowPosition){	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½ç½®ã ã‘ä¿å­˜
 		ConfFLW.WindowPos_x=m_WindowRect.left;
 		ConfFLW.WindowPos_y=m_WindowRect.top;
 		ConfFLW.store(mr_Config);
@@ -332,7 +325,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen)
 {
 	if(m_TabClientWnd.GetPageCount()>0 && !m_TabClientWnd.IsTabEnabled()){
-		//ƒ^ƒu‹@”\‚ª–³Œø‚È‚Ì‚ÅA©•ª©g‚ğd•¡‹N“®‚µ•\¦‚³‚¹‚é
+		//ã‚¿ãƒ–æ©Ÿèƒ½ãŒç„¡åŠ¹ãªã®ã§ã€è‡ªåˆ†è‡ªèº«ã‚’é‡è¤‡èµ·å‹•ã—è¡¨ç¤ºã•ã›ã‚‹
 		CString strParam(_T("/l "));
 			 if(idForceDLL==DLL_ID_XACRETT)	strParam+=_T("/! ");
 		else if(idForceDLL==DLL_ID_B2E)		strParam+=_T("/b2e ");
@@ -348,36 +341,36 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
 
-		//ƒEƒBƒ“ƒhƒE‚ğˆê‚Â‚É•Û‚Â?
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä¸€ã¤ã«ä¿ã¤?
 		if(bAllowRelayOpen && ConfFLW.KeepSingleInstance){
 			g_hFirstWindow=NULL;
 			EnumWindows(EnumFirstFileListWindowProc,(LPARAM)m_hWnd);
 			if(g_hFirstWindow){
 				/*
-				 * 1.‘Šè‚ÌƒEƒBƒ“ƒhƒE‚É{ƒtƒ@ƒCƒ‹–¼,©•ª‚ÌƒvƒƒZƒXID}‚ÅƒvƒƒpƒeƒB‚ğİ’è
-				 * 2.‘Šè‚ÌƒEƒBƒ“ƒhƒE‚É©•ª‚ÌƒvƒƒZƒXID‚ğ‚ÂƒvƒƒpƒeƒB‚ğŒ©‚Â‚¯‚³‚¹‚é
-				 * 3.Œ©‚Â‚¯‚½ƒvƒƒpƒeƒB‚ğƒtƒ@ƒCƒ‹–¼‚Æ‚µ‚ÄŠJ‚­
-				 * 4.ƒvƒƒpƒeƒBíœ
+				 * 1.ç›¸æ‰‹ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«{ãƒ•ã‚¡ã‚¤ãƒ«å,è‡ªåˆ†ã®ãƒ—ãƒ­ã‚»ã‚¹ID}ã§ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¨­å®š
+				 * 2.ç›¸æ‰‹ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«è‡ªåˆ†ã®ãƒ—ãƒ­ã‚»ã‚¹IDã‚’æŒã¤ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’è¦‹ã¤ã‘ã•ã›ã‚‹
+				 * 3.è¦‹ã¤ã‘ãŸãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚’ãƒ•ã‚¡ã‚¤ãƒ«åã¨ã—ã¦é–‹ã
+				 * 4.ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£å‰Šé™¤
 				 */
 				DWORD dwID=GetCurrentProcessId();
 				::SetProp(g_hFirstWindow,fname,(HANDLE)dwID);
 				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,idForceDLL);
 				::RemoveProp(g_hFirstWindow,fname);
 				if(SUCCEEDED(hr))return S_FALSE;
-				//else return hr;	‹‘”Û‚³‚ê‚½‚Ì‚Å©•ª‚ÅŠJ‚­
+				//else return hr;	æ‹’å¦ã•ã‚ŒãŸã®ã§è‡ªåˆ†ã§é–‹ã
 			}
 		}//else
 
-		//d•¡ƒI[ƒvƒ“–h~
+		//é‡è¤‡ã‚ªãƒ¼ãƒ—ãƒ³é˜²æ­¢
 		CString strMutex(fname);
-		strMutex.MakeLower();	//¬•¶š‚É“ˆê
+		strMutex.MakeLower();	//å°æ–‡å­—ã«çµ±ä¸€
 		strMutex.Replace(_T('\\'),_T('/'));
 		strMutex=_T("LF")+strMutex;
 
 		HANDLE hMutex=GetMultiOpenLockMutex(strMutex);
 		if(!hMutex){
-			//‚·‚Å‚É“¯‚¶ƒtƒ@ƒCƒ‹‚ª‰{——‚³‚ê‚Ä‚¢‚½ê‡
-			//‚»‚Ìƒtƒ@ƒCƒ‹‚ğ•\¦‚µ‚Ä‚¢‚éƒEƒBƒ“ƒhƒE‚ğ‹­’²‚·‚é
+			//ã™ã§ã«åŒã˜ãƒ•ã‚¡ã‚¤ãƒ«ãŒé–²è¦§ã•ã‚Œã¦ã„ãŸå ´åˆ
+			//ãã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¡¨ç¤ºã—ã¦ã„ã‚‹ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’å¼·èª¿ã™ã‚‹
 			EnumWindows(EnumFileListWindowProc,(LPARAM)(LPCTSTR)strMutex);
 			return S_FALSE;
 		}
@@ -386,7 +379,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 		SetWindowText(Title);
 		EnableWindow(FALSE);
 
-		//ƒtƒ@ƒCƒ‹ˆê——ì¬
+		//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ä½œæˆ
 		CString strErr;
 		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,idForceDLL,ConfFLW,strMutex,hMutex,strErr);
 
@@ -401,7 +394,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 	}
 }
 
-//ƒEƒBƒ“ƒhƒEƒvƒƒpƒeƒB‚Ì—ñ‹“
+//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã®åˆ—æŒ™
 BOOL CALLBACK CFileListFrame::EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hData,ULONG_PTR dwData)
 {
 	if(dwData!=(ULONG_PTR)hData)return TRUE;
@@ -427,10 +420,10 @@ LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 HANDLE CFileListFrame::GetMultiOpenLockMutex(LPCTSTR lpszMutex)
 {
-	//ƒ~ƒ…[ƒeƒbƒNƒXì¬
+	//ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ä½œæˆ
 	HANDLE hMutex=::CreateMutex(NULL, TRUE, lpszMutex);
 	if(ERROR_ALREADY_EXISTS==GetLastError()){
-		//‚·‚Å‚É‰{——‚³‚ê‚Ä‚¢‚éê‡
+		//ã™ã§ã«é–²è¦§ã•ã‚Œã¦ã„ã‚‹å ´åˆ
 		CloseHandle(hMutex);
 		return NULL;
 	}else{
@@ -439,7 +432,7 @@ HANDLE CFileListFrame::GetMultiOpenLockMutex(LPCTSTR lpszMutex)
 }
 
 
-//ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì—ñ‹“
+//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆ—æŒ™
 BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
 {
 	TCHAR Buffer[_MAX_PATH+1];
@@ -459,7 +452,7 @@ BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
 	return TRUE;
 }
 
-//Å‰‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì—ñ‹“
+//æœ€åˆã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®åˆ—æŒ™
 BOOL CALLBACK CFileListFrame::EnumFirstFileListWindowProc(HWND hWnd,LPARAM lParam)
 {
 	if(hWnd!=(HWND)lParam){
@@ -470,7 +463,7 @@ BOOL CALLBACK CFileListFrame::EnumFirstFileListWindowProc(HWND hWnd,LPARAM lPara
 			return TRUE;
 		}
 
-		//Å‰‚ÉŒ©‚Â‚¯‚½LhaForge‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚ğ‹L˜^‚·‚é
+		//æœ€åˆã«è¦‹ã¤ã‘ãŸLhaForgeã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’è¨˜éŒ²ã™ã‚‹
 		if(!g_hFirstWindow){
 			g_hFirstWindow=hWnd;
 			return FALSE;
@@ -485,7 +478,7 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	ShowWindow(SW_RESTORE);
 	UtilSetAbsoluteForegroundWindow(m_hWnd);
 
-	//“_–Å
+	//ç‚¹æ»…
 	FLASHWINFO fi;
 	FILL_ZERO(fi);
 	fi.dwFlags=FLASHW_ALL;
@@ -499,7 +492,7 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 void CFileListFrame::EnableEntryExtractOperationMenu(bool bActive)
 {
-	// ƒtƒ@ƒCƒ‹‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢‚Æ–³Œø‚Èƒƒjƒ…[
+	// ãƒ•ã‚¡ã‚¤ãƒ«ãŒé¸æŠã•ã‚Œã¦ã„ãªã„ã¨ç„¡åŠ¹ãªãƒ¡ãƒ‹ãƒ¥ãƒ¼
 	UINT menuList[]={
 		ID_MENUITEM_EXTRACT_SELECTED,
 		ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,
@@ -511,7 +504,7 @@ void CFileListFrame::EnableEntryExtractOperationMenu(bool bActive)
 		UIEnable(menuList[i],bActive);
 	}
 
-	//ƒvƒƒOƒ‰ƒ€‚©‚çŠJ‚­/‘—‚é‚Ìƒƒjƒ…[
+	//ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‹ã‚‰é–‹ã/é€ã‚‹ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 	CMenuHandle cMenu[]={GetUserAppMenuHandle(),GetSendToMenuHandle()};
 	for(int iMenu=0;iMenu<COUNTOF(cMenu);iMenu++){
 		int size=cMenu[iMenu].GetMenuItemCount();
@@ -551,18 +544,18 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 		MenuCommand_UpdateUserAppCommands(ConfFLW);
 		MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
-		//===ŠÖ˜A‚Ã‚¯‚ÅŠJ‚­‹–‰Â/‹‘”Û‚Ìİ’è
+		//===é–¢é€£ã¥ã‘ã§é–‹ãè¨±å¯/æ‹’å¦ã®è¨­å®š
 		SetOpenAssocLimitation(ConfFLW);
 		m_TabClientWnd.UpdateFileListConfig(ConfFLW);
 
-		//ƒAƒNƒZƒ‰ƒŒ[ƒ^‚Ì“Ç‚İ’¼‚µ
+		//ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿ã®èª­ã¿ç›´ã—
 		if(ConfFLW.ExitWithEscape){
 			if(m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 		}else{
 			m_AccelEx.DestroyObject();
 		}
 	}else{
-		//”O‚Ì‚½‚ßÄ“Ç‚İ‚İ
+		//å¿µã®ãŸã‚å†èª­ã¿è¾¼ã¿
 		if(!mr_Config.LoadConfig(strErr)){
 			ErrorMessage(strErr);
 		}
@@ -571,10 +564,10 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	CArchiverDLLManager::GetInstance().UpdateDLLConfig();
 
 	m_TabClientWnd.ReloadArchiverIfLost();
-/*	else{	•Ê‚ÉIDCANCEL‚Å‚àƒ[ƒh‚µ’¼‚·•K—v‚Í‚È‚¢B‚È‚º‚È‚çƒf[ƒ^‚Íƒ_ƒCƒAƒƒO“à‚Å—¯‚Ü‚èAConfig\‘¢‘Ì‚É“ü‚ç‚¸Ì‚Ä‚ç‚ê‚Ä‚¢‚é‚©‚ç
+/*	else{	åˆ¥ã«IDCANCELã§ã‚‚ãƒ­ãƒ¼ãƒ‰ã—ç›´ã™å¿…è¦ã¯ãªã„ã€‚ãªãœãªã‚‰ãƒ‡ãƒ¼ã‚¿ã¯ãƒ€ã‚¤ã‚¢ãƒ­ã‚°å†…ã§ç•™ã¾ã‚Šã€Configæ§‹é€ ä½“ã«å…¥ã‚‰ãšæ¨ã¦ã‚‰ã‚Œã¦ã„ã‚‹ã‹ã‚‰
 		Config.LoadConfig(CONFIG_LOAD_ALL);
 	}*/
-	//ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚ÌƒRƒ}ƒ“ƒh
+	//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒãƒ³ãƒ‰
 	MenuCommand_MakeSendToCommands();
 
 	MenuCommand_MakeSendToMenu(GetSendToMenuHandle());
@@ -583,11 +576,11 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 void CFileListFrame::OnSize(UINT uType, CSize)
 {
-	// Šî’êƒNƒ‰ƒX‚ÌWM_SIZEƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰‚àŒÄ‚Ño‚·‚½‚ß
+	// åŸºåº•ã‚¯ãƒ©ã‚¹ã®WM_SIZEãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ã‚‚å‘¼ã³å‡ºã™ãŸã‚
 	SetMsgHandled(false);
 
-	if(0==uType){//0 (SIZE_RESTORED)ƒEƒBƒ“ƒhƒE‚ªƒTƒCƒY•ÏX‚³‚ê‚Ü‚µ‚½B‚½‚¾‚µÅ¬‰»‚Ü‚½‚ÍÅ‘å‰»‚Å‚Í‚ ‚è‚Ü‚¹‚ñB
-		//Å‘å‰»/Å¬‰»‚³‚ê‚Ä‚¢‚é‚Æ‚«‚É‚ÍƒEƒBƒ“ƒhƒEƒTƒCƒY‚Íæ“¾‚µ‚È‚¢
+	if(0==uType){//0 (SIZE_RESTORED)ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãŒã‚µã‚¤ã‚ºå¤‰æ›´ã•ã‚Œã¾ã—ãŸã€‚ãŸã ã—æœ€å°åŒ–ã¾ãŸã¯æœ€å¤§åŒ–ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
+		//æœ€å¤§åŒ–/æœ€å°åŒ–ã•ã‚Œã¦ã„ã‚‹ã¨ãã«ã¯ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºã¯å–å¾—ã—ãªã„
 		if(IsZoomed()||IsIconic())return;
 
 		GetWindowRect(m_WindowRect);
@@ -596,10 +589,10 @@ void CFileListFrame::OnSize(UINT uType, CSize)
 
 void CFileListFrame::OnMove(const CPoint&)
 {
-	// Šî’êƒNƒ‰ƒX‚ÌWM_MOVEƒƒbƒZ[ƒWƒnƒ“ƒhƒ‰‚àŒÄ‚Ño‚·‚½‚ß
+	// åŸºåº•ã‚¯ãƒ©ã‚¹ã®WM_MOVEãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒãƒ³ãƒ‰ãƒ©ã‚‚å‘¼ã³å‡ºã™ãŸã‚
 	SetMsgHandled(false);
 
-	//Å‘å‰»/Å¬‰»‚³‚ê‚Ä‚¢‚é‚Æ‚«‚É‚ÍƒEƒBƒ“ƒhƒEƒTƒCƒY‚Íæ“¾‚µ‚È‚¢
+	//æœ€å¤§åŒ–/æœ€å°åŒ–ã•ã‚Œã¦ã„ã‚‹ã¨ãã«ã¯ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚ºã¯å–å¾—ã—ãªã„
 	if(IsZoomed()||IsIconic())return;
 	GetWindowRect(m_WindowRect);
 }
@@ -642,7 +635,7 @@ void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListFrame::UpdateUpDirButtonState()
 {
-	//uã‚Éã‚évƒ{ƒ^ƒ“‚Ì—LŒø/–³Œø
+	//ã€Œä¸Šã«ä¸Šã‚‹ã€ãƒœã‚¿ãƒ³ã®æœ‰åŠ¹/ç„¡åŠ¹
 	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
 	if(pTab){
 		if(pTab->Model.IsRoot()){
@@ -698,14 +691,14 @@ void CFileListFrame::UpdateMenuState()
 	UIEnable(ID_MENUITEM_SORT_RATIO,bActive);
 	UIEnable(ID_MENUITEM_SORT_CRC,bActive);
 
-	//ƒ^ƒuŠÖ˜Aƒƒjƒ…[
+	//ã‚¿ãƒ–é–¢é€£ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 	UIEnable(ID_MENUITEM_NEXTTAB,bActive && bTabActive);
 	UIEnable(ID_MENUITEM_PREVTAB,bActive && bTabActive);
 
 	UIEnable(ID_MENUITEM_ADD_FILE,bActive && bTabActive);
 	UIEnable(ID_MENUITEM_ADD_DIRECTORY,bActive && bTabActive);
 
-	//ƒvƒƒOƒ‰ƒ€‚©‚çŠJ‚­/‘—‚é‚Ìƒƒjƒ…[
+	//ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã‹ã‚‰é–‹ã/é€ã‚‹ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 	CMenuHandle cMenu[]={GetUserAppMenuHandle(),GetSendToMenuHandle()};
 	for(int iMenu=0;iMenu<COUNTOF(cMenu);iMenu++){
 		int size=cMenu[iMenu].GetMenuItemCount();
@@ -719,13 +712,13 @@ void CFileListFrame::UpdateWindowTitle()
 {
 	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
 	if(pTab){
-		//ƒEƒBƒ“ƒhƒEƒ^ƒCƒgƒ‹‚Éƒtƒ@ƒCƒ‹–¼İ’è
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«ã«ãƒ•ã‚¡ã‚¤ãƒ«åè¨­å®š
 		CString Title;
 		if(pTab->Model.IsArchiveEncrypted()){
-			//ƒpƒXƒ[ƒh•t‚«‚Ìê‡
+			//ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ä»˜ãã®å ´åˆ
 			Title.Format(_T("[%s] %s - %s"),CString(MAKEINTRESOURCE(IDS_ENCRYPTED_ARCHIVE)),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
 		}else{
-			//’ÊíƒA[ƒJƒCƒu
+			//é€šå¸¸ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–
 			Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
 		}
 		SetWindowText(Title);
@@ -739,14 +732,14 @@ void CFileListFrame::UpdateStatusBar()
 	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
 	if(pTab){
 		CString Text;
-		//---DLLî•ñ
+		//---DLLæƒ…å ±
 		const CArchiverDLL *pDLL=pTab->Model.GetArchiver();
 		if(pDLL){
 			Text.Format(IDS_PANE_DLL_NAME,pDLL->GetName());
 			m_StatusBar.SetPaneText(IDS_PANE_DLL_NAME_INITIAL,Text);
 		}
 
-		//---ƒtƒ@ƒCƒ‹‘I‘ğî•ñ
+		//---ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠæƒ…å ±
 		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),pTab->ListView.GetSelectedCount());
 		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
 	}
@@ -795,28 +788,28 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 		int SelCount=pTab->ListView.GetSelectedCount();
 		bool bSelected=SelCount>0;
 
-		//UIXV
+		//UIæ›´æ–°
 		EnableEntryExtractOperationMenu(bFileListActive && pTab->Model.IsExtractEachSupported() && bSelected);
 		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsDeleteItemsSupported() && bSelected);
 		EnableAddItemsMenu(pTab->Model.IsAddItemsSupported());
 
-		//ƒXƒe[ƒ^ƒXƒo[XV
+		//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼æ›´æ–°
 		CString Text;
 		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),SelCount);
 		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
 	}else{
-		//UIXV
+		//UIæ›´æ–°
 		EnableEntryExtractOperationMenu(false);
 		EnableEntryDeleteOperationMenu(false);
 		EnableAddItemsMenu(false);
 
-		//ƒXƒe[ƒ^ƒXƒo[XV
+		//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒãƒ¼æ›´æ–°
 		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,_T(""));
 	}
 	return 0;
 }
 
-//ƒŠƒXƒgƒrƒ…[‚ÆƒcƒŠ[ƒrƒ…[‚ÅƒtƒH[ƒJƒXØ‚è‘Ö‚¦
+//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã¨ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã§ãƒ•ã‚©ãƒ¼ã‚«ã‚¹åˆ‡ã‚Šæ›¿ãˆ
 void CFileListFrame::OnToggleFocus(UINT,int,HWND)
 {
 	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
@@ -825,13 +818,13 @@ void CFileListFrame::OnToggleFocus(UINT,int,HWND)
 	}
 }
 
-//ƒtƒ@ƒCƒ‹ƒŠƒXƒgXV
+//ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆæ›´æ–°
 void CFileListFrame::OnRefresh(UINT,int,HWND)
 {
 	ReopenArchiveFile(m_TabClientWnd.GetFileListMode());
 }
 
-//ƒtƒ@ƒCƒ‹ƒŠƒXƒgXV
+//ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆæ›´æ–°
 LRESULT CFileListFrame::OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
 	ReopenArchiveFile(m_TabClientWnd.GetFileListMode());
@@ -870,16 +863,16 @@ void CFileListFrame::OnListMode(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//u‘S‚Ä‚Ìƒtƒ@ƒCƒ‹v‚ÌƒtƒBƒ‹ƒ^•¶š‚ğì‚é
+	//ã€Œå…¨ã¦ã®ãƒ•ã‚¡ã‚¤ãƒ«ã€ã®ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—ã‚’ä½œã‚‹
 	CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
 	std::vector<TCHAR> filter(strAnyFile.GetLength()+1+1);
 	UtilMakeFilterString(strAnyFile,&filter[0],filter.size());
 	//CFileDialog dlg(TRUE, NULL, NULL, OFN_NOCHANGEDIR|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,&filter[0]);
 	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR|OFN_DONTADDTORECENT|OFN_HIDEREADONLY|OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_ALLOWMULTISELECT,&filter[0]);
-	if(IDCANCEL==dlg.DoModal()){	//ƒLƒƒƒ“ƒZƒ‹
+	if(IDCANCEL==dlg.DoModal()){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		return;
 	}
-	//ƒtƒ@ƒCƒ‹–¼æ‚èo‚µ
+	//ãƒ•ã‚¡ã‚¤ãƒ«åå–ã‚Šå‡ºã—
 	CString tmp;
 	if(dlg.GetFirstPathName(tmp)){
 		do{
@@ -926,12 +919,12 @@ LRESULT CFileListFrame::OnMouseWheel(UINT uCode,short delta,CPoint&)
 }
 
 
-//ŠÖ˜A‚Ã‚¯‚ÅŠJ‚­‹–‰Â/‹‘”Û‚Ìİ’è
+//é–¢é€£ã¥ã‘ã§é–‹ãè¨±å¯/æ‹’å¦ã®è¨­å®š
 void CFileListFrame::SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW)
 {
 	CFileListModel::SetOpenAssocExtAccept(ConfFLW.OpenAssoc.Accept);
 	if(ConfFLW.DenyPathExt){
-		//ŠÂ‹«•Ï”‚Å\’z
+		//ç’°å¢ƒå¤‰æ•°ã§æ§‹ç¯‰
 		std::map<stdString,stdString> envs;
 		UtilGetEnvInfo(envs);
 		for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
@@ -946,16 +939,16 @@ void CFileListFrame::SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW
 void CFileListFrame::EnableDropTarget(bool bEnable)
 {
 	if(bEnable){
-		//ƒhƒƒbƒvó‚¯“ü‚êİ’è
+		//ãƒ‰ãƒ­ãƒƒãƒ—å—ã‘å…¥ã‚Œè¨­å®š
 		::RegisterDragDrop(m_hWnd,&m_DropTarget);
 	}else{
-		//ƒhƒƒbƒv‚ğó‚¯“ü‚ê‚È‚¢
+		//ãƒ‰ãƒ­ãƒƒãƒ—ã‚’å—ã‘å…¥ã‚Œãªã„
 		::RevokeDragDrop(m_hWnd);
 	}
 }
 
 //---------------------------------------------------------
-//    IDropCommunicator‚ÌÀ‘•:ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚É‚æ‚é‰{——
+//    IDropCommunicatorã®å®Ÿè£…:ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã«ã‚ˆã‚‹é–²è¦§
 //---------------------------------------------------------
 HRESULT CFileListFrame::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
@@ -969,15 +962,15 @@ HRESULT CFileListFrame::DragLeave()
 
 HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
-	//ƒtƒH[ƒ}ƒbƒg‚É‘Î‰‚µ‚½ˆ—‚ğ‚·‚é
-	if(!m_DropTarget.QueryFormat(CF_HDROP)){	//ƒtƒ@ƒCƒ‹ê—p
-		//ƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢‚Ì‚Å‹‘”Û
+	//ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã«å¯¾å¿œã—ãŸå‡¦ç†ã‚’ã™ã‚‹
+	if(!m_DropTarget.QueryFormat(CF_HDROP)){	//ãƒ•ã‚¡ã‚¤ãƒ«å°‚ç”¨
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„ã®ã§æ‹’å¦
 		dwEffect = DROPEFFECT_NONE;
 	}else{
 		dwEffect = DROPEFFECT_COPY;// : DROPEFFECT_NONE;
-		//ƒtƒ@ƒCƒ‹æ“¾
+		//ãƒ•ã‚¡ã‚¤ãƒ«å–å¾—
 		std::list<CString> fileList;
-		//---ƒfƒBƒŒƒNƒgƒŠ‚ªŠÜ‚Ü‚ê‚Ä‚¢‚½‚ç‹‘”Û
+		//---ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒå«ã¾ã‚Œã¦ã„ãŸã‚‰æ‹’å¦
 		if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
 			for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
 				if(PathIsDirectory(*ite)){
@@ -990,15 +983,15 @@ HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwE
 	return S_OK;
 }
 
-//ƒtƒ@ƒCƒ‹‚Ìƒhƒƒbƒv
+//ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‰ãƒ­ãƒƒãƒ—
 HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
-	//ƒtƒ@ƒCƒ‹æ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«å–å¾—
 	std::list<CString> fileList;
 	if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
 		dwEffect = DROPEFFECT_COPY;
 
-		//ŠJ‚­
+		//é–‹ã
 		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
 			HRESULT hr=OpenArchiveFile(*ite,DLL_ID_UNKNOWN,false);
 			if(E_ABORT==hr)break;
@@ -1006,7 +999,7 @@ HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffec
 
 		return S_OK;
 	}else{
-		//ó‚¯“ü‚ê‚Å‚«‚È‚¢Œ`®
+		//å—ã‘å…¥ã‚Œã§ããªã„å½¢å¼
 		dwEffect = DROPEFFECT_NONE;
 		return S_FALSE;	//S_OK
 	}

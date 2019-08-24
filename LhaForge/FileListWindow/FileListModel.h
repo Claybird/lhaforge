@@ -1,36 +1,29 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
-//ƒtƒ@ƒCƒ‹ˆê——\‘¢‚ğ•Û‚·‚é
+//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§æ§‹é€ ã‚’ä¿æŒã™ã‚‹
 #include "ArcFileContent.h"
 #include "../Utilities/EventDispatcher.h"
 #include "../Utilities/TemporaryDirMgr.h"
@@ -38,26 +31,26 @@
 class CArchiverDLL;
 enum DLL_ID;
 
-enum FILELISTMODE{	//ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ì•\¦•û–@
-	FILELIST_TREE,				//ƒGƒNƒXƒvƒ[ƒ‰ƒ‰ƒCƒN‚ÌƒfƒBƒŒƒNƒgƒŠŠK‘w•\¦
-	FILELIST_FLAT,				//ƒtƒHƒ‹ƒ_ŠK‘w‚ğ–³‹‚µ‚Ä•\¦
-	FILELIST_FLAT_FILESONLY,	//ƒtƒHƒ‹ƒ_ŠK‘w‚ğ–³‹‚µAƒtƒ@ƒCƒ‹‚Ì‚İ•\¦
+enum FILELISTMODE{	//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºæ–¹æ³•
+	FILELIST_TREE,				//ã‚¨ã‚¯ã‚¹ãƒ—ãƒ­ãƒ¼ãƒ©ãƒ©ã‚¤ã‚¯ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªéšå±¤è¡¨ç¤º
+	FILELIST_FLAT,				//ãƒ•ã‚©ãƒ«ãƒ€éšå±¤ã‚’ç„¡è¦–ã—ã¦è¡¨ç¤º
+	FILELIST_FLAT_FILESONLY,	//ãƒ•ã‚©ãƒ«ãƒ€éšå±¤ã‚’ç„¡è¦–ã—ã€ãƒ•ã‚¡ã‚¤ãƒ«ã®ã¿è¡¨ç¤º
 
 	ENUM_COUNT_AND_LASTITEM(FILELISTMODE),
 };
 
-//ƒtƒ@ƒCƒ‹î•ñ
+//ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 enum FILEINFO_TYPE{
 	FILEINFO_INVALID=-1,
-	FILEINFO_FILENAME,		//ƒtƒ@ƒCƒ‹–¼
-	FILEINFO_FULLPATH,		//ƒtƒ‹ƒpƒXî•ñ
-	FILEINFO_ORIGINALSIZE,	//ˆ³k‘Oƒtƒ@ƒCƒ‹ƒTƒCƒY
-	FILEINFO_TYPENAME,		//ƒtƒ@ƒCƒ‹í—Ş–¼
-	FILEINFO_FILETIME,		//ƒtƒ@ƒCƒ‹ÅIXV“ú
-	FILEINFO_ATTRIBUTE,		//ƒtƒ@ƒCƒ‹‘®«
-	FILEINFO_COMPRESSEDSIZE,//ˆ³kŒãƒtƒ@ƒCƒ‹ƒTƒCƒY
-	FILEINFO_METHOD,		//ˆ³kƒƒ\ƒbƒh
-	FILEINFO_RATIO,			//ˆ³k—¦
+	FILEINFO_FILENAME,		//ãƒ•ã‚¡ã‚¤ãƒ«å
+	FILEINFO_FULLPATH,		//ãƒ•ãƒ«ãƒ‘ã‚¹æƒ…å ±
+	FILEINFO_ORIGINALSIZE,	//åœ§ç¸®å‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º
+	FILEINFO_TYPENAME,		//ãƒ•ã‚¡ã‚¤ãƒ«ç¨®é¡å
+	FILEINFO_FILETIME,		//ãƒ•ã‚¡ã‚¤ãƒ«æœ€çµ‚æ›´æ–°æ—¥æ™‚
+	FILEINFO_ATTRIBUTE,		//ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§
+	FILEINFO_COMPRESSEDSIZE,//åœ§ç¸®å¾Œãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º
+	FILEINFO_METHOD,		//åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰
+	FILEINFO_RATIO,			//åœ§ç¸®ç‡
 	FILEINFO_CRC,			//CRC
 
 	ENUM_COUNT_AND_LASTITEM(FILEINFO),
@@ -70,12 +63,12 @@ protected:
 	CArchiveFileContent			m_Content;
 	ARCHIVE_ENTRY_INFO_TREE*	m_lpCurrentNode;
 	ARCHIVE_ENTRY_INFO_TREE		m_FoundItems;
-	//ƒ\[ƒgÏ‚İ‚ÌƒJƒŒƒ“ƒgƒm[ƒhó‘Ô
+	//ã‚½ãƒ¼ãƒˆæ¸ˆã¿ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒãƒ¼ãƒ‰çŠ¶æ…‹
 	std::vector<ARCHIVE_ENTRY_INFO_TREE*>	m_SortedChildren;
-	CTemporaryDirectoryManager	m_TempDirManager;	//ˆêƒtƒHƒ‹ƒ_ŠÇ—
+	CTemporaryDirectoryManager	m_TempDirManager;	//ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ç®¡ç†
 
 	CConfigManager&				mr_Config;
-	//ƒ\[ƒgŠÖŒW
+	//ã‚½ãƒ¼ãƒˆé–¢ä¿‚
 	bool	m_bSortDescending;
 	int		m_nSortKeyType;
 
@@ -110,18 +103,18 @@ public:
 	bool MoveDownDir(ARCHIVE_ENTRY_INFO_TREE*);
 
 	bool IsRoot()const{return (GetCurrentNode()==m_Content.GetRootNode());}
-	bool IsOK()const{return m_Content.GetArchiver()!=NULL;}	//ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ª³í‚È‚Æ‚«‚ÍAlpArchiver‚Ínon-NULL
+	bool IsOK()const{return m_Content.GetArchiver()!=NULL;}	//ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆãŒæ­£å¸¸ãªã¨ãã¯ã€lpArchiverã¯non-NULL
 	bool IsFindMode()const{return m_lpCurrentNode==&m_FoundItems;}
 
 	ARCHIVE_ENTRY_INFO_TREE* GetFileListItemByIndex(long iIndex);
 
-	//lpTopˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğŒŸõ;ŒŸõŒ‹‰Ê‚ğŠi”[‚µ‚½ARCHIVE_ENTRY_INFO_TREE‚Ìƒ|ƒCƒ“ƒ^‚ğ•Ô‚·
+	//lpTopä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ¤œç´¢;æ¤œç´¢çµæœã‚’æ ¼ç´ã—ãŸARCHIVE_ENTRY_INFO_TREEã®ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™
 	ARCHIVE_ENTRY_INFO_TREE* FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO_TREE *lpTop);
 	void EndFindItem();
 
 	bool ReloadArchiverIfLost(CString &strErr);
 
-	//ˆ—‘ÎÛƒA[ƒJƒCƒu–¼‚ğæ“¾
+	//å‡¦ç†å¯¾è±¡ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–åã‚’å–å¾—
 	LPCTSTR GetArchiveFileName()const{return m_Content.GetArchiveFileName();}
 	const CArchiverDLL* GetArchiver()const{return m_Content.GetArchiver();}
 	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return m_Content.GetRootNode();}
@@ -134,10 +127,10 @@ public:
 	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
 
-	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ƒtƒ@ƒCƒ‹‚ğ’Ç‰Áˆ³k
+	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¿½åŠ åœ§ç¸®
 	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog);
 	HRESULT ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,const ARCHIVE_ENTRY_INFO_TREE* lpBase,CString &strLog);
-	//bOverwrite:true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+	//bOverwrite:trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 	bool MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
 	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
 
@@ -148,7 +141,7 @@ public:
 
 	FILELISTMODE GetListMode()const{return m_Mode;}
 
-	bool ExtractArchive();	//::Extract()‚ğŒÄ‚Ô
+	bool ExtractArchive();	//::Extract()ã‚’å‘¼ã¶
 	void TestArchive();
 
 	void ClearTempDir();

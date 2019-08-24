@@ -1,69 +1,62 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ArchiverCode/ArchiverTAR.h"
 #include "ConfigManager.h"
 #include "ConfigTAR.h"
 
-// TAR/GZ/BZ2ˆ³kİ’è
+// TAR/GZ/BZ2åœ§ç¸®è¨­å®š
 void CConfigTAR::load(CONFIG_SECTION &Config)
 {
-	//GZIP‚Ìˆ³kƒŒƒxƒ‹
+	//GZIPã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	GzipCompressLevel=Config.Data[_T("GZIPLevel")].GetNParam(GZIP_COMPRESS_LEVEL_LOWEST,GZIP_COMPRESS_LEVEL_HIGHEST,9);
-	//BZIP2‚Ìˆ³kƒŒƒxƒ‹
+	//BZIP2ã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Bzip2CompressLevel=Config.Data[_T("BZIP2Level")].GetNParam(BZIP2_COMPRESS_LEVEL_LOWEST,BZIP2_COMPRESS_LEVEL_HIGHEST,9);
-	//XZ‚Ìˆ³kƒŒƒxƒ‹
+	//XZã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	XZCompressLevel=Config.Data[_T("XZLevel")].GetNParam(XZ_COMPRESS_LEVEL_LOWEST,XZ_COMPRESS_LEVEL_HIGHEST,6);
-	//LZMA‚Ìˆ³kƒŒƒxƒ‹
+	//LZMAã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	LZMACompressLevel=Config.Data[_T("LZMALevel")].GetNParam(LZMA_COMPRESS_LEVEL_LOWEST,LZMA_COMPRESS_LEVEL_HIGHEST,6);
-	//•¶šƒR[ƒh•ÏŠ·
+	//æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›
 	bConvertCharset=Config.Data[_T("ConvertCharset")].GetNParam(1);
-	//ƒ\[ƒgƒ‚[ƒh
+	//ã‚½ãƒ¼ãƒˆãƒ¢ãƒ¼ãƒ‰
 	SortBy=Config.Data[_T("SortBy")].GetNParam(TAR_SORT_BY_NONE,TAR_SORT_BY_MAX,TAR_SORT_BY_NONE);
 }
 
 void CConfigTAR::store(CONFIG_SECTION &Config)const
 {
-	//GZIP‚Ìˆ³kƒŒƒxƒ‹
+	//GZIPã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Config.Data[_T("GZIPLevel")]=GzipCompressLevel;
-	//BZIP2‚Ìˆ³kƒŒƒxƒ‹
+	//BZIP2ã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Config.Data[_T("BZIP2Level")]=Bzip2CompressLevel;
-	//XZ‚Ìˆ³kƒŒƒxƒ‹
+	//XZã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Config.Data[_T("XZLevel")]=XZCompressLevel;
-	//LZMA‚Ìˆ³kƒŒƒxƒ‹
+	//LZMAã®åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Config.Data[_T("LZMALevel")]=LZMACompressLevel;
-	//•¶šƒR[ƒh•ÏŠ·
+	//æ–‡å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›
 	Config.Data[_T("ConvertCharset")]=bConvertCharset;
-	//ƒ\[ƒgƒ‚[ƒh
+	//ã‚½ãƒ¼ãƒˆãƒ¢ãƒ¼ãƒ‰
 	Config.Data[_T("SortBy")]=SortBy;
 }
 

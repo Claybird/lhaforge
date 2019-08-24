@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "SelectDlg.h"
@@ -36,9 +29,9 @@
 
 LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
-	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);	//ŒöŠJƒpƒXƒ[ƒh—“‚ğg—p•s‰Â‚É‚·‚é
+	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);	//å…¬é–‹ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰æ¬„ã‚’ä½¿ç”¨ä¸å¯ã«ã™ã‚‹
 	CenterWindow();
 	return TRUE;
 }
@@ -47,7 +40,7 @@ LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 #define BUTTON_PARAM(x) case IDC_BUTTON_FORMAT_##x: Param=PARAMETER_##x;break
 void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 {
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(TRUE);
 	PARAMETER_TYPE Param;
 	switch(nID){
@@ -84,7 +77,7 @@ void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 
 LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(TRUE);
 	if(BN_CLICKED==wNotifyCode){
 		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);
@@ -94,7 +87,7 @@ LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL
 
 LRESULT CSelectDialog::OnSFX(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(TRUE);
 	if(BN_CLICKED==wNotifyCode){
 		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SPLIT),!bSFX);
@@ -120,23 +113,23 @@ int CSelectDialog::GetOptions()
 
 LRESULT CB2ESelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	//---------------
-	// B2E‚Ìî•ñæ“¾
+	// B2Eã®æƒ…å ±å–å¾—
 	//---------------
-	//B2Eƒnƒ“ƒhƒ‰
+	//B2Eãƒãƒ³ãƒ‰ãƒ©
 	CArchiverB2E &ArcB2E=CArchiverDLLManager::GetInstance().GetB2EHandler();
-	ASSERT(ArcB2E.IsOK());	//B2E‚ªg‚¦‚È‚¢‚ÍŒÄ‚Î‚È‚¢‚æ‚¤‚ÉI
+	ASSERT(ArcB2E.IsOK());	//B2EãŒä½¿ãˆãªã„æ™‚ã¯å‘¼ã°ãªã„ã‚ˆã†ã«ï¼
 	if(!ArcB2E.IsOK())return FALSE;
 
-	//B2Eî•ñæ“¾
+	//B2Eæƒ…å ±å–å¾—
 	if(!ArcB2E.EnumCompressB2EScript(m_ScriptInfoArray))m_ScriptInfoArray.clear();
 
-	//g‚¦‚éB2E‚ª‚ ‚ê‚Î
+	//ä½¿ãˆã‚‹B2EãŒã‚ã‚Œã°
 	if(!m_ScriptInfoArray.empty()){
-		//---Œ`®
+		//---å½¢å¼
 		UINT uIdx=0;
 		for(;uIdx<m_ScriptInfoArray.size();uIdx++){
 			Combo_Format.AddString(CA2T(m_ScriptInfoArray[uIdx].szFormat));
@@ -144,7 +137,7 @@ LRESULT CB2ESelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SFX),m_ScriptInfoArray[0].wAbility&B2EABILITY_SFX);
 		Combo_Format.SetCurSel(0);
 
-		//---ƒƒ\ƒbƒh
+		//---ãƒ¡ã‚½ãƒƒãƒ‰
 		if(m_ScriptInfoArray[0].MethodArray.empty()){
 			Combo_Method.AddString(_T("Default"));
 		}
@@ -176,7 +169,7 @@ void CB2ESelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 		break;
 	default:return;
 	}
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(TRUE);
 	{
 		int nIndex = Combo_Format.GetCurSel();
@@ -199,20 +192,20 @@ void CB2ESelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 
 void CB2ESelectDialog::OnComboFormat(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	//---Œ`®‘I‘ğ•ÏX
+	//---å½¢å¼é¸æŠå¤‰æ›´
 	int nIndex = Combo_Format.GetCurSel();
 	if(nIndex == CB_ERR || nIndex<0 || (unsigned)nIndex>=m_ScriptInfoArray.size())return;
 
 	m_bSFX=false;
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
-	//©ŒÈ‰ğ“€‘Î‰H
+	//è‡ªå·±è§£å‡å¯¾å¿œï¼Ÿ
 	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SFX),m_ScriptInfoArray[nIndex].wAbility&B2EABILITY_SFX);
 
-	//ƒƒ\ƒbƒh—ñ‹“
-	Combo_Method.ResetContent();	//Á‹
+	//ãƒ¡ã‚½ãƒƒãƒ‰åˆ—æŒ™
+	Combo_Method.ResetContent();	//æ¶ˆå»
 	if(m_ScriptInfoArray[nIndex].MethodArray.empty()){
 		Combo_Method.AddString(_T("Default"));
 	}
@@ -227,20 +220,20 @@ void CB2ESelectDialog::OnComboFormat(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 //---------------------------------------------------------------
 
-//ˆ³kŒ`®‘I‘ğ:ƒLƒƒƒ“ƒZƒ‹‚ÅPARAMETER_UNDEFINED‚ª•Ô‚é
+//åœ§ç¸®å½¢å¼é¸æŠ:ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã§PARAMETER_UNDEFINEDãŒè¿”ã‚‹
 PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression,CString &strB2EFormat,CString &strB2EMethod,bool &bB2ESFX)
 {
-	//‰Šú‰»
+	//åˆæœŸåŒ–
 	PARAMETER_TYPE CompressType=PARAMETER_UNDEFINED;
 	bSingleCompression=false;
 	Options=0;
 
-	//Ok‚©Cancel‚Ü‚ÅŒJ‚è•Ô‚µ
-	while(true){	//---g—pDLL‚ğŒˆ’è
-		if(PARAMETER_UNDEFINED==CompressType){	//Œ`®‚ªw’è‚³‚ê‚Ä‚¢‚È‚¢ê‡
+	//Okã‹Cancelã¾ã§ç¹°ã‚Šè¿”ã—
+	while(true){	//---ä½¿ç”¨DLLã‚’æ±ºå®š
+		if(PARAMETER_UNDEFINED==CompressType){	//å½¢å¼ãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„å ´åˆ
 			CSelectDialog SelDlg;
 			CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
-			if(PARAMETER_UNDEFINED==CompressType){	//ƒLƒƒƒ“ƒZƒ‹‚Ìê‡
+			if(PARAMETER_UNDEFINED==CompressType){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã®å ´åˆ
 				return PARAMETER_UNDEFINED;
 			}else if(CompressType!=PARAMETER_B2E){
 				Options=SelDlg.GetOptions();
@@ -248,8 +241,8 @@ PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression,CString 
 				return CompressType;
 			}
 		}
-		if(CompressType==PARAMETER_B2E){	//B2E‚ğg—p‚·‚éê‡
-			//---B2E32.dll‚Ìƒ`ƒFƒbƒN
+		if(CompressType==PARAMETER_B2E){	//B2Eã‚’ä½¿ç”¨ã™ã‚‹å ´åˆ
+			//---B2E32.dllã®ãƒã‚§ãƒƒã‚¯
 			CArchiverB2E &B2EHandler=CArchiverDLLManager::GetInstance().GetB2EHandler();
 			if(!B2EHandler.IsOK()){
 				CompressType=PARAMETER_UNDEFINED;
@@ -259,12 +252,12 @@ PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression,CString 
 				continue;
 			}
 
-			//---Œ`®‘I‘ğ
+			//---å½¢å¼é¸æŠ
 			CB2ESelectDialog SelDlg;
 			INT_PTR Ret=SelDlg.DoModal();
-			if(IDCANCEL==Ret){	//ƒLƒƒƒ“ƒZƒ‹‚Ìê‡
+			if(IDCANCEL==Ret){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«ã®å ´åˆ
 				return PARAMETER_UNDEFINED;
-			}else if(IDC_COMPRESS_USENORMAL==Ret){	//’Êí‚ÌDLL‚ğg‚¤
+			}else if(IDC_COMPRESS_USENORMAL==Ret){	//é€šå¸¸ã®DLLã‚’ä½¿ã†
 				CompressType=PARAMETER_UNDEFINED;
 			}else{
 				Options=-1;

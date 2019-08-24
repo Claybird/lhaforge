@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_assoc.h"
@@ -47,9 +40,9 @@
 	AssocSettings[ASSOC_##TYPE].AssocInfo.Ext=EXT;\
 	AssocSettings[ASSOC_##TYPE].Check_SetAssoc.SetCheck(FALSE);\
 	if(AssocGetAssociation(AssocSettings[ASSOC_##TYPE].AssocInfo)){\
-		AssocSettings[ASSOC_##TYPE].SetIconFromAssoc(Icon_SystemDefault);/*ŠÖ˜A•t‚¯î•ñ‚©‚çƒAƒCƒRƒ“‚ğæ“¾‚·‚é*/\
-		AssocSettings[ASSOC_##TYPE].CheckAssociation(m_strAssocDesired);	/*ŠÖ˜A•t‚¯î•ñ‚ª³‚µ‚¢‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN*/\
-		if(AssocSettings[ASSOC_##TYPE].bChanged)mr_ConfigDlg.RequireAssistant();	/*ŠÖ˜A•t‚¯î•ñ‚ªŒë‚Á‚Ä‚¢‚é‚Ì‚ÅLFAssist‚ğ—v¿*/\
+		AssocSettings[ASSOC_##TYPE].SetIconFromAssoc(Icon_SystemDefault);/*é–¢é€£ä»˜ã‘æƒ…å ±ã‹ã‚‰ã‚¢ã‚¤ã‚³ãƒ³ã‚’å–å¾—ã™ã‚‹*/\
+		AssocSettings[ASSOC_##TYPE].CheckAssociation(m_strAssocDesired);	/*é–¢é€£ä»˜ã‘æƒ…å ±ãŒæ­£ã—ã„ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯*/\
+		if(AssocSettings[ASSOC_##TYPE].bChanged)mr_ConfigDlg.RequireAssistant();	/*é–¢é€£ä»˜ã‘æƒ…å ±ãŒèª¤ã£ã¦ã„ã‚‹ã®ã§LFAssistã‚’è¦è«‹*/\
 		if(!AssocSettings[ASSOC_##TYPE].AssocInfo.bOrgStatus){\
 			AssocSettings[ASSOC_##TYPE].Button_SetIcon.EnableWindow(false);\
 			AssocSettings[ASSOC_##TYPE].Check_SetAssoc.SetCheck(FALSE);\
@@ -66,27 +59,27 @@
 
 //--------------------------------------------
 
-//ƒsƒNƒ`ƒƒƒ{ƒbƒNƒX‚ÉƒAƒCƒRƒ“‚ğw’è
+//ãƒ”ã‚¯ãƒãƒ£ãƒœãƒƒã‚¯ã‚¹ã«ã‚¢ã‚¤ã‚³ãƒ³ã‚’æŒ‡å®š
 LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
-	// ŠÖ˜A•t‚¯‚ÌShellOpenCommand‚ğZo
+	// é–¢é€£ä»˜ã‘ã®ShellOpenCommandã‚’ç®—å‡º
 	{
 		TCHAR szModule[_MAX_PATH+1];
-		GetModuleFileName(GetModuleHandle(NULL), szModule, _MAX_PATH);	//–{‘Ì‚ÌƒpƒXæ“¾
+		GetModuleFileName(GetModuleHandle(NULL), szModule, _MAX_PATH);	//æœ¬ä½“ã®ãƒ‘ã‚¹å–å¾—
 		CPath fullPath;
-		UtilGetCompletePathName(fullPath,szModule);	//ƒpƒX‚ğ³‹K‰»
+		UtilGetCompletePathName(fullPath,szModule);	//ãƒ‘ã‚¹ã‚’æ­£è¦åŒ–
 		fullPath.QuoteSpaces();
 		m_strAssocDesired=(LPCTSTR)fullPath;
-		//m_strAssocDesired.MakeLower();	//¬•¶š‚É³‹K‰»
-		m_strAssocDesired+=_T(" /m \"%1\"");	//ƒpƒ‰ƒ[ƒ^
+		//m_strAssocDesired.MakeLower();	//å°æ–‡å­—ã«æ­£è¦åŒ–
+		m_strAssocDesired+=_T(" /m \"%1\"");	//ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 		TRACE(_T("ShellOpenCommand_Desired=%s\n"),m_strAssocDesired);
 	}
 
-	// ƒVƒXƒeƒ€ƒfƒtƒHƒ‹ƒgƒAƒCƒRƒ“‚ğæ“¾
+	// ã‚·ã‚¹ãƒ†ãƒ ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚¢ã‚¤ã‚³ãƒ³ã‚’å–å¾—
 	if(Icon_SystemDefault.IsNull()){
 		TCHAR Path[_MAX_PATH+1];
 		FILL_ZERO(Path);
@@ -95,7 +88,7 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 		Icon_SystemDefault.ExtractIcon(Path,0);
 	}
 
-	// ŠÖ˜A•t‚¯î•ñ‚ğƒ`ƒFƒbƒN
+	// é–¢é€£ä»˜ã‘æƒ…å ±ã‚’ãƒã‚§ãƒƒã‚¯
 	LOAD_ASSOC_AND_SET_ICON(LZH,	_T(".lzh"),	0,	0);
 	LOAD_ASSOC_AND_SET_ICON(LZS,	_T(".lzs"),	0,	22);
 	LOAD_ASSOC_AND_SET_ICON(LHA,	_T(".lha"),	0,	23);
@@ -148,7 +141,7 @@ LRESULT CConfigDlgAssociation::OnCheckAssoc(WORD wNotifyCode, WORD wID, HWND hWn
 				if(!bEnabled){
 					AssocSettings[i].SetIconFromAssoc(Icon_SystemDefault);
 				}
-				//LFAssist.exe‚ÌÀs‚ğ—v¿
+				//LFAssist.exeã®å®Ÿè¡Œã‚’è¦è«‹
 				mr_ConfigDlg.RequireAssistant();
 				break;
 			}
@@ -168,7 +161,7 @@ LRESULT CConfigDlgAssociation::OnChangeIcon(WORD wNotifyCode, WORD wID, HWND hWn
 					TRACE(_T("IconFile=%s\n"),AssocSettings[i].AssocInfo.IconFile);
 					AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
 					AssocSettings[i].bChanged=true;
-					//LFAssist.exe‚ÌÀs‚ğ—v¿
+					//LFAssist.exeã®å®Ÿè¡Œã‚’è¦è«‹
 					mr_ConfigDlg.RequireAssistant();
 				}
 				break;
@@ -184,23 +177,23 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		return 0;
 	}
 
-	TCHAR ResourcePath[_MAX_PATH+1];	//ƒAƒCƒRƒ“ƒtƒ@ƒCƒ‹–¼
+	TCHAR ResourcePath[_MAX_PATH+1];	//ã‚¢ã‚¤ã‚³ãƒ³ãƒ•ã‚¡ã‚¤ãƒ«å
 	int IconIndex=-1;
 	if(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON==wID||IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE==wID){
 		//--------------
-		// •W€ƒAƒCƒRƒ“
+		// æ¨™æº–ã‚¢ã‚¤ã‚³ãƒ³
 		//--------------
 		FILL_ZERO(ResourcePath);
-		GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//–{‘Ì‚ÌƒpƒXæ“¾
-		//EXE‚ÌƒpƒX‚ğŒ³‚ÉDLL‚Ìƒtƒ@ƒCƒ‹–¼‚ğ‘g‚İ—§‚Ä‚é
+		GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//æœ¬ä½“ã®ãƒ‘ã‚¹å–å¾—
+		//EXEã®ãƒ‘ã‚¹ã‚’å…ƒã«DLLã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’çµ„ã¿ç«‹ã¦ã‚‹
 		PathRemoveFileSpec(ResourcePath);
 		PathAppend(ResourcePath,CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT)));
 	}else if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON==wID||IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID){
 		//------------------------------------
-		// ŠO•”‚ÌƒAƒCƒRƒ“ƒtƒ@ƒCƒ‹‚ğƒZƒbƒg‚·‚é
+		// å¤–éƒ¨ã®ã‚¢ã‚¤ã‚³ãƒ³ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚»ãƒƒãƒˆã™ã‚‹
 		//------------------------------------
 
-		//ƒAƒCƒRƒ“‚ğ‘I‘ğ‚³‚¹‚é(ƒfƒtƒHƒ‹ƒg‚Í•W€ƒAƒCƒRƒ“)
+		//ã‚¢ã‚¤ã‚³ãƒ³ã‚’é¸æŠã•ã›ã‚‹(ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã¯æ¨™æº–ã‚¢ã‚¤ã‚³ãƒ³)
 		ASSOCINFO ac;
 		CIconSelectDialog isd(ac);
 		if(IDOK!=isd.DoModal()){
@@ -210,13 +203,13 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		_tcsncpy_s(ResourcePath,ac.IconFile,_MAX_PATH);
 		IconIndex=ac.IconIndex;
 		if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID&&-1==IconIndex){
-			//ƒAƒCƒRƒ“‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢
+			//ã‚¢ã‚¤ã‚³ãƒ³ãŒé¸æŠã•ã‚Œã¦ã„ãªã„
 			return 0;
 		}
 	}
 	for(int i=0;i<COUNTOF(AssocSettings);i++){
 		switch(wID){
-		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:	//•W€‚ÌŠÖ˜A•t‚¯
+		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:	//æ¨™æº–ã®é–¢é€£ä»˜ã‘
 			if(-1==UtilCheckNumberArray(NO_DEFAULT_ASSOCS,COUNTOF(NO_DEFAULT_ASSOCS),i)){
 				AssocSettings[i].Button_SetIcon.EnableWindow(TRUE);
 				AssocSettings[i].Check_SetAssoc.SetCheck(TRUE);
@@ -233,11 +226,11 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON:	//FALLTHROUGH
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON:
-			//‘S‚Ä•W€ƒAƒCƒRƒ“‚É/‘S‚ÄŠO•”ƒAƒCƒRƒ“‚É
+			//å…¨ã¦æ¨™æº–ã‚¢ã‚¤ã‚³ãƒ³ã«/å…¨ã¦å¤–éƒ¨ã‚¢ã‚¤ã‚³ãƒ³ã«
 			{
-				//ƒAƒCƒRƒ“”‚Ìæ“¾
+				//ã‚¢ã‚¤ã‚³ãƒ³æ•°ã®å–å¾—
 				long IconCount=(long)ExtractIcon(GetModuleHandle(NULL),ResourcePath,-1);
-				const bool bExtraIcon=(IconCount>=35);	//ƒAƒCƒRƒ“‚Ì”‚ª35‚æ‚è‘½‚¯‚ê‚Î‘S‚Ä¯•Ê‚·‚éƒ^ƒCƒv‚ÌƒAƒCƒRƒ“‚¾‚Æ‚¢‚¤‚±‚Æ‚É‚È‚é
+				const bool bExtraIcon=(IconCount>=35);	//ã‚¢ã‚¤ã‚³ãƒ³ã®æ•°ãŒ35ã‚ˆã‚Šå¤šã‘ã‚Œã°å…¨ã¦è­˜åˆ¥ã™ã‚‹ã‚¿ã‚¤ãƒ—ã®ã‚¢ã‚¤ã‚³ãƒ³ã ã¨ã„ã†ã“ã¨ã«ãªã‚‹
 				if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 					AssocSettings[i].AssocInfo.IconIndex=bExtraIcon?AssocSettings[i].DefaultIconIndex_Ex:AssocSettings[i].DefaultIconIndex;
 					AssocSettings[i].AssocInfo.IconFile=ResourcePath;
@@ -247,7 +240,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE:
-			//‘S‚Ä•W€’PˆêƒAƒCƒRƒ“‚É
+			//å…¨ã¦æ¨™æº–å˜ä¸€ã‚¢ã‚¤ã‚³ãƒ³ã«
 			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 				AssocSettings[i].AssocInfo.IconIndex=ICONINDEX_EXTERNAL_SINGLE;
 				AssocSettings[i].AssocInfo.IconFile=ResourcePath;
@@ -256,7 +249,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE:
-			//‘S‚ÄŠO•”’PˆêƒAƒCƒRƒ“‚É
+			//å…¨ã¦å¤–éƒ¨å˜ä¸€ã‚¢ã‚¤ã‚³ãƒ³ã«
 			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 				AssocSettings[i].AssocInfo.IconIndex=IconIndex;
 				AssocSettings[i].AssocInfo.IconFile=ResourcePath;
@@ -266,7 +259,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			break;
 		}
 	}
-	//LFAssist.exe‚ÌÀs‚ğ—v¿
+	//LFAssist.exeã®å®Ÿè¡Œã‚’è¦è«‹
 	mr_ConfigDlg.RequireAssistant();
 	return 0;
 }
@@ -275,15 +268,15 @@ LRESULT CConfigDlgAssociation::OnApply()
 {
 	CString strIniName(mr_ConfigDlg.GetAssistantFile());
 	for(int i=0;i<COUNTOF(AssocSettings);i++){
-		//ƒŒƒWƒXƒgƒŠ•ÏX‚Ì•K—v‚ª‚ ‚éê‡
+		//ãƒ¬ã‚¸ã‚¹ãƒˆãƒªå¤‰æ›´ã®å¿…è¦ãŒã‚ã‚‹å ´åˆ
 		bool Checked=(0!=AssocSettings[i].Check_SetAssoc.GetCheck());
 		if((AssocSettings[i].AssocInfo.bOrgStatus^Checked)||AssocSettings[i].bChanged){
 			if(AssocSettings[i].AssocInfo.bOrgStatus&&!Checked){
-				//ŠÖ˜A‚Ã‚¯‰ğœ—v¿
+				//é–¢é€£ã¥ã‘è§£é™¤è¦è«‹
 				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("set"),_T("0"),strIniName);
 			}
 			else{
-				//ŠÖ˜A‚Ã‚¯—v¿
+				//é–¢é€£ã¥ã‘è¦è«‹
 				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("set"),_T("1"),strIniName);
 				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("iconfile"),AssocSettings[i].AssocInfo.IconFile,strIniName);
 				UtilWritePrivateProfileInt(AssocSettings[i].AssocInfo.Ext,_T("iconindex"),AssocSettings[i].AssocInfo.IconIndex,strIniName);
@@ -301,7 +294,7 @@ CIconSelectDialog::CIconSelectDialog(ASSOCINFO &ai)
 {
 	AssocInfo=&ai;
 	if(AssocInfo->IconFile.IsEmpty()){
-		//EXE‚ÌƒpƒX‚ğŒ³‚ÉDLL‚Ìƒtƒ@ƒCƒ‹–¼‚ğ‘g‚İ—§‚Ä‚é
+		//EXEã®ãƒ‘ã‚¹ã‚’å…ƒã«DLLã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’çµ„ã¿ç«‹ã¦ã‚‹
 		CPath strResourcePath(UtilGetModuleDirectoryPath());
 		strResourcePath+=CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT));
 		IconPath=(CString)strResourcePath;
@@ -317,13 +310,13 @@ LRESULT CIconSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ASSERT(AssocInfo);
 	CenterWindow();
 	ListView=GetDlgItem(IDC_LIST_ICON);
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	UpdateIcon();
 	ListView.SetItemState(AssocInfo->IconIndex,LVIS_SELECTED,1);
 
-	// ƒ_ƒCƒAƒƒOƒŠƒTƒCƒY‰Šú‰»
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºåˆæœŸåŒ–
 	DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
 	return TRUE;
 }
@@ -352,7 +345,7 @@ void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 	if(!DoDataExchange(TRUE))return;
 	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
-	if(IDCANCEL==dlg.DoModal()){	//ƒLƒƒƒ“ƒZƒ‹
+	if(IDCANCEL==dlg.DoModal()){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		return;
 	}
 
@@ -365,8 +358,8 @@ void CIconSelectDialog::OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
 	TCHAR ResourcePath[_MAX_PATH+1];
 	FILL_ZERO(ResourcePath);
-	GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//–{‘Ì‚ÌƒpƒXæ“¾
-	//EXE‚ÌƒpƒX‚ğŒ³‚ÉDLL‚Ìƒtƒ@ƒCƒ‹–¼‚ğ‘g‚İ—§‚Ä‚é
+	GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//æœ¬ä½“ã®ãƒ‘ã‚¹å–å¾—
+	//EXEã®ãƒ‘ã‚¹ã‚’å…ƒã«DLLã®ãƒ•ã‚¡ã‚¤ãƒ«åã‚’çµ„ã¿ç«‹ã¦ã‚‹
 	PathRemoveFileSpec(ResourcePath);
 	PathAppend(ResourcePath,CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT)));
 	IconPath=ResourcePath;
@@ -379,7 +372,7 @@ bool CIconSelectDialog::UpdateIcon()
 {
 	ListView.DeleteAllItems();
 	IconList.Destroy();
-	//ƒAƒCƒRƒ“”‚Ìæ“¾
+	//ã‚¢ã‚¤ã‚³ãƒ³æ•°ã®å–å¾—
 	long IconCount=(long)ExtractIcon(GetModuleHandle(NULL),IconPath,-1);
 	if(0==IconCount){
 		ListView.EnableWindow(false);

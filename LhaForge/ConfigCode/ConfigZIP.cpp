@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ArchiverCode/Archiver7ZIP.h"
@@ -35,29 +28,29 @@
 #include "ConfigZIP.h"
 #include "../Dialogs/SevenZipVolumeSizeDlg.h"
 
-// ZIPˆ³kİ’è
+// ZIPåœ§ç¸®è¨­å®š
 void CConfigZIP::load(CONFIG_SECTION &Config)
 {
-	//ˆ³kŒ`®
+	//åœ§ç¸®å½¢å¼
 	CompressType=(ZIP_COMPRESS_TYPE)Config.Data[_T("CompressType")].GetNParam(0,ZIP_COMPRESS_TYPE_LAST_ITEM,0);
-	//ˆ³kƒŒƒxƒ‹
+	//åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	CompressLevel=(ZIP_COMPRESS_LEVEL)Config.Data[_T("CompressLevel")].GetNParam(0,ZIP_COMPRESS_LEVEL_LAST_ITEM,0);
-	//ã‹‰İ’è
-	//—Dæ‚·‚éƒƒ‚ƒŠ‚ÌƒoƒCƒg”‚ğw’è‚·‚é‚©‚Ç‚¤‚©
+	//ä¸Šç´šè¨­å®š
+	//å„ªå…ˆã™ã‚‹ãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒˆæ•°ã‚’æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	SpecifyDeflateMemorySize=Config.Data[_T("SpecifyDeflateMemorySize")].GetNParam(FALSE);
-	//—Dæ‚·‚éƒƒ‚ƒŠ‚ÌƒoƒCƒg”
+	//å„ªå…ˆã™ã‚‹ãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒˆæ•°
 	DeflateMemorySize=Config.Data[_T("DeflateMemorySize")].GetNParam(ZIP_DEFLATE_MEMORY_SIZE_LOWEST,ZIP_DEFLATE_MEMORY_SIZE_HIGHEST,32);
-	//ƒGƒ“ƒR[ƒ_‚ÌƒpƒX”‚ğw’è‚·‚é‚©‚Ç‚¤‚©
+	//ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ã®ãƒ‘ã‚¹æ•°ã‚’æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	SpecifyDeflatePassNumber=Config.Data[_T("SpecifyDeflatePassNumber")].GetNParam(FALSE);
-	//ƒGƒ“ƒR[ƒ_‚ÌƒpƒX”
+	//ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ã®ãƒ‘ã‚¹æ•°
 	DeflatePassNumber=Config.Data[_T("DeflatePassNumber")].GetNParam(ZIP_DEFLATE_PASS_NUMBER_LOWEST,ZIP_DEFLATE_PASS_NUMBER_HIGHEST,1);
-	//í‚ÉUTF-8‚Åƒtƒ@ƒCƒ‹–¼‚ğŠi”[
+	//å¸¸ã«UTF-8ã§ãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ ¼ç´
 	ForceUTF8=Config.Data[_T("ForceUTF8")].GetNParam(FALSE);
 
-	//ˆÃ†‰»ƒ‚[ƒh
+	//æš—å·åŒ–ãƒ¢ãƒ¼ãƒ‰
 	CryptoMode=(ZIP_CRYPTO_MODE)Config.Data[_T("CryptoMode")].GetNParam(0,ZIP_CRYPTO_MODE_LAST_ITEM,0);
 
-	//•ªŠ„ƒTƒCƒY‚ğ‚ ‚ç‚©‚¶‚ßw’è
+	//åˆ†å‰²ã‚µã‚¤ã‚ºã‚’ã‚ã‚‰ã‹ã˜ã‚æŒ‡å®š
 	SpecifySplitSize = Config.Data[_T("SpecifySplitSize")].GetNParam(FALSE);
 	SplitSize = Config.Data[_T("SplitSize")].GetNParam(1,INT_MAX,10);
 	SplitSizeUnit = Config.Data[_T("SplitSizeUnit")].GetNParam(0,ZIP_VOLUME_UNIT_MAX_NUM,0);
@@ -65,32 +58,32 @@ void CConfigZIP::load(CONFIG_SECTION &Config)
 
 void CConfigZIP::store(CONFIG_SECTION &Config)const
 {
-	//ˆ³kŒ`®
+	//åœ§ç¸®å½¢å¼
 	Config.Data[_T("CompressType")]=CompressType;
-	//ˆ³kƒŒƒxƒ‹
+	//åœ§ç¸®ãƒ¬ãƒ™ãƒ«
 	Config.Data[_T("CompressLevel")]=CompressLevel;
-	//ã‹‰İ’è
-	//—Dæ‚·‚éƒƒ‚ƒŠ‚ÌƒoƒCƒg”‚ğw’è‚·‚é‚©‚Ç‚¤‚©
+	//ä¸Šç´šè¨­å®š
+	//å„ªå…ˆã™ã‚‹ãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒˆæ•°ã‚’æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	Config.Data[_T("SpecifyDeflateMemorySize")]=SpecifyDeflateMemorySize;
-	//—Dæ‚·‚éƒƒ‚ƒŠ‚ÌƒoƒCƒg”
+	//å„ªå…ˆã™ã‚‹ãƒ¡ãƒ¢ãƒªã®ãƒã‚¤ãƒˆæ•°
 	Config.Data[_T("DeflateMemorySize")]=DeflateMemorySize;
-	//ƒGƒ“ƒR[ƒ_‚ÌƒpƒX”‚ğw’è‚·‚é‚©‚Ç‚¤‚©
+	//ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ã®ãƒ‘ã‚¹æ•°ã‚’æŒ‡å®šã™ã‚‹ã‹ã©ã†ã‹
 	Config.Data[_T("SpecifyDeflatePassNumber")]=SpecifyDeflatePassNumber;
-	//ƒGƒ“ƒR[ƒ_‚ÌƒpƒX”
+	//ã‚¨ãƒ³ã‚³ãƒ¼ãƒ€ã®ãƒ‘ã‚¹æ•°
 	Config.Data[_T("DeflatePassNumber")]=DeflatePassNumber;
-	//í‚ÉUTF-8‚Åƒtƒ@ƒCƒ‹–¼‚ğŠi”[
+	//å¸¸ã«UTF-8ã§ãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ ¼ç´
 	Config.Data[_T("ForceUTF8")]=ForceUTF8;
 
-	//ˆÃ†‰»ƒ‚[ƒh
+	//æš—å·åŒ–ãƒ¢ãƒ¼ãƒ‰
 	Config.Data[_T("CryptoMode")]=CryptoMode;
 
-	//•ªŠ„ƒTƒCƒY‚ğ‚ ‚ç‚©‚¶‚ßw’è
+	//åˆ†å‰²ã‚µã‚¤ã‚ºã‚’ã‚ã‚‰ã‹ã˜ã‚æŒ‡å®š
 	Config.Data[_T("SpecifySplitSize")] = SpecifySplitSize;
 	Config.Data[_T("SplitSize")] = SplitSize;
 	Config.Data[_T("SplitSizeUnit")] = SplitSizeUnit;
 
-	// ƒpƒXƒ[ƒhŠÖ˜A;Œ»İ‚ÍƒpƒXƒ[ƒhÁ‹—pƒR[ƒh‚Ì‚İ
-	//w’è‚³‚ê‚½ƒpƒXƒ[ƒh‚ğ‹­§“I‚Éíœ
+	// ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰é–¢é€£;ç¾åœ¨ã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰æ¶ˆå»ç”¨ã‚³ãƒ¼ãƒ‰ã®ã¿
+	//æŒ‡å®šã•ã‚ŒãŸãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å¼·åˆ¶çš„ã«å‰Šé™¤
 	Config.Data.erase(_T("UseFixedPassword"));
 	Config.Data.erase(_T("PasswordLength"));
 	Config.Data.erase(_T("Password"));

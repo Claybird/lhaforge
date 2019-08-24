@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArcFileContent.h"
@@ -81,54 +74,54 @@ ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_
 
 HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,CArchiverDLL *lpArchiver,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
 {
-	//‰ğÍŠJn
-	TRACE(_T("ƒfƒBƒŒƒNƒgƒŠ\‘¢‰ğÍŠJn\n"));
+	//è§£æé–‹å§‹
+	TRACE(_T("ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæ§‹é€ è§£æé–‹å§‹\n"));
 	if(!lpArchiver->InspectArchiveBegin(lpFile,ConfMan)){
-		//ƒXƒLƒƒƒ“‚Å‚«‚È‚¢
+		//ã‚¹ã‚­ãƒ£ãƒ³ã§ããªã„
 		return E_LF_FILELIST_NOT_SUPPORTED;
 	}
 
-	//­‚È‚­‚Æ‚àˆê‚Â‚Ìƒtƒ@ƒCƒ‹‚ªˆÃ†‰»‚³‚ê‚Ä‚¢‚é‚È‚çtrue
+	//å°‘ãªãã¨ã‚‚ä¸€ã¤ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒæš—å·åŒ–ã•ã‚Œã¦ã„ã‚‹ãªã‚‰true
 	bool bEncrypted = false;
 
 	HRESULT hr=S_OK;
-	//ˆê——æ“¾
+	//ä¸€è¦§å–å¾—
 	while(lpArchiver->InspectArchiveNext()){
 		ARCHIVE_ENTRY_INFO item;
 
-		//Ši”[ƒtƒ@ƒCƒ‹–¼æ“¾
+		//æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 		lpArchiver->InspectArchiveGetFileName(item.strFullPath);
-		//‘®«æ“¾
+		//å±æ€§å–å¾—
 		item.nAttribute=lpArchiver->InspectArchiveGetAttribute();
-		//ƒtƒ@ƒCƒ‹ƒTƒCƒY(ˆ³k‘O)
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º(åœ§ç¸®å‰)
 		if(!lpArchiver->InspectArchiveGetOriginalFileSize(item.llOriginalSize)){
 			item.llOriginalSize.LowPart=-1;
 			item.llOriginalSize.HighPart=-1;
 		}
-		//ƒtƒ@ƒCƒ‹ƒTƒCƒY(ˆ³kŒã)
+		//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º(åœ§ç¸®å¾Œ)
 		if(!lpArchiver->InspectArchiveGetCompressedFileSize(item.llCompressedSize)){
 			item.llCompressedSize.LowPart=-1;
 			item.llCompressedSize.HighPart=-1;
 		}
-		//“úæ“¾
+		//æ—¥æ™‚å–å¾—
 		if(!lpArchiver->InspectArchiveGetWriteTime(item.cFileTime)){
 			item.cFileTime.dwLowDateTime=-1;
 			item.cFileTime.dwHighDateTime=-1;
 		}
-		//ˆ³k—¦
+		//åœ§ç¸®ç‡
 		item.wRatio=lpArchiver->InspectArchiveGetRatio();
 		//CRC
 		item.dwCRC=lpArchiver->InspectArchiveGetCRC();
-		//ƒƒ\ƒbƒh
+		//ãƒ¡ã‚½ãƒƒãƒ‰
 		lpArchiver->InspectArchiveGetMethodString(item.strMethod);
 
-		//ˆÃ†
+		//æš—å·
 		bEncrypted = bEncrypted || ((item.nAttribute & FA_ENCRYPTED)!=0);
 
-		//“o˜^		
+		//ç™»éŒ²		
 		entries.push_back(item);
 
-		//XV
+		//æ›´æ–°
 		if(lpHandler){
 			while(UtilDoMessageLoop())continue;
 			lpHandler->onUpdated(item);
@@ -138,7 +131,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 			}
 		}
 	}
-	//‰ğÍI—¹
+	//è§£æçµ‚äº†
 	lpArchiver->InspectArchiveEnd();
 
 	m_bEncrypted = bEncrypted;
@@ -154,17 +147,17 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 
 	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
 	if(!lpArchiver){
-		//•s–¾‚ÈŒ`® or ”ñ‘Î‰DLL‚ÅUNICODEƒtƒ@ƒCƒ‹–¼‚ğˆµ‚¨‚¤‚Æ‚µ‚½
+		//ä¸æ˜ãªå½¢å¼ or éå¯¾å¿œDLLã§UNICODEãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ‰±ãŠã†ã¨ã—ãŸ
 		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
 		return E_LF_UNKNOWN_FORMAT;
 	}
 	if(!lpArchiver->QueryInspectSupported()){
-		//‰{——‚Å‚«‚È‚¢Œ`®
+		//é–²è¦§ã§ããªã„å½¢å¼
 		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
 		return E_LF_FILELIST_NOT_SUPPORTED;
 	}
 
-	//--\‘¢æ“¾
+	//--æ§‹é€ å–å¾—
 	std::vector<ARCHIVE_ENTRY_INFO> entries;
 	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
 	if(FAILED(hr)){
@@ -174,21 +167,21 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 		}
 		return hr;
 	}
-	//‹L˜^
+	//è¨˜éŒ²
 	m_lpArchiver=lpArchiver;
 	m_pathArcFileName=lpFile;
 	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
 
-	//‰ğÍ
+	//è§£æ
 	size_t numEntries=entries.size();
 	for(size_t i=0;i<numEntries;i++){
-		if(bFilesOnly && entries[i].nAttribute&FA_DIREC)continue;	//ƒtƒ@ƒCƒ‹‚Ì‚İ‚Ìê‡‚ÍƒfƒBƒŒƒNƒgƒŠ‚Í–³‹
+		if(bFilesOnly && entries[i].nAttribute&FA_DIREC)continue;	//ãƒ•ã‚¡ã‚¤ãƒ«ã®ã¿ã®å ´åˆã¯ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¯ç„¡è¦–
 
 		ARCHIVE_ENTRY_INFO_TREE* lpEntry=new ARCHIVE_ENTRY_INFO_TREE;
 		m_GC.Add(lpEntry);
 		lpEntry->Clear();
 
-		//ƒGƒ“ƒgƒŠİ’è
+		//ã‚¨ãƒ³ãƒˆãƒªè¨­å®š
 		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
 		lpEntry->lpParent=&m_Root;
 		UtilPathGetLastSection(lpEntry->strTitle,entries[i].strFullPath);
@@ -196,7 +189,7 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 		m_Root.childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type((LPCTSTR)lpEntry->strTitle,lpEntry));
 		m_Root.childrenArray.push_back(lpEntry);
 
-		//Œã‚Åİ’è‚·‚é
+		//å¾Œã§è¨­å®šã™ã‚‹
 		lpEntry->bDir=false;
 		lpEntry->bSafe=true;
 	}
@@ -213,23 +206,23 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 
 	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
 	if(!lpArchiver){
-		//•s–¾‚ÈŒ`® or ”ñ‘Î‰DLL‚ÅUNICODEƒtƒ@ƒCƒ‹–¼‚ğˆµ‚¨‚¤‚Æ‚µ‚½
+		//ä¸æ˜ãªå½¢å¼ or éå¯¾å¿œDLLã§UNICODEãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ‰±ãŠã†ã¨ã—ãŸ
 		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
-		//UNICODEŠÖŒW‚Ìƒ`ƒFƒbƒN
+		//UNICODEé–¢ä¿‚ã®ãƒã‚§ãƒƒã‚¯
 		if(!UtilCheckT2A(lpFile)){
-			//UNICODE‚É‘Î‰‚µ‚Ä‚¢‚È‚¢‚Ì‚ÉUNICODEƒtƒ@ƒCƒ‹–¼‚Ìƒtƒ@ƒCƒ‹‚ğˆµ‚¨‚¤‚Æ‚µ‚½‰Â”\«‚ª‚ ‚é
+			//UNICODEã«å¯¾å¿œã—ã¦ã„ãªã„ã®ã«UNICODEãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ‰±ãŠã†ã¨ã—ãŸå¯èƒ½æ€§ãŒã‚ã‚‹
 			strErr+=_T("\r\n\r\n");
 			strErr.AppendFormat(IDS_ERROR_UNICODEPATH);
 		}
 		return E_LF_UNKNOWN_FORMAT;
 	}
 	if(!lpArchiver->QueryInspectSupported()){
-		//‰{——‚Å‚«‚È‚¢Œ`®
+		//é–²è¦§ã§ããªã„å½¢å¼
 		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
 		return E_LF_FILELIST_NOT_SUPPORTED;
 	}
 
-	//--\‘¢æ“¾
+	//--æ§‹é€ å–å¾—
 	std::vector<ARCHIVE_ENTRY_INFO> entries;
 	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
 	if(FAILED(hr)){
@@ -240,13 +233,13 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 		return hr;
 	}
 
-	//‹L˜^
+	//è¨˜éŒ²
 	m_lpArchiver=lpArchiver;
 	m_pathArcFileName=lpFile;
 	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
 
-	//‰ğÍ
-	//TODO:Šù‚ÉoŒ»‚µ‚½ƒfƒBƒŒƒNƒgƒŠ‚Ì‚İ‚ğ‘ÎÛ‚É”äŠr‚ğs‚¤
+	//è§£æ
+	//TODO:æ—¢ã«å‡ºç¾ã—ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ã¿ã‚’å¯¾è±¡ã«æ¯”è¼ƒã‚’è¡Œã†
 	size_t numEntries=entries.size();
 	for(size_t i=0;i<numEntries;i++){
 		ARCHIVE_ENTRY_INFO_TREE* lpEntry=&m_Root;
@@ -262,32 +255,32 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 				lpPath=lpEnd;
 				if(*lpPath!=L'\0')lpPath++;
 			}else{
-				//•ªŠ„•s”\
+				//åˆ†å‰²ä¸èƒ½
 				strEntry=lpPath;
 				bBreak=true;
 			}
 			strTitle=strEntry;
-			//¬•¶š‰»
+			//å°æ–‡å­—åŒ–
 			strEntry.MakeLower();
 
-			//qƒGƒ“ƒgƒŠŒŸõ
+			//å­ã‚¨ãƒ³ãƒˆãƒªæ¤œç´¢
 			lpEntry=ForceFindEntry(lpEntry,strEntry);
 			if(bBreak){
 				break;
 			}else{
 				if(lpEntry->strTitle.IsEmpty()){
-					//‰¼‘zƒfƒBƒŒƒNƒgƒŠ‚Ìİ’è
+					//ä»®æƒ³ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®è¨­å®š
 					lpEntry->strTitle=strTitle;
 				}
 			}
 		}
 		ASSERT(lpEntry);
-		//ƒGƒ“ƒgƒŠİ’è
+		//ã‚¨ãƒ³ãƒˆãƒªè¨­å®š
 		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
 
 		lpEntry->strTitle=strTitle;
 
-		//Œã‚Åİ’è‚·‚é
+		//å¾Œã§è¨­å®šã™ã‚‹
 		lpEntry->bDir=false;
 		lpEntry->bSafe=true;
 	}
@@ -297,19 +290,19 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 }
 
 /*
- * ƒtƒ@ƒCƒ‹ˆê——’Ç‰ÁŒã‚Ìˆ—
- * ƒfƒBƒŒƒNƒgƒŠ“àƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ğæ“¾‚·‚é‚È‚Ç
- * bUnicode‚Íg—p‚µ‚½DLL‚ªUNICODE‚É‘Î‰‚µ‚Ä‚¢‚éê‡‚É‚Ítrue
+ * ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§è¿½åŠ å¾Œã®å‡¦ç†
+ * ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚ºã‚’å–å¾—ã™ã‚‹ãªã©
+ * bUnicodeã¯ä½¿ç”¨ã—ãŸDLLãŒUNICODEã«å¯¾å¿œã—ã¦ã„ã‚‹å ´åˆã«ã¯true
  */
 void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNode)
 {
 	if(!pNode)pNode=&m_Root;
-	//‘®«
-	if(-1==pNode->nAttribute){	//‚Ü‚Á‚½‚­•ª‚©‚Á‚Ä‚¢‚È‚¢ê‡
+	//å±æ€§
+	if(-1==pNode->nAttribute){	//ã¾ã£ãŸãåˆ†ã‹ã£ã¦ã„ãªã„å ´åˆ
 		if(!pNode->childrenDict.empty()||UtilPathEndWithSeparator(pNode->strFullPath)){
-			//ˆÈ‰º‚ÌğŒ‚Ì‚¢‚¸‚ê‚©‚É‡’v‚·‚ê‚ÎƒfƒBƒŒƒNƒgƒŠ
-			//Eƒm[ƒh–¼––”ö‚ÉƒpƒX‹æØ‚è•¶š‚ª•t‚¢‚Ä‚¢‚é(bDir)
-			//Eqƒm[ƒh‚ª‹ó‚Å‚È‚¢
+			//ä»¥ä¸‹ã®æ¡ä»¶ã®ã„ãšã‚Œã‹ã«åˆè‡´ã™ã‚Œã°ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+			//ãƒ»ãƒãƒ¼ãƒ‰åæœ«å°¾ã«ãƒ‘ã‚¹åŒºåˆ‡ã‚Šæ–‡å­—ãŒä»˜ã„ã¦ã„ã‚‹(bDir)
+			//ãƒ»å­ãƒãƒ¼ãƒ‰ãŒç©ºã§ãªã„
 			pNode->nAttribute=FA_DIREC;
 			pNode->bDir=true;
 		}else{
@@ -322,7 +315,7 @@ void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNo
 		}
 	}
 	if(pNode->nAttribute&FA_DIREC){
-		//ƒtƒHƒ‹ƒ_‚É‚ÍŠg’£q‚Í‚È‚¢
+		//ãƒ•ã‚©ãƒ«ãƒ€ã«ã¯æ‹¡å¼µå­ã¯ãªã„
 		pNode->strExt=FOLDER_EXTENSION_STRING;
 
 		pNode->llOriginalSize.QuadPart=0;
@@ -331,21 +324,21 @@ void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNo
 		pNode->strExt=PathFindExtension(pNode->strFullPath);
 	}
 
-	//ŠëŒ¯”»’è
+	//å±é™ºåˆ¤å®š
 	if(bUnicode){
 		pNode->bSafe=UtilIsSafeUnicode(pNode->strFullPath);
 	}
 
-	//qƒm[ƒh‚É‚à“K—p
+	//å­ãƒãƒ¼ãƒ‰ã«ã‚‚é©ç”¨
 	size_t numChildren=pNode->childrenArray.size();
 	for(size_t i=0;i<numChildren;i++){
 		ARCHIVE_ENTRY_INFO_TREE* pChild=pNode->childrenArray[i];
 		PostProcess(bUnicode,pChild);
 
-		//---ƒfƒBƒŒƒNƒgƒŠ‚È‚çA’†‚Ìƒf[ƒ^‚ÌƒTƒCƒY‚ğWŒv‚·‚é
+		//---ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã‚‰ã€ä¸­ã®ãƒ‡ãƒ¼ã‚¿ã®ã‚µã‚¤ã‚ºã‚’é›†è¨ˆã™ã‚‹
 		if(pNode->bDir){
-			//---ˆ³k‘OƒTƒCƒY
-			if(pNode->llOriginalSize.QuadPart>=0){	//ƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾‚É¸”s‚µ‚Ä‚¢‚È‚¢
+			//---åœ§ç¸®å‰ã‚µã‚¤ã‚º
+			if(pNode->llOriginalSize.QuadPart>=0){	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—ã«å¤±æ•—ã—ã¦ã„ãªã„
 				if(pChild->llOriginalSize.QuadPart>=0){
 					pNode->llOriginalSize.QuadPart+=pChild->llOriginalSize.QuadPart;
 				}else{
@@ -353,8 +346,8 @@ void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNo
 					pNode->llOriginalSize.HighPart=-1;
 				}
 			}
-			//---ˆ³kŒãƒTƒCƒY
-			if(pNode->llCompressedSize.QuadPart>=0){	//ƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾‚É¸”s‚µ‚Ä‚¢‚È‚¢
+			//---åœ§ç¸®å¾Œã‚µã‚¤ã‚º
+			if(pNode->llCompressedSize.QuadPart>=0){	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—ã«å¤±æ•—ã—ã¦ã„ãªã„
 				if(pChild->llCompressedSize.QuadPart>=0){
 					pNode->llCompressedSize.QuadPart+=pChild->llCompressedSize.QuadPart;
 				}else{
@@ -370,13 +363,13 @@ void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNo
 
 void CArchiveFileContent::FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const
 {
-	//•—Dæ’Tõ
+	//å¹…å„ªå…ˆæ¢ç´¢
 	std::vector<ARCHIVE_ENTRY_INFO_TREE*> dirs;
 	for(size_t i=0;i<lpTop->childrenArray.size();i++){
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpTop->childrenArray[i];
 		ASSERT(lpNode);
 		CString strKey;
-		if(bMatchPath){	//ƒpƒX–¼‚àˆê’v
+		if(bMatchPath){	//ãƒ‘ã‚¹åã‚‚ä¸€è‡´
 			strKey=lpNode->strFullPath;
 			strKey.Replace(_T("/"),_T("\\"));
 		}else{
@@ -385,11 +378,11 @@ void CArchiveFileContent::FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARC
 		if(::PathMatchSpec(strKey,lpszMask)){
 			founds.push_back(lpNode);
 		}
-		if(lpNode->bDir){	//ƒfƒBƒŒƒNƒgƒŠ‚ÍÄ‹AŒŸõ
+		if(lpNode->bDir){	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¯å†å¸°æ¤œç´¢
 			dirs.push_back(lpNode);
 		}
 	}
-	//ƒfƒBƒŒƒNƒgƒŠ
+	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 	for(size_t i=0;i<dirs.size();i++){
 		FindSubItem(lpszMask,bMatchPath,dirs[i],founds);
 	}
@@ -406,7 +399,7 @@ void CArchiveFileContent::FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TRE
 	strMask.Replace(_T("/"),_T("\\"));
 	bool bMatchPath=(-1!=strMask.Find(_T('\\')));
 
-	//*‚à?‚à•t‚¢‚Ä‚¢‚È‚¢ê‡‚Í*‚ğŒŸõğŒ‚É’Ç‰Á
+	//*ã‚‚?ã‚‚ä»˜ã„ã¦ã„ãªã„å ´åˆã¯*ã‚’æ¤œç´¢æ¡ä»¶ã«è¿½åŠ 
 	if(-1==strMask.FindOneOf(_T("*?"))){
 		strMask.Insert(0,_T("*"));
 		strMask+=_T("*");
@@ -419,7 +412,7 @@ void CArchiveFileContent::FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TRE
 bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)
 {
 	if(!IsExtractEachSupported()){
-		//‘I‘ğƒtƒ@ƒCƒ‹‚Ì‰ğ“€‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚È‚¢
+		//é¸æŠãƒ•ã‚¡ã‚¤ãƒ«ã®è§£å‡ã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ãªã„
 		return false;
 	}
 
@@ -438,26 +431,26 @@ void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCH
 		path.Append(strItem);
 
 		if(::PathIsDirectory(path)){
-			// ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚é‚ª’†g‚Í‚»‚ë‚Á‚Ä‚¢‚é‚©?
+			// ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹ãŒä¸­èº«ã¯ãã‚ã£ã¦ã„ã‚‹ã‹?
 			CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
 		}else if(!::PathFileExists(path)){
-			// ƒLƒƒƒbƒVƒ…‚ª‘¶İ‚µ‚È‚¢‚Ì‚ÅA‰ğ“€—v¿ƒŠƒXƒg‚É‰Á‚¦‚é
+			// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãŒå­˜åœ¨ã—ãªã„ã®ã§ã€è§£å‡è¦è«‹ãƒªã‚¹ãƒˆã«åŠ ãˆã‚‹
 			toExtractList[lpParent].push_back(lpNode);
 		}
 	}
 }
 
 
-//bOverwrite:true‚È‚ç‘¶İ‚·‚éƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ğíœ‚µ‚Ä‚©‚ç‰ğ“€‚·‚é
+//bOverwrite:trueãªã‚‰å­˜åœ¨ã™ã‚‹ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ã¦ã‹ã‚‰è§£å‡ã™ã‚‹
 bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
 {
-	//‘I‘ğ‚³‚ê‚½ƒAƒCƒeƒ€‚ğ—ñ‹“
+	//é¸æŠã•ã‚ŒãŸã‚¢ã‚¤ãƒ†ãƒ ã‚’åˆ—æŒ™
 	std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > toExtractList;
 
-	std::list<CString> newFilesList;	//‚±‚ê‚©‚ç‰ğ“€‚·‚éƒtƒ@ƒCƒ‹‚ÌƒfƒBƒXƒNã‚ÌƒpƒX–¼
+	std::list<CString> newFilesList;	//ã“ã‚Œã‹ã‚‰è§£å‡ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‡ã‚£ã‚¹ã‚¯ä¸Šã®ãƒ‘ã‚¹å
 
 	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();ite!=items.end();++ite){
-		// ‘¶İ‚ğƒ`ƒFƒbƒN‚µA‚à‚µ‰ğ“€Ï‚İ‚Å‚ ‚ê‚Î‚»‚ê‚ğŠJ‚­
+		// å­˜åœ¨ã‚’ãƒã‚§ãƒƒã‚¯ã—ã€ã‚‚ã—è§£å‡æ¸ˆã¿ã§ã‚ã‚Œã°ãã‚Œã‚’é–‹ã
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=*ite;
 		CPath path=lpOutputDir;
 
@@ -466,39 +459,39 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 		path.Append(strItem);
 
 		if(bOverwrite){
-			// ã‘‚«‰ğ“€‚·‚é‚Ì‚ÅA‘¶İ‚·‚éƒtƒ@ƒCƒ‹‚Ííœ
+			// ä¸Šæ›¸ãè§£å‡ã™ã‚‹ã®ã§ã€å­˜åœ¨ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã¯å‰Šé™¤
 			if(lpNode->bDir){
 				if(::PathIsDirectory(path))UtilDeleteDir(path,true);
 			}else{
 				if(::PathFileExists(path))UtilDeletePath(path);
 			}
-			//‰ğ“€—v¿ƒŠƒXƒg‚É‰Á‚¦‚é
+			//è§£å‡è¦è«‹ãƒªã‚¹ãƒˆã«åŠ ãˆã‚‹
 			toExtractList[lpBase].push_back(lpNode);
 			newFilesList.push_back(path);
-		}else{	//ã‘‚«‚Í‚µ‚È‚¢
+		}else{	//ä¸Šæ›¸ãã¯ã—ãªã„
 			if(::PathIsDirectory(path)){
-				// ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚é‚ª’†g‚Í‚»‚ë‚Á‚Ä‚¢‚é‚©?
+				// ãƒ•ã‚©ãƒ«ãƒ€ãŒå­˜åœ¨ã™ã‚‹ãŒä¸­èº«ã¯ãã‚ã£ã¦ã„ã‚‹ã‹?
 				CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
 			}else if(!::PathFileExists(path)){
-				// ƒLƒƒƒbƒVƒ…‚ª‘¶İ‚µ‚È‚¢‚Ì‚ÅA‰ğ“€—v¿ƒŠƒXƒg‚É‰Á‚¦‚é
+				// ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãŒå­˜åœ¨ã—ãªã„ã®ã§ã€è§£å‡è¦è«‹ãƒªã‚¹ãƒˆã«åŠ ãˆã‚‹
 				toExtractList[lpBase].push_back(lpNode);
 				newFilesList.push_back(path);
 			}
 		}
 		path.RemoveBackslash();
-		//ŠJ‚­—\’èƒŠƒXƒg‚É’Ç‰Á
+		//é–‹ãäºˆå®šãƒªã‚¹ãƒˆã«è¿½åŠ 
 		r_filesList.push_back(path);
 	}
 	if(toExtractList.empty()){
 		return true;
 	}
 
-	//–¢‰ğ“€‚Ì•¨‚Ì‚İˆêƒtƒHƒ‹ƒ_‚É‰ğ“€
+	//æœªè§£å‡ã®ç‰©ã®ã¿ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã«è§£å‡
 	for(std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
 		const std::list<ARCHIVE_ENTRY_INFO_TREE*> &filesList = (*ite).second;
 		if(!ExtractItems(ConfMan,filesList,lpOutputDir,lpBase,false,strLog)){
 			for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
-				//¸”s‚µ‚½‚Ì‚Åíœ
+				//å¤±æ•—ã—ãŸã®ã§å‰Šé™¤
 				ARCHIVE_ENTRY_INFO_TREE* lpNode = *iteRemove;
 				CPath path=lpOutputDir;
 				CString strItem;
@@ -518,24 +511,24 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 	ASSERT(IsAddItemsSupported());
 	if(!IsAddItemsSupported())return false;
 
-	//---ƒtƒ@ƒCƒ‹–¼ƒ`ƒFƒbƒN
+	//---ãƒ•ã‚¡ã‚¤ãƒ«åãƒã‚§ãƒƒã‚¯
 	bool bUnicode=IsUnicodeCapable();
 	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		if(0==m_pathArcFileName.CompareNoCase(*ite)){
-			//ƒA[ƒJƒCƒu©g‚ğ’Ç‰Á‚µ‚æ‚¤‚Æ‚µ‚½
+			//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–è‡ªèº«ã‚’è¿½åŠ ã—ã‚ˆã†ã¨ã—ãŸ
 			return E_LF_SAME_INPUT_AND_OUTPUT;
 		}
-		//---UNICODEƒ`ƒFƒbƒN
+		//---UNICODEãƒã‚§ãƒƒã‚¯
 		if(!bUnicode){
 			if(!UtilCheckT2A(*ite)){
-				//ƒtƒ@ƒCƒ‹–¼‚ÉUNICODE•¶š‚ğ‚Âƒtƒ@ƒCƒ‹‚ğˆ³k‚µ‚æ‚¤‚Æ‚µ‚½
+				//ãƒ•ã‚¡ã‚¤ãƒ«åã«UNICODEæ–‡å­—ã‚’æŒã¤ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åœ§ç¸®ã—ã‚ˆã†ã¨ã—ãŸ
 				return E_LF_UNICODE_NOT_SUPPORTED;
 			}
 		}
 	}
 
-	//---’Ç‰Á
-	//Šî’êƒfƒBƒŒƒNƒgƒŠæ“¾‚È‚Ç‚ÍCArchiverDLL‘¤‚É”C‚¹‚é
+	//---è¿½åŠ 
+	//åŸºåº•ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå–å¾—ãªã©ã¯CArchiverDLLå´ã«ä»»ã›ã‚‹
 	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
 		return S_OK;
 	}else{
@@ -547,7 +540,7 @@ bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<AR
 {
 	ASSERT(IsDeleteItemsSupported());
 	if(!IsDeleteItemsSupported())return false;
-	//íœ‘ÎÛ‚ğ—ñ‹“
+	//å‰Šé™¤å¯¾è±¡ã‚’åˆ—æŒ™
 	std::list<CString> filesToDel;
 	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		(*ite)->EnumFiles(filesToDel);

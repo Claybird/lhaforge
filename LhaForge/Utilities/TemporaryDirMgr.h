@@ -1,49 +1,42 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
-//ƒeƒ“ƒ|ƒ‰ƒŠ ƒfƒBƒŒƒNƒgƒŠ ƒ}ƒl[ƒWƒƒ
+//ãƒ†ãƒ³ãƒãƒ©ãƒª ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª ãƒãƒãƒ¼ã‚¸ãƒ£
 
 class CTemporaryDirectoryManager
 {
 protected:
-	CString m_strDirPath;	//o—Íæƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ
-	const CString m_strPrefix;	//ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ–¼‚Ìæ“ª‚É’…‚­”š(%prefix%000\)
+	CString m_strDirPath;	//å‡ºåŠ›å…ˆãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+	const CString m_strPrefix;	//ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã®å…ˆé ­ã«ç€ãæ•°å­—(%prefix%000\)
 public:
 	CTemporaryDirectoryManager(LPCTSTR lpszPrefix);
 	virtual ~CTemporaryDirectoryManager();
-	void Prepare();	//o—Íæƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğŠm•Û
-	bool Finish();	//o—Íæƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğ‰ğ•ú
-	bool ClearSubDir();		//ƒfƒBƒŒƒNƒgƒŠ‚ğ‹ó‚É‚·‚é
+	void Prepare();	//å‡ºåŠ›å…ˆãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ç¢ºä¿
+	bool Finish();	//å‡ºåŠ›å…ˆãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è§£æ”¾
+	bool ClearSubDir();		//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ç©ºã«ã™ã‚‹
 	LPCTSTR GetDirPath();
 
 	static bool DeleteAllTemporaryDir(LPCTSTR lpszPrefix);

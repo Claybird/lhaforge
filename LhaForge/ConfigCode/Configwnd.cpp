@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ArchiverCode/arc_interface.h"
@@ -44,12 +37,12 @@ CConfigDialog::CConfigDialog(CConfigManager &cfg)
 {
 	TRACE(_T("CConfigDialog()\n"));
 
-	//ƒeƒ“ƒ|ƒ‰ƒŠINIƒtƒ@ƒCƒ‹–¼æ“¾
+	//ãƒ†ãƒ³ãƒãƒ©ãƒªINIãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	TCHAR szIniName[_MAX_PATH+1]={0};
 	UtilGetTemporaryFileName(szIniName,_T("lhf"));
 	m_strAssistINI=szIniName;
 
-	//İ’è“Ç‚İ‚İ
+	//è¨­å®šèª­ã¿è¾¼ã¿
 	CString strErr;
 	if(!mr_Config.LoadConfig(strErr))ErrorMessage(strErr);
 }
@@ -61,15 +54,15 @@ CConfigDialog::~CConfigDialog()
 
 LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ‘å‚«‚¢ƒAƒCƒRƒ“İ’è
+	// å¤§ãã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIcon = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXICON),::GetSystemMetrics(SM_CYICON));
 	SetIcon(hIcon, TRUE);
 
-	// ¬‚³‚¢ƒAƒCƒRƒ“İ’è
+	// å°ã•ã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	//ƒvƒƒpƒeƒBƒV[ƒg‚ğ“\‚è•t‚¯‚é‚½‚ß‚ÌƒXƒNƒ[ƒ‹ƒRƒ“ƒeƒi‚Ì”z’uêŠ‚ğæ“¾
+	//ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆã‚’è²¼ã‚Šä»˜ã‘ã‚‹ãŸã‚ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚³ãƒ³ãƒ†ãƒŠã®é…ç½®å ´æ‰€ã‚’å–å¾—
 	CStatic StaticFrame;
 	StaticFrame=GetDlgItem(IDC_STATIC_FRAME);
 	RECT rect;
@@ -77,11 +70,11 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 //	StaticFrame.ShowWindow(SW_HIDE);
 	ScreenToClient(&rect);
 
-	//ƒXƒNƒ[ƒ‹ƒRƒ“ƒeƒi‚ğ”z’u
+	//ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚³ãƒ³ãƒ†ãƒŠã‚’é…ç½®
 	ScrollWindow.Create(m_hWnd,rect,NULL,/*WS_TABSTOP|*/WS_CHILD|WS_VISIBLE , WS_EX_CLIENTEDGE|WS_EX_CONTROLPARENT);
 
 	//--------------------
-	// ƒcƒŠ[ƒrƒ…[‚Ìİ’è
+	// ãƒ„ãƒªãƒ¼ãƒ“ãƒ¥ãƒ¼ã®è¨­å®š
 	//--------------------
 	SelectTreeView=GetDlgItem(IDC_TREE_SELECT_PROPPAGE);
 
@@ -96,7 +89,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 }
 
 	//--------------------------------
-	// ƒ_ƒCƒAƒƒO‚Ìî•ñ‚ğ’Ç‰Á‚µ‚Ä‚¢‚­
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®æƒ…å ±ã‚’è¿½åŠ ã—ã¦ã„ã
 	//--------------------------------
 	ADD_PAGE(PageGeneral,TVI_ROOT);
 	ADD_PAGE(PageShellExt,TVI_ROOT);
@@ -111,9 +104,9 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(PageVersion,TVI_ROOT);
 
 	//----------------
-	// ˆÈ‰º‚ÍÚ×İ’è
+	// ä»¥ä¸‹ã¯è©³ç´°è¨­å®š
 	//----------------
-	//ƒcƒŠ[‚Ìe
+	//ãƒ„ãƒªãƒ¼ã®è¦ª
 	m_ConfigDlgList.insert(&PageDetail);
 	PageDetail.LoadConfig(mr_Config);
 	PageDetail.Create(ScrollWindow);
@@ -141,23 +134,23 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(PageDLL,hItemDetail);
 
 	//------------------------
-	// ‚Í‚¶‚ß‚É•\¦‚·‚éƒy[ƒW
+	// ã¯ã˜ã‚ã«è¡¨ç¤ºã™ã‚‹ãƒšãƒ¼ã‚¸
 	//------------------------
 	PageGeneral.ShowWindow(SW_SHOW);
 	ScrollWindow.SetClient(PageGeneral);
 	hActiveDialogWnd=PageGeneral;
 	SelectTreeView.SetFocus();
 
-	// ƒ_ƒCƒAƒƒOƒŠƒTƒCƒY‰Šú‰»
+	// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºåˆæœŸåŒ–
 	DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
 
-	//---ƒ†[ƒU[ŠÔ‹¤’Êİ’è?
+	//---ãƒ¦ãƒ¼ã‚¶ãƒ¼é–“å…±é€šè¨­å®š?
 	if(mr_Config.IsUserCommon()){
-		//ƒEƒBƒ“ƒhƒEƒ^ƒCƒgƒ‹‚ğİ’è
+		//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¨­å®š
 		SetWindowText(CString(MAKEINTRESOURCE(IDS_CAPTION_CONFIG_USERCOMMON)));
 	}
 
-	//ƒEƒBƒ“ƒhƒE‚ğ’†S‚É
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä¸­å¿ƒã«
 	CenterWindow();
 
 	return TRUE;
@@ -165,38 +158,38 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	//’¼‘O‚Éƒƒjƒ…[ƒGƒfƒBƒ^‚È‚Ç‚Åİ’è‚ª•ÏX‚³‚ê‚Ä‚¢‚½ê‡A‚±‚±‚Å’Pƒ‚Éã‘‚«‚·‚é‚ÆA•ÏXŒã‚Ìî•ñ‚ªÁ‚¦‚Ä‚µ‚Ü‚¤‚Ì‚Å
-	//Ä“Ç‚İ‚İ‚ğs‚¢A‚»‚ê‚ğŒ³‚Éã‘‚«‚·‚é
+	//ç›´å‰ã«ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¨ãƒ‡ã‚£ã‚¿ãªã©ã§è¨­å®šãŒå¤‰æ›´ã•ã‚Œã¦ã„ãŸå ´åˆã€ã“ã“ã§å˜ç´”ã«ä¸Šæ›¸ãã™ã‚‹ã¨ã€å¤‰æ›´å¾Œã®æƒ…å ±ãŒæ¶ˆãˆã¦ã—ã¾ã†ã®ã§
+	//å†èª­ã¿è¾¼ã¿ã‚’è¡Œã„ã€ãã‚Œã‚’å…ƒã«ä¸Šæ›¸ãã™ã‚‹
 	CString tmp;
 	mr_Config.LoadConfig(tmp);
 
-	//Šeƒ_ƒCƒAƒƒO‚ÌOnApply‚ğŒÄ‚Ô
+	//å„ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®OnApplyã‚’å‘¼ã¶
 	bool bRet=true;
 	for(std::set<IConfigDlgBase*>::iterator ite=m_ConfigDlgList.begin();ite!=m_ConfigDlgList.end();++ite){
 		bRet=bRet && (*ite)->OnApply();
 		(*ite)->StoreConfig(mr_Config);
 	}
 
-	//UAC‰ñ”ğ‚ÌƒAƒVƒXƒ^ƒ“ƒg‚ª—v¿‚³‚ê‚Ä‚¢‚é
+	//UACå›é¿ã®ã‚¢ã‚·ã‚¹ã‚¿ãƒ³ãƒˆãŒè¦è«‹ã•ã‚Œã¦ã„ã‚‹
 	if(m_nAssistRequireCount>0){
-		//64bit‚È‚ç64bitê—pˆ—‚ğæ‚É‘–‚ç‚¹‚é
+		//64bitãªã‚‰64bitå°‚ç”¨å‡¦ç†ã‚’å…ˆã«èµ°ã‚‰ã›ã‚‹
 		if(UtilIsWow64()){
-			//æ‚ÉLFAssist(64bit)‚Éˆ—‚ğ“n‚·B‚½‚¾‚µINIíœ‚Ís‚í‚È‚¢B
-			//---ƒAƒVƒXƒ^ƒ“ƒg(64bit)‚ÌƒpƒX‚ğæ“¾
+			//å…ˆã«LFAssist(64bit)ã«å‡¦ç†ã‚’æ¸¡ã™ã€‚ãŸã ã—INIå‰Šé™¤ã¯è¡Œã‚ãªã„ã€‚
+			//---ã‚¢ã‚·ã‚¹ã‚¿ãƒ³ãƒˆ(64bit)ã®ãƒ‘ã‚¹ã‚’å–å¾—
 			CPath strExePath(UtilGetModuleDirectoryPath());
 			strExePath+=_T("LFAssist64.exe");
-			if(strExePath.FileExists()){	//ƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚é‚Æ‚«‚Ì‚İ
+			if(strExePath.FileExists()){	//ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹ã¨ãã®ã¿
 				strExePath.QuoteSpaces();
 
-				//---Às:CreateProcess‚Å‚ÍUAC‚ğƒ`ƒFƒbƒN‚µ‚ÄÀs‚µ‚Ä‚à‚ç‚¦‚È‚¢
+				//---å®Ÿè¡Œ:CreateProcessã§ã¯UACã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦å®Ÿè¡Œã—ã¦ã‚‚ã‚‰ãˆãªã„
 				SHELLEXECUTEINFO shei={0};
-				shei.fMask=SEE_MASK_FLAG_DDEWAIT;	//u‚ÉI—¹‚·‚é‰Â”\«‚ª‚ ‚é‚Ì‚Å‚±‚ê‚ğw’è‚·‚é
+				shei.fMask=SEE_MASK_FLAG_DDEWAIT;	//ç¬æ™‚ã«çµ‚äº†ã™ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ã®ã§ã“ã‚Œã‚’æŒ‡å®šã™ã‚‹
 				shei.cbSize=sizeof(shei);
 				shei.lpFile=strExePath;
 				shei.lpParameters=m_strAssistINI;
 				shei.nShow=SW_SHOW;
 				if(!ShellExecuteEx(&shei)){
-					//ÀsƒGƒ‰[
+					//å®Ÿè¡Œã‚¨ãƒ©ãƒ¼
 					CString strLastError;
 					UtilGetLastErrorMessage(strLastError);
 
@@ -208,24 +201,24 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 			}
 		}
 
-		//LFAssist(32bit)‚ÉINIíœ‚ğ—v¿
+		//LFAssist(32bit)ã«INIå‰Šé™¤ã‚’è¦è«‹
 		WritePrivateProfileString(_T("PostProcess"),_T("DeleteMe"),_T("Please_Delete_Me"),m_strAssistINI);
 
-		//•ÏX‚ğÀs
-		//---ƒAƒVƒXƒ^ƒ“ƒg‚ÌƒpƒX‚ğæ“¾
+		//å¤‰æ›´ã‚’å®Ÿè¡Œ
+		//---ã‚¢ã‚·ã‚¹ã‚¿ãƒ³ãƒˆã®ãƒ‘ã‚¹ã‚’å–å¾—
 		CPath strExePath(UtilGetModuleDirectoryPath());
 		strExePath+=_T("LFAssist.exe");
 		strExePath.QuoteSpaces();
 
-		//---Às:CreateProcess‚Å‚ÍUAC‚ğƒ`ƒFƒbƒN‚µ‚ÄÀs‚µ‚Ä‚à‚ç‚¦‚È‚¢
+		//---å®Ÿè¡Œ:CreateProcessã§ã¯UACã‚’ãƒã‚§ãƒƒã‚¯ã—ã¦å®Ÿè¡Œã—ã¦ã‚‚ã‚‰ãˆãªã„
 		SHELLEXECUTEINFO shei={0};
-		shei.fMask=SEE_MASK_FLAG_DDEWAIT;	//u‚ÉI—¹‚·‚é‰Â”\«‚ª‚ ‚é‚Ì‚Å‚±‚ê‚ğw’è‚·‚é
+		shei.fMask=SEE_MASK_FLAG_DDEWAIT;	//ç¬æ™‚ã«çµ‚äº†ã™ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ã®ã§ã“ã‚Œã‚’æŒ‡å®šã™ã‚‹
 		shei.cbSize=sizeof(shei);
 		shei.lpFile=strExePath;
 		shei.lpParameters=m_strAssistINI;
 		shei.nShow=SW_SHOW;
 		if(!ShellExecuteEx(&shei)){
-			//ÀsƒGƒ‰[
+			//å®Ÿè¡Œã‚¨ãƒ©ãƒ¼
 			CString strLastError;
 			UtilGetLastErrorMessage(strLastError);
 
@@ -235,10 +228,10 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 			ErrorMessage(msg);
 		}else{
 			Sleep(100);
-			::SHChangeNotify(SHCNE_ASSOCCHANGED,SHCNF_FLUSH,NULL,NULL);	//ŠÖ˜A•t‚¯‚Ì•ÏX‚ğƒVƒFƒ‹‚É’Ê’m(•ÏX‚³‚ê‚Ä‚¢‚È‚¢‚©‚à‚µ‚ê‚È‚¢‚ªŠÈ•Ö‚Ì‚½‚ß)
+			::SHChangeNotify(SHCNE_ASSOCCHANGED,SHCNF_FLUSH,NULL,NULL);	//é–¢é€£ä»˜ã‘ã®å¤‰æ›´ã‚’ã‚·ã‚§ãƒ«ã«é€šçŸ¥(å¤‰æ›´ã•ã‚Œã¦ã„ãªã„ã‹ã‚‚ã—ã‚Œãªã„ãŒç°¡ä¾¿ã®ãŸã‚)
 		}
 	}else{
-		//ƒeƒ“ƒ|ƒ‰ƒŠINI‚ğíœ
+		//ãƒ†ãƒ³ãƒãƒ©ãƒªINIã‚’å‰Šé™¤
 		if(!m_strAssistINI.IsEmpty()){
 			::DeleteFile(m_strAssistINI);
 		}
@@ -281,19 +274,19 @@ void CConfigDialog::OnSize(UINT, CSize&)
 
 LRESULT CConfigDialog::OnUserSize(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-	//ƒvƒƒpƒeƒBƒV[ƒg‚ğ“\‚è•t‚¯‚é‚½‚ß‚ÌƒXƒNƒ[ƒ‹ƒRƒ“ƒeƒi‚Ì”z’uêŠ‚ğæ“¾
+	//ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆã‚’è²¼ã‚Šä»˜ã‘ã‚‹ãŸã‚ã®ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚³ãƒ³ãƒ†ãƒŠã®é…ç½®å ´æ‰€ã‚’å–å¾—
 	CStatic StaticFrame;
 	StaticFrame=GetDlgItem(IDC_STATIC_FRAME);
 	RECT rect;
 	StaticFrame.GetWindowRect(&rect);
 	ScreenToClient(&rect);
 
-	//ƒXƒNƒ[ƒ‹ƒRƒ“ƒeƒi‚ğˆÚ“®
+	//ã‚¹ã‚¯ãƒ­ãƒ¼ãƒ«ã‚³ãƒ³ãƒ†ãƒŠã‚’ç§»å‹•
 	ScrollWindow.MoveWindow(&rect);
 	return 0;
 }
 
-//LFAssist.exe‚Ì—v¿ƒJƒEƒ“ƒg‚ğ‘€ì
+//LFAssist.exeã®è¦è«‹ã‚«ã‚¦ãƒ³ãƒˆã‚’æ“ä½œ
 void CConfigDialog::RequireAssistant()
 {
 	m_nAssistRequireCount++;

@@ -1,44 +1,37 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "LogListDialog.h"
 #include "../Utilities/OSUtil.h"
 
-//ƒƒOî•ñ‚ğƒZƒbƒg
+//ãƒ­ã‚°æƒ…å ±ã‚’ã‚»ãƒƒãƒˆ
 void CLogListDialog::SetLogArray(const std::vector<ARCLOG> &rLog)
 {
 	m_LogArray=rLog;
 
-	//‚·‚×‚ÄOK‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN
+	//ã™ã¹ã¦OKã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯
 	UINT size=m_LogArray.size();
 	m_bAllOK=true;
 	for(UINT i=0;i<size;i++){
@@ -46,7 +39,7 @@ void CLogListDialog::SetLogArray(const std::vector<ARCLOG> &rLog)
 			m_bAllOK=false;
 			//break;
 		}
-		//•¶š‚Ì’u‚«Š·‚¦
+		//æ–‡å­—ã®ç½®ãæ›ãˆ
 		m_LogArray[i].strMsg.Replace(_T("\n"),_T("\r\n"));
 		m_LogArray[i].strMsg.Replace(_T("\r\r\n"),_T("\r\n"));
 	}
@@ -60,57 +53,57 @@ LRESULT CLogListDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	CenterWindow();
 
-	//---ƒ_ƒCƒAƒƒO‚Ì‰Šú‰»
-	// ‘å‚«‚¢ƒAƒCƒRƒ“İ’è
+	//---ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®åˆæœŸåŒ–
+	// å¤§ãã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIcon = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXICON),::GetSystemMetrics(SM_CYICON));
 	SetIcon(hIcon, TRUE);
-	// ¬‚³‚¢ƒAƒCƒRƒ“İ’è
+	// å°ã•ã„ã‚¢ã‚¤ã‚³ãƒ³è¨­å®š
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	//ƒ_ƒCƒAƒƒOƒLƒƒƒvƒVƒ‡ƒ“İ’è
+	//ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚­ãƒ£ãƒ—ã‚·ãƒ§ãƒ³è¨­å®š
 	SetWindowText(m_strCaption+(m_bAllOK?_T("[All Clear]"):_T("[NG]")));
 
-	//ˆ—ƒ‚[ƒh•¶š—ñİ’è
+	//å‡¦ç†ãƒ¢ãƒ¼ãƒ‰æ–‡å­—åˆ—è¨­å®š
 	CStatic StaticInfo=GetDlgItem(IDC_STATIC_LOGINFO);
 	StaticInfo.SetWindowText(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
 
 	//------------------------
-	//---ƒGƒfƒBƒbƒg‚Ì‰Šú‰»
+	//---ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã®åˆæœŸåŒ–
 	m_MsgEdit=GetDlgItem(IDC_EDIT_LOGINFO_MSG);
 	m_PathEdit=GetDlgItem(IDC_EDIT_LOGINFO_FILE);
 
 
-	//---ƒŠƒXƒgƒrƒ…[‚Ì‰Šú‰»
+	//---ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®åˆæœŸåŒ–
 	m_ItemListView=GetDlgItem(IDC_LIST_LOGINFO_ITEMS);
-	//ƒXƒ^ƒCƒ‹İ’è
+	//ã‚¹ã‚¿ã‚¤ãƒ«è¨­å®š
 	m_ItemListView.SetExtendedListViewStyle(/*LVS_EX_INFOTIP | */LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES|LVS_EX_HEADERDRAGDROP);
-	//---ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€’Ç‰Á
-	//ƒtƒ@ƒCƒ‹–¼
+	//---ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ è¿½åŠ 
+	//ãƒ•ã‚¡ã‚¤ãƒ«å
 	m_ItemListView.InsertColumn(0, CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILENAME)), LVCFMT_LEFT, 160,-1);
-	//ŒŸ¸Œ‹‰Ê(OK/NG)
+	//æ¤œæŸ»çµæœ(OK/NG)
 	CRect rc;
 	m_ItemListView.GetClientRect(rc);
 	m_ItemListView.InsertColumn(1, CString(MAKEINTRESOURCE(IDS_LOGINFO_RESULT)), LVCFMT_LEFT, rc.Width()-160-15,-1);
 
-	//ƒŒƒ|[ƒgƒ‚[ƒh‚Éİ’è
+	//ãƒ¬ãƒãƒ¼ãƒˆãƒ¢ãƒ¼ãƒ‰ã«è¨­å®š
 	DWORD Style=m_ItemListView.GetWindowLong(GWL_STYLE);
 	Style&=~(LVS_ICON|LVS_REPORT|LVS_SMALLICON|LVS_LIST);
 	m_ItemListView.SetWindowLong(GWL_STYLE,Style|LVS_REPORT);
 
 
-	//ƒAƒCƒeƒ€”İ’è
+	//ã‚¢ã‚¤ãƒ†ãƒ æ•°è¨­å®š
 	m_ItemListView.SetItemCount(m_LogArray.size());
 	if(!m_LogArray.empty()){
 		m_ItemListView.SetItemState(0,LVNI_SELECTED,LVNI_SELECTED);
 	}
 
-	//---ƒŠƒXƒgƒrƒ…[‚ÉƒtƒH[ƒJƒX‚ğ‚½‚¹‚é
+	//---ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’æŒãŸã›ã‚‹
 	m_ItemListView.SetFocus();
 
-	//---ƒ_ƒCƒAƒƒOƒŠƒTƒCƒY‰Šú‰»
+	//---ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒªã‚µã‚¤ã‚ºåˆæœŸåŒ–
 	DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
-	//---ƒEƒBƒ“ƒhƒE‚ğƒAƒNƒeƒBƒu‚É‚·‚é
+	//---ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ã«ã™ã‚‹
 	UtilSetAbsoluteForegroundWindow(hWnd);
 
 	return TRUE;
@@ -118,24 +111,24 @@ LRESULT CLogListDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 
 
-//‰¼‘zƒŠƒXƒgƒrƒ…[‚ÌƒAƒCƒeƒ€æ“¾‚É”½‰
+//ä»®æƒ³ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¢ã‚¤ãƒ†ãƒ å–å¾—ã«åå¿œ
 LRESULT CLogListDialog::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
 
-	//“Y‚¦šƒ`ƒFƒbƒN
+	//æ·»ãˆå­—ãƒã‚§ãƒƒã‚¯
 	if(pstLVDInfo->item.iItem<0||(unsigned int)pstLVDInfo->item.iItem>=m_LogArray.size())return 0;
 
 	ARCLOG &LogInfo=m_LogArray[pstLVDInfo->item.iItem];
 
 	switch(pstLVDInfo->item.iSubItem){
-	case 0:	//ƒtƒ@ƒCƒ‹–¼
+	case 0:	//ãƒ•ã‚¡ã‚¤ãƒ«å
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			_tcsncpy_s(pstLVDInfo->item.pszText,pstLVDInfo->item.cchTextMax, LogInfo.strFile,pstLVDInfo->item.cchTextMax);
 			PathStripPath(pstLVDInfo->item.pszText);
 		}
 		break;
-	case 1:	//ŒŸ¸Œ‹‰Ê(OK/NG)
+	case 1:	//æ¤œæŸ»çµæœ(OK/NG)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			WORD wCaption=-1;
 			switch(LogInfo.Result){
@@ -178,7 +171,7 @@ LRESULT CLogListDialog::OnGetDispInfo(LPNMHDR pnmh)
 }
 
 
-//ƒJƒXƒ^ƒ€ƒhƒ[
+//ã‚«ã‚¹ã‚¿ãƒ ãƒ‰ãƒ­ãƒ¼
 DWORD CLogListDialog::OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 {
 	if(lpnmcd->hdr.idFrom==IDC_LIST_LOGINFO_ITEMS)return CDRF_NOTIFYITEMDRAW;
@@ -188,7 +181,7 @@ DWORD CLogListDialog::OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 DWORD CLogListDialog::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 {
 	if(lpnmcd->hdr.idFrom==IDC_LIST_LOGINFO_ITEMS){
-		//ŒŸ¸Œ‹‰Ê‚É‚æ‚Á‚ÄF‚ğ•Ï‚¦‚é
+		//æ¤œæŸ»çµæœã«ã‚ˆã£ã¦è‰²ã‚’å¤‰ãˆã‚‹
 		LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
 		switch(m_LogArray[lpnmcd->dwItemSpec].Result){
 		case EXTRACT_OK:	//FALLTHROUGH
@@ -237,7 +230,7 @@ LRESULT CLogListDialog::OnItemChanged(LPNMHDR pnmh)
 	return TRUE;
 }
 
-//ƒRƒ“ƒgƒ[ƒ‹‚ÌF:“Ç‚İæ‚èê—pƒGƒfƒBƒbƒg
+//ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®è‰²:èª­ã¿å–ã‚Šå°‚ç”¨ã‚¨ãƒ‡ã‚£ãƒƒãƒˆ
 HBRUSH CLogListDialog::OnCtrlColorEdit(HDC,HWND hWnd)
 {
 	if(hWnd==m_MsgEdit||hWnd==m_PathEdit){
@@ -247,15 +240,15 @@ HBRUSH CLogListDialog::OnCtrlColorEdit(HDC,HWND hWnd)
 }
 
 
-//”äŠrŠÖ”ƒIƒuƒWƒFƒNƒg
+//æ¯”è¼ƒé–¢æ•°ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
 struct COMP{
-	int nCol;	//”äŠr‚Ég‚¤—ñ
+	int nCol;	//æ¯”è¼ƒã«ä½¿ã†åˆ—
 	COMP(int n):nCol(n){}
 	bool operator()(const ARCLOG& x, const ARCLOG& y)const{
 		switch(nCol){
-		case 0:	//ƒtƒ@ƒCƒ‹–¼
+		case 0:	//ãƒ•ã‚¡ã‚¤ãƒ«å
 			return (_tcsicmp(x.strFile, y.strFile)<0);
-		case 1:	//ƒXƒe[ƒ^ƒX
+		case 1:	//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 			return (x.Result< y.Result);
 		default:
 			ASSERT(!"This code cannot be run");
@@ -265,15 +258,15 @@ struct COMP{
 };
 
 
-//ƒ\[ƒg
+//ã‚½ãƒ¼ãƒˆ
 LRESULT CLogListDialog::OnSortItem(LPNMHDR pnmh)
 {
-	//ƒŠƒXƒgƒrƒ…[‚É‚µ‚©”½‰‚µ‚È‚¢
+	//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã—ã‹åå¿œã—ãªã„
 	if(pnmh->hwndFrom!=m_ItemListView){
 		return 0;
 	}
 
-	//Œ”‚ª1ŒÂˆÈ‰º‚È‚çƒ\[ƒg‚Í•K—v‚È‚¢
+	//ä»¶æ•°ãŒ1å€‹ä»¥ä¸‹ãªã‚‰ã‚½ãƒ¼ãƒˆã¯å¿…è¦ãªã„
 	if(m_LogArray.size()<=1){
 		return 0;
 	}
@@ -281,16 +274,16 @@ LRESULT CLogListDialog::OnSortItem(LPNMHDR pnmh)
 	LPNMLISTVIEW lpNMLV=(LPNMLISTVIEW)pnmh;
 	int nCol=lpNMLV->iSubItem;
 	if(nCol==m_nSortColumn){
-		//‹t‡ƒ\[ƒg
+		//é€†é †ã‚½ãƒ¼ãƒˆ
 		m_bSortDescending = !m_bSortDescending;
-		std::reverse(m_LogArray.begin(),m_LogArray.end());	//‹t‡‚É
+		std::reverse(m_LogArray.begin(),m_LogArray.end());	//é€†é †ã«
 		m_ItemListView.Invalidate();
 		return 0;
 	}
 
 	switch(nCol){
-	case 0:	//ƒtƒ@ƒCƒ‹–¼
-	case 1:	//ƒXƒe[ƒ^ƒX
+	case 0:	//ãƒ•ã‚¡ã‚¤ãƒ«å
+	case 1:	//ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 		std::sort(m_LogArray.begin(),m_LogArray.end(),COMP(nCol));
 		break;
 	default:

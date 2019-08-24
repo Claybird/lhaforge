@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ArchiverManager.h"
@@ -63,12 +56,12 @@ CFileListModel::~CFileListModel()
 
 HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
-	CString strArchive=lpszArchive;	//éüÇÃClearÇ≈lpszArchveÇ™îjâÛÇ≥ÇÍÇÈÇΩÇﬂÅAÇ±Ç±Ç≈ï€éù
+	CString strArchive=lpszArchive;	//Ê¨°„ÅÆClear„ÅßlpszArchve„ÅåÁ†¥Â£ä„Åï„Çå„Çã„Åü„ÇÅ„ÄÅ„Åì„Åì„Åß‰øùÊåÅ
 	Clear();
 	m_Mode=flMode;
 	m_idForceDLL=idForceDLL;
 
-	if(!PathFileExists(strArchive)){	//ë∂ç›ÇµÇ»Ç¢Ç»ÇÁÉGÉâÅ[
+	if(!PathFileExists(strArchive)){	//Â≠òÂú®„Åó„Å™„ÅÑ„Å™„Çâ„Ç®„É©„Éº
 		strErr.Format(IDS_ERROR_FILE_NOT_FOUND,(LPCTSTR)strArchive);
 		return E_LF_FILE_NOT_FOUND;
 	}
@@ -76,7 +69,7 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
 	HRESULT hr;
-	//âêÕ
+	//Ëß£Êûê
 	if(flMode==FILELIST_TREE){
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
@@ -93,7 +86,7 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 	m_lpCurrentNode=m_Content.GetRootNode();
 	dispatchEvent(WM_FILELIST_ARCHIVE_LOADED);
 
-	//É\Å[ÉgÇµÇƒÇ®Ç≠
+	//„ÇΩ„Éº„Éà„Åó„Å¶„Åä„Åè
 	SortCurrentEntries();
 	return S_OK;
 }
@@ -119,7 +112,7 @@ void CFileListModel::Clear()
 
 void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
 {
-	//ÉJÉåÉìÉgÉfÉBÉåÉNÉgÉäÇÃï€ë∂
+	//„Ç´„É¨„É≥„Éà„Éá„Ç£„É¨„ÇØ„Éà„É™„ÅÆ‰øùÂ≠ò
 	if(m_lpCurrentNode){
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=m_lpCurrentNode;
 		ARCHIVE_ENTRY_INFO_TREE* lpRoot=m_Content.GetRootNode();
@@ -132,7 +125,7 @@ void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
 bool CFileListModel::SetDirStack(const std::stack<CString> &_dirStack)
 {
 	std::stack<CString> dirStack(_dirStack);
-	//ÉJÉåÉìÉgÉfÉBÉåÉNÉgÉäÇÃïúå≥
+	//„Ç´„É¨„É≥„Éà„Éá„Ç£„É¨„ÇØ„Éà„É™„ÅÆÂæ©ÂÖÉ
 	while(!dirStack.empty()){
 		TRACE(_T("SetDirStack:%s\n"),(LPCTSTR)dirStack.top());
 		m_lpCurrentNode=m_lpCurrentNode->GetChild(dirStack.top());
@@ -157,17 +150,17 @@ void CFileListModel::SetCurrentNode(ARCHIVE_ENTRY_INFO_TREE* lpN)
 	SortCurrentEntries();
 }
 
-//ÉfÉBÉåÉNÉgÉäÇå@ÇËâ∫Ç∞ÇÈ
+//„Éá„Ç£„É¨„ÇØ„Éà„É™„ÇíÊéò„Çä‰∏ã„Åí„Çã
 bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO_TREE* lpNode)
 {
-	//äKëwç\ë¢Çñ≥éãÇ∑ÇÈèÍçáÇ…ÇÕÅAÇ±ÇÃìÆçÏÇÕñ≥éãÇ≥ÇÍÇÈ
+	//ÈöéÂ±§ÊßãÈÄ†„ÇíÁÑ°Ë¶ñ„Åô„ÇãÂ†¥Âêà„Å´„ÅØ„ÄÅ„Åì„ÅÆÂãï‰Ωú„ÅØÁÑ°Ë¶ñ„Åï„Çå„Çã
 	//if(Config.FileListWindow.FileListMode!=FILELIST_TREE)return false;
 
 	if(!lpNode){
 		return false;
 	}
 	if(!lpNode->bDir){
-		//ÉfÉBÉåÉNÉgÉäÇ≈Ç»ÇØÇÍÇŒãAÇ¡ÇƒÇ‡ÇÁÇ§
+		//„Éá„Ç£„É¨„ÇØ„Éà„É™„Åß„Å™„Åë„Çå„Å∞Â∏∞„Å£„Å¶„ÇÇ„Çâ„ÅÜ
 		return false;
 	}
 	m_lpCurrentNode=lpNode;
@@ -198,7 +191,7 @@ bool CFileListModel::MoveUpDir()
 
 
 
-//ÉäÉXÉgÉrÉÖÅ[Ç≈ÇÃÉAÉCÉeÉÄî‘çÜÇ…ëŒâûÇ∑ÇÈÉtÉ@ÉCÉãÉAÉCÉeÉÄÇéÊìæ
+//„É™„Çπ„Éà„Éì„É•„Éº„Åß„ÅÆ„Ç¢„Ç§„ÉÜ„É†Áï™Âè∑„Å´ÂØæÂøú„Åô„Çã„Éï„Ç°„Ç§„É´„Ç¢„Ç§„ÉÜ„É†„ÇíÂèñÂæó
 ARCHIVE_ENTRY_INFO_TREE* CFileListModel::GetFileListItemByIndex(long iIndex)
 {
 	ASSERT(m_lpCurrentNode);
@@ -209,7 +202,7 @@ ARCHIVE_ENTRY_INFO_TREE* CFileListModel::GetFileListItemByIndex(long iIndex)
 	//ASSERT(iIndex>=0 && numChildren>(unsigned)iIndex);
 	if(iIndex<0 || numChildren<=(unsigned)iIndex)return NULL;
 
-	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//îÒÉ\Å[ÉgèÛë‘
+	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//Èùû„ÇΩ„Éº„ÉàÁä∂ÊÖã
 		return m_lpCurrentNode->GetChild(iIndex);
 	}else{
 		if(m_bSortDescending){
@@ -220,7 +213,7 @@ ARCHIVE_ENTRY_INFO_TREE* CFileListModel::GetFileListItemByIndex(long iIndex)
 	}
 }
 
-//------É\Å[ÉgèÛë‘
+//------„ÇΩ„Éº„ÉàÁä∂ÊÖã
 void CFileListModel::SetSortKeyType(int nSortKeyType)
 {
 	if(m_nSortKeyType!=nSortKeyType){
@@ -237,7 +230,7 @@ void CFileListModel::SetSortMode(bool bSortDescending)
 	dispatchEvent(WM_FILELIST_UPDATED);
 }
 
-//î‰ärä÷êîÉIÉuÉWÉFÉNÉg
+//ÊØîËºÉÈñ¢Êï∞„Ç™„Éñ„Ç∏„Çß„ÇØ„Éà
 struct COMP{
 	FILEINFO_TYPE Type;
 	bool bReversed;
@@ -245,7 +238,7 @@ struct COMP{
 		switch(Type){
 		case FILEINFO_FILENAME:
 			{
-				//ÉfÉBÉåÉNÉgÉäÇ™è„Ç…óàÇÈÇÊÇ§Ç…Ç∑ÇÈ
+				//„Éá„Ç£„É¨„ÇØ„Éà„É™„Åå‰∏ä„Å´Êù•„Çã„Çà„ÅÜ„Å´„Åô„Çã
 				if(x->bDir){
 					if(!y->bDir){
 						return true;
@@ -255,7 +248,7 @@ struct COMP{
 				}
 				int result = _tcsicmp(x->strTitle , y->strTitle);
 				if(result == 0){
-					//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+					//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 				}else{
 					return (result<0);
@@ -265,7 +258,7 @@ struct COMP{
 			return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 		case FILEINFO_ORIGINALSIZE:
 			if(x->llOriginalSize.QuadPart == y->llOriginalSize.QuadPart){
-				//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+				//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 			}else{
 				return (x->llOriginalSize.QuadPart < y->llOriginalSize.QuadPart);
@@ -274,7 +267,7 @@ struct COMP{
 			{
 				int result = _tcsicmp(x->strExt , y->strExt);
 				if(result == 0){
-					//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+					//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 				}else{
 					return (result < 0);
@@ -284,7 +277,7 @@ struct COMP{
 			{
 				int result = CompareFileTime(&x->cFileTime , &y->cFileTime);
 				if(result == 0){
-					//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+					//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 				}else{
 					return (result < 0);
@@ -292,38 +285,38 @@ struct COMP{
 			}
 		case FILEINFO_ATTRIBUTE:
 			if(x->nAttribute == y->nAttribute){
-				//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+				//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 			}else{
 				return (x->nAttribute < y->nAttribute);
 			}
-		case FILEINFO_COMPRESSEDSIZE://à≥èkå„ÉtÉ@ÉCÉãÉTÉCÉY
+		case FILEINFO_COMPRESSEDSIZE://ÂúßÁ∏ÆÂæå„Éï„Ç°„Ç§„É´„Çµ„Ç§„Ç∫
 			if(x->llCompressedSize.QuadPart == y->llCompressedSize.QuadPart){
-				//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+				//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 			}else{
 				return (x->llCompressedSize.QuadPart < y->llCompressedSize.QuadPart);
 			}
-		case FILEINFO_METHOD:			//à≥èkÉÅÉ\ÉbÉh
+		case FILEINFO_METHOD:			//ÂúßÁ∏Æ„É°„ÇΩ„ÉÉ„Éâ
 			{
 				int result = _tcsicmp(x->strMethod , y->strMethod);;
 				if(result == 0){
-					//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+					//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 				}else{
 					return (result < 0);
 				}
 			}
-		case FILEINFO_RATIO:			//à≥èkó¶
+		case FILEINFO_RATIO:			//ÂúßÁ∏ÆÁéá
 			if(x->wRatio == y->wRatio){
-				//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+				//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 			}else{
 				return (x->wRatio < y->wRatio);
 			}
 		case FILEINFO_CRC:			//CRC
 			if(x->dwCRC < y->dwCRC){
-				//ìØÇ∂Ç»ÇÁÉpÉXñºÇ≈É\Å[Ég
+				//Âêå„Åò„Å™„Çâ„Éë„ÇπÂêç„Åß„ÇΩ„Éº„Éà
 				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
 			}else{
 				return (x->dwCRC < y->dwCRC);
@@ -334,12 +327,12 @@ struct COMP{
 };
 
 
-//É\Å[Ég
+//„ÇΩ„Éº„Éà
 void CFileListModel::SortCurrentEntries()
 {
 	if(m_lpCurrentNode){
 		FILEINFO_TYPE Type=(FILEINFO_TYPE)m_nSortKeyType;
-		if(FILEINFO_INVALID==Type){		//É\Å[Égâèú
+		if(FILEINFO_INVALID==Type){		//„ÇΩ„Éº„ÉàËß£Èô§
 			return;
 		}
 		m_SortedChildren=m_lpCurrentNode->childrenArray;
@@ -354,7 +347,7 @@ void CFileListModel::SortCurrentEntries()
 }
 
 
-//lpTopà»â∫ÇÃÉtÉ@ÉCÉãÇåüçı;åüçıåãâ Çäiî[ÇµÇΩARCHIVE_ENTRY_INFO_TREEÇÃÉ|ÉCÉìÉ^Çï‘Ç∑
+//lpTop‰ª•‰∏ã„ÅÆ„Éï„Ç°„Ç§„É´„ÇíÊ§úÁ¥¢;Ê§úÁ¥¢ÁµêÊûú„ÇíÊ†ºÁ¥ç„Åó„ÅüARCHIVE_ENTRY_INFO_TREE„ÅÆ„Éù„Ç§„É≥„Çø„ÇíËøî„Åô
 ARCHIVE_ENTRY_INFO_TREE* CFileListModel::FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO_TREE *lpTop)
 {
 	m_FoundItems.childrenArray.clear();
@@ -394,7 +387,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
 
-	// èoóÕêÊÇÃéÊìæ
+	// Âá∫ÂäõÂÖà„ÅÆÂèñÂæó
 	CString strErr;
 	bool bTmp;
 	CPath pathOutputBaseDir;
@@ -409,7 +402,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 
 	pathOutputBaseDir.AddBackslash();
 	TRACE(_T("Default path from config:%s\n"),(LPCTSTR)pathOutputBaseDir);
-	if(!bSameDir){	//èoóÕêÊÇÉ_ÉCÉAÉçÉOÇ≈ëIÇŒÇπÇÈ
+	if(!bSameDir){	//Âá∫ÂäõÂÖà„Çí„ÉÄ„Ç§„Ç¢„É≠„Ç∞„ÅßÈÅ∏„Å∞„Åõ„Çã
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
 		CLFFolderDialog dlg(hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(pathOutputBaseDir);
@@ -420,15 +413,15 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 		pathOutputBaseDir.AddBackslash();
 	}
 
-	//ÉEÉBÉìÉhÉEÇégópïsâ¬Ç…
+	//„Ç¶„Ç£„É≥„Éâ„Ç¶„Çí‰ΩøÁî®‰∏çÂèØ„Å´
 	::EnableWindow(hWnd,FALSE);
-	//âìÄ
+	//Ëß£Âáç
 	if(ExtractItems(items,pathOutputBaseDir,lpBase,IsFindMode(),strLog)){
-		//ÉEÉBÉìÉhÉEÇégópâ¬î\Ç…
+		//„Ç¶„Ç£„É≥„Éâ„Ç¶„Çí‰ΩøÁî®ÂèØËÉΩ„Å´
 		::EnableWindow(hWnd,TRUE);
 		return S_OK;
 	}else{
-		//ÉEÉBÉìÉhÉEÇégópâ¬î\Ç…
+		//„Ç¶„Ç£„É≥„Éâ„Ç¶„Çí‰ΩøÁî®ÂèØËÉΩ„Å´
 		::EnableWindow(hWnd,TRUE);
 		return E_FAIL;
 	}
@@ -453,10 +446,10 @@ bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &file
 	return m_Content.DeleteItems(mr_Config,fileList,strLog);
 }
 
-//::Extract()ÇåƒÇ‘
+//::Extract()„ÇíÂëº„Å∂
 bool CFileListModel::ExtractArchive()
 {
-	//âìÄ
+	//Ëß£Âáç
 	std::list<CString> archiveList;
 	archiveList.push_back(GetArchiveFileName());
 	return ::Extract(archiveList,mr_Config,m_idForceDLL,NULL);
@@ -464,7 +457,7 @@ bool CFileListModel::ExtractArchive()
 
 void CFileListModel::TestArchive()
 {
-	//åüç∏
+	//Ê§úÊüª
 	std::list<CString> archiveList;
 	archiveList.push_back(GetArchiveFileName());
 	::TestArchive(archiveList,mr_Config);

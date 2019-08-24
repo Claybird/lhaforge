@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "stdafx.h"
@@ -53,7 +46,7 @@
 #include "ArchiverCode/ArchiverXACRETT.h"
 #include "ArchiverCode/ArchiverB2E.h"
 
-//DLLí—Ş
+//DLLç¨®é¡
 enum DLL_ID{
 	DLL_ID_UNKNOWN=-1,
 	DLL_ID_UNLHA,
@@ -109,7 +102,7 @@ protected:
 	CArchiverXACRETT ArcXACRETT;
 	CArchiverB2E	ArcB2E;
 	CArchiverUNISO	ArcUNISO;
-	std::list<std::pair<CArchiverDLL*,DLL_ID> > ArchiverList;	//list‚à‚µ‚­‚Ívector‚É‚µ‚Ä‚¨‚­‚±‚Æ;push‚Ì‡”Ô‚ªƒA[ƒJƒCƒuŒ`®„’è‚Ì‡”Ô‚É‚È‚é
+	std::list<std::pair<CArchiverDLL*,DLL_ID> > ArchiverList;	//listã‚‚ã—ãã¯vectorã«ã—ã¦ãŠãã“ã¨;pushã®é †ç•ªãŒã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å½¢å¼æ¨å®šã®é †ç•ªã«ãªã‚‹
 
 	CConfigDLL m_ConfDLL;
 	CConfigManager *m_lpConfig;
@@ -123,9 +116,9 @@ public:
 		return Singleton;
 	}
 
-	CArchiverDLL* GetArchiver(LPCTSTR,LPCTSTR lpDenyExt,DLL_ID ForceDLL=DLL_ID_UNKNOWN);	//ForceDLL‚ÉDLL_ID‚ğw’è‚·‚é‚Æ‚»‚ÌDLL‚ğ•Ô‚·
+	CArchiverDLL* GetArchiver(LPCTSTR,LPCTSTR lpDenyExt,DLL_ID ForceDLL=DLL_ID_UNKNOWN);	//ForceDLLã«DLL_IDã‚’æŒ‡å®šã™ã‚‹ã¨ãã®DLLã‚’è¿”ã™
 	CArchiverDLL* GetArchiver(DLL_ID,bool bSilent=false,bool bIgnoreError=false);
-	CArchiverB2E &GetB2EHandler();	//B2E32.dll‚¾‚¯“Á•Êˆµ‚¢...
+	CArchiverB2E &GetB2EHandler();	//B2E32.dllã ã‘ç‰¹åˆ¥æ‰±ã„...
 	void Final();
 	void Free();
 
@@ -134,10 +127,10 @@ public:
 };
 
 //---------------------
-// QÆ—p‚Ìƒe[ƒuƒ‹
+// å‚ç…§ç”¨ã®ãƒ†ãƒ¼ãƒ–ãƒ«
 //---------------------
 
-//Šg’£q‚ÆDLL_ID‚Ì‘Î‰•\
+//æ‹¡å¼µå­ã¨DLL_IDã®å¯¾å¿œè¡¨
 const struct ARRAYITEM_EXT_DLLID{
 	LPCTSTR	lpszExt;
 	DLL_ID	DllID;
@@ -161,21 +154,21 @@ const struct ARRAYITEM_EXT_DLLID{
 	{_T(".tlzma"),	DLL_ID_TAR},
 
 	{_T(".jak"),	DLL_ID_JACK},
-//	{_T(".bh"),		DLL_ID_BH},		”p~
+//	{_T(".bh"),		DLL_ID_BH},		å»ƒæ­¢
 	{_T(".hki"),	DLL_ID_UNHKI},
 	{_T(".yz1"),	DLL_ID_YZ1},
-//	{_T(".yz2"),	DLL_ID_YZ2},	”p~
+//	{_T(".yz2"),	DLL_ID_YZ2},	å»ƒæ­¢
 	{_T(".bza"),	DLL_ID_BGA},
 	{_T(".gza"),	DLL_ID_BGA},
 
 	{_T(".ish"),	DLL_ID_AISH},
 	{_T(".uue"),	DLL_ID_AISH},
-	//ISHŠÖŒW‚Å‰ö‚µ‚»‚¤‚È‚à‚Ì
+	//ISHé–¢ä¿‚ã§æ€ªã—ãã†ãªã‚‚ã®
 	{_T(".doc"),	DLL_ID_AISH},
 	{_T(".txt"),	DLL_ID_AISH},
 	{_T(".log"),	DLL_ID_AISH},
 
-//ˆÈ‰ºATAR‚É‚æ‚é‰ğ“€‚Ì‚İ‰Â”\‚ÈŒ`®
+//ä»¥ä¸‹ã€TARã«ã‚ˆã‚‹è§£å‡ã®ã¿å¯èƒ½ãªå½¢å¼
 	{_T(".z"),		DLL_ID_TAR},
 	{_T(".taz"),	DLL_ID_TAR},
 	{_T(".cpio"),	DLL_ID_TAR},
@@ -183,20 +176,20 @@ const struct ARRAYITEM_EXT_DLLID{
 	{_T(".lib"),	DLL_ID_TAR},
 	{_T(".rpm"),	DLL_ID_TAR},
 	{_T(".deb"),	DLL_ID_TAR},
-//‚±‚±‚©‚ç‚Í‰ğ“€‚Ì‚İ‘Î‰‚ÌŒ`®
+//ã“ã“ã‹ã‚‰ã¯è§£å‡ã®ã¿å¯¾å¿œã®å½¢å¼
 	{_T(".arj"),	DLL_ID_UNARJ},
 	{_T(".gca"),	DLL_ID_UNGCA},
 	{_T(".rar"),	DLL_ID_UNRAR},
 	{_T(".ace"),	DLL_ID_UNACE},
 	{_T(".imp"),	DLL_ID_UNIMP},
 	{_T(".bel"),	DLL_ID_UNBEL},
-//	{_T(".pma"),	DLL_ID_UNPMA},	”p~
+//	{_T(".pma"),	DLL_ID_UNPMA},	å»ƒæ­¢
 	{_T(".iso"),	DLL_ID_UNISO},
 };
 const int ARRAY_EXT_DLLID_COUNT=COUNTOF(Array_ExtDLLID);
 
 
-//PARAMETER_TYPE‚ÆDLL_ID‚Ì‘Î‰•\
+//PARAMETER_TYPEã¨DLL_IDã®å¯¾å¿œè¡¨
 const struct ARRAYITEM_PARAMETERTYPE_DLLID{
 	PARAMETER_TYPE	ParameterType;
 	DLL_ID			DllID;

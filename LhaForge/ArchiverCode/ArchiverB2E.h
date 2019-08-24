@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "arc_interface.h"
@@ -43,21 +36,21 @@ typedef UINT (WINAPI *B2ESCRIPTGETEXTRACTORINDEX)(LPCSTR);	//B2EScriptGetExtract
 typedef BOOL (WINAPI *B2ESCRIPTGETNAME)(const UINT,LPSTR,const DWORD);	//B2EScriptGetName
 
 
-#define B2EABILITY_CHECK		1       //CheckArchive()‘Š“–‚Ìˆ—‚ª‰Â”\
-#define B2EABILITY_MELT			2       //‰ğ“€ˆ—‚ª‰Â”\
-#define B2EABILITY_LIST			4       //‘ŒÉ“àƒtƒ@ƒCƒ‹‚Ì—ñ‹“‚ª‰Â”\
-#define B2EABILITY_MELT_EACH	8       //w’è‚µ‚½ƒtƒ@ƒCƒ‹‚Ì‚İ‚Ì‰ğ“€‚ª‰Â”\
-#define B2EABILITY_COMPRESS		16      //ˆ³k‚ª‰Â”\
-#define B2EABILITY_ARCHIVE		32      //•¡”ƒtƒ@ƒCƒ‹‚ğ‚Ü‚Æ‚ß‚é‚±‚Æ‚ª‰Â”\(cf.GZip)
-#define B2EABILITY_SFX			64      //©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹‚ğì¬‰Â”\
-#define B2EABILITY_ADD			128		/*ƒtƒ@ƒCƒ‹‚Ì’Ç‰Á‚ª‰Â”\*/
-#define B2EABILITY_DELETE		256		/*ƒtƒ@ƒCƒ‹‚Ìíœ‚ª‰Â”\*/
+#define B2EABILITY_CHECK		1       //CheckArchive()ç›¸å½“ã®å‡¦ç†ãŒå¯èƒ½
+#define B2EABILITY_MELT			2       //è§£å‡å‡¦ç†ãŒå¯èƒ½
+#define B2EABILITY_LIST			4       //æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«ã®åˆ—æŒ™ãŒå¯èƒ½
+#define B2EABILITY_MELT_EACH	8       //æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã®ã¿ã®è§£å‡ãŒå¯èƒ½
+#define B2EABILITY_COMPRESS		16      //åœ§ç¸®ãŒå¯èƒ½
+#define B2EABILITY_ARCHIVE		32      //è¤‡æ•°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã¾ã¨ã‚ã‚‹ã“ã¨ãŒå¯èƒ½(cf.GZip)
+#define B2EABILITY_SFX			64      //è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆå¯èƒ½
+#define B2EABILITY_ADD			128		/*ãƒ•ã‚¡ã‚¤ãƒ«ã®è¿½åŠ ãŒå¯èƒ½*/
+#define B2EABILITY_DELETE		256		/*ãƒ•ã‚¡ã‚¤ãƒ«ã®å‰Šé™¤ãŒå¯èƒ½*/
 
-//B2EƒXƒNƒŠƒvƒg‚Ìî•ñ
+//B2Eã‚¹ã‚¯ãƒªãƒ—ãƒˆã®æƒ…å ±
 struct B2ESCRIPTINFO{
 	UINT uIndex;
 	WORD wAbility;
-	char szFormat[_MAX_PATH+1];	//ˆ³kŒ`®–¼
+	char szFormat[_MAX_PATH+1];	//åœ§ç¸®å½¢å¼å
 	std::vector<CStringA> MethodArray;
 	int nDefaultMethod;
 };
@@ -84,17 +77,17 @@ public:
 	virtual bool Extract(LPCTSTR,CConfigManager&,const CConfigExtract&,bool,LPCTSTR,CString &)override;
 	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false)override;
 	virtual bool ExamineArchive(LPCTSTR,CConfigManager&,bool,bool&,bool&,CString&,CString &strErr)override;
-	virtual bool IsWeakErrorCheck()const override{return true;}	//%Prefix%()‚ÌƒGƒ‰[ƒ`ƒFƒbƒN‚ªŠÃ‚¢(XacRett‚Ì‚æ‚¤‚É)‚È‚çtrue
-//	virtual bool IsWeakCheckArchive()const{return true;}	‰ğ“€Œó•â‚ğ©“®“I‚É’T‚³‚¹‚é‚½‚ß
+	virtual bool IsWeakErrorCheck()const override{return true;}	//%Prefix%()ã®ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ãŒç”˜ã„(XacRettã®ã‚ˆã†ã«)ãªã‚‰true
+//	virtual bool IsWeakCheckArchive()const{return true;}	è§£å‡å€™è£œã‚’è‡ªå‹•çš„ã«æ¢ã•ã›ã‚‹ãŸã‚
 	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const override;
 	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const override;
 
-	//ƒA[ƒJƒCƒu‚©‚çw’è‚µ‚½ƒtƒ@ƒCƒ‹‚ğíœ
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‹ã‚‰æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤
 	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &)override;
 	virtual bool QueryDeleteItemFromArchiveSupported(LPCTSTR ArcFileName)const override;
 
-	//---“Æ©
+	//---ç‹¬è‡ª
 	bool EnumCompressB2EScript(std::vector<B2ESCRIPTINFO>&);
 	bool EnumActiveB2EScriptNames(std::vector<CString> &ScriptNames);
 };

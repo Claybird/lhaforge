@@ -1,50 +1,43 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
 
 
-//---ƒCƒxƒ“ƒg
-#define WM_FILELIST_MODELCHANGED	(WM_APP+100)	//ƒ‚ƒfƒ‹‚ª•ÏX‚É‚È‚Á‚½
-#define WM_FILELIST_ARCHIVE_LOADED	(WM_APP+101)	//V‹K‚É\‘¢‚ğ‰ğÍ
-#define WM_FILELIST_NEWCONTENT		(WM_APP+102)	//•ÊƒtƒHƒ‹ƒ_‚ÖˆÚ“®‚µ‚½‚È‚Ç
-#define WM_FILELIST_UPDATED			(WM_APP+103)	//•À‚Ñ‡‚È‚Ç‚ª•ÏX‚É
+//---ã‚¤ãƒ™ãƒ³ãƒˆ
+#define WM_FILELIST_MODELCHANGED	(WM_APP+100)	//ãƒ¢ãƒ‡ãƒ«ãŒå¤‰æ›´ã«ãªã£ãŸ
+#define WM_FILELIST_ARCHIVE_LOADED	(WM_APP+101)	//æ–°è¦ã«æ§‹é€ ã‚’è§£æ
+#define WM_FILELIST_NEWCONTENT		(WM_APP+102)	//åˆ¥ãƒ•ã‚©ãƒ«ãƒ€ã¸ç§»å‹•ã—ãŸãªã©
+#define WM_FILELIST_UPDATED			(WM_APP+103)	//ä¸¦ã³é †ãªã©ãŒå¤‰æ›´ã«
 
-//---ƒRƒ}ƒ“ƒh
-#define WM_FILELIST_REFRESH			(WM_APP+150)	//Ä“x‰ğÍƒRƒ}ƒ“ƒh
-#define WM_FILELIST_OPEN_BY_PROPNAME	(WM_APP+151)	//ƒtƒ@ƒCƒ‹‰{——ˆË—ŠƒRƒ}ƒ“ƒh
+//---ã‚³ãƒãƒ³ãƒ‰
+#define WM_FILELIST_REFRESH			(WM_APP+150)	//å†åº¦è§£æã‚³ãƒãƒ³ãƒ‰
+#define WM_FILELIST_OPEN_BY_PROPNAME	(WM_APP+151)	//ãƒ•ã‚¡ã‚¤ãƒ«é–²è¦§ä¾é ¼ã‚³ãƒãƒ³ãƒ‰
 
 
-//---ƒCƒxƒ“ƒg
-#define WM_FILELIST_WND_STATE_CHANGED		(WM_APP+200)	//ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒE‚Ìó‘Ô‚ª•Ï‰»‚µ‚½
+//---ã‚¤ãƒ™ãƒ³ãƒˆ
+#define WM_FILELIST_WND_STATE_CHANGED		(WM_APP+200)	//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã®çŠ¶æ…‹ãŒå¤‰åŒ–ã—ãŸ
 
 #define WM_LHAFORGE_FILELIST_ACTIVATE_FILE		(WM_APP+300)

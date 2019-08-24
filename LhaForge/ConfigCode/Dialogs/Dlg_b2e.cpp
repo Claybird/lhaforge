@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_B2E.h"
@@ -35,35 +28,35 @@
 #include "../../Dialogs/LFFolderDialog.h"
 
 //=================
-// B2Eİ’è‰æ–Ê
+// B2Eè¨­å®šç”»é¢
 //=================
 LRESULT CConfigDlgB2E::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//---------------------------
-	// B2E.DLL‚ğg‚¤‚©‚Ç‚¤‚©
+	// B2E.DLLã‚’ä½¿ã†ã‹ã©ã†ã‹
 	//---------------------------
 	Check_EnableB2E=GetDlgItem(IDC_CHECK_ENABLE_B2E);
 	Check_EnableB2E.SetCheck(m_Config.EnableDLL);
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
-	//—LŒø/–³Œø
+	//æœ‰åŠ¹/ç„¡åŠ¹
 	::EnableWindow(GetDlgItem(IDC_CHECK_PRIORITIZE_B2E),Check_EnableB2E.GetCheck());
 	::EnableWindow(GetDlgItem(IDC_EDIT_B2E_PRIORITY_EXTENSION),Check_EnableB2E.GetCheck());
 
 
-	//ƒAƒNƒeƒBƒu‚ÈDLL
+	//ã‚¢ã‚¯ãƒ†ã‚£ãƒ–ãªDLL
 	{
 #if !defined(_UNICODE)&&!defined(UNICODE)
-#error("UNICODE”Å‚Ì‚İÀ‘•")
+#error("UNICODEç‰ˆã®ã¿å®Ÿè£…")
 #endif
 		CListViewCtrl List_B2E=GetDlgItem(IDC_LIST_ACTIVE_B2E);
-		//ƒŠƒXƒgƒrƒ…[‚ÉƒJƒ‰ƒ€‚ğ’Ç‰Á
+		//ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«ã‚«ãƒ©ãƒ ã‚’è¿½åŠ 
 		CRect rect;
 		List_B2E.GetClientRect(rect);
 		int nScrollWidth = GetSystemMetrics(SM_CXVSCROLL);
@@ -71,11 +64,11 @@ LRESULT CConfigDlgB2E::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 		CArchiverB2E &ArcB2E=CArchiverDLLManager::GetInstance().GetB2EHandler();
 		if(ArcB2E.IsOK()){
-			//B2Eî•ñæ“¾
+			//B2Eæƒ…å ±å–å¾—
 			std::vector<CString> ScriptNames;
 			if(!ArcB2E.EnumActiveB2EScriptNames(ScriptNames))ScriptNames.clear();
 
-			//ŠeB2E‚Ìî•ñ‚ğ’Ç‰Á
+			//å„B2Eã®æƒ…å ±ã‚’è¿½åŠ 
 			for(size_t i=0;i<ScriptNames.size();i++){
 				List_B2E.AddItem(i, 0, ScriptNames[i]);
 			}
@@ -88,15 +81,15 @@ LRESULT CConfigDlgB2E::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgB2E::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//---------------------------
-	// B2E.DLL‚ğg‚¤‚©‚Ç‚¤‚©
+	// B2E.DLLã‚’ä½¿ã†ã‹ã©ã†ã‹
 	//---------------------------
 	m_Config.EnableDLL=Check_EnableB2E.GetCheck();
 
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
@@ -109,14 +102,14 @@ LRESULT CConfigDlgB2E::OnApply()
 LRESULT CConfigDlgB2E::OnBrowse(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		//DDXæ“¾
+		//DDXå–å¾—
 		DoDataExchange(TRUE);
 		CLFFolderDialog dlg(m_hWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(m_Config.ScriptDirectory);
 		if(IDOK==dlg.DoModal()){
 			m_Config.ScriptDirectory=dlg.GetFolderPath();
 		}
-		//DDXî•ñƒAƒbƒvƒf[ƒg
+		//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 		DoDataExchange(FALSE);
 	}
 	return 0;
@@ -125,7 +118,7 @@ LRESULT CConfigDlgB2E::OnBrowse(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& 
 LRESULT CConfigDlgB2E::OnCheckEnable(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		//—LŒø/–³Œø
+		//æœ‰åŠ¹/ç„¡åŠ¹
 		::EnableWindow(GetDlgItem(IDC_CHECK_PRIORITIZE_B2E),Check_EnableB2E.GetCheck());
 		::EnableWindow(GetDlgItem(IDC_EDIT_B2E_PRIORITY_EXTENSION),Check_EnableB2E.GetCheck());
 	}
@@ -133,27 +126,27 @@ LRESULT CConfigDlgB2E::OnCheckEnable(WORD wNotifyCode, WORD wID, HWND hWndCtl, B
 }
 
 
-//B2Eˆ³kƒƒjƒ…[ƒLƒƒƒbƒVƒ…‚Ì¶¬‚Æíœ‚ğs‚¤
+//B2Eåœ§ç¸®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã®ç”Ÿæˆã¨å‰Šé™¤ã‚’è¡Œã†
 LRESULT CConfigDlgB2E::OnMenuCache(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED!=wNotifyCode){
 		return 0;
 	}
-	bool bDummy;	//ƒ_ƒ~[
-	CPath strPath;	//ƒtƒ@ƒCƒ‹ƒpƒX
-	//ƒƒjƒ…[ƒLƒƒƒbƒVƒ…ƒtƒ@ƒCƒ‹–¼æ“¾
+	bool bDummy;	//ãƒ€ãƒŸãƒ¼
+	CPath strPath;	//ãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹
+	//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	UtilGetDefaultFilePath(strPath,PROGRAMDIR_NAME,_T("B2EMenu.dat"),bDummy);
 	if(IDC_BUTTON_B2E_MENUCACHE_GENERATE==wID){
-		//ƒƒjƒ…[ƒLƒƒƒbƒVƒ…¶¬
-		//Šù‘¶‚ÌƒLƒƒƒbƒVƒ…‚Ííœ
+		//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚­ãƒ£ãƒƒã‚·ãƒ¥ç”Ÿæˆ
+		//æ—¢å­˜ã®ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã¯å‰Šé™¤
 		if(strPath.FileExists()){
 			::DeleteFile(strPath);
 		}
 
 		//---------------
-		// B2E‚Ìî•ñæ“¾
+		// B2Eã®æƒ…å ±å–å¾—
 		//---------------
-		//B2Eƒnƒ“ƒhƒ‰
+		//B2Eãƒãƒ³ãƒ‰ãƒ©
 		CArchiverB2E &ArcB2E=CArchiverDLLManager::GetInstance().GetB2EHandler();
 		if(!ArcB2E.IsOK()){
 			CString msg;
@@ -162,14 +155,14 @@ LRESULT CConfigDlgB2E::OnMenuCache(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
 			return 0;
 		}
 
-		//B2Eî•ñæ“¾
+		//B2Eæƒ…å ±å–å¾—
 		std::vector<B2ESCRIPTINFO> ScriptInfoArray;
 		if(!ArcB2E.EnumCompressB2EScript(ScriptInfoArray))ScriptInfoArray.clear();
 
 #if !defined(_UNICODE)&&!defined(UNICODE)
- #error("UNICODE”Å‚Ì‚İÀ‘•")
+ #error("UNICODEç‰ˆã®ã¿å®Ÿè£…")
 #endif
-		//g‚¦‚éB2E‚ª‚ ‚ê‚Î
+		//ä½¿ãˆã‚‹B2EãŒã‚ã‚Œã°
 		if(!ScriptInfoArray.empty()){
 			HANDLE hFile=CreateFile(strPath,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 			if(INVALID_HANDLE_VALUE==hFile){
@@ -179,11 +172,11 @@ LRESULT CConfigDlgB2E::OnMenuCache(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
 				return false;
 			}
 
-			//---Œ`®
+			//---å½¢å¼
 			for(UINT uFmt=0;uFmt<ScriptInfoArray.size();uFmt++){
-				CString strFormatInfo;	//Œ`®‚Ìî•ñ([Œ`®–¼]\t[ƒƒ\ƒbƒh–¼])
+				CString strFormatInfo;	//å½¢å¼ã®æƒ…å ±([å½¢å¼å]\t[ãƒ¡ã‚½ãƒƒãƒ‰å])
 				strFormatInfo=CA2T(ScriptInfoArray[uFmt].szFormat);
-				//---ƒƒ\ƒbƒh
+				//---ãƒ¡ã‚½ãƒƒãƒ‰
 				if(ScriptInfoArray[uFmt].MethodArray.empty()){
 					strFormatInfo+=_T("\tDefault");
 				}
@@ -194,14 +187,14 @@ LRESULT CConfigDlgB2E::OnMenuCache(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOO
 					}
 				}
 				strFormatInfo+=_T("\r\n");
-				//ƒtƒ@ƒCƒ‹‚Éo—Í
+				//ãƒ•ã‚¡ã‚¤ãƒ«ã«å‡ºåŠ›
 				DWORD dwWritten=0;
 				WriteFile(hFile,(LPCBYTE)(LPCTSTR)strFormatInfo,_tcslen(strFormatInfo)*sizeof(TCHAR),&dwWritten,NULL);
 			}
 			CloseHandle(hFile);
 		}
 	}else{
-		//ƒƒjƒ…[ƒLƒƒƒbƒVƒ…íœ
+		//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚­ãƒ£ãƒƒã‚·ãƒ¥å‰Šé™¤
 		if(strPath.FileExists()){
 			::DeleteFile(strPath);
 		}

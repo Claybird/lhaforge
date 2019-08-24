@@ -1,48 +1,41 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_lzh.h"
 
 //=================
-// LZHˆê”Êİ’è‰æ–Ê
+// LZHä¸€èˆ¬è¨­å®šç”»é¢
 //=================
 LRESULT CConfigDlgLZH::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//----------------
-	// ˆ³kŒ`®‚Ì‘I‘ğ
+	// åœ§ç¸®å½¢å¼ã®é¸æŠ
 	//----------------
 	Radio_CompressType[LZH_COMPRESS_LH0]=GetDlgItem(IDC_RADIO_LZH_LH0);
 	Radio_CompressType[LZH_COMPRESS_LH1]=GetDlgItem(IDC_RADIO_LZH_LH1);
@@ -53,7 +46,7 @@ LRESULT CConfigDlgLZH::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Radio_CompressType[m_Config.CompressType].SetCheck(1);
 
 	//------------------------------------------------
-	// ©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹‚ğì¬‚·‚éÛİ’è‚ğs‚¤‚©‚Ç‚¤‚©
+	// è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹éš›è¨­å®šã‚’è¡Œã†ã‹ã©ã†ã‹
 	//------------------------------------------------
 	Check_ConfigSFX=GetDlgItem(IDC_CHECK_LZH_SFX_CONFIG);
 	Check_ConfigSFX.SetCheck(0!=m_Config.ConfigSFX);
@@ -64,10 +57,10 @@ LRESULT CConfigDlgLZH::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgLZH::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//----------------
-	// ˆ³kŒ`®‚Ì‘I‘ğ
+	// åœ§ç¸®å½¢å¼ã®é¸æŠ
 	//----------------
 	for(int Type=0;Type<COUNTOF(Radio_CompressType);Type++){
 		if(Radio_CompressType[Type].GetCheck()){
@@ -76,7 +69,7 @@ LRESULT CConfigDlgLZH::OnApply()
 		}
 	}
 	//------------------------------------------------
-	// ©ŒÈ‰ğ“€ƒtƒ@ƒCƒ‹‚ğì¬‚·‚éÛİ’è‚ğs‚¤‚©‚Ç‚¤‚©
+	// è‡ªå·±è§£å‡ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã™ã‚‹éš›è¨­å®šã‚’è¡Œã†ã‹ã©ã†ã‹
 	//------------------------------------------------
 	m_Config.ConfigSFX=Check_ConfigSFX.GetCheck();
 

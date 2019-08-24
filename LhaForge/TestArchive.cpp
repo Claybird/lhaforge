@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "TestArchive.h"
@@ -42,9 +35,9 @@ bool TestArchive(const std::list<CString> &rArcList,CConfigManager &ConfigManage
 {
 	CArchiverDLLManager &ArchiverManager=CArchiverDLLManager::GetInstance();
 
-	//XacRett‚Íƒ`ƒFƒbƒN‚ªŠÃ‚¢‚½‚ßg‚í‚È‚¢
+	//XacRettã¯ãƒã‚§ãƒƒã‚¯ãŒç”˜ã„ãŸã‚ä½¿ã‚ãªã„
 
-	//ƒvƒƒOƒŒƒXƒo[
+	//ãƒ—ãƒ­ã‚°ãƒ¬ã‚¹ãƒãƒ¼
 	CProgressDialog dlg;
 	int nFiles=rArcList.size();
 	dlg.Create(NULL);
@@ -55,27 +48,27 @@ bool TestArchive(const std::list<CString> &rArcList,CConfigManager &ConfigManage
 	std::list<CString>::const_iterator ite=rArcList.begin();
 	const std::list<CString>::const_iterator end=rArcList.end();
 
-	//ƒeƒXƒgŒ‹‰Ê‚ğŠi”[‚·‚é
+	//ãƒ†ã‚¹ãƒˆçµæœã‚’æ ¼ç´ã™ã‚‹
 	std::vector<ARCLOG> LogArray;
 	for(;ite!=end;++ite){
-		//ƒvƒƒOƒŒƒXƒo[‚ği‚ß‚é
+		//ãƒ—ãƒ­ã‚°ãƒ¬ã‚¹ãƒãƒ¼ã‚’é€²ã‚ã‚‹
 		if(dlg.IsWindow())dlg.SetNextState(*ite);
 
 		ARCLOG arcLog;
 		arcLog.strFile=*ite;
-		//ƒA[ƒJƒCƒoƒnƒ“ƒhƒ‰æ“¾
-		//NOTE:DenyExt‚É‚æ‚é‘ÎÛi‚è‚İ‚ÍŠù‚És‚í‚ê‚Ä‚¢‚é‚Ì‚Å2‰ñ‚Ís‚í‚È‚¢
+		//ã‚¢ãƒ¼ã‚«ã‚¤ãƒãƒãƒ³ãƒ‰ãƒ©å–å¾—
+		//NOTE:DenyExtã«ã‚ˆã‚‹å¯¾è±¡çµã‚Šè¾¼ã¿ã¯æ—¢ã«è¡Œã‚ã‚Œã¦ã„ã‚‹ã®ã§2å›ã¯è¡Œã‚ãªã„
 		CArchiverDLL *Archiver=ArchiverManager.GetArchiver(*ite,NULL);
 
 		if(!Archiver){
-			//---‘Î‰‚·‚éƒnƒ“ƒhƒ‰‚ª‚È‚©‚Á‚½:Œ´ˆö‚ğ’²¸
-			//’Êí‚ÌƒGƒ‰[
+			//---å¯¾å¿œã™ã‚‹ãƒãƒ³ãƒ‰ãƒ©ãŒãªã‹ã£ãŸ:åŸå› ã‚’èª¿æŸ»
+			//é€šå¸¸ã®ã‚¨ãƒ©ãƒ¼
 			arcLog.strMsg.Format(IDS_ERROR_ILLEGAL_HANDLER,*ite);
 			arcLog.Result=TEST_NOTARCHIVE;
 
-			//UNICODEŠÖŒW‚Ìƒ`ƒFƒbƒN
+			//UNICODEé–¢ä¿‚ã®ãƒã‚§ãƒƒã‚¯
 			if(!UtilCheckT2A(*ite)){
-				//UNICODE‚É‘Î‰‚µ‚Ä‚¢‚È‚¢‚Ì‚ÉUNICODEƒtƒ@ƒCƒ‹–¼‚Ìƒtƒ@ƒCƒ‹‚ğˆµ‚¨‚¤‚Æ‚µ‚½
+				//UNICODEã«å¯¾å¿œã—ã¦ã„ãªã„ã®ã«UNICODEãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ‰±ãŠã†ã¨ã—ãŸ
 				arcLog.strMsg+=_T("\r\n\r\n");
 				arcLog.strMsg.AppendFormat(IDS_ERROR_UNICODEPATH);
 			}
@@ -88,10 +81,10 @@ bool TestArchive(const std::list<CString> &rArcList,CConfigManager &ConfigManage
 		}
 		LogArray.push_back(arcLog);
 	}
-	//ƒvƒƒOƒŒƒXƒo[‚ğ•Â‚¶‚é
+	//ãƒ—ãƒ­ã‚°ãƒ¬ã‚¹ãƒãƒ¼ã‚’é–‰ã˜ã‚‹
 	if(dlg.IsWindow())dlg.DestroyWindow();
 
-	//ƒƒO‚É•\¦
+	//ãƒ­ã‚°ã«è¡¨ç¤º
 	CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
 	LogDlg.SetLogArray(LogArray);
 	LogDlg.DoModal(::GetDesktopWindow());

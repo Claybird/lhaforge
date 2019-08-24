@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "../resource.h"
@@ -39,18 +32,18 @@ typedef	HGLOBAL	HARC;
 #define FNAME_MAX32		512
 #endif
 typedef struct {
-	DWORD 			dwOriginalSize;		/* ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY */
- 	DWORD 			dwCompressedSize;	/* ˆ³kŒã‚ÌƒTƒCƒY */
-	DWORD			dwCRC;				/* Ši”[ƒtƒ@ƒCƒ‹‚Ìƒ`ƒFƒbƒNƒTƒ€ */
-	UINT			uFlag;				/* ˆ—Œ‹‰Ê */
-	UINT			uOSType;			/* ‘ŒÉì¬‚Ég‚í‚ê‚½‚n‚r */
-	WORD			wRatio;				/* ˆ³k—¦ */
-	WORD			wDate;				/* Ši”[ƒtƒ@ƒCƒ‹‚Ì“ú•t(DOS Œ`®) */
-	WORD 			wTime;				/* Ši”[ƒtƒ@ƒCƒ‹‚Ì(V) */
-	char			szFileName[FNAME_MAX32 + 1];	/* ‘ŒÉ–¼ */
+	DWORD 			dwOriginalSize;		/* ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º */
+ 	DWORD 			dwCompressedSize;	/* åœ§ç¸®å¾Œã®ã‚µã‚¤ã‚º */
+	DWORD			dwCRC;				/* æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒã‚§ãƒƒã‚¯ã‚µãƒ  */
+	UINT			uFlag;				/* å‡¦ç†çµæœ */
+	UINT			uOSType;			/* æ›¸åº«ä½œæˆã«ä½¿ã‚ã‚ŒãŸï¼¯ï¼³ */
+	WORD			wRatio;				/* åœ§ç¸®ç‡ */
+	WORD			wDate;				/* æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®æ—¥ä»˜(DOS å½¢å¼) */
+	WORD 			wTime;				/* æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®æ™‚åˆ»(ã€ƒ) */
+	char			szFileName[FNAME_MAX32 + 1];	/* æ›¸åº«å */
 	char			dummy1[3];
-	char			szAttribute[8];		/* Ši”[ƒtƒ@ƒCƒ‹‚Ì‘®«(‘ŒÉŒÅ—L) */
-	char			szMode[8];			/* Ši”[ƒtƒ@ƒCƒ‹‚ÌŠi”[ƒ‚[ƒh(V) */
+	char			szAttribute[8];		/* æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§(æ›¸åº«å›ºæœ‰) */
+	char			szMode[8];			/* æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®æ ¼ç´ãƒ¢ãƒ¼ãƒ‰(ã€ƒ) */
 }	INDIVIDUALINFO, *LPINDIVIDUALINFO;
 
 typedef int   (WINAPI *COMMON_ARCHIVER_HANDLER)(const HWND,LPCSTR,LPSTR,const DWORD);
@@ -78,10 +71,10 @@ typedef BOOL   (WINAPI *COMMON_ARCHIVER_SETUNICODEMODE)(BOOL);
 #define	CHECKARCHIVE_BASIC		1
 #define	CHECKARCHIVE_FULLCRC	2
 
-#define CHECKARCHIVE_RECOVERY	4   /* ”j‘¹ƒwƒbƒ_‚ğ“Ç‚İ”ò‚Î‚µ‚Äˆ— */
-#define CHECKARCHIVE_SFX		8	/* SFX ‚©‚Ç‚¤‚©‚ğ•Ô‚· */
-#define CHECKARCHIVE_ALL		16	/* ƒtƒ@ƒCƒ‹‚ÌÅŒã‚Ü‚ÅŒŸõ‚·‚é */
-#define CHECKARCHIVE_ENDDATA	32	/* ‘ŒÉ‚æ‚èŒã‚ë‚Ì—]èƒf[ƒ^‚ğ‹–‰Â */
+#define CHECKARCHIVE_RECOVERY	4   /* ç ´æãƒ˜ãƒƒãƒ€ã‚’èª­ã¿é£›ã°ã—ã¦å‡¦ç† */
+#define CHECKARCHIVE_SFX		8	/* SFX ã‹ã©ã†ã‹ã‚’è¿”ã™ */
+#define CHECKARCHIVE_ALL		16	/* ãƒ•ã‚¡ã‚¤ãƒ«ã®æœ€å¾Œã¾ã§æ¤œç´¢ã™ã‚‹ */
+#define CHECKARCHIVE_ENDDATA	32	/* æ›¸åº«ã‚ˆã‚Šå¾Œã‚ã®ä½™å‰°ãƒ‡ãƒ¼ã‚¿ã‚’è¨±å¯ */
 
 #define	CHECKARCHIVE_NOT_ASK_PASSWORD	64
 
@@ -91,17 +84,17 @@ typedef BOOL   (WINAPI *COMMON_ARCHIVER_SETUNICODEMODE)(BOOL);
 enum PARAMETER_TYPE;
 
 enum LOAD_DLL_LEVEL{
-	LOAD_DLL_STANDARD	=0x00000001L,					//’Êí
-	LOAD_DLL_MINIMUM	=0x00000002L,					//OpenArchive*‚ªg‚¦‚È‚¢DLL—p
-	LOAD_DLL_SIMPLE_INSPECTION	=0x00000004L,				//%Prefix%(),OpenArchive(),FindFile*()ˆÈŠO‚ªg‚¦‚È‚¢DLL(BGA32.DLL)—p
-//	LOAD_DLL_STANDARD_WITHOUT_GETATTRIBUTE=0x00000004L,	//GetAttribute‚ªg‚¦‚È‚¢DLL—p‚Ì’Êí
+	LOAD_DLL_STANDARD	=0x00000001L,					//é€šå¸¸
+	LOAD_DLL_MINIMUM	=0x00000002L,					//OpenArchive*ãŒä½¿ãˆãªã„DLLç”¨
+	LOAD_DLL_SIMPLE_INSPECTION	=0x00000004L,				//%Prefix%(),OpenArchive(),FindFile*()ä»¥å¤–ãŒä½¿ãˆãªã„DLL(BGA32.DLL)ç”¨
+//	LOAD_DLL_STANDARD_WITHOUT_GETATTRIBUTE=0x00000004L,	//GetAttributeãŒä½¿ãˆãªã„DLLç”¨ã®é€šå¸¸
 };
 
 enum LOAD_RESULT{
-	LOAD_RESULT_OK,			//DLL‚Í³í‚Éƒ[ƒh‚³‚ê‚½
-	LOAD_RESULT_NOT_FOUND,	//DLL‚ªŒ©‚Â‚©‚ç‚È‚¢
-	LOAD_RESULT_INVALID,	//•s³‚ÈDLL
-	LOAD_RESULT_TOO_OLD		//DLL‚ÍƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚éƒo[ƒWƒ‡ƒ“‚æ‚èŒÃ‚¢
+	LOAD_RESULT_OK,			//DLLã¯æ­£å¸¸ã«ãƒ­ãƒ¼ãƒ‰ã•ã‚ŒãŸ
+	LOAD_RESULT_NOT_FOUND,	//DLLãŒè¦‹ã¤ã‹ã‚‰ãªã„
+	LOAD_RESULT_INVALID,	//ä¸æ­£ãªDLL
+	LOAD_RESULT_TOO_OLD		//DLLã¯ã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã‚ˆã‚Šå¤ã„
 };
 
 const int LOG_BUFFER_SIZE=512*1024;	//512KB
@@ -113,7 +106,7 @@ enum COMPRESS_MODE{
 	COMPRESS_SPLIT				=	0x00000008L,
 };
 
-//ˆ³kŒ`®ƒpƒ‰ƒ[ƒ^
+//åœ§ç¸®å½¢å¼ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 enum PARAMETER_TYPE{
 	PARAMETER_UNDEFINED,
 	PARAMETER_LZH,
@@ -140,34 +133,34 @@ enum PARAMETER_TYPE{
 	PARAMETER_LZMA,
 	PARAMETER_TAR_LZMA,	//tar.lzma
 
-	PARAMETER_B2E,	//B2E‚Í“Á•Êˆµ‚¢
+	PARAMETER_B2E,	//B2Eã¯ç‰¹åˆ¥æ‰±ã„
 
 	ENUM_COUNT_AND_LASTITEM(PARAMETER),
 };
 
-//Compress/Extract/TestArchive‚Ì–ß‚è’l
+//Compress/Extract/TestArchiveã®æˆ»ã‚Šå€¤
 enum ARCRESULT{
-	//---‰ğ“€Œn
-	EXTRACT_OK,//³íI—¹
-	EXTRACT_NG,//ˆÙíI—¹
-	EXTRACT_CANCELED,//ƒLƒƒƒ“ƒZƒ‹
-	EXTRACT_NOTARCHIVE,//ˆ³kƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢
-	EXTRACT_INFECTED,//ƒEƒBƒ‹ƒX‚Ì‰Â”\«‚ ‚è
+	//---è§£å‡ç³»
+	EXTRACT_OK,//æ­£å¸¸çµ‚äº†
+	EXTRACT_NG,//ç•°å¸¸çµ‚äº†
+	EXTRACT_CANCELED,//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
+	EXTRACT_NOTARCHIVE,//åœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„
+	EXTRACT_INFECTED,//ã‚¦ã‚£ãƒ«ã‚¹ã®å¯èƒ½æ€§ã‚ã‚Š
 
-	//---ŒŸ¸Œn
-	TEST_OK,	//ƒtƒ@ƒCƒ‹‚Í³í
-	TEST_NG,	//ƒtƒ@ƒCƒ‹‚ÉˆÙí‚ ‚è
-	TEST_NOTIMPL,//ŒŸ¸‚ÍÀ‘•‚³‚ê‚Ä‚¢‚È‚¢
-	TEST_NOTARCHIVE,//ˆ³kƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢
-	TEST_INFECTED,//ƒEƒBƒ‹ƒX‚Ì‰Â”\«‚ ‚è
-	TEST_ERROR,	//“à•”ƒGƒ‰[(DLL‚ªƒ[ƒh‚³‚ê‚Ä‚¢‚È‚¢‚Ì‚ÉŒÄ‚Ño‚³‚ê‚½A“™)
+	//---æ¤œæŸ»ç³»
+	TEST_OK,	//ãƒ•ã‚¡ã‚¤ãƒ«ã¯æ­£å¸¸
+	TEST_NG,	//ãƒ•ã‚¡ã‚¤ãƒ«ã«ç•°å¸¸ã‚ã‚Š
+	TEST_NOTIMPL,//æ¤œæŸ»ã¯å®Ÿè£…ã•ã‚Œã¦ã„ãªã„
+	TEST_NOTARCHIVE,//åœ§ç¸®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„
+	TEST_INFECTED,//ã‚¦ã‚£ãƒ«ã‚¹ã®å¯èƒ½æ€§ã‚ã‚Š
+	TEST_ERROR,	//å†…éƒ¨ã‚¨ãƒ©ãƒ¼(DLLãŒãƒ­ãƒ¼ãƒ‰ã•ã‚Œã¦ã„ãªã„ã®ã«å‘¼ã³å‡ºã•ã‚ŒãŸã€ç­‰)
 };
 
-struct ARCLOG{	//ƒA[ƒJƒCƒu‘€ì‚ÌŒ‹‰Ê‚ğŠi”[‚·‚é
+struct ARCLOG{	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–æ“ä½œã®çµæœã‚’æ ¼ç´ã™ã‚‹
 	virtual ~ARCLOG(){}
-	CString strFile;	//ƒA[ƒJƒCƒu‚Ìƒtƒ‹ƒpƒX
-	CString strMsg;		//ƒƒO
-	ARCRESULT Result;	//Œ‹‰Ê
+	CString strFile;	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã®ãƒ•ãƒ«ãƒ‘ã‚¹
+	CString strMsg;		//ãƒ­ã‚°
+	ARCRESULT Result;	//çµæœ
 };
 
 
@@ -202,32 +195,32 @@ enum CREATE_OUTPUT_DIR{
 };
 
 struct CConfigExtract;
-//“‡ƒA[ƒJƒCƒoDLLƒ‰ƒbƒv—pƒNƒ‰ƒX‚Ìƒx[ƒX
+//çµ±åˆã‚¢ãƒ¼ã‚«ã‚¤ãƒDLLãƒ©ãƒƒãƒ—ç”¨ã‚¯ãƒ©ã‚¹ã®ãƒ™ãƒ¼ã‚¹
 class CArchiverDLL{
 protected:
-	//DLLŒÅ—L‚Ìƒf[ƒ^
-	DWORD			m_dwInspectMode;		//OpenArchive‚Ìƒ‚[ƒh
-	CString			m_strDllName;			//DLL–¼
-	CStringA		m_AstrPrefix;				//ŠÖ”ƒvƒŠƒtƒBƒbƒNƒX
-	CStringA		m_AstrFindParam;			//InspectArchiveFileNext()‚Ìˆø”
-	LOAD_DLL_LEVEL	m_LoadLevel;			//LoadDLL‚Å—v‹‚·‚éŠÖ”‚ÌƒŒƒxƒ‹
-	WORD			m_nRequiredVersion;	//LhaForge‚ªƒTƒ|[ƒg‚·‚éDLL‚ÌÅ’áƒo[ƒWƒ‡ƒ“
-	WORD			m_nRequiredSubVersion;	//LhaForge‚ªƒTƒ|[ƒg‚·‚éDLL‚ÌÅ’áƒTƒuƒo[ƒWƒ‡ƒ“
+	//DLLå›ºæœ‰ã®ãƒ‡ãƒ¼ã‚¿
+	DWORD			m_dwInspectMode;		//OpenArchiveã®ãƒ¢ãƒ¼ãƒ‰
+	CString			m_strDllName;			//DLLå
+	CStringA		m_AstrPrefix;				//é–¢æ•°ãƒ—ãƒªãƒ•ã‚£ãƒƒã‚¯ã‚¹
+	CStringA		m_AstrFindParam;			//InspectArchiveFileNext()ã®å¼•æ•°
+	LOAD_DLL_LEVEL	m_LoadLevel;			//LoadDLLã§è¦æ±‚ã™ã‚‹é–¢æ•°ã®ãƒ¬ãƒ™ãƒ«
+	WORD			m_nRequiredVersion;	//LhaForgeãŒã‚µãƒãƒ¼ãƒˆã™ã‚‹DLLã®æœ€ä½ãƒãƒ¼ã‚¸ãƒ§ãƒ³
+	WORD			m_nRequiredSubVersion;	//LhaForgeãŒã‚µãƒãƒ¼ãƒˆã™ã‚‹DLLã®æœ€ä½ã‚µãƒ–ãƒãƒ¼ã‚¸ãƒ§ãƒ³
 
 	//---------
-	//‘ŒÉ“àŒŸ¸‚Ìó‘Ô‚ğ‹L˜^‚·‚é‚½‚ß‚Ì•Ï”
+	//æ›¸åº«å†…æ¤œæŸ»ã®çŠ¶æ…‹ã‚’è¨˜éŒ²ã™ã‚‹ãŸã‚ã®å¤‰æ•°
 	HARC m_hInspectArchive;
 	bool m_bInspectFirstTime;
 	INDIVIDUALINFO m_IndividualInfo;
 
 	//---------
-	HINSTANCE	m_hInstDLL;			//DLLƒCƒ“ƒXƒ^ƒ“ƒX
-	COMMON_ARCHIVER_HANDLER			ArchiveHandler;	//Un???ŠÖ”
+	HINSTANCE	m_hInstDLL;			//DLLã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
+	COMMON_ARCHIVER_HANDLER			ArchiveHandler;	//Un???é–¢æ•°
 	COMMON_ARCHIVER_GETVERSION		ArchiverGetVersion;
 	COMMON_ARCHIVER_GETVERSION		ArchiverGetSubVersion;
 	COMMON_ARCHIVER_CHECKARCHIVE	ArchiverCheckArchive;
 	COMMON_ARCHIVER_GETFILECOUNT	ArchiverGetFileCount;
-	//ˆÈ‰º‚ÌŠÖ”‚Í“ñdƒtƒHƒ‹ƒ_”»’è‚¨‚æ‚ÑŠëŒ¯ƒA[ƒJƒCƒu”»’è‚È‚ÇƒA[ƒJƒCƒu“à’²¸‚Ég‚¤
+	//ä»¥ä¸‹ã®é–¢æ•°ã¯äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€åˆ¤å®šãŠã‚ˆã³å±é™ºã‚¢ãƒ¼ã‚«ã‚¤ãƒ–åˆ¤å®šãªã©ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–å†…èª¿æŸ»ã«ä½¿ã†
 	COMMON_ARCHIVER_QUERYFUNCTIONLIST		ArchiverQueryFunctionList;
 	COMMON_ARCHIVER_GETFILENAME				ArchiverGetFileName;
 	COMMON_ARCHIVER_OPENARCHIVE				ArchiverOpenArchive;
@@ -247,7 +240,7 @@ protected:
 	virtual bool ExtractSubDirectories(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputDir,bool bCollapseDir,CString &strLog);
 	virtual bool ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
 
-	//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Éƒf[ƒ^‚ğ‘‚«‚Ş:MBCS,ƒGƒXƒP[ƒv‚ğ•K—v‚Æ‚µ‚È‚¢‚à‚ÌŒÀ’è
+	//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€:MBCS,ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚’å¿…è¦ã¨ã—ãªã„ã‚‚ã®é™å®š
 	virtual void WriteResponceFile(HANDLE,LPCTSTR,bool bQuoteSpaces=true);
 public:
 	CArchiverDLL();
@@ -256,61 +249,61 @@ public:
 	virtual void FreeDLL();
 	virtual WORD GetVersion()const;
 	virtual WORD GetSubVersion()const;
-	virtual bool IsUnicodeCapable()const{return false;}	//UNICODE‘Î‰DLL‚È‚çtrue‚ğ•Ô‚·
-	virtual bool IsWeakCheckArchive()const{return false;}	//CheckArchive‚Ì‹@”\‚ª•nã(UNBEL/AISH‚Ì‚æ‚¤‚É)‚È‚çtrue
-	virtual bool IsWeakErrorCheck()const{return false;}	//%Prefix%()‚ÌƒGƒ‰[ƒ`ƒFƒbƒN‚ªŠÃ‚¢(XacRett‚Ì‚æ‚¤‚É)‚È‚çtrue;‰ğ“€Œã‚Éíœ‚·‚é‚©‚Ì”»’f‚Ég—p
+	virtual bool IsUnicodeCapable()const{return false;}	//UNICODEå¯¾å¿œDLLãªã‚‰trueã‚’è¿”ã™
+	virtual bool IsWeakCheckArchive()const{return false;}	//CheckArchiveã®æ©Ÿèƒ½ãŒè²§å¼±(UNBEL/AISHã®ã‚ˆã†ã«)ãªã‚‰true
+	virtual bool IsWeakErrorCheck()const{return false;}	//%Prefix%()ã®ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ãŒç”˜ã„(XacRettã®ã‚ˆã†ã«)ãªã‚‰true;è§£å‡å¾Œã«å‰Šé™¤ã™ã‚‹ã‹ã®åˆ¤æ–­ã«ä½¿ç”¨
 	virtual BOOL CheckArchive(LPCTSTR);
-	virtual ARCRESULT TestArchive(LPCTSTR,CString&);	//ƒA[ƒJƒCƒu‚ª³‚µ‚¢‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN‚·‚é
+	virtual ARCRESULT TestArchive(LPCTSTR,CString&);	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãŒæ­£ã—ã„ã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯ã™ã‚‹
 	virtual bool Compress(LPCTSTR ArcFileName,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int Options,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog)=0;
 	virtual bool Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtract&,bool bSafeArchive,LPCTSTR OutputDir,CString &)=0;
-	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false)=0;	//w’è‚µ‚½ƒtƒ@ƒCƒ‹‚Ì‚İ‰ğ“€
-	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnly‚ªƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false)=0;	//æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã®ã¿è§£å‡
+	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnlyãŒã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 	virtual bool GetVersionString(CString&)const;
-	virtual LPCTSTR GetName()const{return m_strDllName;}	//DLL–¼‚ğ•Ô‚·
-	virtual int GetFileCount(LPCTSTR);	//ƒA[ƒJƒCƒu’†‚Ìƒtƒ@ƒCƒ‹”‚ğ•Ô‚·
+	virtual LPCTSTR GetName()const{return m_strDllName;}	//DLLåã‚’è¿”ã™
+	virtual int GetFileCount(LPCTSTR);	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«æ•°ã‚’è¿”ã™
 
-	//ƒA[ƒJƒCƒu‚©‚çw’è‚µ‚½ƒtƒ@ƒCƒ‹‚ğíœ
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã‹ã‚‰æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤
 	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &){return false;}
-	virtual bool QueryDeleteItemFromArchiveSupported(LPCTSTR ArcFileName)const{return false;}		//DeleteFile‚ªƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
+	virtual bool QueryDeleteItemFromArchiveSupported(LPCTSTR ArcFileName)const{return false;}		//DeleteFileãŒã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
 
-	//ƒA[ƒJƒCƒu‚Éw’è‚µ‚½ƒtƒ@ƒCƒ‹‚ğ’Ç‰Á
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã«æŒ‡å®šã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¿½åŠ 
 	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&){return false;}
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const{return false;}
 
 	virtual bool ExamineArchive(LPCTSTR,CConfigManager&,bool bSkipDir,bool &bInFolder,bool &bSafeArchive,CString&,CString &strErr)=0;
-		//ƒA[ƒJƒCƒu‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ªŠù‚ÉƒtƒHƒ‹ƒ_“à‚É“ü‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©A
-		//‚»‚µ‚ÄƒA[ƒJƒCƒu‚ªˆÀ‘S‚©‚Ç‚¤‚©‚ğ’²¸‚·‚é
-		//bSkipDir‚Í“ñdƒtƒHƒ‹ƒ_”»’è‚ª•s—v‚Èê‡‚Étrue‚É‚È‚éB‚±‚Ì‚Æ‚«A_ExamineArchiveFast‚ÍŒÄ‚Ñ‚¾‚³‚È‚È‚­‚ÄÏ‚Ş
+		//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒæ—¢ã«ãƒ•ã‚©ãƒ«ãƒ€å†…ã«å…¥ã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ã€
+		//ãã—ã¦ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ãŒå®‰å…¨ã‹ã©ã†ã‹ã‚’èª¿æŸ»ã™ã‚‹
+		//bSkipDirã¯äºŒé‡ãƒ•ã‚©ãƒ«ãƒ€åˆ¤å®šãŒä¸è¦ãªå ´åˆã«trueã«ãªã‚‹ã€‚ã“ã®ã¨ãã€_ExamineArchiveFastã¯å‘¼ã³ã ã•ãªãªãã¦æ¸ˆã‚€
 
-	virtual bool IsOK()const{return NULL!=m_hInstDLL;}		//ƒA[ƒJƒCƒoDLL‚ªƒ[ƒh‚³‚ê‚Ä‚¢‚é‚©
+	virtual bool IsOK()const{return NULL!=m_hInstDLL;}		//ã‚¢ãƒ¼ã‚«ã‚¤ãƒDLLãŒãƒ­ãƒ¼ãƒ‰ã•ã‚Œã¦ã„ã‚‹ã‹
 
 	virtual bool ExtractItems(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
 
 	//----------------------
-	// ‘ŒÉ“àŒŸ¸—pƒƒ\ƒbƒh
+	// æ›¸åº«å†…æ¤œæŸ»ç”¨ãƒ¡ã‚½ãƒƒãƒ‰
 	//----------------------
-	virtual bool QueryInspectSupported()const{return true;}		//‘ŒÉ“à’²¸‚ªƒTƒ|[ƒg‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©
-	virtual bool InspectArchiveBegin(LPCTSTR,CConfigManager&);				//‘ŒÉ“à’²¸ŠJn
-	virtual bool InspectArchiveEnd();						//‘ŒÉ“à’²¸I—¹
-	virtual bool InspectArchiveGetFileName(CString&);		//‘ŒÉ“àƒtƒ@ƒCƒ‹–¼æ“¾
-	virtual bool InspectArchiveNext();						//‘ŒÉ“à’²¸‚ğŸ‚Ìƒtƒ@ƒCƒ‹‚Éi‚ß‚é
-	virtual int  InspectArchiveGetAttribute();				//‘ŒÉ“àƒtƒ@ƒCƒ‹‘®«æ“¾
-	virtual bool InspectArchiveGetOriginalFileSize(LARGE_INTEGER&);	//‘ŒÉ“àˆ³k‘Oƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾
-	virtual bool InspectArchiveGetCompressedFileSize(LARGE_INTEGER&);	//‘ŒÉ“àˆ³kŒãƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾
-	virtual bool InspectArchiveGetWriteTime(FILETIME&);		//‘ŒÉ“àƒtƒ@ƒCƒ‹XV“úæ“¾
-	virtual DWORD InspectArchiveGetCRC();					//‘ŒÉ“àƒtƒ@ƒCƒ‹CRCæ“¾
-	virtual WORD InspectArchiveGetRatio();					//‘ŒÉ“àƒtƒ@ƒCƒ‹ˆ³k—¦æ“¾
-	virtual bool InspectArchiveGetMethodString(CString&);	//‘ŒÉ“àƒtƒ@ƒCƒ‹Ši”[ƒ‚[ƒhæ“¾
+	virtual bool QueryInspectSupported()const{return true;}		//æ›¸åº«å†…èª¿æŸ»ãŒã‚µãƒãƒ¼ãƒˆã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹
+	virtual bool InspectArchiveBegin(LPCTSTR,CConfigManager&);				//æ›¸åº«å†…èª¿æŸ»é–‹å§‹
+	virtual bool InspectArchiveEnd();						//æ›¸åº«å†…èª¿æŸ»çµ‚äº†
+	virtual bool InspectArchiveGetFileName(CString&);		//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
+	virtual bool InspectArchiveNext();						//æ›¸åº«å†…èª¿æŸ»ã‚’æ¬¡ã®ãƒ•ã‚¡ã‚¤ãƒ«ã«é€²ã‚ã‚‹
+	virtual int  InspectArchiveGetAttribute();				//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§å–å¾—
+	virtual bool InspectArchiveGetOriginalFileSize(LARGE_INTEGER&);	//æ›¸åº«å†…åœ§ç¸®å‰ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—
+	virtual bool InspectArchiveGetCompressedFileSize(LARGE_INTEGER&);	//æ›¸åº«å†…åœ§ç¸®å¾Œãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—
+	virtual bool InspectArchiveGetWriteTime(FILETIME&);		//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«æ›´æ–°æ—¥æ™‚å–å¾—
+	virtual DWORD InspectArchiveGetCRC();					//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«CRCå–å¾—
+	virtual WORD InspectArchiveGetRatio();					//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«åœ§ç¸®ç‡å–å¾—
+	virtual bool InspectArchiveGetMethodString(CString&);	//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«æ ¼ç´ãƒ¢ãƒ¼ãƒ‰å–å¾—
 };
 
 
 /*
-  Compress()‚ğŒÄ‚Ño‚·ã‚Å‚ÍA
-1.ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚Ìİ’è
-2.ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Ö‚Ì‘‚«‚İ(o—Íæƒtƒ@ƒCƒ‹–¼‚Ìİ’èŠÜ‚Ş)
-3.ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Ìíœ
-  ‚ÍŒÄ‚Ño‚µ‘¤‚ÌÓ”C‚ÅÀs‚·‚éB
+  Compress()ã‚’å‘¼ã³å‡ºã™ä¸Šã§ã¯ã€
+1.ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®è¨­å®š
+2.ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã¸ã®æ›¸ãè¾¼ã¿(å‡ºåŠ›å…ˆãƒ•ã‚¡ã‚¤ãƒ«åã®è¨­å®šå«ã‚€)
+3.ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã®å‰Šé™¤
+  ã¯å‘¼ã³å‡ºã—å´ã®è²¬ä»»ã§å®Ÿè¡Œã™ã‚‹ã€‚
 
-  DLL‚²‚Æ‚ÌƒXƒCƒbƒ`‚Ìİ’è‚Ìˆá‚¢‚ğCompress()‚ª‹zû‚·‚éB
+  DLLã”ã¨ã®ã‚¹ã‚¤ãƒƒãƒã®è¨­å®šã®é•ã„ã‚’Compress()ãŒå¸åã™ã‚‹ã€‚
 
 */

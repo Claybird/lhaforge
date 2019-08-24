@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "ArcEntryInfo.h"
@@ -67,8 +60,8 @@ void ARCHIVE_ENTRY_INFO_TREE::EnumFiles(std::list<CString> &rFileList)const
 //---------------
 void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode,const ARCHIVE_ENTRY_INFO_TREE* lpBase,CString &strPath)
 {
-	//Ç±Ç±Ç≈ñ ì|Ç»Ç±Ç∆ÇÇµÇƒÇ¢ÇÈÇÃÇÕÅA
-	//lpBaseÇ™ÉtÉãÉpÉXñºÇéùÇ¡ÇƒÇ¢Ç»Ç¢(=LhaForgeÇ™âºëzìIÇ…çÏÇËèoÇµÇΩÉtÉHÉãÉ_)Ç±Ç∆Ç™Ç†ÇÈÇ©ÇÁÅB
+	//„Åì„Åì„ÅßÈù¢ÂÄí„Å™„Åì„Å®„Çí„Åó„Å¶„ÅÑ„Çã„ÅÆ„ÅØ„ÄÅ
+	//lpBase„Åå„Éï„É´„Éë„ÇπÂêç„ÇíÊåÅ„Å£„Å¶„ÅÑ„Å™„ÅÑ(=LhaForge„Åå‰ªÆÊÉ≥ÁöÑ„Å´‰Ωú„ÇäÂá∫„Åó„Åü„Éï„Ç©„É´„ÉÄ)„Åì„Å®„Åå„ÅÇ„Çã„Åã„Çâ„ÄÇ
 	strPath=_T("");
 
 	for(; lpNode->lpParent && lpBase!=lpNode ;lpNode=lpNode->lpParent){
@@ -77,17 +70,17 @@ void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode,
 
 		CPath strBuffer=strTmp;
 		if(-1!=strTmp.Find(_T('\\'))){
-			//ÉfÉBÉåÉNÉgÉäÉmÅ[ÉhÇÃñºëOÇ…ÉpÉXãÊêÿÇËï∂éöÇ™ì¸ÇÈÇÃÇÕÅAäKëwç\ë¢Çñ≥éãÇµÇΩàÍóóÇÃéûÇÃÇ›ÅB
-			//Ç±ÇÃÇ∆Ç´ÇÕÅAÉpÉXãÊêÿÇËÇëSïîîÚÇŒÇ∑ïKóvÇ™Ç†ÇÈÅB
-			strBuffer.StripPath();	//àÍî‘ç≈å„ÇÃïîï™ÇécÇµÇƒÅAÉpÉXÇÉJÉbÉg
-			strBuffer.RemoveBackslash();	//ÉpÉXãÊêÿÇËï∂éöÇàÍíUçÌèú
+			//„Éá„Ç£„É¨„ÇØ„Éà„É™„Éé„Éº„Éâ„ÅÆÂêçÂâç„Å´„Éë„ÇπÂå∫Âàá„ÇäÊñáÂ≠ó„ÅåÂÖ•„Çã„ÅÆ„ÅØ„ÄÅÈöéÂ±§ÊßãÈÄ†„ÇíÁÑ°Ë¶ñ„Åó„Åü‰∏ÄË¶ß„ÅÆÊôÇ„ÅÆ„Åø„ÄÇ
+			//„Åì„ÅÆ„Å®„Åç„ÅØ„ÄÅ„Éë„ÇπÂå∫Âàá„Çä„ÇíÂÖ®ÈÉ®È£õ„Å∞„ÅôÂøÖË¶Å„Åå„ÅÇ„Çã„ÄÇ
+			strBuffer.StripPath();	//‰∏ÄÁï™ÊúÄÂæå„ÅÆÈÉ®ÂàÜ„ÇíÊÆã„Åó„Å¶„ÄÅ„Éë„Çπ„Çí„Ç´„ÉÉ„Éà
+			strBuffer.RemoveBackslash();	//„Éë„ÇπÂå∫Âàá„ÇäÊñáÂ≠ó„Çí‰∏ÄÊó¶ÂâäÈô§
 		}
 		if(lpNode->bDir){
 			strBuffer.AddBackslash();
 		}
 		strPath.Insert(0,strBuffer);
 	}
-	// èoóÕÉpÉXÇÃèCê≥
+	// Âá∫Âäõ„Éë„Çπ„ÅÆ‰øÆÊ≠£
 	UtilModifyPath(strPath);
 }
 

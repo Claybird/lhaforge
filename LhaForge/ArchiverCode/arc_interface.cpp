@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "arc_interface.h"
@@ -127,38 +120,38 @@ bool CArchiverDLL::_ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,b
 	}
 
 	bInFolder=true;
-	bool bSureDir=false;	//BaseDir‚É“ü‚Á‚Ä‚¢‚é•¶š—ñ‚ªŠm‚©‚ÉƒtƒHƒ‹ƒ_‚Å‚ ‚é‚È‚çtrue
+	bool bSureDir=false;	//BaseDirã«å…¥ã£ã¦ã„ã‚‹æ–‡å­—åˆ—ãŒç¢ºã‹ã«ãƒ•ã‚©ãƒ«ãƒ€ã§ã‚ã‚‹ãªã‚‰true
 	TRACE(_T("========\n"));
 
 	while(InspectArchiveNext()){
 		CString Buffer;
 		InspectArchiveGetFileName(Buffer);
-		Buffer.Replace(_T('\\'),_T('/'));		//ƒpƒX‹æØ‚è•¶š‚Ì’u‚«Š·‚¦
+		Buffer.Replace(_T('\\'),_T('/'));		//ãƒ‘ã‚¹åŒºåˆ‡ã‚Šæ–‡å­—ã®ç½®ãæ›ãˆ
 		TRACE(_T("%s\n"),Buffer);
 
 		/*
-		Separator('/' or '\')‚ÍŠi”[ƒtƒ@ƒCƒ‹‚Ìæ“ª‚É‚¢‚­‚çŠÜ‚Ü‚ê‚Ä‚¢‚Ä‚à–³‹‚·‚×‚«‚Å‚ ‚é‚Ì‚ÅA
-		Ši”[ƒtƒ@ƒCƒ‹–¼‚Ìæ“ª‚É‚¢‚­‚çSeparator‚ª‚ ‚Á‚Ä‚àƒtƒHƒ‹ƒ_‚ÉŠi”[‚³‚ê‚½ó‘Ô‚Æ‚ÍŒ©‚È‚³‚È‚¢B
-		Separator‚ªMaxRepeat‚æ‚è‘½‚¢‚Æ•s³‚Æ‚·‚é
-		‚½‚¾‚µAMaxRepeat‚ª-1‚Ì‚Æ‚«‚ÍƒGƒ‰[‚Æ‚Í‚µ‚È‚¢
+		Separator('/' or '\')ã¯æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®å…ˆé ­ã«ã„ãã‚‰å«ã¾ã‚Œã¦ã„ã¦ã‚‚ç„¡è¦–ã™ã¹ãã§ã‚ã‚‹ã®ã§ã€
+		æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã®å…ˆé ­ã«ã„ãã‚‰SeparatorãŒã‚ã£ã¦ã‚‚ãƒ•ã‚©ãƒ«ãƒ€ã«æ ¼ç´ã•ã‚ŒãŸçŠ¶æ…‹ã¨ã¯è¦‹ãªã•ãªã„ã€‚
+		SeparatorãŒMaxRepeatã‚ˆã‚Šå¤šã„ã¨ä¸æ­£ã¨ã™ã‚‹
+		ãŸã ã—ã€MaxRepeatãŒ-1ã®ã¨ãã¯ã‚¨ãƒ©ãƒ¼ã¨ã¯ã—ãªã„
 		*/
 		const int Length=Buffer.GetLength();
 		int StartIndex=0;
 		for(;StartIndex<Length;StartIndex++){
-			//æ“ª‚Ì'/'‚ğ‚Æ‚Î‚µ‚Ä‚¢‚­
+			//å…ˆé ­ã®'/'ã‚’ã¨ã°ã—ã¦ã„ã
 #if defined(_UNICODE)||defined(UNICODE)
 			if(_T('/')!=Buffer[StartIndex])break;
 #else
 			if(_MBC_SINGLE==_mbsbtype((const unsigned char *)(LPCTSTR)Buffer,StartIndex)){
 				if(_T('/')!=Buffer[StartIndex])break;
 			}
-			else{	//‘SŠp•¶š‚È‚ç'/'‚Å‚ ‚é‚Í‚¸‚ª‚È‚¢
+			else{	//å…¨è§’æ–‡å­—ãªã‚‰'/'ã§ã‚ã‚‹ã¯ãšãŒãªã„
 				break;
 			}
 #endif//defined(_UNICODE)||defined(UNICODE)
 			if(-1!=MaxRepeat){
-				if(StartIndex>=MaxRepeat){	//'/'‚ªMaxRepeatŒÂˆÈã‘±‚­ê‡
-					//ŠëŒ¯‚Èƒtƒ@ƒCƒ‹‚Æ•ª‚©‚Á‚½‚Ì‚ÅŠÄ¸I—¹
+				if(StartIndex>=MaxRepeat){	//'/'ãŒMaxRepeatå€‹ä»¥ä¸Šç¶šãå ´åˆ
+					//å±é™ºãªãƒ•ã‚¡ã‚¤ãƒ«ã¨åˆ†ã‹ã£ãŸã®ã§ç›£æŸ»çµ‚äº†
 					InspectArchiveEnd();
 					bSafeArchive=false;
 					bInFolder=false;
@@ -166,40 +159,40 @@ bool CArchiverDLL::_ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,b
 				}
 			}
 		}
-		if((-1!=Buffer.Find(_T("../"),StartIndex))||	//‘Š‘ÎƒpƒXw’è‚ªŒ©‚Â‚©‚ê‚ÎA‚»‚ê‚ÍˆÀ‘S‚Èƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢
-			(-1!=Buffer.Find(_T(':'),StartIndex))){	//ƒhƒ‰ƒCƒu–¼‚ªŒ©‚Â‚©‚ê‚ÎA‚»‚ê‚ÍˆÀ‘S‚Èƒtƒ@ƒCƒ‹‚Å‚Í‚È‚¢
-			//ŠëŒ¯‚Èƒtƒ@ƒCƒ‹‚Æ•ª‚©‚Á‚½‚Ì‚ÅŠÄ¸I—¹
+		if((-1!=Buffer.Find(_T("../"),StartIndex))||	//ç›¸å¯¾ãƒ‘ã‚¹æŒ‡å®šãŒè¦‹ã¤ã‹ã‚Œã°ã€ãã‚Œã¯å®‰å…¨ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„
+			(-1!=Buffer.Find(_T(':'),StartIndex))){	//ãƒ‰ãƒ©ã‚¤ãƒ–åãŒè¦‹ã¤ã‹ã‚Œã°ã€ãã‚Œã¯å®‰å…¨ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã¯ãªã„
+			//å±é™ºãªãƒ•ã‚¡ã‚¤ãƒ«ã¨åˆ†ã‹ã£ãŸã®ã§ç›£æŸ»çµ‚äº†
 			InspectArchiveEnd();
 			bSafeArchive=false;
 			bInFolder=false;
 			return true;
 		}
 
-		//‚±‚±‚©‚ç‚Í“ñdƒfƒBƒŒƒNƒgƒŠ”»’è
-		//‚·‚Å‚É“ñdƒfƒBƒŒƒNƒgƒŠ”»’è‚ª•t‚¢‚Ä‚¢‚éê‡‚ÍˆÀ‘S”»’è‚Ì‚İ‚É“O‚·‚é
+		//ã“ã“ã‹ã‚‰ã¯äºŒé‡ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¤å®š
+		//ã™ã§ã«äºŒé‡ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåˆ¤å®šãŒä»˜ã„ã¦ã„ã‚‹å ´åˆã¯å®‰å…¨åˆ¤å®šã®ã¿ã«å¾¹ã™ã‚‹
 
 		int FoundIndex=0;
 		while(bInFolder){
 			FoundIndex=Buffer.Find(_T('/'),StartIndex);
-			if(-1==FoundIndex){	//'/'‚ªŠi”[ƒtƒ@ƒCƒ‹–¼‚Ìæ“ªˆÈŠO‚ÉŠÜ‚Ü‚ê‚È‚¢ê‡
+			if(-1==FoundIndex){	//'/'ãŒæ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã®å…ˆé ­ä»¥å¤–ã«å«ã¾ã‚Œãªã„å ´åˆ
 				if(!BaseDir.IsEmpty()&&BaseDir==Buffer){
-					bSureDir=true;	//BaseDir‚ªƒtƒHƒ‹ƒ_‚Å‚ ‚é‚ÆŠm”F‚³‚ê‚½
+					bSureDir=true;	//BaseDirãŒãƒ•ã‚©ãƒ«ãƒ€ã§ã‚ã‚‹ã¨ç¢ºèªã•ã‚ŒãŸ
 					break;
 				}
 				else if(BaseDir.IsEmpty()){
-					//ƒtƒHƒ‹ƒ_–¼‚ÌŒã‚ë‚É'/'‚ª•t‚©‚È‚¢ƒA[ƒJƒCƒo‚à‚ ‚é
-					//‚»‚¤‚¢‚¤‚à‚Ì‚ªÅ‰‚Éo‚Ä‚«‚½‚Æ‚«‚ÍAƒtƒHƒ‹ƒ_–¼‚Æ‰¼’è‚·‚é
+					//ãƒ•ã‚©ãƒ«ãƒ€åã®å¾Œã‚ã«'/'ãŒä»˜ã‹ãªã„ã‚¢ãƒ¼ã‚«ã‚¤ãƒã‚‚ã‚ã‚‹
+					//ãã†ã„ã†ã‚‚ã®ãŒæœ€åˆã«å‡ºã¦ããŸã¨ãã¯ã€ãƒ•ã‚©ãƒ«ãƒ€åã¨ä»®å®šã™ã‚‹
 					BaseDir=Buffer;
 					bSureDir=false;
 					break;
 				}
 			}
-			CString Dir=Buffer.Mid(StartIndex,FoundIndex-StartIndex);	//Separator‚Ì‘O‚Ü‚Å‚Ì•¶š—ñ(ƒfƒBƒŒƒNƒgƒŠ‚É‘Š“–)‚ğ”²‚«o‚µ‚Ä‚­‚é
-			//‚±‚ê‚Ü‚Å‚Ì’²‚×‚ÅDir‚ÍEmpty‚Å‚Í‚È‚¢‚±‚Æ‚ª•ÛØ‚³‚ê‚Ä‚¢‚é
-			//‚Ü‚½AŠëŒ¯‚Å‚Í‚È‚¢‚±‚Æ‚à•ª‚©‚Á‚Ä‚¢‚é
+			CString Dir=Buffer.Mid(StartIndex,FoundIndex-StartIndex);	//Separatorã®å‰ã¾ã§ã®æ–‡å­—åˆ—(ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ç›¸å½“)ã‚’æŠœãå‡ºã—ã¦ãã‚‹
+			//ã“ã‚Œã¾ã§ã®èª¿ã¹ã§Dirã¯Emptyã§ã¯ãªã„ã“ã¨ãŒä¿è¨¼ã•ã‚Œã¦ã„ã‚‹
+			//ã¾ãŸã€å±é™ºã§ã¯ãªã„ã“ã¨ã‚‚åˆ†ã‹ã£ã¦ã„ã‚‹
 			TRACE(_T("Base=%s,Dir=%s\n"),BaseDir,Dir);
 
-			if(_T('.')==Dir){	//./‚ª‚ ‚ê‚ÎƒfƒBƒŒƒNƒgƒŠw’è‚Æ‚µ‚Ä‚Í–³‹‚·‚é
+			if(_T('.')==Dir){	//./ãŒã‚ã‚Œã°ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæŒ‡å®šã¨ã—ã¦ã¯ç„¡è¦–ã™ã‚‹
 				StartIndex=FoundIndex+1;
 				continue;
 			}
@@ -210,7 +203,7 @@ bool CArchiverDLL::_ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,b
 			else if(BaseDir!=Dir){
 				bInFolder=false;
 			}
-			else bSureDir=true;	//BaseDir‚ªƒfƒBƒŒƒNƒgƒŠ‚ÆŠm”F‚³‚ê‚½
+			else bSureDir=true;	//BaseDirãŒãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ç¢ºèªã•ã‚ŒãŸ
 			break;
 		}
 	}
@@ -219,14 +212,14 @@ bool CArchiverDLL::_ExamineArchive(LPCTSTR ArcFileName,CConfigManager& ConfMan,b
 	InspectArchiveEnd();
 	bSafeArchive=true;
 
-	//ƒtƒHƒ‹ƒ_‚É“ü‚Á‚Ä‚¢‚é‚æ‚¤‚Å‚Í‚ ‚é‚ªAƒfƒBƒŒƒNƒgƒŠ‚Æ‰¼’è‚³‚ê‚½‚¾‚¯‚Ìê‡
+	//ãƒ•ã‚©ãƒ«ãƒ€ã«å…¥ã£ã¦ã„ã‚‹ã‚ˆã†ã§ã¯ã‚ã‚‹ãŒã€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ä»®å®šã•ã‚ŒãŸã ã‘ã®å ´åˆ
 	if(bInFolder&&!bSureDir)bInFolder=false;
 	return true;
 }
 
 bool CArchiverDLL::_ExamineArchiveFast(LPCTSTR ArcFileName,CConfigManager& ConfMan,bool &bInFolder,CString &BaseDir,CString &strErr)
 {
-	//•s³‚ÈƒpƒX‚ğ‚Âƒtƒ@ƒCƒ‹‚Í‘S‚ÄDLL‘¤‚ª‘Îˆ‚µ‚Ä‚­‚ê‚Ä‚¢‚é‚Æl‚¦‚é‚Ì‚ÅA‘S‚Ä‚ÌƒA[ƒJƒCƒu‚ÍˆÀ‘S‚Å‚ ‚é‚Æ‚·‚é
+	//ä¸æ­£ãªãƒ‘ã‚¹ã‚’æŒã¤ãƒ•ã‚¡ã‚¤ãƒ«ã¯å…¨ã¦DLLå´ãŒå¯¾å‡¦ã—ã¦ãã‚Œã¦ã„ã‚‹ã¨è€ƒãˆã‚‹ã®ã§ã€å…¨ã¦ã®ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã¯å®‰å…¨ã§ã‚ã‚‹ã¨ã™ã‚‹
 
 	TRACE(_T("---_ExamineArchiveFast() called.\n"));
 	ASSERT(IsOK());
@@ -239,30 +232,30 @@ bool CArchiverDLL::_ExamineArchiveFast(LPCTSTR ArcFileName,CConfigManager& ConfM
 		return false;
 	}
 
-	bool bSureDir=false;	//BaseDir‚É“ü‚Á‚Ä‚¢‚é•¶š—ñ‚ªŠm‚©‚ÉƒtƒHƒ‹ƒ_‚Å‚ ‚é‚È‚çtrue
+	bool bSureDir=false;	//BaseDirã«å…¥ã£ã¦ã„ã‚‹æ–‡å­—åˆ—ãŒç¢ºã‹ã«ãƒ•ã‚©ãƒ«ãƒ€ã§ã‚ã‚‹ãªã‚‰true
 	bInFolder=true;
 	TRACE(_T("========\n"));
 	while(InspectArchiveNext()){
 		CString Buffer;
 		InspectArchiveGetFileName(Buffer);
-		Buffer.Replace(_T('\\'),_T('/'));		//ƒpƒX‹æØ‚è•¶š‚Ì’u‚«Š·‚¦
+		Buffer.Replace(_T('\\'),_T('/'));		//ãƒ‘ã‚¹åŒºåˆ‡ã‚Šæ–‡å­—ã®ç½®ãæ›ãˆ
 		TRACE(_T("%s\n"),Buffer);
 
 		/*
-		Separator‚ÍŠi”[ƒtƒ@ƒCƒ‹‚Ìæ“ª‚É‚¢‚­‚çŠÜ‚Ü‚ê‚Ä‚¢‚Ä‚à–³‹‚·‚×‚«‚Å‚ ‚é‚Ì‚ÅA
-		Ši”[ƒtƒ@ƒCƒ‹–¼‚Ìæ“ª‚É‚¢‚­‚ç/‚ª‚ ‚Á‚Ä‚àƒtƒHƒ‹ƒ_‚ÉŠi”[‚³‚ê‚½ó‘Ô‚Æ‚ÍŒ©‚È‚³‚È‚¢B
+		Separatorã¯æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«ã®å…ˆé ­ã«ã„ãã‚‰å«ã¾ã‚Œã¦ã„ã¦ã‚‚ç„¡è¦–ã™ã¹ãã§ã‚ã‚‹ã®ã§ã€
+		æ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã®å…ˆé ­ã«ã„ãã‚‰/ãŒã‚ã£ã¦ã‚‚ãƒ•ã‚©ãƒ«ãƒ€ã«æ ¼ç´ã•ã‚ŒãŸçŠ¶æ…‹ã¨ã¯è¦‹ãªã•ãªã„ã€‚
 		*/
 		const int Length=Buffer.GetLength();
 		int StartIndex=0;
 		for(;StartIndex<Length;StartIndex++){
-			//æ“ª‚ÌSeparator‚ğ‚Æ‚Î‚µ‚Ä‚¢‚­
+			//å…ˆé ­ã®Separatorã‚’ã¨ã°ã—ã¦ã„ã
 #if defined(_UNICODE)||defined(UNICODE)
 			if(_T('/')!=Buffer[StartIndex])break;
 #else
 			if(_MBC_SINGLE==_mbsbtype((const unsigned char *)(LPCTSTR)Buffer,StartIndex)){
 				if(_T('/')!=Buffer[StartIndex])break;
 			}
-			else{	//‘SŠp•¶š‚È‚çSeparator‚Å‚ ‚é‚Í‚¸‚ª‚È‚¢
+			else{	//å…¨è§’æ–‡å­—ãªã‚‰Separatorã§ã‚ã‚‹ã¯ãšãŒãªã„
 				break;
 			}
 #endif//defined(_UNICODE)||defined(UNICODE)
@@ -271,25 +264,25 @@ bool CArchiverDLL::_ExamineArchiveFast(LPCTSTR ArcFileName,CConfigManager& ConfM
 		int FoundIndex=0;
 		while(bInFolder){
 			FoundIndex=Buffer.Find(_T('/'),StartIndex);
-			if(-1==FoundIndex){	//'/'‚ªŠi”[ƒtƒ@ƒCƒ‹–¼‚Ìæ“ªˆÈŠO‚ÉŠÜ‚Ü‚ê‚È‚¢ê‡
+			if(-1==FoundIndex){	//'/'ãŒæ ¼ç´ãƒ•ã‚¡ã‚¤ãƒ«åã®å…ˆé ­ä»¥å¤–ã«å«ã¾ã‚Œãªã„å ´åˆ
 				if(!BaseDir.IsEmpty()&&BaseDir==Buffer){
-					bSureDir=true;	//BaseDir‚ªƒtƒHƒ‹ƒ_‚Å‚ ‚é‚ÆŠm”F‚³‚ê‚½
+					bSureDir=true;	//BaseDirãŒãƒ•ã‚©ãƒ«ãƒ€ã§ã‚ã‚‹ã¨ç¢ºèªã•ã‚ŒãŸ
 					break;
 				}
 				else if(BaseDir.IsEmpty()){
-					//ƒtƒHƒ‹ƒ_–¼‚ÌŒã‚ë‚É'/'‚ª•t‚©‚È‚¢ƒA[ƒJƒCƒo‚à‚ ‚é
-					//‚»‚¤‚¢‚¤‚à‚Ì‚ªÅ‰‚Éo‚Ä‚«‚½‚Æ‚«‚ÍAƒtƒHƒ‹ƒ_–¼‚Æ‰¼’è‚·‚é
+					//ãƒ•ã‚©ãƒ«ãƒ€åã®å¾Œã‚ã«'/'ãŒä»˜ã‹ãªã„ã‚¢ãƒ¼ã‚«ã‚¤ãƒã‚‚ã‚ã‚‹
+					//ãã†ã„ã†ã‚‚ã®ãŒæœ€åˆã«å‡ºã¦ããŸã¨ãã¯ã€ãƒ•ã‚©ãƒ«ãƒ€åã¨ä»®å®šã™ã‚‹
 					BaseDir=Buffer;
 					bSureDir=false;
 					break;
 				}
 			}
-			CString Dir=Buffer.Mid(StartIndex,FoundIndex-StartIndex);	//Separator‚Ì‘O‚Ü‚Å‚Ì•¶š—ñ(ƒfƒBƒŒƒNƒgƒŠ‚É‘Š“–)‚ğ”²‚«o‚µ‚Ä‚­‚é
-			//‚±‚ê‚Ü‚Å‚Ì’²‚×‚ÅDir‚ÍEmpty‚Å‚Í‚È‚¢‚±‚Æ‚ª•ÛØ‚³‚ê‚Ä‚¢‚é
-			//‚Ü‚½AŠëŒ¯‚Å‚Í‚È‚¢‚±‚Æ‚à•ª‚©‚Á‚Ä‚¢‚é
+			CString Dir=Buffer.Mid(StartIndex,FoundIndex-StartIndex);	//Separatorã®å‰ã¾ã§ã®æ–‡å­—åˆ—(ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«ç›¸å½“)ã‚’æŠœãå‡ºã—ã¦ãã‚‹
+			//ã“ã‚Œã¾ã§ã®èª¿ã¹ã§Dirã¯Emptyã§ã¯ãªã„ã“ã¨ãŒä¿è¨¼ã•ã‚Œã¦ã„ã‚‹
+			//ã¾ãŸã€å±é™ºã§ã¯ãªã„ã“ã¨ã‚‚åˆ†ã‹ã£ã¦ã„ã‚‹
 			TRACE(_T("Base=%s,Dir=%s\n"),BaseDir,Dir);
 
-			if(_T('.')==Dir){	//./‚ª‚ ‚ê‚ÎƒfƒBƒŒƒNƒgƒŠw’è‚Æ‚µ‚Ä‚Í–³‹‚·‚é
+			if(_T('.')==Dir){	//./ãŒã‚ã‚Œã°ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæŒ‡å®šã¨ã—ã¦ã¯ç„¡è¦–ã™ã‚‹
 				StartIndex=FoundIndex+1;
 				continue;
 			}
@@ -300,14 +293,14 @@ bool CArchiverDLL::_ExamineArchiveFast(LPCTSTR ArcFileName,CConfigManager& ConfM
 			else if(BaseDir!=Dir){
 				bInFolder=false;
 			}
-			else bSureDir=true;	//BaseDir‚ªƒfƒBƒŒƒNƒgƒŠ‚ÆŠm”F‚³‚ê‚½
+			else bSureDir=true;	//BaseDirãŒãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ç¢ºèªã•ã‚ŒãŸ
 			break;
 		}
 	}
 	TRACE(_T("========\n"));
 
 	InspectArchiveEnd();
-	//ƒtƒHƒ‹ƒ_‚É“ü‚Á‚Ä‚¢‚é‚æ‚¤‚Å‚Í‚ ‚é‚ªAƒfƒBƒŒƒNƒgƒŠ‚Æ‰¼’è‚³‚ê‚½‚¾‚¯‚Ìê‡
+	//ãƒ•ã‚©ãƒ«ãƒ€ã«å…¥ã£ã¦ã„ã‚‹ã‚ˆã†ã§ã¯ã‚ã‚‹ãŒã€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨ä»®å®šã•ã‚ŒãŸã ã‘ã®å ´åˆ
 	if(bInFolder&&!bSureDir)bInFolder=false;
 	return true;
 }
@@ -343,7 +336,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 {
 	FreeDLL();
 
-	//ˆÀ‘S‚ÈƒpƒX‚ÉˆÚ“®;DLL“Ç‚İ‚İ‘Îô
+	//å®‰å…¨ãªãƒ‘ã‚¹ã«ç§»å‹•;DLLèª­ã¿è¾¼ã¿å¯¾ç­–
 	CCurrentDirManager cdm(UtilGetModuleDirectoryPath());
 
 	if(NULL==(m_hInstDLL=LoadLibrary(m_strDllName))){
@@ -370,25 +363,25 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		return LOAD_RESULT_INVALID;
 	}
 
-	//ƒTƒuƒo[ƒWƒ‡ƒ“‚Ìæ“¾‚Å‚«‚éDLL‚ÍŒÀ‚ç‚ê‚Ä‚¢‚é
+	//ã‚µãƒ–ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®å–å¾—ã§ãã‚‹DLLã¯é™ã‚‰ã‚Œã¦ã„ã‚‹
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetSubVersion";
 	ArchiverGetSubVersion=(COMMON_ARCHIVER_GETVERSION)GetProcAddress(m_hInstDLL,FunctionName);
 	if(NULL==ArchiverGetSubVersion){
-	//ƒ[ƒh‚É¸”s‚µ‚Ä‚àƒGƒ‰[‚Æ‚Í‚µ‚È‚¢
+	//ãƒ­ãƒ¼ãƒ‰ã«å¤±æ•—ã—ã¦ã‚‚ã‚¨ãƒ©ãƒ¼ã¨ã¯ã—ãªã„
 		TRACE(_T("Failed to Load Function %s\n"),(LPCTSTR)CA2T(FunctionName));
 	}
 	//-------------------------
-	// DLLƒo[ƒWƒ‡ƒ“‚Ìƒ`ƒFƒbƒN
+	// DLLãƒãƒ¼ã‚¸ãƒ§ãƒ³ã®ãƒã‚§ãƒƒã‚¯
 	//-------------------------
 	if((ArchiverGetVersion()<m_nRequiredVersion)){
-		//ƒƒWƒƒ[ƒo[ƒWƒ‡ƒ“‚ª’á‚¢
+		//ãƒ¡ã‚¸ãƒ£ãƒ¼ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒä½ã„
 		strErr.Format(IDS_ERROR_DLL_TOO_OLD,m_strDllName);
 		FreeDLL();
 		TRACE(_T("%s\n"),(LPCTSTR)strErr);
 		return LOAD_RESULT_TOO_OLD;
 	}else if((ArchiverGetVersion()==m_nRequiredVersion)&&(NULL!=ArchiverGetSubVersion)&&(ArchiverGetSubVersion()<m_nRequiredSubVersion)){
-		//ƒ}ƒCƒi[ƒo[ƒWƒ‡ƒ“‚ª’á‚¢
+		//ãƒã‚¤ãƒŠãƒ¼ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãŒä½ã„
 		strErr.Format(IDS_ERROR_DLL_TOO_OLD,(LPCTSTR)m_strDllName);
 		FreeDLL();
 		TRACE(_T("%s\n"),(LPCTSTR)strErr);
@@ -405,12 +398,12 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		return LOAD_RESULT_INVALID;
 	}
 
-	//XacRett.dll‚ÆAish32.dll‚¾‚¯‚ªƒTƒ|[ƒg‚µ‚Ä‚¢‚È‚¢
+	//XacRett.dllã¨Aish32.dllã ã‘ãŒã‚µãƒãƒ¼ãƒˆã—ã¦ã„ãªã„
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetFileCount";
 	ArchiverGetFileCount=(COMMON_ARCHIVER_GETFILECOUNT)GetProcAddress(m_hInstDLL,FunctionName);
 	if(NULL==ArchiverGetFileCount){
-	//ƒ[ƒh‚É¸”s‚µ‚Ä‚àƒGƒ‰[‚Æ‚Í‚µ‚È‚¢
+	//ãƒ­ãƒ¼ãƒ‰ã«å¤±æ•—ã—ã¦ã‚‚ã‚¨ãƒ©ãƒ¼ã¨ã¯ã—ãªã„
 		TRACE(_T("Failed to Load Function %s\n"),(LPCTSTR)CA2T(FunctionName));
 	}
 
@@ -420,7 +413,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 	}
 
 	//------------
-	// ’Ç‰ÁŠÖ”ŒQ
+	// è¿½åŠ é–¢æ•°ç¾¤
 	//------------
 	FunctionName=m_AstrPrefix;
 	FunctionName+="QueryFunctionList";
@@ -503,7 +496,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		return LOAD_RESULT_OK;
 	}
 
-	//ƒtƒ@ƒCƒ‹–¼æ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«åå–å¾—
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetFileName";
 	if(!ArchiverQueryFunctionList(57)){//57:???GetFileName
@@ -520,11 +513,11 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		return LOAD_RESULT_INVALID;
 	}
 
-	//ƒtƒ@ƒCƒ‹‘®«æ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§å–å¾—
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetAttribute";
-	//CAB32.DLL‚Å‚ÍCabGetAttribute()‚ÍCabQueryFunctionList()‚Å—˜—p•s‰Â‚Æ•ñ‚³‚ê‚é‚ª
-	//ÀÛ‚Í—˜—p‰Â”\‚Å‚ ‚é‚½‚ßA‘ÎÇ—Ã–@“I‚É‚±‚±‚ğ–³Œø‚É‚µ‚½B
+	//CAB32.DLLã§ã¯CabGetAttribute()ã¯CabQueryFunctionList()ã§åˆ©ç”¨ä¸å¯ã¨å ±å‘Šã•ã‚Œã‚‹ãŒ
+	//å®Ÿéš›ã¯åˆ©ç”¨å¯èƒ½ã§ã‚ã‚‹ãŸã‚ã€å¯¾ç—‡ç™‚æ³•çš„ã«ã“ã“ã‚’ç„¡åŠ¹ã«ã—ãŸã€‚
 /*	if(!ArchiverQueryFunctionList(64)){//64:???GetAttribute
 		TRACE(_T("Function %s is not Available\n"),FunctionName);
 	}
@@ -535,7 +528,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		}
 //	}
 
-	//ƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾(ˆ³k‘O)
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—(åœ§ç¸®å‰)
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetOriginalSizeEx";
 	if(!ArchiverQueryFunctionList(85)){//85:???GetOriginalSizeEx
@@ -548,7 +541,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		}
 	}
 
-	//ƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾(ˆ³kŒã)
+	//ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—(åœ§ç¸®å¾Œ)
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetCompressedSizeEx";
 	if(!ArchiverQueryFunctionList(86)){//86:???GetCompressedSizeEx
@@ -561,7 +554,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		}
 	}
 
-	//ƒtƒ@ƒCƒ‹“úæ“¾(Šg’£)
+	//ãƒ•ã‚¡ã‚¤ãƒ«æ—¥æ™‚å–å¾—(æ‹¡å¼µ)
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetWriteTimeEx";
 	if(!ArchiverQueryFunctionList(70)){//70:???GetWriteTimeEx
@@ -573,7 +566,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 			TRACE(_T("Failed to Load Function %s\n"),(LPCTSTR)CA2T(FunctionName));
 		}
 	}
-	//ƒtƒ@ƒCƒ‹“úæ“¾(’Êí”Å;Šg’£”Å‚ªg‚¦‚È‚¢‚Æ‚«‚Ì‚İ)
+	//ãƒ•ã‚¡ã‚¤ãƒ«æ—¥æ™‚å–å¾—(é€šå¸¸ç‰ˆ;æ‹¡å¼µç‰ˆãŒä½¿ãˆãªã„ã¨ãã®ã¿)
 	if(NULL==ArchiverGetWriteTimeEx){
 		FunctionName=m_AstrPrefix;
 		FunctionName+="GetWriteTime";
@@ -588,7 +581,7 @@ LOAD_RESULT CArchiverDLL::LoadDLL(CConfigManager&,CString &strErr)
 		}
 	}
 
-	//ƒtƒ@ƒCƒ‹ˆ³kƒƒ\ƒbƒhæ“¾
+	//ãƒ•ã‚¡ã‚¤ãƒ«åœ§ç¸®ãƒ¡ã‚½ãƒƒãƒ‰å–å¾—
 	FunctionName=m_AstrPrefix;
 	FunctionName+="GetMethod";
 	if(!ArchiverQueryFunctionList(66)){//66:???GetMethod
@@ -695,7 +688,7 @@ bool CArchiverDLL::InspectArchiveNext()
 int CArchiverDLL::InspectArchiveGetAttribute()
 {
 //	ASSERT(ArchiverGetAttribute);
-	//‘Î‰‚µ‚Ä‚¢‚È‚¢DLL(CAB32.dll‚È‚Ç)‚Å‚ÍNULL‚É‚È‚Á‚Ä‚¢‚é
+	//å¯¾å¿œã—ã¦ã„ãªã„DLL(CAB32.dllãªã©)ã§ã¯NULLã«ãªã£ã¦ã„ã‚‹
 	if(!ArchiverGetAttribute){
 		return -1;
 	}
@@ -717,7 +710,7 @@ bool CArchiverDLL::InspectArchiveGetOriginalFileSize(LARGE_INTEGER &FileSize)
 		return (FALSE!=ArchiverGetOriginalSizeEx(m_hInspectArchive,&FileSize));
 	}
 	else{
-		//API‚É‚æ‚éƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾‚É¸”s‚µ‚½‚Ì‚Å\‘¢‘Ì‚Ìƒf[ƒ^‚ğ—˜—p‚·‚é
+		//APIã«ã‚ˆã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—ã«å¤±æ•—ã—ãŸã®ã§æ§‹é€ ä½“ã®ãƒ‡ãƒ¼ã‚¿ã‚’åˆ©ç”¨ã™ã‚‹
 		if(-1==m_IndividualInfo.dwOriginalSize)return false;
 		FileSize.HighPart=0;
 		FileSize.LowPart=m_IndividualInfo.dwOriginalSize;
@@ -735,7 +728,7 @@ bool CArchiverDLL::InspectArchiveGetCompressedFileSize(LARGE_INTEGER &FileSize)
 		return (FALSE!=ArchiverGetCompressedSizeEx(m_hInspectArchive,&FileSize));
 	}
 	else{
-		//API‚É‚æ‚éƒtƒ@ƒCƒ‹ƒTƒCƒYæ“¾‚É¸”s‚µ‚½‚Ì‚Å\‘¢‘Ì‚Ìƒf[ƒ^‚ğ—˜—p‚·‚é
+		//APIã«ã‚ˆã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚ºå–å¾—ã«å¤±æ•—ã—ãŸã®ã§æ§‹é€ ä½“ã®ãƒ‡ãƒ¼ã‚¿ã‚’åˆ©ç”¨ã™ã‚‹
 		if(-1==m_IndividualInfo.dwCompressedSize)return false;
 		FileSize.HighPart=0;
 		FileSize.LowPart=m_IndividualInfo.dwCompressedSize;
@@ -749,25 +742,25 @@ bool CArchiverDLL::InspectArchiveGetWriteTime(FILETIME &FileTime)
 		ASSERT(!"Open an Archive First!!!\n");
 		return false;
 	}
-	//Šg’£”ÅŠÖ”‚Åæ“¾
+	//æ‹¡å¼µç‰ˆé–¢æ•°ã§æ™‚åˆ»å–å¾—
 	if(ArchiverGetWriteTimeEx){
 		if(!ArchiverGetWriteTimeEx(m_hInspectArchive,&FileTime))return false;
 		return true;
 	}
-	//’Êí”ÅŠÖ”‚Åæ“¾
+	//é€šå¸¸ç‰ˆé–¢æ•°ã§æ™‚åˆ»å–å¾—
 	else if(ArchiverGetWriteTime){
 		DWORD UnixTime=ArchiverGetWriteTime(m_hInspectArchive);
 		if(-1==UnixTime){
 			return false;
 		}
-		//time_t‚©‚çFileTime‚Ö•ÏŠ·
+		//time_tã‹ã‚‰FileTimeã¸å¤‰æ›
 		LONGLONG ll = Int32x32To64(UnixTime, 10000000) + 116444736000000000;
 		FileTime.dwLowDateTime = (DWORD) ll;
 		FileTime.dwHighDateTime = (DWORD)(ll >>32);
 		return true;
 	}
 	else{
-		//INDIVIDUALINFO‚©‚çæ“¾
+		//INDIVIDUALINFOã‹ã‚‰æ™‚åˆ»å–å¾—
 		FILETIME TempTime;
 		if(!DosDateTimeToFileTime(m_IndividualInfo.wDate,m_IndividualInfo.wTime,&TempTime))return false;
 		if(!LocalFileTimeToFileTime(&TempTime,&FileTime))return false;
@@ -775,7 +768,7 @@ bool CArchiverDLL::InspectArchiveGetWriteTime(FILETIME &FileTime)
 	}
 }
 
-//‘ŒÉ“àƒtƒ@ƒCƒ‹CRCæ“¾
+//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«CRCå–å¾—
 DWORD CArchiverDLL::InspectArchiveGetCRC()
 {
 	if(!m_hInspectArchive){
@@ -785,7 +778,7 @@ DWORD CArchiverDLL::InspectArchiveGetCRC()
 	return m_IndividualInfo.dwCRC;
 }
 
-//‘ŒÉ“àƒtƒ@ƒCƒ‹ˆ³k—¦æ“¾
+//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«åœ§ç¸®ç‡å–å¾—
 WORD CArchiverDLL::InspectArchiveGetRatio()
 {
 	if(!m_hInspectArchive){
@@ -796,8 +789,8 @@ WORD CArchiverDLL::InspectArchiveGetRatio()
 	return m_IndividualInfo.wRatio;
 }
 
-//‘ŒÉ“àƒtƒ@ƒCƒ‹Ši”[ƒ‚[ƒhæ“¾
-//ANSI”Å
+//æ›¸åº«å†…ãƒ•ã‚¡ã‚¤ãƒ«æ ¼ç´ãƒ¢ãƒ¼ãƒ‰å–å¾—
+//ANSIç‰ˆ
 bool CArchiverDLL::InspectArchiveGetMethodString(CString &strMethod)
 {
 	if(!m_hInspectArchive){
@@ -805,21 +798,21 @@ bool CArchiverDLL::InspectArchiveGetMethodString(CString &strMethod)
 		return false;
 	}
 
-	//\0‚ÅI‚í‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©•ÛØ‚Å‚«‚È‚¢
+	//\0ã§çµ‚ã‚ã£ã¦ã„ã‚‹ã‹ã©ã†ã‹ä¿è¨¼ã§ããªã„
 	char szBuffer[32]={0};
 
 	if(ArchiverGetMethod){
 		if(0!=ArchiverGetMethod(m_hInspectArchive,szBuffer,31)){
-			//\‘¢‘Ì‚©‚çæ“¾
+			//æ§‹é€ ä½“ã‹ã‚‰å–å¾—
 			strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
 		}
 	}
 	else{
-		//\‘¢‘Ì‚©‚çæ“¾
+		//æ§‹é€ ä½“ã‹ã‚‰å–å¾—
 		strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
 	}
 
-	//î•ñŠi”[
+	//æƒ…å ±æ ¼ç´
 	strMethod=szBuffer;
 	return true;
 }
@@ -829,15 +822,15 @@ ARCRESULT CArchiverDLL::TestArchive(LPCTSTR lpszFile,CString &strMsg)
 	ASSERT(IsOK());
 	if(!IsOK())return TEST_ERROR;
 	TRACE(_T("TestArchive() called.\n"));
-	//ƒfƒtƒHƒ‹ƒg‚Å‚ÍƒeƒXƒg‚ÍÀ‘•‚³‚ê‚Ä‚¢‚È‚¢
+	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§ã¯ãƒ†ã‚¹ãƒˆã¯å®Ÿè£…ã•ã‚Œã¦ã„ãªã„
 
 	strMsg.Format(IDS_TESTARCHIVE_UNAVAILABLE,lpszFile,GetName());
 	return TEST_NOTIMPL;
 }
 
 
-//ƒŒƒXƒ|ƒ“ƒXƒtƒ@ƒCƒ‹‚Éƒtƒ@ƒCƒ‹–¼‚ğƒGƒXƒP[ƒv‚ğÀs‚µ‚½ã‚Å‘‚«‚ŞB
-//—LŒø‚Èƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹‚ÆNULL‚Å‚È‚¢ƒtƒ@ƒCƒ‹–¼‚ğ“n‚·‚±‚ÆB
+//ãƒ¬ã‚¹ãƒãƒ³ã‚¹ãƒ•ã‚¡ã‚¤ãƒ«ã«ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚’å®Ÿè¡Œã—ãŸä¸Šã§æ›¸ãè¾¼ã‚€ã€‚
+//æœ‰åŠ¹ãªãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ã¨NULLã§ãªã„ãƒ•ã‚¡ã‚¤ãƒ«åã‚’æ¸¡ã™ã“ã¨ã€‚
 void CArchiverDLL::WriteResponceFile(HANDLE hFile,LPCTSTR fname,bool bQuoteSpaces)
 {
 	CPath path(fname);
@@ -851,23 +844,23 @@ void CArchiverDLL::WriteResponceFile(HANDLE hFile,LPCTSTR fname,bool bQuoteSpace
 	TRACE(_T("%s\n"),CA2T(szBuffer));
 
 	DWORD dwWritten=0;
-	//ƒtƒ@ƒCƒ‹–¼‚ğo—Í
+	//ãƒ•ã‚¡ã‚¤ãƒ«åã‚’å‡ºåŠ›
 	WriteFile(hFile,szBuffer,strlen(szBuffer)*sizeof(char),&dwWritten,NULL);
 
-	//ƒtƒ@ƒCƒ‹–¼‚ğ‹æØ‚é‚½‚ß‚Ì‰üs
+	//ãƒ•ã‚¡ã‚¤ãƒ«åã‚’åŒºåˆ‡ã‚‹ãŸã‚ã®æ”¹è¡Œ
 	char CRLF[]="\r\n";
 	WriteFile(hFile,&CRLF,strlen(CRLF)*sizeof(char),&dwWritten,NULL);
 }
 
 bool CArchiverDLL::ExtractItems(LPCTSTR lpszArcFile,CConfigManager &ConfMan,const ARCHIVE_ENTRY_INFO_TREE *lpBase, const std::list<ARCHIVE_ENTRY_INFO_TREE *> &items, LPCTSTR lpszOutputBaseDir, bool bCollapseDir, CString &strLog)
 {
-	//ƒA[ƒJƒCƒu‚Ì‘¶İ‚ÍŠù‚ÉŠm”FÏ‚İ‚Æ‚·‚é
-	//•¶šƒR[ƒhŠÖŒW‚ÍŠù‚ÉŠm”FÏ‚İ‚Æ‚·‚é
+	//ã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ã®å­˜åœ¨ã¯æ—¢ã«ç¢ºèªæ¸ˆã¿ã¨ã™ã‚‹
+	//æ–‡å­—ã‚³ãƒ¼ãƒ‰é–¢ä¿‚ã¯æ—¢ã«ç¢ºèªæ¸ˆã¿ã¨ã™ã‚‹
 
-	//---ƒŠƒXƒg‚©‚çƒtƒ@ƒCƒ‹‚ÆƒfƒBƒŒƒNƒgƒŠ‚ğ•ª—£
-	ARCHIVE_ENTRY_INFO_TREE *lpFileParent=NULL;	//ƒtƒ@ƒCƒ‹‚Ìe
-	std::list<CString> files;			//ƒtƒ@ƒCƒ‹ê—p
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> dirs;	//ƒfƒBƒŒƒNƒgƒŠê—p
+	//---ãƒªã‚¹ãƒˆã‹ã‚‰ãƒ•ã‚¡ã‚¤ãƒ«ã¨ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’åˆ†é›¢
+	ARCHIVE_ENTRY_INFO_TREE *lpFileParent=NULL;	//ãƒ•ã‚¡ã‚¤ãƒ«ã®è¦ª
+	std::list<CString> files;			//ãƒ•ã‚¡ã‚¤ãƒ«å°‚ç”¨
+	std::list<ARCHIVE_ENTRY_INFO_TREE*> dirs;	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå°‚ç”¨
 
 	std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();
 	const std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator end=items.end();
@@ -881,7 +874,7 @@ bool CArchiverDLL::ExtractItems(LPCTSTR lpszArcFile,CConfigManager &ConfMan,cons
 		}
 	}
 
-	// ƒtƒ@ƒCƒ‹‚ğˆ—
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡¦ç†
 	if(!files.empty()){
 		CString pathOutputDir;
 		if(!bCollapseDir){
@@ -894,14 +887,14 @@ bool CArchiverDLL::ExtractItems(LPCTSTR lpszArcFile,CConfigManager &ConfMan,cons
 		}
 	}
 
-	// ƒfƒBƒŒƒNƒgƒŠ‚ğˆ—
+	// ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å‡¦ç†
 	if(!dirs.empty()){
 		if(!ExtractSubDirectories(lpszArcFile,ConfMan,lpBase,dirs,lpszOutputBaseDir,bCollapseDir,strLog))return false;
 	}
 	return true;
 }
 
-//w’è‚³‚ê‚½ƒfƒBƒŒƒNƒgƒŠ“à•”‚ğ“WŠJ‚·‚é;Šî–{À‘•
+//æŒ‡å®šã•ã‚ŒãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…éƒ¨ã‚’å±•é–‹ã™ã‚‹;åŸºæœ¬å®Ÿè£…
 bool CArchiverDLL::ExtractSubDirectories(LPCTSTR lpszArcFile,CConfigManager &ConfMan,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &dirs,LPCTSTR lpszOutputDir,bool bCollapseDir,CString &strLog)
 {
 	std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=dirs.begin();
@@ -912,15 +905,15 @@ bool CArchiverDLL::ExtractSubDirectories(LPCTSTR lpszArcFile,CConfigManager &Con
 	return true;
 }
 
-//w’è‚³‚ê‚½ƒfƒBƒŒƒNƒgƒŠ“à•”‚ğ“WŠJ‚·‚é;Šî–{À‘•
+//æŒ‡å®šã•ã‚ŒãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå†…éƒ¨ã‚’å±•é–‹ã™ã‚‹;åŸºæœ¬å®Ÿè£…
 bool CArchiverDLL::ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager &ConfMan,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog)
 {
-	//ƒfƒBƒŒƒNƒgƒŠ’†‚Ìƒtƒ@ƒCƒ‹‚ğ—ñ‹“
-	std::list<CString> files;			//ƒtƒ@ƒCƒ‹ê—p
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> dirs;	//ƒfƒBƒŒƒNƒgƒŠê—p
+	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä¸­ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åˆ—æŒ™
+	std::list<CString> files;			//ãƒ•ã‚¡ã‚¤ãƒ«å°‚ç”¨
+	std::list<ARCHIVE_ENTRY_INFO_TREE*> dirs;	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå°‚ç”¨
 
-	//ƒfƒBƒŒƒNƒgƒŠ‚ªƒA[ƒJƒCƒu’†‚ÉƒGƒ“ƒgƒŠ‚Æ‚µ‚Ä“o˜^‚³‚ê‚Ä‚¢‚Ä‚à–³‹‚·‚é
-	//->’Êí’Ê‚èo—Í‚·‚é‚Æo—Íæ‚ÆŒë‰ğ‚³‚ê‚é‚±‚Æ‚ª‚ ‚é
+	//ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãŒã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ä¸­ã«ã‚¨ãƒ³ãƒˆãƒªã¨ã—ã¦ç™»éŒ²ã•ã‚Œã¦ã„ã¦ã‚‚ç„¡è¦–ã™ã‚‹
+	//->é€šå¸¸é€šã‚Šå‡ºåŠ›ã™ã‚‹ã¨å‡ºåŠ›å…ˆã¨èª¤è§£ã•ã‚Œã‚‹ã“ã¨ãŒã‚ã‚‹
 	UINT nItems=lpDir->GetNumChildren();
 	for(UINT i=0;i<nItems;i++){
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpDir->GetChild(i);
@@ -933,22 +926,22 @@ bool CArchiverDLL::ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager &Con
 	}
 
 	//--------------------------------------
-	// C³‚³‚ê‚½o—ÍƒfƒBƒŒƒNƒgƒŠƒpƒX‚ğZo
+	// ä¿®æ­£ã•ã‚ŒãŸå‡ºåŠ›ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ‘ã‚¹ã‚’ç®—å‡º
 	//--------------------------------------
 	CString pathOutputDir;
 	ArcEntryInfoTree_GetNodePathRelative(lpDir,lpBase,pathOutputDir);
 
-	//o—ÍƒfƒBƒŒƒNƒgƒŠ–¼‚ÆŒ‹‡
+	//å‡ºåŠ›ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã¨çµåˆ
 	pathOutputDir=lpszOutputBaseDir+pathOutputDir;
 
 	if(pathOutputDir.GetLength()>_MAX_PATH){
-		//ƒtƒHƒ‹ƒ_–¼‚ª’·‚­‚È‚è‚·‚¬‚½
+		//ãƒ•ã‚©ãƒ«ãƒ€åãŒé•·ããªã‚Šã™ããŸ
 		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
 		return false;
 	}
 
-	if(files.empty() && dirs.empty() && lpDir->strFullPath.IsEmpty()){	//‹óƒtƒHƒ‹ƒ_‚ªƒA[ƒJƒCƒu’†‚É‘¶İ‚µ‚½ê‡
-		//‹óƒfƒBƒŒƒNƒgƒŠƒGƒ“ƒgƒŠ‚ğèì‹Æ‚Å•œŒ³‚·‚é
+	if(files.empty() && dirs.empty() && lpDir->strFullPath.IsEmpty()){	//ç©ºãƒ•ã‚©ãƒ«ãƒ€ãŒã‚¢ãƒ¼ã‚«ã‚¤ãƒ–ä¸­ã«å­˜åœ¨ã—ãŸå ´åˆ
+		//ç©ºãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚¨ãƒ³ãƒˆãƒªã‚’æ‰‹ä½œæ¥­ã§å¾©å…ƒã™ã‚‹
 		if(!UtilMakeSureDirectoryPathExists(pathOutputDir)){
 			strLog.Format(IDS_ERROR_CANNOT_MAKE_DIR,(LPCTSTR)pathOutputDir);
 			return false;
@@ -956,10 +949,10 @@ bool CArchiverDLL::ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager &Con
 		return true;
 	}
 
-	//---Ä‹A“I‚Éˆ—
+	//---å†å¸°çš„ã«å‡¦ç†
 
 	//----------------
-	// ƒtƒ@ƒCƒ‹‚ğˆ—
+	// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‡¦ç†
 	//----------------
 	if(!files.empty()){
 		if(!ExtractSpecifiedOnly(lpszArcFile,ConfMan,pathOutputDir,files,strLog)){
@@ -968,7 +961,7 @@ bool CArchiverDLL::ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager &Con
 	}
 
 	//--------------------
-	// ƒfƒBƒŒƒNƒgƒŠ‚ğˆ—
+	// ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å‡¦ç†
 	//--------------------
 	if(!dirs.empty()){
 		ExtractSubDirectories(lpszArcFile,ConfMan,bCollapseDir?lpDir:lpBase,dirs,lpszOutputBaseDir,bCollapseDir,strLog);

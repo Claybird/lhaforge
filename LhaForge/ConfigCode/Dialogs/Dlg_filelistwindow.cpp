@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "Dlg_filelistwindow.h"
@@ -36,25 +29,25 @@
 #include "../../Utilities/StringUtil.h"
 
 //================================
-// ƒtƒ@ƒCƒ‹ˆê——ƒEƒBƒ“ƒhƒEİ’è‰æ–Ê
+// ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¨­å®šç”»é¢
 //================================
 LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
-	//ƒtƒ@ƒCƒ‹ˆê——ƒ‚[ƒh
+	//ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ãƒ¢ãƒ¼ãƒ‰
 	Radio_FileListMode[FILELIST_TREE]=GetDlgItem(IDC_RADIO_FILELIST_TREE);
 	Radio_FileListMode[FILELIST_FLAT]=GetDlgItem(IDC_RADIO_FILELIST_FLAT);
 	Radio_FileListMode[FILELIST_FLAT_FILESONLY]=GetDlgItem(IDC_RADIO_FILELIST_FLAT_FILESONLY);
 
 	Radio_FileListMode[m_Config.FileListMode].SetCheck(true);
 
-	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­vƒRƒ}ƒ“ƒhŠÖ˜A
+	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã‚³ãƒãƒ³ãƒ‰é–¢é€£
 	m_MenuCommandArray=m_Config.MenuCommandArray;
 
 	Edit_Path	=GetDlgItem(IDC_EDIT_FILELIST_USERAPP_PATH);
@@ -75,7 +68,7 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	m_lpMenuCommandItem=NULL;
 
-	//ó‘ÔXV
+	//çŠ¶æ…‹æ›´æ–°
 	BOOL tmp;
 	OnCheckChanged(0,0,NULL,tmp);
 	return TRUE;
@@ -84,10 +77,10 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgFileListWindow::OnApply()
 {
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
@@ -98,7 +91,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 			break;
 		}
 	}
-	//uƒvƒƒOƒ‰ƒ€‚ÅŠJ‚­vƒRƒ}ƒ“ƒh‚ÌXV
+	//ã€Œãƒ—ãƒ­ã‚°ãƒ©ãƒ ã§é–‹ãã€ã‚³ãƒãƒ³ãƒ‰ã®æ›´æ–°
 	if(m_lpMenuCommandItem){
 		Edit_Path.GetWindowText(m_lpMenuCommandItem->Path);
 		Edit_Param.GetWindowText(m_lpMenuCommandItem->Param);
@@ -111,7 +104,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 
 void CConfigDlgFileListWindow::OnClearTemporary(UINT,int,HWND)
 {
-	//c‚Á‚Ä‚µ‚Ü‚Á‚½ƒeƒ“ƒ|ƒ‰ƒŠƒfƒBƒŒƒNƒgƒŠ‚ğíœ
+	//æ®‹ã£ã¦ã—ã¾ã£ãŸãƒ†ãƒ³ãƒãƒ©ãƒªãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å‰Šé™¤
 	if(!CTemporaryDirectoryManager::DeleteAllTemporaryDir(_T("lhaf")))MessageBeep(MB_ICONHAND);
 }
 
@@ -127,7 +120,7 @@ void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
 	}
 }
 
-//ƒvƒƒOƒ‰ƒ€‚ÌêŠ‚ğQÆ
+//ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®å ´æ‰€ã‚’å‚ç…§
 void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 {
 	TCHAR filter[_MAX_PATH+2]={0};
@@ -141,13 +134,13 @@ void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 	TCHAR szPath[_MAX_PATH+1];
 	Edit_Path.GetWindowText(szPath,_MAX_PATH);
 	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
-	if(IDCANCEL==dlg.DoModal()){	//ƒLƒƒƒ“ƒZƒ‹
+	if(IDCANCEL==dlg.DoModal()){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		return;
 	}
 	Edit_Path.SetWindowText(dlg.m_szFileName);
 }
 
-//ƒtƒHƒ‹ƒ_‚ğQÆ
+//ãƒ•ã‚©ãƒ«ãƒ€ã‚’å‚ç…§
 void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 {
 	TCHAR szPath[_MAX_PATH+1];
@@ -155,13 +148,13 @@ void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 	CLFFolderDialog dlg(NULL,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 	dlg.SetInitialFolder(szPath);
 
-	if(IDCANCEL==dlg.DoModal()){	//ƒLƒƒƒ“ƒZƒ‹
+	if(IDCANCEL==dlg.DoModal()){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		return;
 	}
 	Edit_Dir.SetWindowText(dlg.GetFolderPath());
 }
 
-//ƒJƒXƒ^ƒ€ƒc[ƒ‹ƒo[‰æ‘œ‚ğQÆ
+//ã‚«ã‚¹ã‚¿ãƒ ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ç”»åƒã‚’å‚ç…§
 void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 {
 	TCHAR filter[_MAX_PATH+2]={0};
@@ -175,13 +168,13 @@ void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 	TCHAR szPath[_MAX_PATH+1];
 	::GetWindowText(GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE),szPath,_MAX_PATH);
 	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
-	if(IDCANCEL==dlg.DoModal()){	//ƒLƒƒƒ“ƒZƒ‹
+	if(IDCANCEL==dlg.DoModal()){	//ã‚­ãƒ£ãƒ³ã‚»ãƒ«
 		return;
 	}
 	::SetWindowText(GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE),dlg.m_szFileName);
 }
 
-//‰¼‘zƒŠƒXƒgƒrƒ…[‚ÌƒAƒCƒeƒ€æ“¾
+//ä»®æƒ³ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¢ã‚¤ãƒ†ãƒ å–å¾—
 LRESULT CConfigDlgFileListWindow::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
@@ -195,7 +188,7 @@ LRESULT CConfigDlgFileListWindow::OnGetDispInfo(LPNMHDR pnmh)
 	return 0;
 }
 
-//ƒAƒCƒeƒ€‘I‘ğ•ÏX
+//ã‚¢ã‚¤ãƒ†ãƒ é¸æŠå¤‰æ›´
 LRESULT CConfigDlgFileListWindow::OnSelect(LPNMHDR pnmh)
 {
 	if(m_lpMenuCommandItem){
@@ -216,7 +209,7 @@ LRESULT CConfigDlgFileListWindow::OnSelect(LPNMHDR pnmh)
 	return 0;
 }
 
-//€–Ú‚ğã‚ÖˆÚ“®
+//é …ç›®ã‚’ä¸Šã¸ç§»å‹•
 LRESULT CConfigDlgFileListWindow::OnUserAppMoveUp(WORD,WORD,HWND,BOOL&)
 {
 	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
@@ -239,7 +232,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveUp(WORD,WORD,HWND,BOOL&)
 	return TRUE;
 }
 
-//€–Ú‚ğ‰º‚ÖˆÚ“®
+//é …ç›®ã‚’ä¸‹ã¸ç§»å‹•
 LRESULT CConfigDlgFileListWindow::OnUserAppMoveDown(WORD,WORD,HWND,BOOL&)
 {
 	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
@@ -262,10 +255,10 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveDown(WORD,WORD,HWND,BOOL&)
 	return TRUE;
 }
 
-//€–Ú‚ÌV‹Kì¬
+//é …ç›®ã®æ–°è¦ä½œæˆ
 LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 {
-	//‹Œ€–Ú‚Ì•Û‘¶
+	//æ—§é …ç›®ã®ä¿å­˜
 	if(m_lpMenuCommandItem){
 		Edit_Path.GetWindowText(m_lpMenuCommandItem->Path);
 		Edit_Param.GetWindowText(m_lpMenuCommandItem->Param);
@@ -273,7 +266,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 		Edit_Caption.GetWindowText(m_lpMenuCommandItem->Caption);
 	}
 
-	//V€–Ú‚Ìİ’è
+	//æ–°é …ç›®ã®è¨­å®š
 	CMenuCommandItem mci;
 	mci.Caption=_T("UserApp");
 	mci.Param=_T("%S");
@@ -291,14 +284,14 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 	return TRUE;
 }
 
-//€–Ú‚ğíœ
+//é …ç›®ã‚’å‰Šé™¤
 LRESULT CConfigDlgFileListWindow::OnUserAppDelete(WORD,WORD,HWND,BOOL&)
 {
 	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
 	if(-1==iItem||iItem>=(signed)m_MenuCommandArray.size())return FALSE;
 	std::vector<CMenuCommandItem>::iterator ite=m_MenuCommandArray.begin();
 
-	//íœ‘ÎÛƒAƒCƒeƒ€‚ÌŒŸõ
+	//å‰Šé™¤å¯¾è±¡ã‚¢ã‚¤ãƒ†ãƒ ã®æ¤œç´¢
 	ite+=iItem;
 	m_MenuCommandArray.erase(ite);
 

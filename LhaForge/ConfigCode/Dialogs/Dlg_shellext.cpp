@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #include "stdafx.h"
 #include "../ConfigManager.h"
@@ -36,23 +29,23 @@
 #include "../configwnd.h"
 
 //==============
-// ˆê”Êİ’è‰æ–Ê
+// ä¸€èˆ¬è¨­å®šç”»é¢
 //==============
 LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// ƒƒbƒZ[ƒWƒ‹[ƒv‚ÉƒƒbƒZ[ƒWƒtƒBƒ‹ƒ^‚ÆƒAƒCƒhƒ‹ƒnƒ“ƒhƒ‰‚ğ’Ç‰Á
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ«ãƒ¼ãƒ—ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãƒ•ã‚£ãƒ«ã‚¿ã¨ã‚¢ã‚¤ãƒ‰ãƒ«ãƒãƒ³ãƒ‰ãƒ©ã‚’è¿½åŠ 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
 	//------------------
-	// ƒVƒFƒ‹Šg’£‚Ì—L–³
+	// ã‚·ã‚§ãƒ«æ‹¡å¼µã®æœ‰ç„¡
 	//------------------
 	Check_ShellExt=GetDlgItem(IDC_CHECK_SHELL_EXT);
 	Check_ShellExt.SetCheck(ShellRegistCheck());
 
 	Check_ShellExtForceExtra=GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA);
 
-	//DDXî•ñƒAƒbƒvƒf[ƒg
+	//DDXæƒ…å ±ã‚¢ãƒƒãƒ—ãƒ‡ãƒ¼ãƒˆ
 	DoDataExchange(FALSE);
 
 	BOOL bActive=Check_ShellExt.GetCheck();
@@ -67,11 +60,11 @@ LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 	::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_UNDER_SUBMENU),bActive);
 
 	//------------------------------------
-	// íŠg’£ƒƒjƒ…[‚ğg—p‚·‚é‚©‚Ç‚¤‚©
+	// å¸¸æ™‚æ‹¡å¼µãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’ä½¿ç”¨ã™ã‚‹ã‹ã©ã†ã‹
 	//------------------------------------
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),bActive);
 
-	//ƒƒjƒ…[ƒJƒXƒ^ƒ}ƒCƒY
+	//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚«ã‚¹ã‚¿ãƒã‚¤ã‚º
 	bActive=bActive&&(!Check_ShellExtForceExtra.GetCheck());
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),bActive);
 	::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),bActive);
@@ -82,26 +75,26 @@ LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgShellExt::OnApply()
 {
 //==========================
-// ƒVƒFƒ‹Šg’£‚ÌON/OFF‚ğ”½‰f
+// ã‚·ã‚§ãƒ«æ‹¡å¼µã®ON/OFFã‚’åæ˜ 
 //==========================
 	bool bCurrentStatus=(0!=Check_ShellExt.GetCheck());
 
-	//ˆË—Š“à—e‚ğ‹Lq
+	//ä¾é ¼å†…å®¹ã‚’è¨˜è¿°
 	CString strIniName(mr_ConfigDlg.GetAssistantFile());
-	//---“o˜^or‰ğœ
+	//---ç™»éŒ²orè§£é™¤
 	if(bCurrentStatus){
-		//“o˜^
+		//ç™»éŒ²
 		UtilWritePrivateProfileInt(_T("Shell"),_T("set"),1,strIniName);
 	}else{
-		//‰ğœ
+		//è§£é™¤
 		UtilWritePrivateProfileInt(_T("Shell"),_T("set"),0,strIniName);
 	}
 
 //===============================
-// İ’è‚ğConfigManager‚É‘‚«–ß‚·
+// è¨­å®šã‚’ConfigManagerã«æ›¸ãæˆ»ã™
 //===============================
 	//---------------
-	// DDXƒf[ƒ^XV
+	// DDXãƒ‡ãƒ¼ã‚¿æ›´æ–°
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
@@ -127,17 +120,17 @@ LRESULT CConfigDlgShellExt::OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),	 bActive);
 
 
-		//ƒƒjƒ…[ƒJƒXƒ^ƒ}ƒCƒY
+		//ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚«ã‚¹ã‚¿ãƒã‚¤ã‚º
 		bool bCustomActive = bActive && (!Check_ShellExtForceExtra.GetCheck());
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),	bCustomActive);
 		::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),		bCustomActive);
 
 		bool bOldStatus=ShellRegistCheck();
 		if(bActive ^ bOldStatus){	//if( (!bActive && bOldStatus) || (bActive && !bOldStatus)){
-			//LFAssist.exe‚ÌÀs‚ğ—v¿
+			//LFAssist.exeã®å®Ÿè¡Œã‚’è¦è«‹
 			mr_ConfigDlg.RequireAssistant();
 		}else{
-			//LFAssist.exe‚ÌÀs—v¿‚ğæ‚èÁ‚µ
+			//LFAssist.exeã®å®Ÿè¡Œè¦è«‹ã‚’å–ã‚Šæ¶ˆã—
 			mr_ConfigDlg.UnrequireAssistant();
 		}
 	}
@@ -160,7 +153,7 @@ LRESULT CConfigDlgShellExt::OnEditMenu(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 		return 0;
 	}
 
-	//•ÒWƒvƒƒOƒ‰ƒ€‹N“®
+	//ç·¨é›†ãƒ—ãƒ­ã‚°ãƒ©ãƒ èµ·å‹•
 	TCHAR szPath[_MAX_PATH]={0};
 	GetModuleFileName(NULL,szPath,_MAX_PATH);
 

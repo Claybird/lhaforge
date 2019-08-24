@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+Ôªø/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 #include "FileListTabItem.h"
@@ -47,19 +40,19 @@ protected:
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
 	CConfigManager&		m_rConfig;
-	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//ÉäÉXÉgÉrÉÖÅ[ÉJÉâÉÄÇÃï¿Ç—èá
+	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//„É™„Çπ„Éà„Éì„É•„Éº„Ç´„É©„É†„ÅÆ‰∏¶„Å≥È†Ü
 	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
-	bool				m_bShowTab;			//É^Éuï\é¶?
-	bool				m_bShowTreeView;	//ÉcÉäÅ[ÉrÉÖÅ[ï\é¶Ç»ÇÁTrue
+	bool				m_bShowTab;			//„Çø„ÉñË°®Á§∫?
+	bool				m_bShowTreeView;	//„ÉÑ„É™„Éº„Éì„É•„ÉºË°®Á§∫„Å™„ÇâTrue
 
 	CFileListTabItem*	m_lpPrevTab;
 
-	//äeÉäÉXÉgÉrÉÖÅ[Ç≈ã§í âªÇ∑ÇÈê›íË
+	//ÂêÑ„É™„Çπ„Éà„Éì„É•„Éº„ÅßÂÖ±ÈÄöÂåñ„Åô„ÇãË®≠ÂÆö
 	int		m_nTreeWidth;
 	bool	m_bSortDescending;
 	int		m_nSortKeyType;
 	DWORD	m_dwListStyle;
-	FILELISTMODE	m_ListMode;//É^Éuä‘Ç≈ã§óLÇÕÇπÇ∏ÅAï€ë∂ÇÃÇΩÇﬂÇæÇØÇ…égópÇ∑ÇÈ
+	FILELISTMODE	m_ListMode;//„Çø„ÉñÈñì„ÅßÂÖ±Êúâ„ÅØ„Åõ„Åö„ÄÅ‰øùÂ≠ò„ÅÆ„Åü„ÇÅ„Å†„Åë„Å´‰ΩøÁî®„Åô„Çã
 protected:
 	BEGIN_MSG_MAP_EX(CFileListTabClient)
 		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -70,7 +63,7 @@ protected:
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnTabSelChanged)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)	//É^ÉuÉÅÉjÉÖÅ[
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)	//„Çø„Éñ„É°„Éã„É•„Éº
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TOGGLE_TREEVIEW,OnToggleTreeView)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE,OnExtractArchive)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE,OnExtractArchive)
@@ -82,14 +75,14 @@ protected:
 		CHAIN_MSG_MAP(CTabView)
 		REFLECT_NOTIFICATIONS()
 		DEFAULT_REFLECTION_HANDLER()
-	ALT_MSG_MAP(1)	//É^ÉuÉRÉìÉgÉçÅ[Éã
-		MSG_WM_MBUTTONUP(OnMButtonUp)	//É}ÉEÉXÉzÉCÅ[Éã(íÜÉ{É^Éì)ÉNÉäÉbÉN
+	ALT_MSG_MAP(1)	//„Çø„Éñ„Ç≥„É≥„Éà„É≠„Éº„É´
+		MSG_WM_MBUTTONUP(OnMButtonUp)	//„Éû„Ç¶„Çπ„Éõ„Ç§„Éº„É´(‰∏≠„Éú„Çø„É≥)„ÇØ„É™„ÉÉ„ÇØ
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
 		CHAIN_MSG_MAP_ALT(CTabView,1)
 	END_MSG_MAP()
 protected:
-	//---ÉCÉxÉìÉgÉnÉìÉhÉâ
+	//---„Ç§„Éô„É≥„Éà„Éè„É≥„Éâ„É©
 	LRESULT OnDestroy();
 	void OnSize(UINT uType, CSize &size);
 	LRESULT OnTabSelChanging(LPNMHDR pnmh);
@@ -97,8 +90,8 @@ protected:
 	LRESULT OnWndStateChanged(LPNMHDR pnmh);
 	LRESULT OnContextMenu(LPNMHDR pnmh);
 	void OnMButtonUp(UINT, CPoint&);
-	void OnExtractArchive(UINT,int,HWND);	//ÉAÅ[ÉJÉCÉuÇÇ∑Ç◊ÇƒâìÄ
-	void OnTestArchive(UINT,int,HWND);	//ÉAÅ[ÉJÉCÉuÇåüç∏
+	void OnExtractArchive(UINT,int,HWND);	//„Ç¢„Éº„Ç´„Ç§„Éñ„Çí„Åô„Åπ„Å¶Ëß£Âáç
+	void OnTestArchive(UINT,int,HWND);	//„Ç¢„Éº„Ç´„Ç§„Éñ„ÇíÊ§úÊüª
 	void OnSortItemMenu(UINT,int,HWND);
 	void OnToggleTreeView(UINT,int,HWND);
 	void OnExtractAll(UINT,int,HWND);
@@ -110,7 +103,7 @@ protected:
 	void FitClient();
 	void OnActivateTab(int newIdx);
 	void OnDeactivateTab(CFileListTabItem*);
-	void GetTabSettingsToClient(CFileListTabItem*);	//éwíËÇµÇΩÉ^ÉuÇÃê›íËÇÉÅÉìÉoïœêîÇ…ì«Ç›çûÇﬁ
+	void GetTabSettingsToClient(CFileListTabItem*);	//ÊåáÂÆö„Åó„Åü„Çø„Éñ„ÅÆË®≠ÂÆö„Çí„É°„É≥„ÉêÂ§âÊï∞„Å´Ë™≠„ÅøËæº„ÇÄ
 	void UpdateClientArea();
 public:
 	CFileListTabClient(CConfigManager&,CFileListFrame&);

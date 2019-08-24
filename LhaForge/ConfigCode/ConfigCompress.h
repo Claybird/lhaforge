@@ -1,33 +1,26 @@
-/*
- * Copyright (c) 2005-, Claybird
- * All rights reserved.
+ï»¿/*
+* MIT License
 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+* Copyright (c) 2005- Claybird
 
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Claybird nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
- * THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- */
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
 
 #pragma once
 
@@ -39,23 +32,23 @@ public:
 	CString OutputDir;
 	BOOL OpenDir;
 	BOOL SpecifyOutputFilename;
-	BOOL LimitCompressFileCount;	//“¯‚Éˆ³k‚·‚éƒtƒ@ƒCƒ‹‚Ì”‚ğŒÀ’è‚·‚é‚È‚çtrue
-	int MaxCompressFileCount;		//“¯‚Éˆ³k‚·‚éƒtƒ@ƒCƒ‹‚Ì”‚ÌãŒÀ
-	BOOL UseDefaultParameter;	//ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^‚ğg—p‚·‚é‚È‚çtrue
-	PARAMETER_TYPE DefaultType;	//ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^(Œ`®w’è)
-	int DefaultOptions;			//ƒfƒtƒHƒ‹ƒgˆ³kƒpƒ‰ƒ[ƒ^‚ÌƒIƒvƒVƒ‡ƒ“
+	BOOL LimitCompressFileCount;	//åŒæ™‚ã«åœ§ç¸®ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã‚’é™å®šã™ã‚‹ãªã‚‰true
+	int MaxCompressFileCount;		//åŒæ™‚ã«åœ§ç¸®ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã®ä¸Šé™
+	BOOL UseDefaultParameter;	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’ä½¿ç”¨ã™ã‚‹ãªã‚‰true
+	PARAMETER_TYPE DefaultType;	//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿(å½¢å¼æŒ‡å®š)
+	int DefaultOptions;			//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆåœ§ç¸®ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 	CString DefaultB2EFormat;
 	CString DefaultB2EMethod;
 
-	BOOL DeleteAfterCompress;	//³í‚Éˆ³k‚Å‚«‚½ƒtƒ@ƒCƒ‹‚ğíœ
-	BOOL MoveToRecycleBin;		//ˆ³kŒãƒtƒ@ƒCƒ‹‚ğ‚²‚İ” ‚ÉˆÚ“®
-	BOOL DeleteNoConfirm;		//Šm”F‚¹‚¸‚Éíœ/‚²‚İ” ‚ÉˆÚ“®
-	BOOL ForceDelete;			//³íˆ—‚ğŠm”F‚Å‚«‚È‚¢Œ`®‚Å‚àíœ
+	BOOL DeleteAfterCompress;	//æ­£å¸¸ã«åœ§ç¸®ã§ããŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤
+	BOOL MoveToRecycleBin;		//åœ§ç¸®å¾Œãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã”ã¿ç®±ã«ç§»å‹•
+	BOOL DeleteNoConfirm;		//ç¢ºèªã›ãšã«å‰Šé™¤/ã”ã¿ç®±ã«ç§»å‹•
+	BOOL ForceDelete;			//æ­£å¸¸å‡¦ç†ã‚’ç¢ºèªã§ããªã„å½¢å¼ã§ã‚‚å‰Šé™¤
 
-	BOOL IgnoreTopDirectory;	//uƒtƒHƒ‹ƒ_‚æ‚è‰º‚Ìƒtƒ@ƒCƒ‹‚ğˆ³kv
+	BOOL IgnoreTopDirectory;	//ã€Œãƒ•ã‚©ãƒ«ãƒ€ã‚ˆã‚Šä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’åœ§ç¸®ã€
 protected:
-	virtual void load(CONFIG_SECTION&);	//İ’è‚ğCONFIG_SECTION‚©‚ç“Ç‚İ‚Ş
-	virtual void store(CONFIG_SECTION&)const;	//İ’è‚ğCONFIG_SECTION‚É‘‚«‚Ş
+	virtual void load(CONFIG_SECTION&);	//è¨­å®šã‚’CONFIG_SECTIONã‹ã‚‰èª­ã¿è¾¼ã‚€
+	virtual void store(CONFIG_SECTION&)const;	//è¨­å®šã‚’CONFIG_SECTIONã«æ›¸ãè¾¼ã‚€
 public:
 	virtual ~CConfigCompress(){}
 	virtual void load(CConfigManager&);
