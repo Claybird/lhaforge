@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ public:
 	virtual ARCRESULT TestArchive(LPCTSTR,CString &)override;	//アーカイブが正しいかどうかチェックする
 
 	//アーカイブに指定したファイルを追加
-	virtual bool AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
+	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const override{return true;}
 
 

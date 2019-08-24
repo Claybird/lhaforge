@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -211,7 +211,7 @@ bool CArchiver7ZIP::FormatCompressCommandZIP(const CConfigZIP &ConfZIP,CString &
 	return true;
 }
 
-bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Param,int Options,LPCTSTR lpszMethod,CString &strLog)
+bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Param,int Options,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog)
 {
 	Param+=
 		_T("a ")			//圧縮
@@ -222,8 +222,18 @@ bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Par
 		Param+=_T("-m0=");
 		Param+=lpszMethod;
 		Param+=_T(" ");
+
+		if(lpszLevel && *lpszLevel!=_T('\0')){
+			Param+=_T("-mx=");
+			Param+=lpszLevel;
+			Param+=_T(" ");
+		}
 	}else{
-		if(Conf7Z.UsePreset){
+		if(lpszLevel && *lpszLevel!=_T('\0')){
+			Param+=_T("-mx=");
+			Param+=lpszLevel;
+			Param+=_T(" ");
+		}else if(Conf7Z.UsePreset){
 			//プリセット圧縮モード
 			switch(Conf7Z.CompressLevel){	//圧縮レベル
 			case SEVEN_ZIP_COMPRESS_LEVEL0:
@@ -242,7 +252,8 @@ bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Par
 				Param+=_T("-mx=9 ");
 				break;
 			}
-		}else{
+		}
+		if(!Conf7Z.UsePreset){
 			switch(Conf7Z.CompressType){	//圧縮方式
 			case SEVEN_ZIP_COMPRESS_LZMA:
 				Param+=_T("-m0=LZMA:a=");
@@ -309,7 +320,7 @@ bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Par
 	}
 	if(Options&COMPRESS_SFX){
 		//BZip2の自己解凍はサポートされていない
-		if(SEVEN_ZIP_COMPRESS_BZIP2==Conf7Z.CompressType){
+		if(!Conf7Z.UsePreset && SEVEN_ZIP_COMPRESS_BZIP2==Conf7Z.CompressType){
 			strLog=CString(MAKEINTRESOURCE(IDS_ERROR_7Z_SFX_DONT_SUPPORT_BZIP2));
 			return false;
 		}
@@ -318,8 +329,14 @@ bool CArchiver7ZIP::FormatCompressCommand7Z(const CConfig7Z &Conf7Z,CString &Par
 	return true;
 }
 
+/*
+formatの指定は、B2E32.dllでのみ有効
+levelの指定は、B2E32.dll以外で有効
+*/
 bool CArchiver7ZIP::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CConfigManager &ConfMan,const PARAMETER_TYPE Type,int Options,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog)
 {
+	LPCTSTR lpszSplitSize = lpszFormat;
+
 	if(!IsOK()){
 		return false;
 	}
@@ -424,7 +441,7 @@ bool CArchiver7ZIP::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 		}
 		break;
 	case PARAMETER_7Z:	//7z形式で圧縮
-		if(!FormatCompressCommand7Z(conf7Z,Param,Options,lpszMethod,strLog)){
+		if(!FormatCompressCommand7Z(conf7Z,Param,Options,lpszMethod,lpszLevel,strLog)){
 			DeleteFile(ResponceFileName);
 			return false;
 		}
@@ -432,11 +449,39 @@ bool CArchiver7ZIP::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 	}
 	//分割
 	if(Options&COMPRESS_SPLIT){
-		C7Zip32VolumeSizeDialog vsd;
-		if(IDOK!=vsd.DoModal())return false;
-		CString temp;
-		temp.Format(_T("-v%d%s "),vsd.VolumeSize,ZIP_VOLUME_UNIT[vsd.SelectIndex].ParamName);
-		Param+=temp;
+		if(lpszSplitSize && _tcslen(lpszSplitSize)>0){
+			CString temp;
+			temp.Format(_T("-v%s "),lpszSplitSize);
+			Param+=temp;
+		}else{
+			int unitIndex=-1;
+			int size=-1;
+			switch(Type){
+			case PARAMETER_ZIP:	//ZIP形式で圧縮
+				if(confZIP.SpecifySplitSize){
+					unitIndex = confZIP.SplitSizeUnit;
+					size = confZIP.SplitSize;
+				}
+				break;
+			case PARAMETER_7Z:	//7z形式で圧縮
+				if(conf7Z.SpecifySplitSize){
+					unitIndex = conf7Z.SplitSizeUnit;
+					size = conf7Z.SplitSize;
+				}
+				break;
+			}
+
+			if(size==-1 && unitIndex==-1){
+				C7Zip32VolumeSizeDialog vsd;
+				if(IDOK!=vsd.DoModal())return false;
+				unitIndex = vsd.SelectIndex;
+				size = vsd.VolumeSize;
+			}
+
+			CString temp;
+			temp.Format(_T("-v%d%s "),size,ZIP_VOLUME_UNIT[unitIndex].ParamName);
+			Param+=temp;
+		}
 	}
 
 	Param+=_T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
@@ -1031,7 +1076,7 @@ bool CArchiver7ZIP::InspectArchiveGetMethodString(CString &strMethod)
 	return true;
 }
 
-bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
+bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
 {
 	// レスポンスファイル用テンポラリファイル名取得
 	TCHAR ResponceFileName[_MAX_PATH+1];
@@ -1121,20 +1166,24 @@ bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString
 
 	CString Param;//コマンドライン パラメータ バッファ
 
+	int option=0;
+	if(bEncrypted){
+		option |= COMPRESS_PASSWORD;
+	}
 	CConfigZIP confZIP;
 	CConfig7Z  conf7Z;
 	ASSERT(ArchiverGetArchiveType);
 	switch(ArchiverGetArchiveType(C2UTF8(ArcFileName))){
 	case 1:	//ZIP形式で圧縮
 		confZIP.load(ConfMan);
-		if(!FormatCompressCommandZIP(confZIP,Param,false,0,NULL,NULL,strLog)){
+		if(!FormatCompressCommandZIP(confZIP,Param,false,option,NULL,NULL,strLog)){
 			DeleteFile(ResponceFileName);
 			return false;
 		}
 		break;
 	case 2:	//7z形式で圧縮
 		conf7Z.load(ConfMan);
-		if(!FormatCompressCommand7Z(conf7Z,Param,0,NULL,strLog)){
+		if(!FormatCompressCommand7Z(conf7Z,Param,option,NULL,NULL,strLog)){
 			DeleteFile(ResponceFileName);
 			return false;
 		}

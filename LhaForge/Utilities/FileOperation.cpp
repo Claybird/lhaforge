@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -76,15 +76,13 @@ bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix)
 
 bool UtilDeletePath(LPCTSTR PathName)
 {
-	if(PathIsDirectory(PathName)){//ディレクトリ
+	if( PathIsDirectory(PathName) ) {//ディレクトリ
 		//ファイルの属性を標準に戻す
-		SetFileAttributes(PathName,FILE_ATTRIBUTE_NORMAL);
-		if(RemoveDirectory(PathName))return true;
-	}
-	else if(PathFileExists(PathName)){//ファイル
+		if( UtilDeleteDir(PathName, true) )return true;
+	} else if( PathFileExists(PathName) ) {//ファイル
 		//ファイルの属性を標準に戻す
-		SetFileAttributes(PathName,FILE_ATTRIBUTE_NORMAL);
-		if(DeleteFile(PathName))return true;
+		SetFileAttributes(PathName, FILE_ATTRIBUTE_NORMAL);
+		if( DeleteFile(PathName) )return true;
 	}
 	return false;
 }
@@ -93,40 +91,47 @@ bool UtilDeletePath(LPCTSTR PathName)
 //bDeleteParent=falseのときは、Pathの中身だけ削除する
 bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
 {
-	WIN32_FIND_DATA lp;
+	std::vector<WIN32_FIND_DATA> lps;
 
 	TCHAR FindParam[_MAX_PATH+1];
 	FILL_ZERO(FindParam);
 	_tcsncpy_s(FindParam,Path,_MAX_PATH);
-	PathAppend(FindParam,_T("*"));
-	HANDLE h=FindFirstFile(FindParam,&lp);
+	PathAppend(FindParam, _T("*"));
+
+	{
+		WIN32_FIND_DATA fd;
+		HANDLE h = FindFirstFile(FindParam, &fd);
+		do {
+			lps.push_back(fd);
+		} while( FindNextFile(h, &fd) );
+		FindClose(h);
+	}
 
 	bool bRet=true;
 
-	do{
-		if((lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)&& 0!=_tcscmp(lp.cFileName,_T("..")) && 0!=_tcscmp(lp.cFileName,_T(".")))
-		{
-			CString SubPath=Path;
-			SubPath+=_T("\\");
-			SubPath+=lp.cFileName;
+	for( std::vector<WIN32_FIND_DATA>::const_iterator ite = lps.begin(); ite != lps.end();++ite ) {
+		const WIN32_FIND_DATA& lp = *ite;
+		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) && 0 != _tcscmp(lp.cFileName, _T("..")) && 0 != _tcscmp(lp.cFileName, _T(".")) ) {
+			CString SubPath = Path;
+			SubPath += _T("\\");
+			SubPath += lp.cFileName;
 
-			bRet=bRet&&UtilDeleteDir(SubPath,true);
+			bRet = bRet&&UtilDeleteDir(SubPath, true);
 		}
-		if((lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)!=FILE_ATTRIBUTE_DIRECTORY)
-		{
+		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != FILE_ATTRIBUTE_DIRECTORY ) {
 			// lp.cFileNameでファイル名が分かる
-			TCHAR FileName[_MAX_PATH+1];
+			TCHAR FileName[_MAX_PATH + 1];
 			FILL_ZERO(FileName);
-			_tcsncpy_s(FileName,Path,_MAX_PATH);
-			PathAppend(FileName,lp.cFileName);
+			_tcsncpy_s(FileName, Path, _MAX_PATH);
+			PathAppend(FileName, lp.cFileName);
 
-			bRet=bRet&&UtilDeletePath(FileName);
+			SetFileAttributes(FileName, FILE_ATTRIBUTE_NORMAL);
+			if( !DeleteFile(FileName) )bRet = false;
 		}
-	}while(FindNextFile(h,&lp));
-
-	FindClose(h);
+	}
 	if(bDeleteParent){
-		bRet=bRet&&UtilDeletePath(Path);
+		//bRet=bRet&&UtilDeletePath(Path);
+		if(!RemoveDirectory(Path))bRet=false;
 	}
 
 	return bRet;

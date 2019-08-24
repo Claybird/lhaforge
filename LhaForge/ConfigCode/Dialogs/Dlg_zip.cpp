@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #include "stdafx.h"
 #include "Dlg_zip.h"
+#include "../../Dialogs/SevenZipVolumeSizeDlg.h"
 
 //=================
 // ZIP一般設定画面
@@ -76,6 +77,17 @@ LRESULT CConfigDlgZIP::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Check_SpecifyDeflatePassNumber.SetCheck(m_Config.SpecifyDeflatePassNumber);
 	::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_PASS_NUMBER),m_Config.SpecifyDeflatePassNumber);
 
+	//------------------
+	// 分割サイズの設定
+	//------------------
+	::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_SPLIT_SIZE), m_Config.SpecifySplitSize);
+	::EnableWindow(GetDlgItem(IDC_COMBO_ZIP_SPLIT_SIZE_UNIT), m_Config.SpecifySplitSize);
+
+	Combo_SizeUnit=GetDlgItem(IDC_COMBO_ZIP_SPLIT_SIZE_UNIT);
+	for(int i=0;i<ZIP_VOLUME_UNIT_MAX_NUM;i++){
+		Combo_SizeUnit.InsertString(-1,ZIP_VOLUME_UNIT[i].DispName);
+	}
+	Combo_SizeUnit.SetCurSel(m_Config.SplitSizeUnit);
 
 	//DDX情報アップデート
 	DoDataExchange(FALSE);
@@ -108,6 +120,11 @@ LRESULT CConfigDlgZIP::OnApply()
 		}
 	}
 
+	//------------------
+	// 分割サイズの設定
+	//------------------
+	m_Config.SplitSizeUnit = Combo_SizeUnit.GetCurSel();
+
 	//---------------
 	// DDXデータ更新
 	//---------------
@@ -136,6 +153,15 @@ LRESULT CConfigDlgZIP::OnSpecifyDeflatePassNumber(WORD wNotifyCode, WORD wID, HW
 {
 	if(BN_CLICKED==wNotifyCode){
 		::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_DEFLATE_PASS_NUMBER),Check_SpecifyDeflatePassNumber.GetCheck());
+	}
+	return 0;
+}
+
+LRESULT CConfigDlgZIP::OnSpecifySplitSize(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+	if(BN_CLICKED==wNotifyCode){
+		::EnableWindow(GetDlgItem(IDC_EDIT_ZIP_SPLIT_SIZE), Button_GetState(GetDlgItem(IDC_CHECK_ZIP_SPECIFY_SPLIT_SIZE)));
+		::EnableWindow(GetDlgItem(IDC_COMBO_ZIP_SPLIT_SIZE_UNIT), Button_GetState(GetDlgItem(IDC_CHECK_ZIP_SPECIFY_SPLIT_SIZE)));
 	}
 	return 0;
 }

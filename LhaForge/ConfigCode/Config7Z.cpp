@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include "../ArchiverCode/Archiver7ZIP.h"
 #include "ConfigManager.h"
 #include "Config7Z.h"
+#include "../Dialogs/SevenZipVolumeSizeDlg.h"
 
 void CConfig7Z::load(CONFIG_SECTION &Config)
 {
@@ -58,6 +59,11 @@ void CConfig7Z::load(CONFIG_SECTION &Config)
 	SpecifyPPMdModelSize=Config.Data[_T("SpecifyPPMdModelSize")].GetNParam(FALSE);
 	//PPMdのモデルサイズ
 	PPMdModelSize=Config.Data[_T("PPMdModelSize")].GetNParam(SEVEN_ZIP_PPMD_MODEL_SIZE_LOWEST,SEVEN_ZIP_PPMD_MODEL_SIZE_HIGHEST,6);
+
+	//分割サイズをあらかじめ指定
+	SpecifySplitSize = Config.Data[_T("SpecifySplitSize")].GetNParam(FALSE);
+	SplitSize = Config.Data[_T("SplitSize")].GetNParam(1,INT_MAX,10);
+	SplitSizeUnit = Config.Data[_T("SplitSizeUnit")].GetNParam(0,ZIP_VOLUME_UNIT_MAX_NUM,0);
 }
 
 void CConfig7Z::store(CONFIG_SECTION &Config)const
@@ -85,6 +91,10 @@ void CConfig7Z::store(CONFIG_SECTION &Config)const
 	//PPMdのモデルサイズ
 	Config.Data[_T("PPMdModelSize")]=PPMdModelSize;
 
+	//分割サイズをあらかじめ指定
+	Config.Data[_T("SpecifySplitSize")] = SpecifySplitSize;
+	Config.Data[_T("SplitSize")] = SplitSize;
+	Config.Data[_T("SplitSizeUnit")] = SplitSizeUnit;
 
 	// パスワード関連;現在はパスワード消去用コードのみ
 	//指定されたパスワードを強制的に削除

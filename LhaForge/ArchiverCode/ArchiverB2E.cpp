@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -467,7 +467,7 @@ bool CArchiverB2E::EnumActiveB2EScriptNames(std::vector<CString> &ScriptNames)
 }
 
 
-bool CArchiverB2E::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
+bool CArchiverB2E::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
 {
 	// レスポンスファイル用テンポラリファイル名取得
 	TCHAR ResponceFileName[_MAX_PATH+1];
@@ -593,7 +593,7 @@ bool CArchiverB2E::QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const
 	strExt+=_T('.');	//".ext."の形にする
 
 	const int ScriptCount=B2EScriptGetCount();  //スクリプトの数を取得
-	
+
 	for(int i=0;i<ScriptCount;i++){
 		WORD ability;
 		B2EScriptGetAbility(i,&ability);        //能力を取得

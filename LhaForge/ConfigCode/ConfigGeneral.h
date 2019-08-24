@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,8 @@ public:
 	LOSTDIR OnDirNotFound;
 	LOGVIEW LogViewEvent;
 	int/*LFPROCESS_PRIORITY*/ ProcessPriority;
+
+	CString TempPath;
 protected:
 	virtual void load(CONFIG_SECTION&){ASSERT(!"This code cannot be run");}	//ê›íËÇCONFIG_SECTIONÇ©ÇÁì«Ç›çûÇﬁ
 	virtual void store(CONFIG_SECTION&)const{ASSERT(!"This code cannot be run");}	//ê›íËÇCONFIG_SECTIONÇ…èëÇ´çûÇﬁ

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -389,6 +389,8 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
+			}else if(0==_tcsncmp(_T("/volume:"),Parameter,8)){	//分割サイズ
+				cli.strSplitSize=((LPCTSTR)ParamsArray[iIndex])+8;
 			}else{	//未知のオプション
 				CString msg;
 				msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);

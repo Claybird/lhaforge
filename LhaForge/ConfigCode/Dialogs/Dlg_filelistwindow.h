@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -82,6 +82,7 @@ public:
 		DDX_CHECK(IDC_CHECK_EXIT_WITH_ESCAPE,m_Config.ExitWithEscape)
 		DDX_CHECK(IDC_CHECK_DISABLE_TAB,m_Config.DisableTab)
 		DDX_CHECK(IDC_CHECK_KEEP_SINGLE_INSTANCE,m_Config.KeepSingleInstance)
+		DDX_CHECK(IDC_CHECK_DISPLAY_PATH_ONLY,m_Config.DisplayPathOnly)
 		DDX_TEXT(IDC_EDIT_OPENASSOC_ACCEPT, m_Config.OpenAssoc.Accept)
 		DDX_TEXT(IDC_EDIT_OPENASSOC_DENY, m_Config.OpenAssoc.Deny)
 		DDX_TEXT(IDC_EDIT_CUSTOMTOOLBAR_IMAGE, m_Config.strCustomToolbarImage)

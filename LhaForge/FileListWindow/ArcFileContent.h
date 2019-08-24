@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,9 @@ protected:
 	CString			m_pathArcFileName;
 	bool			m_bExtractEachSupported;
 	bool			m_bReadOnly;
+
+	bool			m_bEncrypted;	//少なくとも一つのファイルが暗号化されているならtrue
+
 protected:
 	//---internal functions
 	ARCHIVE_ENTRY_INFO_TREE* ForceFindEntry(ARCHIVE_ENTRY_INFO_TREE* lpParent,LPCTSTR lpName);
@@ -91,6 +94,7 @@ public:
 	bool IsDeleteItemsSupported()const;
 	bool IsAddItemsSupported()const;
 	bool IsUnicodeCapable()const;
+	bool IsArchiveEncrypted()const{return m_bEncrypted;}
 	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
 
 	//lpTop以下のファイルを検索

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -896,7 +896,7 @@ bool CArchiverDLL::ExtractItems(LPCTSTR lpszArcFile,CConfigManager &ConfMan,cons
 
 	// ディレクトリを処理
 	if(!dirs.empty()){
-		ExtractSubDirectories(lpszArcFile,ConfMan,lpBase,dirs,lpszOutputBaseDir,bCollapseDir,strLog);
+		if(!ExtractSubDirectories(lpszArcFile,ConfMan,lpBase,dirs,lpszOutputBaseDir,bCollapseDir,strLog))return false;
 	}
 	return true;
 }

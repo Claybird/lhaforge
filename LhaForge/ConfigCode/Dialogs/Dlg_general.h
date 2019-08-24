@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ protected:
 	CButton Check_UseFiler;
 	CEdit Edit_FilerPath;
 	CEdit Edit_FilerParam;
+	CEdit Edit_TempPath;
 	CButton Button_BrowseFiler;
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
@@ -58,6 +59,7 @@ protected:
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnCheckFiler(WORD,WORD,HWND,BOOL&);
 	LRESULT OnBrowseFiler(WORD,WORD,HWND,BOOL&);
+	LRESULT OnBrowseTempPath(WORD,WORD,HWND,BOOL&);
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_GENERAL };
 	// DDXマップ
@@ -66,6 +68,7 @@ public:
 		DDX_CHECK(IDC_CHECK_WARN_REMOVABLE,m_Config.WarnRemovable)
 		DDX_CHECK(IDC_CHECK_NOTIFY_SHELL,m_Config.NotifyShellAfterProcess)
 		DDX_RADIO(IDC_RADIO_PRIORITY_DEFAULT,m_Config.ProcessPriority)
+		DDX_TEXT_LEN(IDC_EDIT_TEMP_PATH,m_Config.TempPath,_MAX_PATH)
 	END_DDX_MAP()
 
 	// メッセージマップ
@@ -73,6 +76,7 @@ public:
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER(IDC_CHECK_USE_FILER,OnCheckFiler)
 		COMMAND_ID_HANDLER(IDC_BUTTON_BROWSE_FILER,OnBrowseFiler)
+		COMMAND_ID_HANDLER(IDC_BUTTON_BROWSE_TEMP,OnBrowseTempPath)
 		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 

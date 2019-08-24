@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,14 @@
 #pragma once
 
 //統合アーカイバプロジェクト仕様のファイル属性
-#define FA_RDONLY		0x01			// 書き込み保護属性
-#define FA_HIDDEN		0x02			// 隠し属性
-#define FA_SYSTEM		0x04			// システム属性
-#define FA_LABEL		0x08			// ボリューム・ラベル
-#define FA_DIREC		0x10			// ディレクトリ
-#define FA_ARCH			0x20			// アーカイブ属性
-#define FA_UNKNOWN		0x40			// 不明な属性(LhaForgeの独自拡張)
+#define FA_RDONLY		0x001			// 書き込み保護属性
+#define FA_HIDDEN		0x002			// 隠し属性
+#define FA_SYSTEM		0x004			// システム属性
+#define FA_LABEL		0x008			// ボリューム・ラベル
+#define FA_DIREC		0x010			// ディレクトリ
+#define FA_ARCH			0x020			// アーカイブ属性
+#define FA_ENCRYPTED	0x040			// パスワード保護されたファイル
+#define FA_UNKNOWN		0x100			// 不明な属性(LhaForgeの独自拡張)
 
 
 //フォルダの識別文字列(拡張子)

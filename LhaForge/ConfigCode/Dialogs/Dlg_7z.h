@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,10 @@ protected:
 
 	CButton			Check_SpecifyPPMdModelSize;
 	CButton			Check_HeaderCompression;
+	CButton			Check_SpecifySplitSize;
+
+	CComboBox Combo_SizeUnit;
+
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
 	}
@@ -65,6 +69,8 @@ public:
 		DDX_CHECK(IDC_CHECK_7Z_HEADER_COMPRESSION, m_Config.HeaderCompression)
 		//DDX_CHECK(IDC_CHECK_7Z_FULL_HEADER_COMPRESSION, m_Config.FullHeaderCompression)
 		DDX_CHECK(IDC_CHECK_7Z_HEADER_ENCRYPT, m_Config.HeaderEncryption)
+		DDX_CHECK(IDC_CHECK_7Z_SPECIFY_SPLIT_SIZE, m_Config.SpecifySplitSize)
+		DDX_INT_RANGE(IDC_EDIT_7Z_SPLIT_SIZE, m_Config.SplitSize, 1, INT_MAX)
 	END_DDX_MAP()
 
 	// メッセージマップ
@@ -72,6 +78,7 @@ public:
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER(IDC_CHECK_7Z_HEADER_COMPRESSION,OnHeaderCompression)
 		COMMAND_ID_HANDLER(IDC_CHECK_7Z_USE_PRESET,OnUsePreset)
+		COMMAND_ID_HANDLER(IDC_CHECK_7Z_SPECIFY_SPLIT_SIZE,OnSpecifySplitSize)
 		COMMAND_ID_HANDLER(IDC_CHECK_7Z_SPECIFY_PPMD_MODEL_SIZE,OnSpecifyPPMdModelSize)
 		COMMAND_RANGE_HANDLER(IDC_RADIO_7Z_METHOD_LZMA,IDC_RADIO_7Z_METHOD_LZMA2, OnSelectCompressType)
 		MSG_WM_DESTROY(OnDestroy)
@@ -83,6 +90,7 @@ public:
 	LRESULT OnUsePreset(WORD,WORD,HWND,BOOL&);
 	LRESULT OnSpecifyPPMdModelSize(WORD,WORD,HWND,BOOL&);
 	LRESULT OnSelectCompressType(WORD,WORD,HWND,BOOL&);
+	LRESULT OnSpecifySplitSize(WORD,WORD,HWND,BOOL&);
 
 	void OnDataValidateError(UINT nCtrlID, BOOL bSave, _XData& data){
 		CString msg; 

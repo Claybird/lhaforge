@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,14 @@ CArchiverJACK::~CArchiverJACK()
 	FreeDLL();
 }
 
-bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CConfigManager &ConfMan,const PARAMETER_TYPE Type,int Options,LPCTSTR,LPCTSTR,LPCTSTR,CString &strLog)
+/*
+formatの指定は、B2E32.dllでのみ有効
+levelの指定は、B2E32.dll以外で有効
+*/
+bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,CConfigManager &ConfMan,const PARAMETER_TYPE Type,int Options,LPCTSTR lpszFormat,LPCTSTR,LPCTSTR,CString &strLog)
 {
+	LPCTSTR lpszSplitSize = lpszFormat;
+
 	if(!IsOK()){
 		return false;
 	}
@@ -76,7 +82,11 @@ bool CArchiverJACK::Compress(LPCTSTR ArcFileName,std::list<CString> &ParamList,C
 	else{
 		Param+=_T("-m0 ");	//通常
 	}
-	if(Config.SpecifyVolumeSizeAtCompress){
+	if(lpszSplitSize && _tcslen(lpszSplitSize)>0){
+		CString Buf;
+		Buf.Format(_T("-v:%s "),lpszSplitSize);
+		Param+=Buf;//分割サイズ指定
+	}else if(Config.SpecifyVolumeSizeAtCompress){
 		CJackVolumeSizeDialog vsd;
 		if(IDOK!=vsd.DoModal()){
 			return false;

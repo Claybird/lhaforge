@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -87,6 +87,25 @@ void CArchiverUNRAR::FreeDLL()
 		ArchiverSetUnicodeMode=NULL;
 		m_strDllDisplayName=m_strDllName;
 		CArchiverDLL::FreeDLL();
+	}
+}
+
+//レスポンスファイルにファイル名をエスケープを実行した上で書き込む。
+//有効なファイルハンドルとNULLでないファイル名を渡すこと。
+void CArchiverUNRAR::WriteResponceFile(HANDLE hFile,LPCTSTR fname)
+{
+	if(m_bUTF8){
+		CPath strPath=fname;
+
+		strPath.QuoteSpaces();
+
+		DWORD dwWritten=0;
+		//ファイル名+改行を出力
+		std::vector<BYTE> cArray;
+		UtilToUTF8(cArray,strPath+_T("\r\n"));
+		WriteFile(hFile,&cArray[0],(cArray.size()-1)*sizeof(BYTE),&dwWritten,NULL);
+	}else{
+		CArchiverDLL::WriteResponceFile(hFile,fname);
 	}
 }
 
@@ -201,6 +220,7 @@ bool CArchiverUNRAR::ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LP
 		std::list<CString>::iterator ite=FileList.begin();
 		const std::list<CString>::iterator end=FileList.end();
 		for(;ite!=end;ite++){
+			CPath target = *ite;
 			WriteResponceFile(hFile,*ite);
 		}
 		CloseHandle(hFile);

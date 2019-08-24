@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ CFileListView::CFileListView(CConfigManager& rConfig,CFileListModel& rModel):
 	mr_Config(rConfig),
 	mr_Model(rModel),
 	m_bDisplayFileSizeInByte(false),
+	m_bPathOnly(false),
 	//m_DnDSource(m_TempDirManager),
 	m_DropTarget(this),
 	m_nDropHilight(-1),
@@ -69,13 +70,33 @@ LRESULT CFileListView::OnCreate(LPCREATESTRUCT lpcs)
 
 LRESULT CFileListView::OnDestroy()
 {
+/*	CConfigFileListWindow ConfFLW;
+	ConfFLW.load(mr_Config);
+
+	//ウィンドウ設定の保存
+	if( ConfFLW.StoreSetting ) {
+		//リストビューのスタイル
+		ConfFLW.ListStyle = GetWindowLong(GWL_STYLE) % ( 0x0004 );
+
+		ConfFLW.FileListMode = mr_Model.GetListMode();
+		//カラムの並び順・カラムの幅
+		GetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray);
+
+		ConfFLW.store(mr_Config);
+		CString strErr;
+		if( !mr_Config.SaveConfig(strErr) ) {
+			ErrorMessage(strErr);
+		}
+	}
+	*/
+
 	mr_Model.removeEventListener(m_hWnd);
 	return 0;
 }
 
 
 
-bool CFileListView::SetColumnState(const int* pColumnOrderArray)
+bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFileInfoWidthArray)
 {
 	//既存のカラムを削除
 	if(GetHeader().IsWindow()){
@@ -103,7 +124,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray)
 	//フルパス名
 	ADD_COLUMNITEM(FULLPATH,200,LVCFMT_LEFT);
 	//ファイルサイズ
-	ADD_COLUMNITEM(ORIGINALSIZE,90,LVCFMT_LEFT);
+	ADD_COLUMNITEM(ORIGINALSIZE,90,LVCFMT_RIGHT);
 	//ファイル種類
 	ADD_COLUMNITEM(TYPENAME,120,LVCFMT_LEFT);
 	//更新日時
@@ -130,7 +151,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray)
 	}
 	//並び順を変換
 	int TemporaryArray[FILEINFO_ITEM_COUNT];
-	//memcpy(TemporaryArray,pColumnOrderArray,sizeof(TemporaryArray));
+
 	for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
 		TemporaryArray[i]=pColumnOrderArray[i];
 	}
@@ -142,6 +163,9 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray)
 		}
 	}
 	SetColumnOrderArray(Count,TemporaryArray);
+	for( int i = 0; i < Count; i++ ) {
+		SetColumnWidth(TemporaryArray[i], pFileInfoWidthArray[i]);
+	}
 
 	//カラムヘッダのソートアイコン
 	if(GetHeader().IsWindow()){
@@ -151,7 +175,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray)
 	return true;
 }
 
-void CFileListView::GetColumnState(int* pColumnOrderArray)
+void CFileListView::GetColumnState(int* pColumnOrderArray, int *pFileInfoWidthArray)
 {
 	//カラムの並び順取得
 	const int nCount=GetHeader().GetItemCount();
@@ -164,6 +188,10 @@ void CFileListView::GetColumnState(int* pColumnOrderArray)
 	memset(pColumnOrderArray,-1,FILEINFO_ITEM_COUNT*sizeof(int));
 	for(int i=0;i<nCount;i++){
 		pColumnOrderArray[i]=m_ColumnIndexArray[TemporaryArray[i]];
+	}
+
+	for( int i = 0; i < nCount; i++ ) {
+		pFileInfoWidthArray[i] = GetColumnWidth(TemporaryArray[i]);
 	}
 }
 
@@ -295,7 +323,8 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	//--------------------------------
 
 	int columnOrderArray[FILEINFO_ITEM_COUNT];
-	GetColumnState(columnOrderArray);
+	int columnWidthArray[FILEINFO_ITEM_COUNT];
+	GetColumnState(columnOrderArray, columnWidthArray);
 
 	struct{
 		FILEINFO_TYPE idx;
@@ -335,7 +364,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		}
 	}
 
-	SetColumnState(columnOrderArray);
+	SetColumnState(columnOrderArray, columnWidthArray);
 
 	return 0;
 }
@@ -493,7 +522,36 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->strExt);
 		break;
 	case FILEINFO_FULLPATH:	//格納パス
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strFullPath;
+		if(pstLVDInfo->item.mask & LVIF_TEXT){
+			if(m_bPathOnly){
+				//'\\'ではなく'/'でパスが区切られていればtrue
+				bool bSlash = (-1!=lpNode->strFullPath.Find(_T('/')));
+				//一度置き換え
+				strBuffer = lpNode->strFullPath;
+				strBuffer.Replace(_T('/'),_T('\\'));
+
+				//ファイル名除去
+				TCHAR buf[_MAX_PATH+1];
+				_tcsncpy_s(buf, strBuffer, COUNTOF(buf));
+				PathRemoveBackslash(buf);
+				PathRemoveFileSpec(buf);
+				if(_tcslen(buf)==0){
+					//何もなくなった、つまりルートディレクトリにある
+					strBuffer = _T("\\");
+				}else{
+					PathAddBackslash(buf);
+					strBuffer = buf;
+				}
+
+				if(bSlash){
+					//元に戻す置き換え
+					strBuffer.Replace(_T('\\'),_T('/'));
+				}
+				lpText = strBuffer;
+			}else{
+				lpText=lpNode->strFullPath;
+			}
+		}
 		break;
 	case FILEINFO_ORIGINALSIZE:	//サイズ(圧縮前)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
@@ -615,7 +673,7 @@ void CFileListView::FormatFileSizeInBytes(CString &Info,const LARGE_INTEGER &_Si
 
 	std::wstringstream ss;
 	ss.imbue(std::locale(""));
-	ss << (unsigned __int64)_Size.QuadPart << std::endl;
+	ss << (unsigned __int64)_Size.QuadPart;
 
 	Info.Format(format,ss.str().c_str());
 }
@@ -630,7 +688,13 @@ void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
 		return;
 	}
 
-	static CString OrderUnit[]={MAKEINTRESOURCE(IDS_ORDERUNIT_BYTE),MAKEINTRESOURCE(IDS_ORDERUNIT_KILOBYTE),MAKEINTRESOURCE(IDS_ORDERUNIT_MEGABYTE),MAKEINTRESOURCE(IDS_ORDERUNIT_GIGABYTE),MAKEINTRESOURCE(IDS_ORDERUNIT_TERABYTE)};	//サイズの単位
+	static CString OrderUnit[]={
+		MAKEINTRESOURCE(IDS_ORDERUNIT_BYTE),
+		MAKEINTRESOURCE(IDS_ORDERUNIT_KILOBYTE),
+		MAKEINTRESOURCE(IDS_ORDERUNIT_MEGABYTE),
+		MAKEINTRESOURCE(IDS_ORDERUNIT_GIGABYTE),
+		MAKEINTRESOURCE(IDS_ORDERUNIT_TERABYTE),
+	};	//サイズの単位
 	static const int MAX_ORDERUNIT=COUNTOF(OrderUnit);
 
 	if(bInByte){	//ファイルサイズをバイト単位で表記する
@@ -687,11 +751,12 @@ void CFileListView::FormatAttribute(CString &strBuffer,int nAttribute)
 		strBuffer=_T("?????");
 	}else{
 		strBuffer="";
-		strBuffer+=(nAttribute&FA_RDONLY) ? _T("R") : _T("-");
-		strBuffer+=(nAttribute&FA_HIDDEN) ? _T("H") : _T("-");
-		strBuffer+=(nAttribute&FA_SYSTEM) ? _T("S") : _T("-");
-		strBuffer+=(nAttribute&FA_DIREC)  ? _T("D") : _T("-");
-		strBuffer+=(nAttribute&FA_ARCH)   ? _T("A") : _T("-");
+		strBuffer+=(nAttribute&FA_RDONLY)	? _T("R") : _T("-");
+		strBuffer+=(nAttribute&FA_HIDDEN)	? _T("H") : _T("-");
+		strBuffer+=(nAttribute&FA_SYSTEM)	? _T("S") : _T("-");
+		strBuffer+=(nAttribute&FA_DIREC)	? _T("D") : _T("-");
+		strBuffer+=(nAttribute&FA_ARCH)		? _T("A") : _T("-");
+		strBuffer+=(nAttribute&FA_ENCRYPTED)? _T("P") : _T("-");
 	}
 }
 
@@ -752,12 +817,13 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 	if(!items.empty()){
 		std::list<CString> filesList;
 		CString strLog;
-		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,bOverwrite,strLog)){
+		if(mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,bOverwrite,strLog)){
+			if(bOpen)OpenAssociation(filesList);
+		}else{
 			CLogDialog LogDialog;
 			LogDialog.SetData(strLog);
 			LogDialog.DoModal();
 		}
-		if(bOpen)OpenAssociation(filesList);
 	}
 
 	return true;
@@ -1110,6 +1176,115 @@ void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 	}
 
 	cSubMenu.TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON,Point.x, Point.y, m_hWnd,NULL);
+}
+
+void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
+{
+	//選択されたアイテムを列挙
+	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	GetSelectedItems(items);
+	std::list<ARCHIVE_ENTRY_INFO_TREE*>::iterator ite=items.begin();
+	std::list<ARCHIVE_ENTRY_INFO_TREE*>::iterator end=items.end();
+
+	CString info;
+
+	switch(nID){
+	case ID_MENUITEM_COPY_FILENAME:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strTitle);
+		}
+		break;
+	case ID_MENUITEM_COPY_PATH:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strFullPath);
+		}
+		break;
+	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%I64d\n"),lpItem->llOriginalSize.QuadPart);
+		}
+		break;
+	case ID_MENUITEM_COPY_FILETYPE:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(lpItem->strExt));
+		}
+		break;
+	case ID_MENUITEM_COPY_FILETIME:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			CString strBuffer;
+			FormatFileTime(strBuffer,lpItem->cFileTime);
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
+		}
+		break;
+	case ID_MENUITEM_COPY_ATTRIBUTE:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			CString strBuffer;
+			FormatAttribute(strBuffer,lpItem->nAttribute);
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
+		}
+		break;
+	case ID_MENUITEM_COPY_COMPRESSED_SIZE:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%I64d\n"),lpItem->llCompressedSize.QuadPart);
+		}
+		break;
+	case ID_MENUITEM_COPY_METHOD:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strMethod);
+		}
+		break;
+	case ID_MENUITEM_COPY_COMPRESSION_RATIO:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			CString strBuffer;
+			FormatRatio(strBuffer,lpItem->wRatio);
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
+		}
+		break;
+	case ID_MENUITEM_COPY_CRC:
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			CString strBuffer;
+			FormatCRC(strBuffer,lpItem->dwCRC);
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
+		}
+		break;
+	case ID_MENUITEM_COPY_ALL:
+		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
+		for(;ite!=end;++ite){
+			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
+			CString strFileTime, strAttrib, strRatio, strCRC;
+			FormatFileTime(strFileTime,lpItem->cFileTime);
+			FormatAttribute(strAttrib,lpItem->nAttribute);
+			FormatRatio(strRatio,lpItem->wRatio);
+			FormatCRC(strCRC,lpItem->dwCRC);
+
+			info.AppendFormat(_T("%s\t%s\t%I64d\t%s\t%s\t%s\t%I64d\t%s\t%s\t%s\n"),
+				(LPCTSTR)lpItem->strTitle,
+				(LPCTSTR)lpItem->strFullPath,
+				lpItem->llOriginalSize.QuadPart,
+				m_ShellDataManager.GetTypeName(lpItem->strExt),
+				(LPCTSTR)strFileTime,
+				(LPCTSTR)strAttrib,
+				lpItem->llCompressedSize.QuadPart,
+				(LPCTSTR)lpItem->strMethod,
+				(LPCTSTR)strRatio,
+				(LPCTSTR)strCRC);
+		}
+		break;
+	default:
+		ASSERT(!"Unknown command");
+	}
+	//MessageBox(info);
+	UtilSetTextOnClipboard(info);
 }
 
 void CFileListView::OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl)

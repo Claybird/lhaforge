@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,11 @@ public:
 	SEVEN_ZIP_COMPRESS_TYPE CompressType;
 	SEVEN_ZIP_COMPRESS_LEVEL CompressLevel;
 	SEVEN_ZIP_LZMA_MODE LZMA_Mode;
+	//デフォルト分割サイズ
+	BOOL SpecifySplitSize;
+	int SplitSize;
+	int SplitSizeUnit;
+
 	BOOL SolidMode;
 	BOOL HeaderCompression;
 	//BOOL FullHeaderCompression;

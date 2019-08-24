@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ protected:
 	CString m_strDllDisplayName;
 protected:
 	bool IsHeaderEncrypted(LPCTSTR);
+	virtual void WriteResponceFile(HANDLE,LPCTSTR);;
 public:
 	CArchiverUNRAR();
 	virtual ~CArchiverUNRAR();

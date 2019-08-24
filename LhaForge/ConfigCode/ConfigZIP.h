@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,11 @@ public:
 	BOOL ForceUTF8;
 
 	/*ZIP_CRYPTO_MODE*/int CryptoMode;
+
+	//デフォルト分割サイズ
+	BOOL SpecifySplitSize;
+	int SplitSize;
+	int SplitSizeUnit;
 
 	//以下、上級設定
 	BOOL SpecifyDeflateMemorySize;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,OnOpenAssociation)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_TEMPORARY,OnExtractTemporary)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CLEAR_TEMPORARY,OnClearTemporary)
+		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_COPY_FILENAME,ID_MENUITEM_COPY_ALL,OnCopyInfo)
 		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetNumSendToCmd(),OnOpenWithUserApp)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_DBLCLK, OnDblClick)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_RETURN, OnDblClick)
@@ -87,11 +88,11 @@ protected:
 	END_MSG_MAP()
 protected:
 	int m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//カラムインデックスとサブアイテム番号の対応
-		/*
+	/*
 		Config.FileListWindow.ColumnOrderArray?には、カラムが並び順にFILEINFO_TYPEの値で入っている(非表示項目は-1)。
-		m_ColumnIndexArrayには、どのカラムインデックスにFILEINFO_TYPEが表示されているか、が格納されている
-		m_ColumnIndexArray[並び順を変えていない状態で左から数えたインデックス]=FILEINFO_TYPE
-		*/
+		m_ColumnIndexArray[colIdx] = FILEINFO_TYPE
+	*/
+
 
 	CConfigManager&				mr_Config;
 	CFileListModel&				mr_Model;
@@ -99,6 +100,7 @@ protected:
 	CShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
 	bool	m_bDisplayFileSizeInByte;
+	bool	m_bPathOnly;
 	HWND	m_hFrameWnd;
 
 	COLEDnDSource	m_DnDSource;	//DnDハンドラ
@@ -128,7 +130,9 @@ protected:
 	void OnExtractTemporary(UINT,int,HWND);	//一時フォルダに展開
 	void OnClearTemporary(UINT,int,HWND);	//一時フォルダを空にする
 	void OnAddItems(UINT,int,HWND);
+
 	//コマンドハンドラ
+	void OnCopyInfo(UINT,int,HWND);
 	void OnOpenWithUserApp(UINT,int,HWND);
 public:
 	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//カラムヘッダを右クリック
@@ -154,10 +158,11 @@ protected:
 public:
 	CFileListView(CConfigManager&,CFileListModel& rModel);
 	virtual ~CFileListView(){}
-	bool SetColumnState(const int* pColumnOrderArray);	//リストビューのカラムをセットする
-	void GetColumnState(int* pColumnOrderArray);
+	bool SetColumnState(const int* pColumnOrderArray, const int* pFileInfoWidthArray);	//リストビューのカラムをセットする
+	void GetColumnState(int* pColumnOrderArray, int* pFileInfoWidthArray);
 
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
+	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}
 
 	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*>&);
 	void EnableDropTarget(bool bEnable);

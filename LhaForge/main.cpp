@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -107,8 +107,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	CConfigManager ConfigManager;
 	PROCESS_MODE ProcessMode=ParseCommandLine(ConfigManager,cli);
 
-	//優先度設定
 	{
+		//優先度設定
 		CConfigGeneral ConfGeneral;
 		ConfGeneral.load(ConfigManager);
 		LFPROCESS_PRIORITY priority=(LFPROCESS_PRIORITY)ConfGeneral.ProcessPriority;
@@ -131,6 +131,29 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		default:
 			//nothing to do
 			break;
+		}
+
+		//一時ディレクトリの変更
+		CString strPath=ConfGeneral.TempPath;
+		if(!strPath.IsEmpty()){
+			//パラメータ展開に必要な情報
+			std::map<stdString,CString> envInfo;
+			UtilMakeExpandInformation(envInfo);
+			//環境変数展開
+			UtilExpandTemplateString(strPath, strPath, envInfo);
+
+			//絶対パスに変換
+			if(PathIsRelative(strPath)){
+				CPath tmp=UtilGetModuleDirectoryPath();
+				tmp.AddBackslash();
+				tmp+=strPath;
+				strPath=(LPCTSTR)tmp;
+			}
+			UtilGetCompletePathName(strPath,strPath);
+
+			//環境変数設定
+			SetEnvironmentVariable(_T("TEMP"),strPath);
+			SetEnvironmentVariable(_T("TMP"),strPath);
 		}
 	}
 
@@ -244,6 +267,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	return 0;
 }
 
+/*
+formatの指定は、B2E32.dllでのみ有効
+levelの指定は、B2E32.dll以外で有効
+*/
 bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	//圧縮オプション指定
@@ -253,6 +280,8 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 	if(cli.idForceDLL==DLL_ID_B2E){
 		cli.CompressType=PARAMETER_B2E;
+	}else{
+		strFormat = cli.strSplitSize;
 	}
 
 	CConfigCompress ConfCompress;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,9 @@ protected:
 
 	CButton			Check_SpecifyDeflateMemorySize;
 	CButton			Check_SpecifyDeflatePassNumber;
+
+	CComboBox Combo_SizeUnit;
+
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
 	}
@@ -63,6 +66,8 @@ public:
 		DDX_INT_RANGE(IDC_EDIT_ZIP_DEFLATE_PASS_NUMBER, m_Config.DeflatePassNumber, (int)ZIP_DEFLATE_PASS_NUMBER_LOWEST, (int)ZIP_DEFLATE_PASS_NUMBER_HIGHEST)
 		DDX_CHECK(IDC_CHECK_ZIP_FORCE_UTF8,m_Config.ForceUTF8)
 		DDX_RADIO(IDC_RADIO_ZIPCRYPTO,m_Config.CryptoMode)
+		DDX_CHECK(IDC_CHECK_ZIP_SPECIFY_SPLIT_SIZE,m_Config.SpecifySplitSize)
+		DDX_INT_RANGE(IDC_EDIT_ZIP_SPLIT_SIZE,m_Config.SplitSize,1,INT_MAX)
 	END_DDX_MAP()
 
 	// メッセージマップ
@@ -70,6 +75,7 @@ public:
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER(IDC_CHECK_ZIP_SPECIFY_MEMORY_SIZE,OnSpecifyDeflateMemorySize)
 		COMMAND_ID_HANDLER(IDC_CHECK_ZIP_SPECIFY_PASS_NUMBER,OnSpecifyDeflatePassNumber)
+		COMMAND_ID_HANDLER(IDC_CHECK_ZIP_SPECIFY_SPLIT_SIZE,OnSpecifySplitSize)
 		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
@@ -77,6 +83,7 @@ public:
 	LRESULT OnApply();
 	LRESULT OnSpecifyDeflateMemorySize(WORD,WORD,HWND,BOOL&);
 	LRESULT OnSpecifyDeflatePassNumber(WORD,WORD,HWND,BOOL&);
+	LRESULT OnSpecifySplitSize(WORD,WORD,HWND,BOOL&);
 
 	void OnDataValidateError(UINT nCtrlID, BOOL bSave, _XData& data){
 		CString msg; 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -46,13 +46,8 @@ HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR l
 HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir);
 void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info);
 
-//WindowsNTかどうか
-bool UtilIsWindowsNT();
 //ウィンドウを確実にフォアグラウンドにする
 void UtilSetAbsoluteForegroundWindow(HWND);
-
-//現在のOSがWindowsVistaもしくはそれ以上ならtrueを返す
-bool UtilIsOSVistaOrHigher();
 
 //WoW64(64bit OSでの32bitエミュレーション)で動いていればTRUEを返す関数
 BOOL UtilIsWow64();
@@ -75,6 +70,7 @@ void UtilMakeDIBFromIcon(CBitmap&,HICON);
 //プロセス優先度の設定
 void UtilSetPriorityClass(DWORD dwPriorityClass);
 
+//ディレクトリ制御
 class CCurrentDirManager
 {
 	DISALLOW_COPY_AND_ASSIGN(CCurrentDirManager);
@@ -89,3 +85,6 @@ public:
 		::SetCurrentDirectory(_prevDir);
 	}
 };
+
+//クリップボードにテキストを設定
+void UtilSetTextOnClipboard(LPCTSTR lpszText);

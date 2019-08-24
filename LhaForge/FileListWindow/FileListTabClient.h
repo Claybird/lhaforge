@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ protected:
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
 	CConfigManager&		m_rConfig;
-	int					m_ColumnOrderArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
+	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
+	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
 	bool				m_bShowTab;			//タブ表示?
 	bool				m_bShowTreeView;	//ツリービュー表示ならTrue
 

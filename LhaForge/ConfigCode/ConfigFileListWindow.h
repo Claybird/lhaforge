@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,9 @@ public:
 	FILELISTMODE FileListMode;	//ファイル表示の階層モード
 	BOOL ExpandTree;			//起動時にツリービューを展開しておく
 	BOOL DisplayFileSizeInByte;	//バイト単位でファイルサイズを表記する
+	BOOL DisplayPathOnly;		//フルパスの欄にファイル名を表示しない
 	int ColumnOrderArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
+	int ColumnWidthArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの幅
 	BOOL ExitWithEscape;		//[ESC]キーで終了
 	BOOL DisableTab;			//タブ表示を使わないならTRUE
 	BOOL KeepSingleInstance;	//ウィンドウを一つに保つならTRUE

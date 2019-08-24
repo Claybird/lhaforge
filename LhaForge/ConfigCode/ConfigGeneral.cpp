@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -84,12 +84,16 @@ void CConfigGeneral::loadGeneral(CONFIG_SECTION &Config)
 {
 	NotifyShellAfterProcess=Config.Data[_T("NotifyShell")];
 	ProcessPriority=(LFPROCESS_PRIORITY)Config.Data[_T("ProcessPriority")].GetNParam(LFPRIOTITY_DEFAULT,LFPRIOTITY_MAX_NUM,LFPRIOTITY_DEFAULT);
+
+	TempPath=Config.Data[_T("TempPath")];
 }
 
 void CConfigGeneral::storeGeneral(CONFIG_SECTION &Config)const
 {
 	Config.Data[_T("NotifyShell")]=NotifyShellAfterProcess;
 	Config.Data[_T("ProcessPriority")]=ProcessPriority;
+
+	Config.Data[_T("TempPath")]=TempPath;
 }
 
 void CConfigGeneral::load(CConfigManager &ConfMan)

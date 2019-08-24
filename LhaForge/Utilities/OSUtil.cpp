@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -174,15 +174,6 @@ void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTI
 	}
 }
 
-bool UtilIsWindowsNT()
-{
-	OSVERSIONINFO osi;
-	FILL_ZERO(osi);
-	osi.dwOSVersionInfoSize=sizeof(osi);
-	GetVersionEx(&osi);
-	return (VER_PLATFORM_WIN32_NT==osi.dwPlatformId);
-}
-
 
 //From http://techtips.belution.com/ja/vc/0012/
 void UtilSetAbsoluteForegroundWindow(HWND hWnd)
@@ -211,20 +202,6 @@ void UtilSetAbsoluteForegroundWindow(HWND hWnd)
 
 	// スレッドのインプット状態を切り離す
 	AttachThreadInput(nTargetID, nForegroundID, FALSE );  // FALSE で切り離し
-}
-
-
-//現在のOSがWindowsVistaもしくはそれ以上ならtrueを返す
-bool UtilIsOSVistaOrHigher()
-{
-	OSVERSIONINFO osv={0};
-	osv.dwOSVersionInfoSize=sizeof(osv);
-	if(!::GetVersionEx(&osv)){
-		ASSERT(!"GetVersionEx failed");
-		return false;
-	}
-	if(osv.dwMajorVersion>6||(osv.dwMajorVersion==6&&osv.dwMinorVersion>=0))return true;
-	return false;
 }
 
 
@@ -369,3 +346,29 @@ void UtilSetPriorityClass(DWORD dwPriorityClass)
 	SetPriorityClass(hProcess,dwPriorityClass);
 }
 
+
+//クリップボードにテキストを設定
+void UtilSetTextOnClipboard(LPCTSTR lpszText)
+{
+	HGLOBAL hMem;
+	LPTSTR lpBuff;
+
+	hMem = GlobalAlloc((GHND|GMEM_SHARE),(_tcslen(lpszText) + 1) * sizeof(TCHAR));
+	if(hMem){
+		lpBuff = (LPTSTR)GlobalLock(hMem);
+		if (lpBuff){
+			_tcscpy_s(lpBuff, _tcslen(lpszText)+1, lpszText);
+			GlobalUnlock( hMem );
+
+			if ( OpenClipboard(NULL) ){
+				EmptyClipboard();
+				SetClipboardData( CF_UNICODETEXT, hMem );
+				CloseClipboard();
+			}else{
+				GlobalFree( hMem );
+			}
+		}else{
+			GlobalFree( hMem );
+		}
+	}
+}

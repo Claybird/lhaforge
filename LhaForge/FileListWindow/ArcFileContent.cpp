@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,9 @@
 #include "../ArchiverCode/arc_interface.h"
 #include "../ArchiverManager.h"
 
-CArchiveFileContent::CArchiveFileContent():m_bReadOnly(false)
+CArchiveFileContent::CArchiveFileContent():
+m_bReadOnly(false),
+m_bEncrypted(false)
 {
 	Clear();
 }
@@ -86,6 +88,9 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 		return E_LF_FILELIST_NOT_SUPPORTED;
 	}
 
+	//少なくとも一つのファイルが暗号化されているならtrue
+	bool bEncrypted = false;
+
 	HRESULT hr=S_OK;
 	//一覧取得
 	while(lpArchiver->InspectArchiveNext()){
@@ -117,6 +122,9 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 		//メソッド
 		lpArchiver->InspectArchiveGetMethodString(item.strMethod);
 
+		//暗号
+		bEncrypted = bEncrypted || ((item.nAttribute & FA_ENCRYPTED)!=0);
+
 		//登録		
 		entries.push_back(item);
 
@@ -133,6 +141,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 	//解析終了
 	lpArchiver->InspectArchiveEnd();
 
+	m_bEncrypted = bEncrypted;
 	return hr;
 }
 
@@ -445,6 +454,8 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 	//選択されたアイテムを列挙
 	std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > toExtractList;
 
+	std::list<CString> newFilesList;	//これから解凍するファイルのディスク上のパス名
+
 	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();ite!=items.end();++ite){
 		// 存在をチェックし、もし解凍済みであればそれを開く
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=*ite;
@@ -463,6 +474,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 			}
 			//解凍要請リストに加える
 			toExtractList[lpBase].push_back(lpNode);
+			newFilesList.push_back(path);
 		}else{	//上書きはしない
 			if(::PathIsDirectory(path)){
 				// フォルダが存在するが中身はそろっているか?
@@ -470,6 +482,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 			}else if(!::PathFileExists(path)){
 				// キャッシュが存在しないので、解凍要請リストに加える
 				toExtractList[lpBase].push_back(lpNode);
+				newFilesList.push_back(path);
 			}
 		}
 		path.RemoveBackslash();
@@ -482,7 +495,19 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 
 	//未解凍の物のみ一時フォルダに解凍
 	for(std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
-		ExtractItems(ConfMan,(*ite).second,lpOutputDir,lpBase,false,strLog);
+		const std::list<ARCHIVE_ENTRY_INFO_TREE*> &filesList = (*ite).second;
+		if(!ExtractItems(ConfMan,filesList,lpOutputDir,lpBase,false,strLog)){
+			for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
+				//失敗したので削除
+				ARCHIVE_ENTRY_INFO_TREE* lpNode = *iteRemove;
+				CPath path=lpOutputDir;
+				CString strItem;
+				ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
+				path.Append(strItem);
+				UtilDeletePath(path);
+			}
+			return false;
+		}
 	}
 	return true;
 }
@@ -511,7 +536,7 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 
 	//---追加
 	//基底ディレクトリ取得などはCArchiverDLL側に任せる
-	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,fileList,rConfig,lpDestDir,strLog)){
+	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
 		return S_OK;
 	}else{
 		return S_FALSE;

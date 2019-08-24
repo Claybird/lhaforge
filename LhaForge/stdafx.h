@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@
 #define _WTL_NO_CSTRING
 
 #include <windows.h>
+#include <windowsx.h>
 #include <tchar.h>
 #include <assert.h>
 #include <atlstr.h>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -78,3 +78,7 @@ void UtilTrimString(CStringW&,LPCWSTR lpszSubject);
 void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env);
 
 void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd);
+
+//•¶š—ñ‚ğ•ª‰ğ‚µ”’l”z—ñ‚Æ‚µ‚Äæ“¾
+void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
+

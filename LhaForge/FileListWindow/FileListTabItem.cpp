@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -54,10 +54,11 @@ bool CFileListTabItem::CreateListView(HWND hParentWnd,HWND hFrameWnd,const CConf
 	ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES|LVS_EX_HEADERDRAGDROP);
 
 	//リストビューにカラム追加
-	if(!ListView.SetColumnState(ConfFLW.ColumnOrderArray))return false;
+	if(!ListView.SetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray))return false;
 
 	//表示設定
-	ListView.SetDisplayFileSizeInByte(BOOL2bool(ConfFLW.DisplayFileSizeInByte));
+	UpdateFileListConfig(ConfFLW);
+
 	//ソート設定
 	if(ConfFLW.StoreSetting){
 		Model.SetSortKeyType(ConfFLW.SortColumn);
@@ -84,6 +85,8 @@ void CFileListTabItem::UpdateFileListConfig(const CConfigFileListWindow& ConfFLW
 {
 	//表示設定
 	ListView.SetDisplayFileSizeInByte(BOOL2bool(ConfFLW.DisplayFileSizeInByte));
+	ListView.SetDisplayPathOnly(BOOL2bool(ConfFLW.DisplayPathOnly));
+	ListView.Invalidate();
 }
 
 bool CFileListTabItem::CreateTreeView(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow &ConfFLW)

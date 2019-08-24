@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -131,6 +131,7 @@ public:
 	bool IsDeleteItemsSupported()const{return m_Content.IsDeleteItemsSupported();}
 	bool IsAddItemsSupported()const{return m_Content.IsAddItemsSupported();}
 	bool IsUnicodeCapable()const{return m_Content.IsUnicodeCapable();}
+	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ÉtÉ@ÉCÉãÇí«â¡à≥èk

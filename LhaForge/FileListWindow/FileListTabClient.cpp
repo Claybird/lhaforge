@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,9 @@ CFileListTabClient::CFileListTabClient(CConfigManager& rConfig,CFileListFrame& r
 {
 	CConfigFileListWindow ConfFLW;
 	ConfFLW.load(rConfig);
-	ASSERT(sizeof(m_ColumnOrderArray)==sizeof(ConfFLW.ColumnOrderArray));
-	memcpy(m_ColumnOrderArray,ConfFLW.ColumnOrderArray,sizeof(ConfFLW.ColumnOrderArray));
+	ASSERT(sizeof(m_ColumnIndexArray)==sizeof(ConfFLW.ColumnOrderArray));
+	memcpy(m_ColumnIndexArray, ConfFLW.ColumnOrderArray, sizeof(ConfFLW.ColumnOrderArray));
+	memcpy(m_FileInfoWidth, ConfFLW.ColumnWidthArray, sizeof(m_FileInfoWidth));
 
 	if(ConfFLW.StoreSetting){
 		m_nTreeWidth=ConfFLW.TreeWidth;
@@ -252,7 +253,7 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(newIdx);
 	if(pItem){
 		pItem->ShowWindow(SW_SHOW);
-		pItem->ListView.SetColumnState(m_ColumnOrderArray);
+		pItem->ListView.SetColumnState(m_ColumnIndexArray, m_FileInfoWidth);
 
 		pItem->SetTreeWidth(m_nTreeWidth);
 		pItem->Model.SetSortMode(m_bSortDescending);
@@ -277,12 +278,13 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 void CFileListTabClient::GetTabSettingsToClient(CFileListTabItem* pItem)
 {
 	if(pItem){
-		pItem->ListView.GetColumnState(m_ColumnOrderArray);
+		pItem->ListView.GetColumnState(m_ColumnIndexArray, m_FileInfoWidth);
 		m_nTreeWidth	 =pItem->GetTreeWidth();
 		m_bSortDescending=pItem->Model.GetSortMode();
 		m_nSortKeyType	 =pItem->Model.GetSortKeyType();
 
 		m_dwListStyle	 =pItem->GetListViewStyle()%(0x0004);
+		m_ListMode		 =pItem->Model.GetListMode();
 	}
 }
 
@@ -336,7 +338,9 @@ void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
 
 	ConfFLW.FileListMode=m_ListMode;
 	//カラムの並び順
-	memcpy(ConfFLW.ColumnOrderArray,m_ColumnOrderArray,sizeof(m_ColumnOrderArray));
+	memcpy(ConfFLW.ColumnOrderArray, m_ColumnIndexArray, sizeof(m_ColumnIndexArray));
+	//カラムの幅
+	memcpy(ConfFLW.ColumnWidthArray, m_FileInfoWidth, sizeof(m_FileInfoWidth));
 
 	//ツリービュー
 	ConfFLW.ShowTreeView=m_bShowTreeView;

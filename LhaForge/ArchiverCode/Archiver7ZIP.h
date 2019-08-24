@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ protected:
 	virtual bool ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
 
 	bool FormatCompressCommandZIP(const CConfigZIP&,CString &Param,bool bSFX,int Options,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
-	bool FormatCompressCommand7Z(const CConfig7Z&,CString &Param,int Options,LPCTSTR lpszMethod,CString &strLog);
+	bool FormatCompressCommand7Z(const CConfig7Z&,CString &Param,int Options,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
 public:
 	CArchiver7ZIP();
 	virtual ~CArchiver7ZIP();
@@ -65,7 +65,7 @@ public:
 	virtual ARCRESULT TestArchive(LPCTSTR,CString &)override;	//アーカイブが正しいかどうかチェックする
 
 	//アーカイブに指定したファイルを追加
-	virtual bool AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
+	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const override{return true;}
 
 	//-------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -233,42 +233,101 @@ void CFileListModel::SetSortKeyType(int nSortKeyType)
 void CFileListModel::SetSortMode(bool bSortDescending)
 {
 	m_bSortDescending=bSortDescending;
+	SortCurrentEntries();
 	dispatchEvent(WM_FILELIST_UPDATED);
 }
 
 //比較関数オブジェクト
 struct COMP{
 	FILEINFO_TYPE Type;
-	bool operator()(ARCHIVE_ENTRY_INFO_TREE* x, ARCHIVE_ENTRY_INFO_TREE* y)const{
+	bool bReversed;
+	bool operator()(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const{
 		switch(Type){
 		case FILEINFO_FILENAME:
-			//ディレクトリが上に来るようにする
-			if(x->bDir){
-				if(!y->bDir){
-					return true;
+			{
+				//ディレクトリが上に来るようにする
+				if(x->bDir){
+					if(!y->bDir){
+						return true;
+					}
+				}else if(y->bDir){
+					return false;
 				}
-			}else if(y->bDir){
-				return false;
+				int result = _tcsicmp(x->strTitle , y->strTitle);
+				if(result == 0){
+					//同じならパス名でソート
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				}else{
+					return (result<0);
+				}
 			}
-			return (_tcsicmp(x->strTitle , y->strTitle)<0);
 		case FILEINFO_FULLPATH:
 			return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 		case FILEINFO_ORIGINALSIZE:
-			return (x->llOriginalSize.QuadPart < y->llOriginalSize.QuadPart);
+			if(x->llOriginalSize.QuadPart == y->llOriginalSize.QuadPart){
+				//同じならパス名でソート
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+			}else{
+				return (x->llOriginalSize.QuadPart < y->llOriginalSize.QuadPart);
+			}
 		case FILEINFO_TYPENAME:
-			return (_tcsicmp(x->strExt , y->strExt)<0);
+			{
+				int result = _tcsicmp(x->strExt , y->strExt);
+				if(result == 0){
+					//同じならパス名でソート
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				}else{
+					return (result < 0);
+				}
+			}
 		case FILEINFO_FILETIME:
-			return (CompareFileTime(&x->cFileTime , &y->cFileTime)<0);
+			{
+				int result = CompareFileTime(&x->cFileTime , &y->cFileTime);
+				if(result == 0){
+					//同じならパス名でソート
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				}else{
+					return (result < 0);
+				}
+			}
 		case FILEINFO_ATTRIBUTE:
-			return (x->nAttribute < y->nAttribute);
+			if(x->nAttribute == y->nAttribute){
+				//同じならパス名でソート
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+			}else{
+				return (x->nAttribute < y->nAttribute);
+			}
 		case FILEINFO_COMPRESSEDSIZE://圧縮後ファイルサイズ
-			return (x->llCompressedSize.QuadPart < y->llCompressedSize.QuadPart);
+			if(x->llCompressedSize.QuadPart == y->llCompressedSize.QuadPart){
+				//同じならパス名でソート
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+			}else{
+				return (x->llCompressedSize.QuadPart < y->llCompressedSize.QuadPart);
+			}
 		case FILEINFO_METHOD:			//圧縮メソッド
-			return (_tcsicmp(x->strMethod , y->strMethod)<0);
+			{
+				int result = _tcsicmp(x->strMethod , y->strMethod);;
+				if(result == 0){
+					//同じならパス名でソート
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				}else{
+					return (result < 0);
+				}
+			}
 		case FILEINFO_RATIO:			//圧縮率
-			return (x->wRatio < y->wRatio);
+			if(x->wRatio == y->wRatio){
+				//同じならパス名でソート
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+			}else{
+				return (x->wRatio < y->wRatio);
+			}
 		case FILEINFO_CRC:			//CRC
-			return (x->dwCRC < y->dwCRC);
+			if(x->dwCRC < y->dwCRC){
+				//同じならパス名でソート
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+			}else{
+				return (x->dwCRC < y->dwCRC);
+			}
 		}
 		return false;
 	}
@@ -288,6 +347,7 @@ void CFileListModel::SortCurrentEntries()
 		if(Type<FILEINFO_INVALID||Type>FILEINFO_LAST_ITEM)return;
 		COMP Comp;
 		Comp.Type=Type;
+		Comp.bReversed = !m_bSortDescending;
 		std::sort(m_SortedChildren.begin(),m_SortedChildren.end(),Comp);
 		dispatchEvent(WM_FILELIST_UPDATED);
 	}

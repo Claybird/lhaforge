@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -762,7 +762,7 @@ bool CArchiverUNLHA::InspectArchiveGetMethodString(CString &strMethod)
 	return true;
 }
 
-bool CArchiverUNLHA::AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
+bool CArchiverUNLHA::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
 {
 	//---カレントディレクトリ設定のために\で終わる基点パスを取得
 	CString strBasePath;

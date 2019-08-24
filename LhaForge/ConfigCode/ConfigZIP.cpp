@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include "../ArchiverCode/Archiver7ZIP.h"
 #include "ConfigManager.h"
 #include "ConfigZIP.h"
+#include "../Dialogs/SevenZipVolumeSizeDlg.h"
 
 // ZIP圧縮設定
 void CConfigZIP::load(CONFIG_SECTION &Config)
@@ -55,6 +56,11 @@ void CConfigZIP::load(CONFIG_SECTION &Config)
 
 	//暗号化モード
 	CryptoMode=(ZIP_CRYPTO_MODE)Config.Data[_T("CryptoMode")].GetNParam(0,ZIP_CRYPTO_MODE_LAST_ITEM,0);
+
+	//分割サイズをあらかじめ指定
+	SpecifySplitSize = Config.Data[_T("SpecifySplitSize")].GetNParam(FALSE);
+	SplitSize = Config.Data[_T("SplitSize")].GetNParam(1,INT_MAX,10);
+	SplitSizeUnit = Config.Data[_T("SplitSizeUnit")].GetNParam(0,ZIP_VOLUME_UNIT_MAX_NUM,0);
 }
 
 void CConfigZIP::store(CONFIG_SECTION &Config)const
@@ -77,6 +83,11 @@ void CConfigZIP::store(CONFIG_SECTION &Config)const
 
 	//暗号化モード
 	Config.Data[_T("CryptoMode")]=CryptoMode;
+
+	//分割サイズをあらかじめ指定
+	Config.Data[_T("SpecifySplitSize")] = SpecifySplitSize;
+	Config.Data[_T("SplitSize")] = SplitSize;
+	Config.Data[_T("SplitSizeUnit")] = SplitSizeUnit;
 
 	// パスワード関連;現在はパスワード消去用コードのみ
 	//指定されたパスワードを強制的に削除

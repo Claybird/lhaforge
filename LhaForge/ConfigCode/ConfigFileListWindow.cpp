@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 #include "../FileListWindow/FileListModel.h"
 #include "../FileListWindow/FileListFrame.h"
 #include "../FileListWindow/FileListTabClient.h"
+#include "../Utilities/StringUtil.h"
 #include "ConfigFileListWindow.h"
 #include "../resource.h"
 
@@ -87,7 +88,9 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 	//初めからツリーを展開
 	ExpandTree=Config.Data[_T("ExpandTree")].GetNParam(FALSE);
 	//バイト単位でファイルサイズを表記
-	DisplayFileSizeInByte=Config.Data[_T("DisplayFileSizeInByte")].GetNParam(FALSE);
+	DisplayFileSizeInByte = Config.Data[_T("DisplayFileSizeInByte")].GetNParam(FALSE);
+	//フルパスの欄にファイル名を表示しない
+	DisplayPathOnly = Config.Data[_T("DisplayPathOnly")].GetNParam(FALSE);
 	//[ESC]キーで終了
 	ExitWithEscape=Config.Data[_T("ExitWithEscape")].GetNParam(FALSE);
 	//タブ表示を使わないならTRUE
@@ -97,34 +100,41 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 
 	//リストビューカラムの並び順
 	{
+		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
+			//配列初期化
+			ColumnOrderArray[i]=i;
+		}
 		CString Buffer=Config.Data[_T("ColumnOrder")];
-		if(Buffer.IsEmpty()){
-			for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-				//配列初期化
-				ColumnOrderArray[i]=i;
-			}
-		}else{
+		if(!Buffer.IsEmpty()){
 			//カラムの並び順を取得
-			int Index=0;
-			LPCTSTR lpArrayString=Buffer;
-			for(;_T('\0')!=*lpArrayString&&Index<FILEINFO_ITEM_COUNT;Index++){
-				CString Temp;
-				for(;;){
-					if(_T(',')==*lpArrayString||_T('\0')==*lpArrayString){
-						lpArrayString++;
-						break;
-					}else{
-						Temp+=*lpArrayString;
-						lpArrayString++;
-					}
+			std::vector<int> numArr;
+			UtilStringToIntArray(Buffer, numArr);
+			//並び順のチェック
+			for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
+				int columnPosition = numArr[idx];
+				if(columnPosition<0)columnPosition = -1;
+				if(columnPosition >= FILEINFO_ITEM_COUNT){
+					columnPosition = idx;
 				}
-				ColumnOrderArray[Index]=_ttoi(Temp);
-				if(ColumnOrderArray[Index]<-1||ColumnOrderArray[Index]>=FILEINFO_ITEM_COUNT){
-					ColumnOrderArray[Index]=Index;
-				}
+				ColumnOrderArray[idx] = columnPosition;
 			}
 		}
 	}
+	//リストビューカラムの幅
+	{
+		//配列初期化
+		for(int i=0;i<COUNTOF(ColumnWidthArray);i++){
+			ColumnWidthArray[i]=-1;
+		}
+		CString Buffer=Config.Data[_T("ColumnWidth")];
+		//カラムの幅を取得
+		std::vector<int> numArr;
+		UtilStringToIntArray(Buffer, numArr);
+		for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
+			ColumnWidthArray[idx] = numArr[idx];
+		}
+	}
+
 	//関連付けで開くを許可/拒否する拡張子
 	if(has_key(Config.Data,_T("OpenAssocAccept"))){
 		OpenAssoc.Accept=Config.Data[_T("OpenAssocAccept")];
@@ -202,6 +212,8 @@ void CConfigFileListWindow::store(CONFIG_SECTION &Config)const
 	Config.Data[_T("ExpandTree")]=ExpandTree;
 	//バイト単位でファイルサイズを表記
 	Config.Data[_T("DisplayFileSizeInByte")]=DisplayFileSizeInByte;
+	//フルパスの欄にファイル名を表示しない
+	Config.Data[_T("DisplayPathOnly")]=DisplayPathOnly;
 	//[ESC]キーで終了
 	Config.Data[_T("ExitWithEscape")]=ExitWithEscape;
 	//タブ表示を使わないならTRUE
@@ -219,6 +231,17 @@ void CConfigFileListWindow::store(CONFIG_SECTION &Config)const
 			}
 		}
 		Config.Data[_T("ColumnOrder")]=Buffer;
+	}
+	//リストビューカラムの幅
+	{
+		CString Buffer;
+		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
+			Buffer.AppendFormat(_T("%d"),ColumnWidthArray[i]);
+			if(i!=FILEINFO_ITEM_COUNT-1){
+				Buffer+=_T(",");
+			}
+		}
+		Config.Data[_T("ColumnWidth")]=Buffer;
 	}
 	//関連付けで開くを許可/拒否する拡張子
 	//許可

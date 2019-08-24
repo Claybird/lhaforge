@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,7 @@ public:
 	virtual bool IsWeakErrorCheck()const override{return true;}	//%Prefix%()のエラーチェックが甘い(XacRettのように)ならtrue
 //	virtual bool IsWeakCheckArchive()const{return true;}	解凍候補を自動的に探させるため
 	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const override;
-	virtual bool AddItemToArchive(LPCTSTR ArcFileName,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
+	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const override;
 
 	//アーカイブから指定したファイルを削除

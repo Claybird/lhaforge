@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #include "stdafx.h"
 #include "Dlg_7z.h"
+#include "../../Dialogs/SevenZipVolumeSizeDlg.h"
 
 //=================
 // 7Z一般設定画面
@@ -105,6 +106,18 @@ LRESULT CConfigDlg7Z::OnInitDialog(HWND hWnd, LPARAM lParam)
 	Check_SpecifyPPMdModelSize.EnableWindow((SEVEN_ZIP_COMPRESS_PPMD==m_Config.CompressType)&&!m_Config.UsePreset);
 	::EnableWindow(GetDlgItem(IDC_EDIT_7Z_PPMD_MODEL_SIZE),(SEVEN_ZIP_COMPRESS_PPMD==m_Config.CompressType)&&m_Config.SpecifyPPMdModelSize&&!m_Config.UsePreset);
 
+	//------------------
+	// 分割サイズの設定
+	//------------------
+	::EnableWindow(GetDlgItem(IDC_EDIT_7Z_SPLIT_SIZE), m_Config.SpecifySplitSize);
+	::EnableWindow(GetDlgItem(IDC_COMBO_7Z_SPLIT_SIZE_UNIT), m_Config.SpecifySplitSize);
+
+	Combo_SizeUnit=GetDlgItem(IDC_COMBO_7Z_SPLIT_SIZE_UNIT);
+	for(int i=0;i<ZIP_VOLUME_UNIT_MAX_NUM;i++){
+		Combo_SizeUnit.InsertString(-1,ZIP_VOLUME_UNIT[i].DispName);
+	}
+	Combo_SizeUnit.SetCurSel(m_Config.SplitSizeUnit);
+
 	//DDX情報アップデート
 	DoDataExchange(FALSE);
 
@@ -152,6 +165,11 @@ LRESULT CConfigDlg7Z::OnApply()
 			break;
 		}
 	}
+
+	//------------------
+	// 分割サイズの設定
+	//------------------
+	m_Config.SplitSizeUnit = Combo_SizeUnit.GetCurSel();
 
 	//---------------
 	// DDXデータ更新
@@ -214,6 +232,15 @@ LRESULT CConfigDlg7Z::OnHeaderCompression(WORD wNotifyCode, WORD wID, HWND hWndC
 {
 	if(BN_CLICKED==wNotifyCode){
 		::EnableWindow(GetDlgItem(IDC_CHECK_7Z_FULL_HEADER_COMPRESSION),Check_HeaderCompression.GetCheck());
+	}
+	return 0;
+}
+
+LRESULT CConfigDlg7Z::OnSpecifySplitSize(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+	if(BN_CLICKED==wNotifyCode){
+		::EnableWindow(GetDlgItem(IDC_EDIT_7Z_SPLIT_SIZE), Button_GetState(GetDlgItem(IDC_CHECK_7Z_SPECIFY_SPLIT_SIZE)));
+		::EnableWindow(GetDlgItem(IDC_COMBO_7Z_SPLIT_SIZE_UNIT), Button_GetState(GetDlgItem(IDC_CHECK_7Z_SPECIFY_SPLIT_SIZE)));
 	}
 	return 0;
 }

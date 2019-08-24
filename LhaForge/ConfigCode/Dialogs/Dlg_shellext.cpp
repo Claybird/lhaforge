@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -114,27 +114,26 @@ LRESULT CConfigDlgShellExt::OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 {
 	if(BN_CLICKED==wNotifyCode){
 		bool bActive=BOOL2bool(Check_ShellExt.GetCheck());
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_COMPRESS),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_EXTRACT),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_LIST),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_TEST),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_UNDER_SUBMENU),bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_COMPRESS),	  bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_EXTRACT),		  bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_LIST),		  bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_TEST),		  bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_UNDER_SUBMENU), bActive);
 
-		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_COMPRESS),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_EXTRACT),bActive);
-		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_UNDER_SUBMENU),bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_COMPRESS),		 bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_EXTRACT),		 bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_UNDER_SUBMENU), bActive);
 
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),bActive);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),	 bActive);
 
 
 		//メニューカスタマイズ
-		bActive=bActive&&(!Check_ShellExtForceExtra.GetCheck());
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),bActive);
-		::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),bActive);
+		bool bCustomActive = bActive && (!Check_ShellExtForceExtra.GetCheck());
+		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),	bCustomActive);
+		::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),		bCustomActive);
 
-		//if(bCurrentStatus^m_bOldStatus){
 		bool bOldStatus=ShellRegistCheck();
-		if( (!bActive && bOldStatus) || (bActive && !bOldStatus)){
+		if(bActive ^ bOldStatus){	//if( (!bActive && bOldStatus) || (bActive && !bOldStatus)){
 			//LFAssist.exeの実行を要請
 			mr_ConfigDlg.RequireAssistant();
 		}else{

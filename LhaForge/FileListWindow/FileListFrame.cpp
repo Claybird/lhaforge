@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -721,7 +721,13 @@ void CFileListFrame::UpdateWindowTitle()
 	if(pTab){
 		//ウィンドウタイトルにファイル名設定
 		CString Title;
-		Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+		if(pTab->Model.IsArchiveEncrypted()){
+			//パスワード付きの場合
+			Title.Format(_T("[%s] %s - %s"),CString(MAKEINTRESOURCE(IDS_ENCRYPTED_ARCHIVE)),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+		}else{
+			//通常アーカイブ
+			Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+		}
 		SetWindowText(Title);
 	}else{
 		SetWindowText(CString(MAKEINTRESOURCE(IDR_MAINFRAME)));

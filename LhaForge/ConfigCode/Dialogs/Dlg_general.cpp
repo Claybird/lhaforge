@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #include "stdafx.h"
 #include "Dlg_general.h"
+#include "../../Dialogs/LFFolderDialog.h"
 
 
 //==============
@@ -80,6 +81,10 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	Button_BrowseFiler=GetDlgItem(IDC_BUTTON_BROWSE_FILER);
 	Button_BrowseFiler.EnableWindow(Check_UseFiler.GetCheck());
+
+	//一時フォルダ
+	Edit_TempPath=GetDlgItem(IDC_EDIT_TEMP_PATH);
+	Edit_TempPath.SetLimitText(_MAX_PATH);
 
 	//DDX情報アップデート
 	DoDataExchange(FALSE);
@@ -151,6 +156,25 @@ LRESULT CConfigDlgGeneral::OnBrowseFiler(WORD wNotifyCode, WORD wID, HWND hWndCt
 		CFileDialog dlg(TRUE, NULL, FilerPath, OFN_NOCHANGEDIR,_T("Executable File(*.exe)\0*.exe\0All Files\0*.*\0\0"));
 		if(IDOK==dlg.DoModal()){
 			Edit_FilerPath.SetWindowText(dlg.m_szFileName);
+		}
+	}
+	return 0;
+}
+
+
+LRESULT CConfigDlgGeneral::OnBrowseTempPath(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+	if(BN_CLICKED==wNotifyCode){
+		CString path;
+		Edit_TempPath.GetWindowText(path);
+
+		CString title(MAKEINTRESOURCE(IDS_INPUT_TEMP_PATH));
+		CLFFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		if(IDOK==dlg.DoModal()){
+			Edit_TempPath.SetWindowText(dlg.GetFolderPath());
+		}else{
+			//キャンセル
+			return E_ABORT;
 		}
 	}
 	return 0;

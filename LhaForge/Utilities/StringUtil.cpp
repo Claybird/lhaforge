@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, Claybird
+ * Copyright (c) 2005-, Claybird
  * All rights reserved.
 
  * Redistribution and use in source and binary forms, with or without
@@ -247,3 +247,26 @@ void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd)
 		strOut+=*lpStart;
 	}
 }
+
+
+//•¶š—ñ‚ğ•ª‰ğ‚µ”’l”z—ñ‚Æ‚µ‚Äæ“¾
+void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
+{
+	numArr.clear();
+
+	for(;_T('\0')!=*str;){
+		CString Temp;
+		for(;;){
+			if(_T(',')==*str||_T('\0')==*str){
+				str++;
+				break;
+			}else{
+				Temp += *str;
+				str++;
+			}
+		}
+		int num = _ttoi(Temp);
+		numArr.push_back(num);
+	}
+}
+
