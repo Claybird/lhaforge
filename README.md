@@ -2,7 +2,7 @@ LhaForge
 ===
 Windows用圧縮解凍ソフトLhaForgeのソースコードです。 
 
-LhaForgeは修正BSDライセンスで公開されています。
+LhaForgeはMITライセンスで公開されています。
 
 開発環境
 ---
