@@ -26,7 +26,6 @@
 #include "Dlg_compress_general.h"
 #include "../../ArchiverCode/arc_interface.h"
 #include "../../Dialogs/selectdlg.h"
-#include "../../Dialogs/LFFolderDialog.h"
 #include "../../compress.h"
 
 //==================
@@ -156,7 +155,7 @@ LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HW
 		Edit_CompressOutputDirPath.GetWindowText(FolderPath,_MAX_PATH);
 
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CLFFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(FolderPath);
 		if(IDOK==dlg.DoModal()){
 			_tcsncpy_s(FolderPath,dlg.GetFolderPath(),_MAX_PATH);

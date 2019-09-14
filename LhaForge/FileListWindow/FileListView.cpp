@@ -26,7 +26,6 @@
 #include "FileListView.h"
 #include "../resource.h"
 #include "../Dialogs/LogDialog.h"
-#include "../Dialogs/LFFolderDialog.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../Utilities/StringUtil.h"
 #include <sstream>
@@ -902,7 +901,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 			}
 		}
 	}else{		//フォルダ追加
-		CLFFolderDialog dlg(m_hFrameWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(m_hFrameWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		if(IDOK==dlg.DoModal()){
 			fileList.push_back(dlg.GetFolderPath());
 		}

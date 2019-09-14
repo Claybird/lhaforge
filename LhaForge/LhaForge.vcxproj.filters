@@ -684,9 +684,6 @@
     <ClInclude Include="Dialogs\JackVolumeSizeDlg.h">
       <Filter>Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\LFFolderDialog.h">
-      <Filter>Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="Dialogs\LogDialog.h">
       <Filter>Dialogs</Filter>
     </ClInclude>

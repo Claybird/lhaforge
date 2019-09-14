@@ -33,7 +33,6 @@
 #include "../CommonUtil.h"
 #include "../Extract.h"
 #include "../TestArchive.h"
-#include "../Dialogs/LFFolderDialog.h"
 #include "FileListMessages.h"
 
 CString CFileListModel::ms_strExtAccept;
@@ -404,7 +403,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	TRACE(_T("Default path from config:%s\n"),(LPCTSTR)pathOutputBaseDir);
 	if(!bSameDir){	//出力先をダイアログで選ばせる
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CLFFolderDialog dlg(hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(pathOutputBaseDir);
 		if(IDOK!=dlg.DoModal()){
 			return S_FALSE;//E_ABORT;

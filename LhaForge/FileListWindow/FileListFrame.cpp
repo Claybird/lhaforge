@@ -28,7 +28,6 @@
 #include "../ConfigCode/ConfigManager.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../resource.h"
-#include "../Dialogs/LFFolderDialog.h"
 #include "../Dialogs/LogDialog.h"
 #include "../Utilities/OSUtil.h"
 #include "../Utilities/StringUtil.h"

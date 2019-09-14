@@ -25,7 +25,6 @@
 #include "stdafx.h"
 #include "Dlg_B2E.h"
 #include "../../ArchiverManager.h"
-#include "../../Dialogs/LFFolderDialog.h"
 
 //=================
 // B2E設定画面
@@ -104,7 +103,7 @@ LRESULT CConfigDlgB2E::OnBrowse(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& 
 	if(BN_CLICKED==wNotifyCode){
 		//DDX取得
 		DoDataExchange(TRUE);
-		CLFFolderDialog dlg(m_hWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(m_hWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(m_Config.ScriptDirectory);
 		if(IDOK==dlg.DoModal()){
 			m_Config.ScriptDirectory=dlg.GetFolderPath();

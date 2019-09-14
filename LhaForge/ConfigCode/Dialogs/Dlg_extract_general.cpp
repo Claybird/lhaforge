@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "Dlg_extract_general.h"
-#include "../../Dialogs/LFFolderDialog.h"
 
 
 //==================
@@ -170,7 +169,7 @@ LRESULT CConfigDlgExtractGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HWN
 		Edit_ExtractOutputDirPath.GetWindowText(FolderPath,_MAX_PATH);
 
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CLFFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(FolderPath);
 		if(IDOK==dlg.DoModal()){
 			_tcsncpy_s(FolderPath,dlg.GetFolderPath(),_MAX_PATH);

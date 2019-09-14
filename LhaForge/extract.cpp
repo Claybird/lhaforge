@@ -33,7 +33,6 @@
 #include "Dialogs/LogDialog.h"
 #include "Dialogs/LogListDialog.h"
 #include "Dialogs/ProgressDlg.h"
-#include "Dialogs/LFFolderDialog.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
@@ -282,7 +281,7 @@ HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,
 	if(S_FALSE==hStatus){
 		// 名前を付けて保存
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-		CLFFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		if(IDOK==dlg.DoModal()){
 			r_bUseForAll=(GetKeyState(VK_SHIFT)<0);	//TODO
 			pathOutputDir=dlg.GetFolderPath();

@@ -28,7 +28,6 @@
 #include "ConfigCode/ConfigGeneral.h"
 #include "ArchiverCode/arc_interface.h"
 #include "resource.h"
-#include "Dialogs/LFFolderDialog.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
 
@@ -76,7 +75,7 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 			}
 
 			CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-			CLFFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+			CFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 			dlg.SetInitialFolder(pathTmp);
 			if(IDOK==dlg.DoModal()){
 				r_bUseForAll=(GetKeyState(VK_SHIFT)<0);	//TODO

@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "Dlg_general.h"
-#include "../../Dialogs/LFFolderDialog.h"
 
 
 //==============
@@ -162,7 +161,7 @@ LRESULT CConfigDlgGeneral::OnBrowseTempPath(WORD wNotifyCode, WORD wID, HWND hWn
 		Edit_TempPath.GetWindowText(path);
 
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TEMP_PATH));
-		CLFFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		CFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		if(IDOK==dlg.DoModal()){
 			Edit_TempPath.SetWindowText(dlg.GetFolderPath());
 		}else{

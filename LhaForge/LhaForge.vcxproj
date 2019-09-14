@@ -394,7 +394,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_xacrett.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_zip.h" />
     <ClInclude Include="Dialogs\JackVolumeSizeDlg.h" />
-    <ClInclude Include="Dialogs\LFFolderDialog.h" />
     <ClInclude Include="Dialogs\LogDialog.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
     <ClInclude Include="Dialogs\ProgressDlg.h" />

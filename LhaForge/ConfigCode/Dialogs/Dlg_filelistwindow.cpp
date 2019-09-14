@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "Dlg_filelistwindow.h"
-#include "../../Dialogs/LFFolderDialog.h"
 #include "../../Utilities/TemporaryDirMgr.h"
 #include "../../Utilities/StringUtil.h"
 
@@ -145,7 +144,7 @@ void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 {
 	TCHAR szPath[_MAX_PATH+1];
 	Edit_Dir.GetWindowText(szPath,_MAX_PATH);
-	CLFFolderDialog dlg(NULL,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+	CFolderDialog dlg(NULL,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 	dlg.SetInitialFolder(szPath);
 
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
