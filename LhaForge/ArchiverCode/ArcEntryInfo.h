@@ -57,7 +57,7 @@ struct ARCHIVE_ENTRY_INFO{	//ファイルアイテム情報保持
 
 struct ARCHIVE_ENTRY_INFO_TREE:public ARCHIVE_ENTRY_INFO{
 	virtual ~ARCHIVE_ENTRY_INFO_TREE(){}
-	typedef std::hash_map<stdString,ARCHIVE_ENTRY_INFO_TREE*> DICT;
+	typedef std::unordered_map<stdString,ARCHIVE_ENTRY_INFO_TREE*> DICT;
 	std::vector<ARCHIVE_ENTRY_INFO_TREE*> childrenArray;
 	DICT					childrenDict;
 	ARCHIVE_ENTRY_INFO_TREE	*lpParent;

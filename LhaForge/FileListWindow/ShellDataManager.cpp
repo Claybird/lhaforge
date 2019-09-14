@@ -28,7 +28,7 @@
 
 int CShellDataManager::GetIconIndex(LPCTSTR Ext)
 {
-	std::hash_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
+	std::unordered_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
 	if(ite!=ShellDataMap.end()){
 		//既に登録されていた
 		return (*ite).second.IconIndex;
@@ -41,7 +41,7 @@ int CShellDataManager::GetIconIndex(LPCTSTR Ext)
 
 LPCTSTR CShellDataManager::GetTypeName(LPCTSTR Ext)
 {
-	std::hash_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
+	std::unordered_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
 	if(ite!=ShellDataMap.end()){
 		//既に登録されていた
 		return (*ite).second.TypeName;
@@ -52,7 +52,7 @@ LPCTSTR CShellDataManager::GetTypeName(LPCTSTR Ext)
 	return (*ite).second.TypeName;
 }
 
-std::hash_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute)
+std::unordered_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute)
 {
 	SHELLDATA ShellData;
 	//ファイル アイコン インデックス取得
@@ -64,7 +64,7 @@ std::hash_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPC
 	SHGetFileInfo(Ext ? Ext : _T("dummy"),Attribute,&shfi,sizeof(shfi),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME);
 	ShellData.TypeName=shfi.szTypeName;
 
-	std::pair<std::hash_map<StlString,SHELLDATA>::iterator,bool> Result;
+	std::pair<std::unordered_map<StlString,SHELLDATA>::iterator,bool> Result;
 
 	if(!Ext)Ext=FOLDER_EXTENSION_STRING;
 	Result=ShellDataMap.insert(std::pair<StlString,SHELLDATA>(Ext,ShellData));

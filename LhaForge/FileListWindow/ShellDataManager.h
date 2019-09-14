@@ -24,7 +24,6 @@
 
 #pragma once
 
-//#include <hash_map>
 //#include <string>
 //ファイルのアイコンなどを管理する
 
@@ -47,8 +46,8 @@ class CShellDataManager
 protected:
 	HIMAGELIST			ImageListSmall;
 	HIMAGELIST			ImageListLarge;
-	std::hash_map<StlString,SHELLDATA> ShellDataMap;
-	std::hash_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute=FILE_ATTRIBUTE_NORMAL);
+	std::unordered_map<StlString,SHELLDATA> ShellDataMap;
+	std::unordered_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute=FILE_ATTRIBUTE_NORMAL);
 public:
 	virtual ~CShellDataManager(){}
 	void Init();

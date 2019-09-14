@@ -83,8 +83,7 @@ extern CAppModule _Module;
 #include <string>
 #include <map>
 #include <stack>
-#include <hash_map>
-#include <hash_set>
+#include <unordered_map>
 #include <set>
 
 #include <comcat.h>

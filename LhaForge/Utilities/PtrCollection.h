@@ -65,6 +65,7 @@ public:
 template <typename T>
 class CSmartPtrCollectionArray
 {
+	typedef T* PT;
 protected:
 	CSmartPtrCollection<T> m_Ptr;
 	std::vector<T*> m_Array;
@@ -76,6 +77,6 @@ public:
 		m_Array.push_back(lpT);
 	}
 
-	(T*)& operator[](size_t idx){return m_Array[idx];}
+	PT & operator[](size_t idx){return m_Array[idx];}
 	size_t size()const{return m_Array.size();}
 };
