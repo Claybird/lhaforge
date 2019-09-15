@@ -190,9 +190,6 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
-				}else if(DLL_ID_B2E==cli.idForceDLL){	//B2Eで圧縮する場合
-					//圧縮方式名のみ切りだし
-					cli.strFormat=(LPCTSTR)Parameter+3;
 				}else{
 					cli.CompressType=PARAMETER_UNDEFINED;
 					//コマンドラインパラメータと形式の対応表から探す
@@ -258,12 +255,6 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ASSERT(!"This code must not be run");
 					return PROCESS_INVALID;
 				}
-			}else if(_T("/!")==Parameter||_T("/xacrett")==Parameter){//XacRett.DLLを使用
-				cli.idForceDLL=DLL_ID_XACRETT;
-			}else if(_T("/b2e")==Parameter){//B2E32.dllを使用
-				cli.idForceDLL=DLL_ID_B2E;
-			}else if(_T("/b2esfx")==Parameter){//B2E32.dllを使用して自己解凍に圧縮
-				cli.Options|=COMPRESS_SFX;
 			}else if(_T("/s")==Parameter){//ファイルを一つずつ圧縮
 				cli.bSingleCompression=true;
 			}else if(0==_tcsncmp(_T("/o"),Parameter,2)){//出力先フォルダ指定

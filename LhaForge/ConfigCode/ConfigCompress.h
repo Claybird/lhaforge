@@ -37,8 +37,6 @@ public:
 	BOOL UseDefaultParameter;	//デフォルト圧縮パラメータを使用するならtrue
 	PARAMETER_TYPE DefaultType;	//デフォルト圧縮パラメータ(形式指定)
 	int DefaultOptions;			//デフォルト圧縮パラメータのオプション
-	CString DefaultB2EFormat;
-	CString DefaultB2EMethod;
 
 	BOOL DeleteAfterCompress;	//正常に圧縮できたファイルを削除
 	BOOL MoveToRecycleBin;		//圧縮後ファイルをごみ箱に移動

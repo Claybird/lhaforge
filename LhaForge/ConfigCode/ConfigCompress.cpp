@@ -60,10 +60,6 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	//デフォルト圧縮パラメータのオプション
 	DefaultOptions=Config.Data[_T("DefaultOptions")].GetNParam(0);
 
-	//B2E圧縮の情報
-	DefaultB2EFormat=Config.Data[_T("DefaultB2EFormat")];
-	DefaultB2EMethod=Config.Data[_T("DefaultB2EMethod")];
-
 	//正常に圧縮できたファイルを削除
 	DeleteAfterCompress=Config.Data[_T("DeleteAfterCompress")].GetNParam(FALSE);
 	//圧縮後ファイルをごみ箱に移動
@@ -103,10 +99,6 @@ void CConfigCompress::store(CONFIG_SECTION &Config)const
 
 	//デフォルト圧縮パラメータのオプション
 	Config.Data[_T("DefaultOptions")]=DefaultOptions;
-
-	//B2E圧縮の情報
-	Config.Data[_T("DefaultB2EFormat")]=DefaultB2EFormat;
-	Config.Data[_T("DefaultB2EMethod")]=DefaultB2EMethod;
 
 	//正常に圧縮できたファイルを削除
 	Config.Data[_T("DeleteAfterCompress")]=DeleteAfterCompress;

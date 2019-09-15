@@ -27,39 +27,12 @@
 #include "ConfigCode/ConfigManager.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/StringUtil.h"
-#include "ConfigCode/ConfigB2E.h"
-#include "ConfigCode/ConfigXACRETT.h"
 
 //拡張子から解凍に使うDLLを推定
 DLL_ID GuessDllIDFromFileName(LPCTSTR ArcFileName,CConfigManager &Config)
 {
 	TRACE(_T("GuessDllIDFromFileName()\n"));
 	TRACE(_T("ArcFileName=%s\n"),ArcFileName);
-
-	//---B2EをXacRettより優先する場合
-	CConfigB2E ConfB2E;
-	CConfigXACRETT ConfXACRETT;
-	ConfB2E.load(Config);
-	ConfXACRETT.load(Config);
-	if(ConfB2E.EnableDLL && ConfB2E.Priority){
-		//B2Eに優先する拡張子の確認
-		if(UtilPathAcceptSpec(ArcFileName,CString(),ConfB2E.Extensions,false))return DLL_ID_B2E;
-
-		//XacRettに優先する拡張子の確認
-		if(ConfXACRETT.EnableDLL){
-			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfXACRETT.Extensions,false))return DLL_ID_XACRETT;
-		}
-	}else{
-		//---XacRettがB2Eより優先
-		//XacRettに優先する拡張子の確認
-		if(ConfXACRETT.EnableDLL){
-			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfXACRETT.Extensions,false))return DLL_ID_XACRETT;
-		}
-		//B2Eに優先する拡張子の確認
-		if(ConfB2E.EnableDLL){
-			if(UtilPathAcceptSpec(ArcFileName,CString(),ConfB2E.Extensions,false))return DLL_ID_B2E;
-		}
-	}
 
 	//拡張子抜きだし
 	CString strExt=PathFindExtension(ArcFileName);
@@ -100,17 +73,13 @@ CArchiverDLLManager::CArchiverDLLManager()
 	ArchiverList.push_back(PAIR_DLL_ITEM(7ZIP));
 	ArchiverList.push_back(PAIR_DLL_ITEM(CAB));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNARJ));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNGCA));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNRAR));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNACE));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNIMP));
-	ArchiverList.push_back(PAIR_DLL_ITEM(YZ1));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNHKI));
 	ArchiverList.push_back(PAIR_DLL_ITEM(BGA));
 	ArchiverList.push_back(PAIR_DLL_ITEM(AISH));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNBEL));
-	ArchiverList.push_back(PAIR_DLL_ITEM(XACRETT));
-	ArchiverList.push_back(PAIR_DLL_ITEM(B2E));
 	ArchiverList.push_back(PAIR_DLL_ITEM(UNISO));
 
 }
@@ -187,28 +156,14 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 	}
 	TRACE(_T("総当りによる推測を開始\n"));
 
-	CConfigB2E ConfB2E;
-	CConfigXACRETT ConfXACRETT;
-	ConfB2E.load(*m_lpConfig);
-	ConfXACRETT.load(*m_lpConfig);
-
 	std::list<std::pair<CArchiverDLL*,DLL_ID> >::iterator ite;
 	for(ite=ArchiverList.begin();ite!=ArchiverList.end();ite++){
 		CArchiverDLL* lpArchiver=(*ite).first;
 
 		ASSERT(lpArchiver);
 
-		if(&ArcXACRETT==lpArchiver){	//XacRettの使用が許可されている場合のみロード
-			if(!ConfXACRETT.EnableDLL)continue;
-		}else if(&ArcB2E==lpArchiver){	//B2Eの使用が許可されている場合のみロード
-			if(!ConfB2E.EnableDLL)continue;
-		}else if(!m_ConfDLL.EnableDLL[(*ite).second]){
+		if(!m_ConfDLL.EnableDLL[(*ite).second]){
 			continue;
-		}
-
-		if(ConfB2E.Priority){
-			//B2E優先の時は、このループではXacRettを処理させない
-			if(&ArcXACRETT==lpArchiver)continue;
 		}
 
 		if(lpGuessedArchiver==lpArchiver)continue;	//既に適合しないことが分かっている
@@ -228,22 +183,6 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 		}
 		if(lpArchiver->IsOK()&&lpArchiver->CheckArchive(ArcFileName)){
 			return lpArchiver;	//アーカイブハンドラ決定
-		}
-	}
-
-	if(ConfB2E.Priority){
-		//B2E優先の時は、後からXacRettを処理
-		if(ConfXACRETT.EnableDLL){
-			CArchiverDLL* lpArchiver=&ArcXACRETT;
-			if(!lpArchiver->IsOK()){
-				CString strDummy;
-				lpArchiver->LoadDLL(*m_lpConfig,strDummy);
-			}
-			if(lpArchiver->IsUnicodeCapable() || UtilCheckT2A(ArcFileName)){
-				if(lpArchiver->IsOK()&&lpArchiver->CheckArchive(ArcFileName)){
-					return lpArchiver;	//アーカイブハンドラ決定
-				}
-			}
 		}
 	}
 
@@ -268,7 +207,7 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 
 	if(lpArchiver){
 		//DLL有効/無効の判定
-		if(Type!=DLL_ID_XACRETT && Type!=DLL_ID_B2E && !m_ConfDLL.EnableDLL[Type]){
+		if(!m_ConfDLL.EnableDLL[Type]){
 			lpArchiver->FreeDLL();
 			if(!bSilent){
 				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_DISABLED_DLL)));
@@ -288,15 +227,6 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 	}
 	TRACE(_T("適切なDLLの取得に失敗\n"));
 	return NULL;
-}
-
-CArchiverB2E& CArchiverDLLManager::GetB2EHandler()
-{
-	if(!ArcB2E.IsOK()){
-		CString strDummy;
-		ArcB2E.LoadDLL(*m_lpConfig,strDummy);
-	}
-	return ArcB2E;
 }
 
 void CArchiverDLLManager::UpdateDLLConfig()

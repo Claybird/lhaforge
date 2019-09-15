@@ -271,37 +271,25 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CString strMethod=cli.strMethod;
 	CString strLevel=cli.strLevel;
 
-	if(cli.idForceDLL==DLL_ID_B2E){
-		cli.CompressType=PARAMETER_B2E;
-	}else{
-		strFormat = cli.strSplitSize;
-	}
+	strFormat = cli.strSplitSize;
 
 	CConfigCompress ConfCompress;
 	CConfigGeneral ConfGeneral;
 	ConfCompress.load(ConfigManager);
 	ConfGeneral.load(ConfigManager);
 
-	while(PARAMETER_UNDEFINED==cli.CompressType || PARAMETER_B2E==cli.CompressType){	//---使用DLLを決定
+	while(PARAMETER_UNDEFINED==cli.CompressType){	//---使用DLLを決定
 		if(PARAMETER_UNDEFINED==cli.CompressType){	//形式が指定されていない場合
 			if(ConfCompress.UseDefaultParameter){	//デフォルトパラメータを使うならデータ取得
 				cli.CompressType=ConfCompress.DefaultType;
 				cli.Options=ConfCompress.DefaultOptions;
-
-				if(cli.CompressType==PARAMETER_B2E){	//B2Eを使用する場合
-					cli.idForceDLL=DLL_ID_B2E;	//B2E32.dllの使用を明示
-					//パラメータ指定
-					if(cli.Options)cli.Options=COMPRESS_SFX;	//自己解凍
-					cli.strFormat=ConfCompress.DefaultB2EFormat;	//形式
-					cli.strMethod=ConfCompress.DefaultB2EMethod;	//メソッド
-				}
 			}else{	//入力を促す
 				CSelectDialog SelDlg;
 				SelDlg.SetDeleteAfterCompress(BOOL2bool(ConfCompress.DeleteAfterCompress));
 				cli.CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
 				if(PARAMETER_UNDEFINED==cli.CompressType){	//キャンセルの場合
 					return false;
-				}else if(cli.CompressType!=PARAMETER_B2E){
+				}else{
 					cli.idForceDLL=DLL_ID_UNKNOWN;
 
 					cli.Options=SelDlg.GetOptions();
@@ -309,41 +297,6 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.DeleteAfterProcess=SelDlg.GetDeleteAfterCompress() ? 1 : 0;
 					break;
 				}
-			}
-		}
-		if(cli.CompressType==PARAMETER_B2E){	//B2Eを使用する場合
-			//---B2E32.dllのチェック
-			CArchiverB2E &B2EHandler=CArchiverDLLManager::GetInstance().GetB2EHandler();
-			if(!B2EHandler.IsOK()){
-				cli.CompressType=PARAMETER_UNDEFINED;
-				CString msg;
-				msg.Format(IDS_ERROR_DLL_LOAD,B2EHandler.GetName());
-				ErrorMessage(msg);
-				continue;
-//				return false;
-			}
-
-			//---形式選択
-			if(cli.strFormat.IsEmpty()){
-				CB2ESelectDialog SelDlg;
-				INT_PTR Ret=SelDlg.DoModal();
-				if(IDCANCEL==Ret){	//キャンセルの場合
-					return false;
-				}else if(IDC_COMPRESS_USENORMAL==Ret){	//通常のDLLを使う
-					cli.CompressType=PARAMETER_UNDEFINED;
-				}else{
-					cli.idForceDLL=DLL_ID_B2E;
-
-					cli.Options=SelDlg.IsSFX() ? COMPRESS_SFX : 0;
-					cli.bSingleCompression=SelDlg.IsSingleCompression();
-					strFormat=SelDlg.GetFormat();
-					strMethod=SelDlg.GetMethod();
-					break;
-				}
-			}else{
-				strFormat=cli.strFormat;
-				strMethod=cli.strMethod;
-				break;
 			}
 		}
 	}

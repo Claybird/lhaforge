@@ -173,81 +173,47 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 //Path:ショートカットファイル名,Param:コマンドライン引数
 bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 {
-/*	int Options=-1;
-	bool bSingleCompression=false;
-	bool bB2ESFX=false;
-	CString strB2EFormat,strB2EMethod;*/
-
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
 	if(IDYES==MessageBox(CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
 		int Options=-1;
 		bool bSingleCompression=false;
-		bool bB2ESFX=false;
-		CString strB2EFormat,strB2EMethod;
 
 		//形式選択ダイアログ
-		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression,strB2EFormat,strB2EMethod,bB2ESFX);
+		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression);
 		if(CompressType==PARAMETER_UNDEFINED)return false;	//キャンセル
 
-		if(CompressType!=PARAMETER_B2E){	//通常DLLを使用
-			//選択ダイアログの条件に一致するパラメータを検索
-			int Index=0;
-			for(;Index<COMPRESS_PARAM_COUNT;Index++){
-				if(CompressType==CompressParameterArray[Index].Type){
-					if(Options==CompressParameterArray[Index].Options){
-						break;
-					}
+		//通常DLLを使用
+		//選択ダイアログの条件に一致するパラメータを検索
+		int Index=0;
+		for(;Index<COMPRESS_PARAM_COUNT;Index++){
+			if(CompressType==CompressParameterArray[Index].Type){
+				if(Options==CompressParameterArray[Index].Options){
+					break;
 				}
 			}
-			if(Index>=COMPRESS_PARAM_COUNT){
-				//一覧に指定された圧縮方式がない
-				//つまり、サポートしていない圧縮方式だったとき
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
-				return false;
-			}
-			//ショートカット名取得
-			CString Buf;
-			if(bSingleCompression){
-				//一つずつ圧縮
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-			}
-			else{
-				//通常
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-			}
-			PathAppend(Path,Buf);
-			//パラメータ
-			Param=CompressParameterArray[Index].Param;
-			if(bSingleCompression){
-				//一つずつ圧縮
-				Param+=_T(" /s");
-			}
-		}else{	//B2E32.dllを使用
-			//パラメータ
-			Param.Format(_T("/b2e \"/c:%s\" \"/method:%s\""),strB2EFormat,strB2EMethod);
-			if(bB2ESFX){
-				Param+=_T(" /b2esfx");
-			}
-
-			//ショートカット名取得
-			CString strInfo;
-			if(bB2ESFX){
-				strInfo.Format(IDS_FORMAT_NAME_B2E_SFX,strB2EFormat,strB2EMethod);
-			}
-			else{
-				strInfo.Format(IDS_FORMAT_NAME_B2E,strB2EFormat,strB2EMethod);
-			}
-			CString Buf;
-			if(bSingleCompression){
-				//一つずつ圧縮
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE,strInfo);
-				Param+=_T(" /s");
-			}
-			else{
-				//通常
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX,strInfo);
-			}
-			PathAppend(Path,Buf);
+		}
+		if(Index>=COMPRESS_PARAM_COUNT){
+			//一覧に指定された圧縮方式がない
+			//つまり、サポートしていない圧縮方式だったとき
+			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			return false;
+		}
+		//ショートカット名取得
+		CString Buf;
+		if(bSingleCompression){
+			//一つずつ圧縮
+			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
+		}
+		else{
+			//通常
+			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
+		}
+		PathAppend(Path,Buf);
+		//パラメータ
+		Param=CompressParameterArray[Index].Param;
+		if(bSingleCompression){
+			//一つずつ圧縮
+			Param+=_T(" /s");
 		}
 	}
 	else{

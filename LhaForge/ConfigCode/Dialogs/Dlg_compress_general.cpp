@@ -191,46 +191,31 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 	if(BN_CLICKED==wNotifyCode){
 		int Options=-1;
 		bool bSingleCompression=false;	//無視される
-		bool bB2ESFX=false;
-		CString strB2EFormat,strB2EMethod;
 
 		//形式選択ダイアログ
-		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression,strB2EFormat,strB2EMethod,bB2ESFX);
+		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression);
 		if(CompressType==PARAMETER_UNDEFINED)return 1;	//キャンセル
 
-		if(CompressType!=PARAMETER_B2E){	//通常DLLを使用
-			//選択ダイアログの条件に一致するパラメータを検索
-			int Index=0;
-			for(;Index<COMPRESS_PARAM_COUNT;Index++){
-				if(CompressType==CompressParameterArray[Index].Type){
-					if(Options==CompressParameterArray[Index].Options){
-						break;
-					}
+		//通常DLLを使用
+		//選択ダイアログの条件に一致するパラメータを検索
+		int Index=0;
+		for(;Index<COMPRESS_PARAM_COUNT;Index++){
+			if(CompressType==CompressParameterArray[Index].Type){
+				if(Options==CompressParameterArray[Index].Options){
+					break;
 				}
 			}
-			if(Index>=COMPRESS_PARAM_COUNT){
-				//一覧に指定された圧縮方式がない
-				//つまり、サポートしていない圧縮方式だったとき
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
-				return 1;
-			}else{
-				//設定を保存
-				m_Config.DefaultType=CompressType;
-				m_Config.DefaultOptions=Options;
-
-				SetParameterInfo();//Editに現在のパラメータの情報を表示する
-				return 0;
-			}
-		}else{	//B2E32.dllを使用
-			//パラメータ
-			if(bB2ESFX){
-				m_Config.DefaultOptions=TRUE;
-			}else{
-				m_Config.DefaultOptions=0;
-			}
+		}
+		if(Index>=COMPRESS_PARAM_COUNT){
+			//一覧に指定された圧縮方式がない
+			//つまり、サポートしていない圧縮方式だったとき
+			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			return 1;
+		}else{
+			//設定を保存
 			m_Config.DefaultType=CompressType;
-			m_Config.DefaultB2EFormat=strB2EFormat;
-			m_Config.DefaultB2EMethod=strB2EMethod;
+			m_Config.DefaultOptions=Options;
+
 			SetParameterInfo();//Editに現在のパラメータの情報を表示する
 			return 0;
 		}
@@ -244,7 +229,7 @@ void CConfigDlgCompressGeneral::SetParameterInfo()//Editに現在のパラメー
 	if(m_Config.DefaultType==PARAMETER_UNDEFINED){
 		//未定義
 		Edit_DefaultParameterInfo.SetWindowText(_T(""));
-	}else if(m_Config.DefaultType!=PARAMETER_B2E){	//通常DLLを使用
+	}else{	//通常DLLを使用
 		//選択ダイアログの条件に一致するパラメータを検索
 		int Index=0;
 		for(;Index<COMPRESS_PARAM_COUNT;Index++){
@@ -263,16 +248,6 @@ void CConfigDlgCompressGeneral::SetParameterInfo()//Editに現在のパラメー
 			//正常な設定
 			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
 		}
-	}else{	//B2E32.dllを使用
-		CString strInfo;
-		BOOL bB2ESFX=m_Config.DefaultOptions;
-		if(bB2ESFX){
-			//自己解凍
-			strInfo.Format(IDS_FORMAT_NAME_B2E_SFX,m_Config.DefaultB2EFormat,m_Config.DefaultB2EMethod);
-		}else{
-			strInfo.Format(IDS_FORMAT_NAME_B2E,m_Config.DefaultB2EFormat,m_Config.DefaultB2EMethod);
-		}
-		Edit_DefaultParameterInfo.SetWindowText(strInfo);
 	}
 }
 

@@ -40,8 +40,6 @@
 #include "./Dialogs/Dlg_hki.h"
 #include "./Dialogs/Dlg_bga.h"
 #include "./Dialogs/Dlg_aish.h"
-#include "./Dialogs/Dlg_xacrett.h"
-#include "./Dialogs/Dlg_b2e.h"
 #include "./Dialogs/Dlg_dll_update.h"
 #include "./Dialogs/Dlg_assoc.h"
 #include "./Dialogs/Dlg_detail.h"
@@ -71,8 +69,6 @@ protected:
 	CConfigDlgHKI					PageHKI;
 	CConfigDlgBGA					PageBGA;
 	CConfigDlgAISH					PageAISH;
-	CConfigDlgXACRETT				PageXACRETT;
-	CConfigDlgB2E					PageB2E;
 	CConfigDlgDLLUpdate				PageDLLUpdate;
 	CConfigDlgAssociation			PageAssociation;
 	CConfigDlgOpenAction			PageOpenAction;

@@ -124,13 +124,9 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(Page7Z,hItemDetail);
 	ADD_PAGE(PageTAR,hItemDetail);
 	ADD_PAGE(PageJACK,hItemDetail);
-//	ADD_PAGE(PageBH,hItemDetail);
-//	ADD_PAGE(PageYZ1,TVI_ROOT);
 	ADD_PAGE(PageHKI,hItemDetail);
 	ADD_PAGE(PageBGA,hItemDetail);
 	ADD_PAGE(PageAISH,hItemDetail);
-	ADD_PAGE(PageXACRETT,hItemDetail);
-	ADD_PAGE(PageB2E,hItemDetail);
 	ADD_PAGE(PageDLL,hItemDetail);
 
 	//------------------------

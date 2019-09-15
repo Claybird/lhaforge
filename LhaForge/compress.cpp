@@ -504,16 +504,7 @@ HRESULT GetArchiveName(CPath &r_pathArcFileName,const std::list<CString> &OrgFil
 		pathFile.StripPath();
 		r_pathArcFileName=pathOutputDir;
 		r_pathArcFileName.Append(pathFile);
-		if(PARAMETER_B2E!=Type){
-			//B2Eの時は拡張子の扱いをB2E32.dllに任せる
-			r_pathArcFileName.RemoveExtension();
-		}
 		r_pathArcFileName=(LPCTSTR)(((CString)r_pathArcFileName)+strExt);
-	}
-
-	//---B2Eを特別扱い
-	if(PARAMETER_B2E==Type){
-		return S_OK;
 	}
 
 	//ドライブルートを圧縮する場合、ファイル名は即決しない

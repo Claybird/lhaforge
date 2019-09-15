@@ -202,7 +202,6 @@
     <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp" />
     <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverAISH.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverB2E.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverBGA.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverCAB.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverJACK.cpp" />
@@ -210,14 +209,11 @@
     <ClCompile Include="ArchiverCode\ArchiverUNACE.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNARJ.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNBEL.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNGCA.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNHKI.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNIMP.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNISO.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNLHA.cpp" />
     <ClCompile Include="ArchiverCode\ArchiverUNRAR.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverXACRETT.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverYZ1.cpp" />
     <ClCompile Include="ArchiverCode\arc_interface.cpp" />
     <ClCompile Include="ArchiverManager.cpp" />
     <ClCompile Include="Association.cpp" />
@@ -227,7 +223,6 @@
     <ClCompile Include="ConfigCode\AssocSettings.cpp" />
     <ClCompile Include="ConfigCode\Config7Z.cpp" />
     <ClCompile Include="ConfigCode\ConfigAISH.cpp" />
-    <ClCompile Include="ConfigCode\ConfigB2E.cpp" />
     <ClCompile Include="ConfigCode\ConfigBGA.cpp" />
     <ClCompile Include="ConfigCode\ConfigCAB.cpp" />
     <ClCompile Include="ConfigCode\ConfigCompress.cpp" />
@@ -244,12 +239,10 @@
     <ClCompile Include="ConfigCode\ConfigUNLHA.cpp" />
     <ClCompile Include="ConfigCode\ConfigUpdate.cpp" />
     <ClCompile Include="ConfigCode\Configwnd.cpp" />
-    <ClCompile Include="ConfigCode\ConfigXACRETT.cpp" />
     <ClCompile Include="ConfigCode\ConfigZIP.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_7z.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_aish.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_b2e.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_bga.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_cab.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp" />
@@ -267,7 +260,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_xacrett.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_zip.cpp" />
     <ClCompile Include="Dialogs\LogDialog.cpp" />
     <ClCompile Include="Dialogs\LogListDialog.cpp" />
@@ -325,7 +317,6 @@
     <ClInclude Include="ArchiverCode\ArcEntryInfo.h" />
     <ClInclude Include="ArchiverCode\Archiver7ZIP.h" />
     <ClInclude Include="ArchiverCode\ArchiverAISH.h" />
-    <ClInclude Include="ArchiverCode\ArchiverB2E.h" />
     <ClInclude Include="ArchiverCode\ArchiverBGA.h" />
     <ClInclude Include="ArchiverCode\ArchiverCAB.h" />
     <ClInclude Include="ArchiverCode\ArchiverJACK.h" />
@@ -333,14 +324,11 @@
     <ClInclude Include="ArchiverCode\ArchiverUNACE.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNARJ.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNBEL.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNGCA.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNHKI.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNIMP.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNISO.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNLHA.h" />
     <ClInclude Include="ArchiverCode\ArchiverUNRAR.h" />
-    <ClInclude Include="ArchiverCode\ArchiverXACRETT.h" />
-    <ClInclude Include="ArchiverCode\ArchiverYZ1.h" />
     <ClInclude Include="ArchiverCode\arc_interface.h" />
     <ClInclude Include="ArchiverManager.h" />
     <ClInclude Include="Association.h" />
@@ -350,7 +338,6 @@
     <ClInclude Include="ConfigCode\AssocSettings.h" />
     <ClInclude Include="ConfigCode\Config7Z.h" />
     <ClInclude Include="ConfigCode\ConfigAISH.h" />
-    <ClInclude Include="ConfigCode\ConfigB2E.h" />
     <ClInclude Include="ConfigCode\ConfigBGA.h" />
     <ClInclude Include="ConfigCode\ConfigCAB.h" />
     <ClInclude Include="ConfigCode\ConfigCompress.h" />
@@ -367,12 +354,10 @@
     <ClInclude Include="ConfigCode\ConfigUNLHA.h" />
     <ClInclude Include="ConfigCode\ConfigUpdate.h" />
     <ClInclude Include="ConfigCode\Configwnd.h" />
-    <ClInclude Include="ConfigCode\ConfigXACRETT.h" />
     <ClInclude Include="ConfigCode\ConfigZIP.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_7z.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_aish.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_b2e.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_bga.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_cab.h" />
@@ -391,7 +376,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_xacrett.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_zip.h" />
     <ClInclude Include="Dialogs\JackVolumeSizeDlg.h" />
     <ClInclude Include="Dialogs\LogDialog.h" />

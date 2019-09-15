@@ -326,8 +326,6 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 	if(m_TabClientWnd.GetPageCount()>0 && !m_TabClientWnd.IsTabEnabled()){
 		//タブ機能が無効なので、自分自身を重複起動し表示させる
 		CString strParam(_T("/l "));
-			 if(idForceDLL==DLL_ID_XACRETT)	strParam+=_T("/! ");
-		else if(idForceDLL==DLL_ID_B2E)		strParam+=_T("/b2e ");
 
 		CPath filePath=fname;
 		filePath.QuoteSpaces();

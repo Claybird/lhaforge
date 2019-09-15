@@ -30,21 +30,15 @@
 #include "ArchiverCode/Archiver7ZIP.h"
 #include "ArchiverCode/ArchiverTAR.h"
 #include "ArchiverCode/ArchiverUNARJ.h"
-#include "ArchiverCode/ArchiverUNGCA.h"
 #include "ArchiverCode/ArchiverUNRAR.h"
 #include "ArchiverCode/ArchiverUNACE.h"
 #include "ArchiverCode/ArchiverUNIMP.h"
 #include "ArchiverCode/ArchiverJACK.h"
-//#include "ArchiverCode/ArchiverBH.h"
-#include "ArchiverCode/ArchiverYZ1.h"
 #include "ArchiverCode/ArchiverUNBEL.h"
-//#include "ArchiverCode/ArchiverUNPMA.h"
 #include "ArchiverCode/ArchiverUNHKI.h"
 #include "ArchiverCode/ArchiverBGA.h"
 #include "ArchiverCode/ArchiverUNISO.h"
 #include "ArchiverCode/ArchiverAISH.h"
-#include "ArchiverCode/ArchiverXACRETT.h"
-#include "ArchiverCode/ArchiverB2E.h"
 
 //DLL種類
 enum DLL_ID{
@@ -54,22 +48,15 @@ enum DLL_ID{
 	DLL_ID_CAB,
 	DLL_ID_TAR,
 	DLL_ID_JACK,
-//	DLL_ID_BH,
-	DLL_ID_YZ1,
-//	DLL_ID_YZ2,
 	DLL_ID_UNARJ,
-	DLL_ID_UNGCA,
 	DLL_ID_UNRAR,
 	DLL_ID_UNACE,
 	DLL_ID_UNIMP,
 	DLL_ID_UNBEL,
-//	DLL_ID_UNPMA,
 	DLL_ID_UNHKI,
 	DLL_ID_BGA,
 	DLL_ID_AISH,
 	DLL_ID_UNISO,
-	DLL_ID_XACRETT,
-	DLL_ID_B2E,
 
 	ENUM_COUNT_AND_LASTITEM(DLL_ID),
 };
@@ -88,19 +75,13 @@ protected:
 	CArchiver7ZIP	Arc7ZIP;
 	CArchiverCAB	ArcCAB;
 	CArchiverUNARJ	ArcUNARJ;
-	CArchiverUNGCA	ArcUNGCA;
 	CArchiverUNRAR	ArcUNRAR;
 	CArchiverUNACE	ArcUNACE;
 	CArchiverUNIMP	ArcUNIMP;
-//	CArchiverBH		ArcBH;
-	CArchiverYZ1	ArcYZ1;
 	CArchiverUNBEL	ArcUNBEL;
-//	CArchiverUNPMA	ArcPMA;
 	CArchiverUNHKI	ArcUNHKI;
 	CArchiverBGA	ArcBGA;
 	CArchiverAISH	ArcAISH;
-	CArchiverXACRETT ArcXACRETT;
-	CArchiverB2E	ArcB2E;
 	CArchiverUNISO	ArcUNISO;
 	std::list<std::pair<CArchiverDLL*,DLL_ID> > ArchiverList;	//listもしくはvectorにしておくこと;pushの順番がアーカイブ形式推定の順番になる
 
@@ -118,7 +99,6 @@ public:
 
 	CArchiverDLL* GetArchiver(LPCTSTR,LPCTSTR lpDenyExt,DLL_ID ForceDLL=DLL_ID_UNKNOWN);	//ForceDLLにDLL_IDを指定するとそのDLLを返す
 	CArchiverDLL* GetArchiver(DLL_ID,bool bSilent=false,bool bIgnoreError=false);
-	CArchiverB2E &GetB2EHandler();	//B2E32.dllだけ特別扱い...
 	void Final();
 	void Free();
 
@@ -154,10 +134,7 @@ const struct ARRAYITEM_EXT_DLLID{
 	{_T(".tlzma"),	DLL_ID_TAR},
 
 	{_T(".jak"),	DLL_ID_JACK},
-//	{_T(".bh"),		DLL_ID_BH},		廃止
 	{_T(".hki"),	DLL_ID_UNHKI},
-	{_T(".yz1"),	DLL_ID_YZ1},
-//	{_T(".yz2"),	DLL_ID_YZ2},	廃止
 	{_T(".bza"),	DLL_ID_BGA},
 	{_T(".gza"),	DLL_ID_BGA},
 
@@ -178,12 +155,10 @@ const struct ARRAYITEM_EXT_DLLID{
 	{_T(".deb"),	DLL_ID_TAR},
 //ここからは解凍のみ対応の形式
 	{_T(".arj"),	DLL_ID_UNARJ},
-	{_T(".gca"),	DLL_ID_UNGCA},
 	{_T(".rar"),	DLL_ID_UNRAR},
 	{_T(".ace"),	DLL_ID_UNACE},
 	{_T(".imp"),	DLL_ID_UNIMP},
 	{_T(".bel"),	DLL_ID_UNBEL},
-//	{_T(".pma"),	DLL_ID_UNPMA},	廃止
 	{_T(".iso"),	DLL_ID_UNISO},
 };
 const int ARRAY_EXT_DLLID_COUNT=COUNTOF(Array_ExtDLLID);
@@ -203,8 +178,6 @@ const struct ARRAYITEM_PARAMETERTYPE_DLLID{
 
 	{PARAMETER_JACK,	DLL_ID_JACK},
 
-	{PARAMETER_YZ1,		DLL_ID_YZ1},
-
 	{PARAMETER_HKI,		DLL_ID_UNHKI},
 
 	{PARAMETER_BZA,		DLL_ID_BGA},
@@ -222,8 +195,6 @@ const struct ARRAYITEM_PARAMETERTYPE_DLLID{
 	{PARAMETER_TAR_BZ2,	DLL_ID_TAR},
 	{PARAMETER_TAR_XZ,	DLL_ID_TAR},
 	{PARAMETER_TAR_LZMA,DLL_ID_TAR},
-
-	{PARAMETER_B2E,		DLL_ID_B2E}
 };
 const int ARRAY_PARAMETERTYPE_DLLID_COUNT=COUNTOF(Array_ParameterTypeDLLID);
 

@@ -78,12 +78,6 @@ const struct COMPRESS_COMMANDLINE_PARAMETER{
 	{_T("/c:tlz"),		_T(".tar.lzma"),PARAMETER_TAR_LZMA,	0					,IDS_FORMAT_NAME_TAR_LZMA},
 	{_T("/c:jak"),		_T(".jak"),		PARAMETER_JACK,		0					,IDS_FORMAT_NAME_JACK},
 	{_T("/c:jaksfx"),	_T(".exe"),		PARAMETER_JACK,		COMPRESS_SFX		,IDS_FORMAT_NAME_JACK_SFX},
-	{_T("/c:yz1"),		_T(".yz1"),		PARAMETER_YZ1,		0					,IDS_FORMAT_NAME_YZ1},
-	{_T("/c:yz1sfx"),	_T(".exe"),		PARAMETER_YZ1,		COMPRESS_SFX		,IDS_FORMAT_NAME_YZ1_SFX},
-	{_T("/c:yz1pass"),	_T(".yz1"),		PARAMETER_YZ1,		COMPRESS_PASSWORD	,IDS_FORMAT_NAME_YZ1_PASS},
-	{_T("/c:yz1passsfx"),_T(".exe"),	PARAMETER_YZ1,		COMPRESS_PASSWORD|COMPRESS_SFX,IDS_FORMAT_NAME_YZ1_PASS_SFX},
-	{_T("/c:yz1pubpass"),_T(".yz1"),	PARAMETER_YZ1,		COMPRESS_PUBLIC_PASSWORD,IDS_FORMAT_NAME_YZ1_PUB_PASS},
-	{_T("/c:yz1pubpasssfx"),_T(".exe"),	PARAMETER_YZ1,		COMPRESS_PUBLIC_PASSWORD|COMPRESS_SFX,IDS_FORMAT_NAME_YZ1_PUB_PASS_SFX},
 	{_T("/c:hki"),		_T(".hki"),		PARAMETER_HKI,		0					,IDS_FORMAT_NAME_HKI},
 	{_T("/c:hkipass"),	_T(".hki"),		PARAMETER_HKI,		COMPRESS_PASSWORD	,IDS_FORMAT_NAME_HKI_PASS},
 	{_T("/c:hkisfx"),	_T(".exe"),		PARAMETER_HKI,		COMPRESS_SFX		,IDS_FORMAT_NAME_HKI_SFX},
@@ -94,10 +88,6 @@ const struct COMPRESS_COMMANDLINE_PARAMETER{
 	{_T("/c:gzasfx"),	_T(".exe"),		PARAMETER_GZA,		COMPRESS_SFX		,IDS_FORMAT_NAME_GZA_SFX},
 	{_T("/c:ish"),		_T(".ish"),		PARAMETER_ISH,		0					,IDS_FORMAT_NAME_ISH},
 	{_T("/c:uue"),		_T(".uue"),		PARAMETER_UUE,		0					,IDS_FORMAT_NAME_UUE},
-
-//---B2Eの為の特別扱い
-	{_T(""),			_T(".archive"),	PARAMETER_B2E,		0					,0},
-	{_T(""),			_T(".exe"),	PARAMETER_B2E,		COMPRESS_SFX		,0},
 };
 const int COMPRESS_PARAM_COUNT=COUNTOF(CompressParameterArray);
 
