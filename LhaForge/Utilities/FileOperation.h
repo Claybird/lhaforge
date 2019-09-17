@@ -89,3 +89,7 @@ struct FILELINECONTAINER{
 	std::vector<LPCWSTR> lines;
 };
 bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER&);
+
+//https://support.microsoft.com/ja-jp/help/167296/how-to-convert-a-unix-time-t-to-a-win32-filetime-or-systemtime
+void UtilUnixTimeToFileTime(time_t t, LPFILETIME pft);
+

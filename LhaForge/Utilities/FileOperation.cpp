@@ -691,3 +691,15 @@ bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
 	}
 	return true;
 }
+
+//https://support.microsoft.com/ja-jp/help/167296/how-to-convert-a-unix-time-t-to-a-win32-filetime-or-systemtime
+void UtilUnixTimeToFileTime(time_t t, LPFILETIME pft)
+{
+	// Note that LONGLONG is a 64-bit value
+	LONGLONG ll;
+
+	ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	pft->dwLowDateTime = (DWORD)ll;
+	pft->dwHighDateTime = ll >> 32;
+}
+
