@@ -1,17 +1,9 @@
-discarded
 *.exe
 *.suo
 *.opensdf
 *.sdf
 Debug
 Release
-Backup
-CVS
 *.user
 ipch
-lfcaldix
-lhaforge_related
-b2e32
-ShellExtDLL
-LFAssist
 *.ncb
