@@ -61,45 +61,6 @@
     <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp">
       <Filter>ArchiverCode\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverAISH.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverBGA.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverCAB.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverJACK.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverTAR.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNACE.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNARJ.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNBEL.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNHKI.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNIMP.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNISO.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNLHA.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\ArchiverUNRAR.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\AssocSettings.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -112,16 +73,7 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_7z.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_aish.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_bga.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_cab.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp">
@@ -145,15 +97,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_general.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_hki.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_jack.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_lzh.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_openaction.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -163,9 +106,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -173,15 +113,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Config7Z.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigAISH.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigBGA.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigCAB.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigCompress.cpp">
@@ -199,22 +130,10 @@
     <ClCompile Include="ConfigCode\ConfigGeneral.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigJACK.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\ConfigOpenAction.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigTAR.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigUNHKI.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigUNLHA.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigUpdate.cpp">
@@ -348,45 +267,6 @@
     <ClInclude Include="ArchiverCode\Archiver7ZIP.h">
       <Filter>ArchiverCode\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverAISH.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverBGA.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverCAB.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverJACK.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverTAR.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNACE.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNARJ.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNBEL.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNHKI.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNIMP.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNISO.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNLHA.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\ArchiverUNRAR.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ArchiverManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -432,19 +312,10 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_7z.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_aish.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_bga.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_cab.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_compress_general.h">
@@ -468,15 +339,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_general.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_hki.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_jack.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_lzh.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
@@ -486,9 +348,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
@@ -496,15 +355,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Config7Z.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigAISH.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigBGA.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigCAB.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigCompress.h">
@@ -522,22 +372,10 @@
     <ClInclude Include="ConfigCode\ConfigGeneral.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigJACK.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\ConfigOpenAction.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigShellExt.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigTAR.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigUNHKI.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigUNLHA.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigUpdate.h">

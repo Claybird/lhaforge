@@ -67,20 +67,7 @@ CArchiverDLLManager::CArchiverDLLManager()
 	:m_lpConfig(NULL)
 {
 	TRACE(_T("ArchiverDLLManager()\n"));
-	ArchiverList.push_back(PAIR_DLL_ITEM(TAR));
-	ArchiverList.push_back(PAIR_DLL_ITEM(JACK));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNLHA));
 	ArchiverList.push_back(PAIR_DLL_ITEM(7ZIP));
-	ArchiverList.push_back(PAIR_DLL_ITEM(CAB));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNARJ));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNRAR));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNACE));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNIMP));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNHKI));
-	ArchiverList.push_back(PAIR_DLL_ITEM(BGA));
-	ArchiverList.push_back(PAIR_DLL_ITEM(AISH));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNBEL));
-	ArchiverList.push_back(PAIR_DLL_ITEM(UNISO));
 
 }
 

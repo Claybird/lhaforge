@@ -118,16 +118,8 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	}
 	SelectTreeView.SetItemData(hItemDetail,(DWORD_PTR)PageDetail.m_hWnd);
 
-	ADD_PAGE(PageLZH,hItemDetail);
 	ADD_PAGE(PageZIP,hItemDetail);
-	ADD_PAGE(PageCAB,hItemDetail);
 	ADD_PAGE(Page7Z,hItemDetail);
-	ADD_PAGE(PageTAR,hItemDetail);
-	ADD_PAGE(PageJACK,hItemDetail);
-	ADD_PAGE(PageHKI,hItemDetail);
-	ADD_PAGE(PageBGA,hItemDetail);
-	ADD_PAGE(PageAISH,hItemDetail);
-	ADD_PAGE(PageDLL,hItemDetail);
 
 	//------------------------
 	// はじめに表示するページ

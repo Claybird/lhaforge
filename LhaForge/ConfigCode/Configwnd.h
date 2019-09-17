@@ -31,15 +31,8 @@
 #include "./Dialogs/Dlg_general.h"
 #include "./Dialogs/Dlg_compress_general.h"
 #include "./Dialogs/Dlg_extract_general.h"
-#include "./Dialogs/Dlg_lzh.h"
 #include "./Dialogs/Dlg_zip.h"
-#include "./Dialogs/Dlg_cab.h"
 #include "./Dialogs/Dlg_7z.h"
-#include "./Dialogs/Dlg_tar.h"
-#include "./Dialogs/Dlg_jack.h"
-#include "./Dialogs/Dlg_hki.h"
-#include "./Dialogs/Dlg_bga.h"
-#include "./Dialogs/Dlg_aish.h"
 #include "./Dialogs/Dlg_dll_update.h"
 #include "./Dialogs/Dlg_assoc.h"
 #include "./Dialogs/Dlg_detail.h"
@@ -60,15 +53,8 @@ protected:
 	CConfigDlgVersion				PageVersion;
 	CConfigDlgCompressGeneral		PageCompressGeneral;
 	CConfigDlgExtractGeneral		PageExtractGeneral;
-	CConfigDlgLZH					PageLZH;
 	CConfigDlgZIP					PageZIP;
-	CConfigDlgCAB					PageCAB;
 	CConfigDlg7Z					Page7Z;
-	CConfigDlgTAR					PageTAR;
-	CConfigDlgJACK					PageJACK;
-	CConfigDlgHKI					PageHKI;
-	CConfigDlgBGA					PageBGA;
-	CConfigDlgAISH					PageAISH;
 	CConfigDlgDLLUpdate				PageDLLUpdate;
 	CConfigDlgAssociation			PageAssociation;
 	CConfigDlgOpenAction			PageOpenAction;
