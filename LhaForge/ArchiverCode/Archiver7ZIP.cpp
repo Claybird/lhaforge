@@ -37,7 +37,9 @@
 
 CArchiver7ZIP::CArchiver7ZIP():
 	ArchiverSetUnicodeMode(NULL),
-	ArchiverGetArchiveType(NULL)
+	ArchiverGetArchiveType(NULL),
+	_a(NULL),_entry(NULL)
+
 {
 	m_nRequiredVersion=920;
 	m_nRequiredSubVersion=2;
@@ -971,6 +973,273 @@ ARCRESULT CArchiver7ZIP::TestArchive(LPCTSTR ArcFileName,CString &strLog)
 	else return TEST_NG;
 }
 
+bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName, bool bEncrypted, const std::list<CString> &FileList, CConfigManager &ConfMan, LPCTSTR lpDestDir, CString &strLog)
+{
+	// レスポンスファイル用テンポラリファイル名取得
+	TCHAR ResponceFileName[_MAX_PATH + 1];
+	FILL_ZERO(ResponceFileName);
+	if (!UtilGetTemporaryFileName(ResponceFileName, _T("zip"))) {
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_CREATE));
+		return false;
+	}
+	ASSERT(0 != _tcslen(ResponceFileName));
+
+	//===一時的にファイルをコピー
+	//---\で終わる基点パスを取得
+	CPath strBasePath;
+	UtilGetBaseDirectory(strBasePath, FileList);
+	TRACE(_T("%s\n"), strBasePath);
+
+	//---テンポラリに対象ファイルをコピー
+	//テンポラリ準備
+	CTemporaryDirectoryManager tdm(_T("lhaf"));
+	CPath strDestPath(tdm.GetDirPath());
+	strDestPath += lpDestDir;
+	UtilMakeSureDirectoryPathExists(strDestPath);
+
+	// 圧縮対象ファイル名を修正する
+	const int BasePathLength = ((CString)strBasePath).GetLength();
+	CString strSrcFiles;	//コピー元ファイルの一覧
+	CString strDestFiles;	//コピー先ファイルの一覧
+	std::list<CString>::const_iterator ite;
+	for (ite = FileList.begin(); ite != FileList.end(); ++ite) {
+		//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
+		LPCTSTR lpSrc((LPCTSTR)(*ite) + BasePathLength);
+
+		//送り側ファイル名指定
+		strSrcFiles += (strBasePath + lpSrc);	//PathAppend相当
+		strSrcFiles += _T('|');
+		//受け側ファイル名指定
+		strDestFiles += strDestPath + lpSrc;
+		strDestFiles += _T('|');
+	}
+	strSrcFiles += _T('|');
+	strDestFiles += _T('|');
+
+	//'|'を'\0'に変換する
+	std::vector<TCHAR> srcBuf(strSrcFiles.GetLength() + 1);
+	UtilMakeFilterString(strSrcFiles, &srcBuf[0], srcBuf.size());
+	std::vector<TCHAR> destBuf(strDestFiles.GetLength() + 1);
+	UtilMakeFilterString(strDestFiles, &destBuf[0], destBuf.size());
+
+	//ファイル操作内容
+	SHFILEOPSTRUCT fileOp = { 0 };
+	fileOp.wFunc = FO_COPY;
+	fileOp.fFlags = FOF_MULTIDESTFILES | FOF_NOCONFIRMATION | FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS | FOF_NO_CONNECTED_ELEMENTS;
+	fileOp.pFrom = &srcBuf[0];
+	fileOp.pTo = &destBuf[0];
+
+	//コピー実行
+	if (::SHFileOperation(&fileOp)) {
+		//エラー
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY));
+		return false;
+	} else if (fileOp.fAnyOperationsAborted) {
+		//キャンセル
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL));
+		return false;
+	}
+
+	//カレントディレクトリ設定
+	::SetCurrentDirectory(tdm.GetDirPath());
+	// 同時に、レスポンスファイル内にアーカイブ名および圧縮対象ファイル名を記入する
+	{
+		HANDLE hFile = CreateFile(ResponceFileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (INVALID_HANDLE_VALUE == hFile) {
+			strLog = CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_ACCESS));
+			return false;
+		}
+		//レスポンスファイルへの書き込み
+		//全て圧縮
+		WriteResponceFile(hFile, _T("*"));
+		CloseHandle(hFile);
+	}
+
+
+	//===========================
+	// DLLに渡すオプションの設定
+	//===========================
+	TRACE(_T("DLLに渡すオプションの設定\n"));
+
+	CString Param;//コマンドライン パラメータ バッファ
+
+	int option = 0;
+	if (bEncrypted) {
+		option |= COMPRESS_PASSWORD;
+	}
+	CConfigZIP confZIP;
+	CConfig7Z  conf7Z;
+	ASSERT(ArchiverGetArchiveType);
+	switch (ArchiverGetArchiveType(C2UTF8(ArcFileName))) {
+	case 1:	//ZIP形式で圧縮
+		confZIP.load(ConfMan);
+		if (!FormatCompressCommandZIP(confZIP, Param, false, option, NULL, NULL, strLog)) {
+			DeleteFile(ResponceFileName);
+			return false;
+		}
+		break;
+	case 2:	//7z形式で圧縮
+		conf7Z.load(ConfMan);
+		if (!FormatCompressCommand7Z(conf7Z, Param, option, NULL, NULL, strLog)) {
+			DeleteFile(ResponceFileName);
+			return false;
+		}
+		break;
+	default:
+		ASSERT(!"This code cannot be run");
+		//エラー処理が面倒なので放っておく。
+		return false;
+	}
+
+	Param += _T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
+
+	//作業ディレクトリ
+	Param += _T("\"-w");
+	Param += UtilGetTempPath();
+	Param += _T("\" ");
+
+	//圧縮先ファイル名指定
+	Param += _T("\"");
+	Param += ArcFileName;
+	Param += _T("\" ");
+
+	//レスポンスファイル名指定
+	Param += _T("\"@");
+	Param += ResponceFileName;
+	Param += _T("\"");
+
+	ASSERT(!Param.IsEmpty());
+	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"), Param);
+
+	TRACE(_T("ArchiveHandler呼び出し\n"));
+	//char szLog[LOG_BUFFER_SIZE]={0};
+	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
+	szLog[0] = '\0';
+	int Ret = ArchiveHandler(NULL, C2UTF8(Param), (LPSTR)&szLog[0], LOG_BUFFER_SIZE - 1);
+	CString strTmp;
+	UtilToUNICODE(strTmp, &szLog[0], szLog.size() - 1, UTILCP_UTF8);
+	//strLog=&szLog[0];
+	strLog = strTmp;
+
+	//使ったレスポンスファイルは消去
+	DeleteFile(ResponceFileName);
+
+	return 0 == Ret;
+}
+
+
+//指定されたディレクトリ内部を展開する;高速実装
+bool CArchiver7ZIP::ExtractDirectoryEntry(LPCTSTR lpszArcFile, CConfigManager &ConfMan, const ARCHIVE_ENTRY_INFO_TREE* lpBase, const ARCHIVE_ENTRY_INFO_TREE* lpDir, LPCTSTR lpszOutputBaseDir, bool bCollapseDir, CString &strLog)
+{
+	//---一時フォルダ中にまとめて展開し、後からフォルダ構造を切り出す
+	std::list<CString> files;
+
+	CString strPath;
+
+	bool bRestoreDir = false;
+	if (lpDir->strFullPath.IsEmpty()) {
+		//ディレクトリが登録されていないのでパス名を算出する
+		ArcEntryInfoTree_GetNodePathRelative(lpDir, lpBase, strPath);
+		strPath.Replace(_T('/'), _T('\\'));
+
+		CPath tmpPath(strPath);
+		tmpPath.RemoveBackslash();	//ディレクトリだったら裸にする
+		tmpPath.RemoveFileSpec();	//親ディレクトリまで切りつめる
+		tmpPath.Append(_T("*"));	//特定ディレクトリ以下の全てのファイルを展開
+		files.push_back(tmpPath);
+
+		bRestoreDir = true;
+	} else {
+		//ディレクトリもアーカイブ中にエントリとして登録されているなら出力する
+		CString tmpPath(lpDir->strFullPath);
+		if (tmpPath[tmpPath.GetLength() - 1] == _T('\\') || tmpPath[tmpPath.GetLength() - 1] == _T('/')) {
+			//末尾の\もしくは/を削除
+			tmpPath.Delete(tmpPath.GetLength() - 1);
+		}
+		files.push_back(tmpPath);
+
+		strPath = lpDir->strFullPath;
+		strPath.Replace(_T('/'), _T('\\'));
+	}
+
+	//--------------------------------------
+	// 修正された出力ディレクトリパスを算出
+	//--------------------------------------
+	//---本来の出力先
+	CString strOutputDir = lpszOutputBaseDir + strPath;
+	if (strOutputDir.GetLength() > _MAX_PATH) {
+		//フォルダ名が長くなりすぎた
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
+		return false;
+	}
+
+	//FileListには１件しか入っていないはず
+	ASSERT(files.size() == 1);
+
+	//一時フォルダ
+	CTemporaryDirectoryManager tdm(_T("lhaf"));
+	CPath strTempOutput(tdm.GetDirPath());
+	if (bRestoreDir) {	//ディレクトリを手作業で復元
+		strTempOutput += strPath;
+		strTempOutput.AddBackslash();
+		TRACE(_T("手作業でのディレクトリ復元:%s\n"), (LPCTSTR)strTempOutput);
+		if (!UtilMakeSureDirectoryPathExists(strTempOutput)) {
+			strLog.Format(IDS_ERROR_CANNOT_MAKE_DIR, strTempOutput);
+			return false;
+		}
+	}
+	//---一時フォルダ中にまとめて展開し、後からフォルダ構造を切り出す
+	// ファイルを展開
+	if (!ExtractSpecifiedOnly(lpszArcFile, ConfMan, strTempOutput, files, strLog, true)) {
+		return false;
+	}
+
+	//送り側ファイル名指定
+	CPath tmp(strTempOutput);
+	tmp += (LPCTSTR)strPath;	//PathAppend相当
+	tmp.RemoveBackslash();
+	CString strSrcFiles(tmp);
+	strSrcFiles += _T("||");
+	//受け側ファイル名指定
+	tmp = lpszOutputBaseDir;
+	{
+		CString strTmp;
+		ArcEntryInfoTree_GetNodePathRelative(lpDir, lpBase, strTmp);
+		strTmp.Replace(_T('/'), _T('\\'));
+		tmp += (LPCTSTR)strTmp;
+	}
+	tmp.AddBackslash();
+	CString strDestFiles(tmp);
+	strDestFiles += _T("||");
+
+	//'|'を'\0'に変換する
+	std::vector<TCHAR> srcBuf(strSrcFiles.GetLength() + 1);
+	UtilMakeFilterString(strSrcFiles, &srcBuf[0], srcBuf.size());
+	std::vector<TCHAR> destBuf(strDestFiles.GetLength() + 1);
+	UtilMakeFilterString(strDestFiles, &destBuf[0], destBuf.size());
+
+	//ファイル操作内容
+	SHFILEOPSTRUCT fileOp = { 0 };
+	fileOp.wFunc = FO_MOVE;
+	fileOp.fFlags = FOF_MULTIDESTFILES |/*FOF_NOCONFIRMATION|*/FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS | FOF_NO_CONNECTED_ELEMENTS;
+	fileOp.pFrom = &srcBuf[0];
+	fileOp.pTo = &destBuf[0];
+
+	//移動実行
+	if (::SHFileOperation(&fileOp)) {
+		//エラー
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_FILE_MOVE));
+		return false;
+	} else if (fileOp.fAnyOperationsAborted) {
+		//キャンセル
+		strLog = CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL));
+		return false;
+	}
+
+	return true;
+
+}
+
 
 //-------------------------------
 //---UNICODE版をオーバーライド---
@@ -998,341 +1267,81 @@ int CArchiver7ZIP::GetFileCount(LPCTSTR _szFileName)
 }
 
 
-bool CArchiver7ZIP::InspectArchiveBegin(LPCTSTR ArcFileName,CConfigManager&)
+bool CArchiver7ZIP::InspectArchiveBegin(LPCTSTR ArcFileName, CConfigManager&)
 {
-	TRACE(_T("CArchiverDLL::InspectArchiveBegin()\n"));
-	ASSERT(ArchiverOpenArchive);
-	if(!ArchiverOpenArchive){
+	ASSERT(!_a);
+	if (_a) {
+		InspectArchiveEnd();
+	}
+	_a = archive_read_new();
+	archive_read_support_filter_all(_a);
+	archive_read_support_format_all(_a);
+	int r = archive_read_open_filename_w(_a, ArcFileName, 10240);
+	if (r == ARCHIVE_OK) {
+		return true;
+	} else {
 		return false;
 	}
-	if(m_hInspectArchive){
-		ASSERT(!"Close the Archive First!!!\n");
-		return false;
-	}
-	m_hInspectArchive=ArchiverOpenArchive(NULL,C2UTF8(ArcFileName),m_dwInspectMode);
-	if(!m_hInspectArchive){
-		TRACE(_T("Failed to Open Archive\n"));
-		return false;
-	}
-	m_bInspectFirstTime=true;
-
-	FILL_ZERO(m_IndividualInfo);
-	return true;
 }
 
 bool CArchiver7ZIP::InspectArchiveGetFileName(CString &FileName)
 {
-	if(ArchiverGetFileName){
-		if(!m_hInspectArchive){
-			ASSERT(!"Open an Archive First!!!\n");
-			return false;
-		}
-		std::vector<BYTE> szBuffer(FNAME_MAX32*2+1);
-		ArchiverGetFileName(m_hInspectArchive,(LPCSTR)&szBuffer[0],FNAME_MAX32*2);
-		UtilToUNICODE(FileName,&szBuffer[0],szBuffer.size(),UTILCP_UTF8);
+	ASSERT(_a);
+	if (_a) {
+		FileName = archive_entry_pathname_w(_entry);
 		return true;
-	}
-	else{
-		ASSERT(LOAD_DLL_STANDARD!=m_LoadLevel);
-		if(!m_hInspectArchive){
-			ASSERT(!"Open an Archive First!!!\n");
-			return false;
-		}
-		UtilToUNICODE(FileName,(LPCBYTE)m_IndividualInfo.szFileName,sizeof(m_IndividualInfo.szFileName),UTILCP_UTF8);
-		return true;
+	} else {
+		return false;
 	}
 }
 
-bool CArchiver7ZIP::InspectArchiveGetMethodString(CString &strMethod)
+bool CArchiver7ZIP::InspectArchiveEnd()
 {
-	if(!m_hInspectArchive){
-		ASSERT(!"Open an Archive First!!!\n");
-		return false;
+	if (_a) {
+		archive_read_close(_a);
+		archive_read_free(_a);
+		_a = NULL;
 	}
-
-	//\0で終わっているかどうか保証できない
-	char szBuffer[32]={0};
-
-	if(ArchiverGetMethod){
-		if(0!=ArchiverGetMethod(m_hInspectArchive,szBuffer,31)){
-			//構造体から取得
-			strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
-		}
-	}
-	else{
-		//構造体から取得
-		strncpy_s(szBuffer,m_IndividualInfo.szMode,8);
-	}
-
-	//情報格納
-	UtilToUNICODE(strMethod,(LPCBYTE)szBuffer,9,UTILCP_UTF8);
 	return true;
 }
 
-bool CArchiver7ZIP::AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString> &FileList,CConfigManager &ConfMan,LPCTSTR lpDestDir,CString &strLog)
+
+bool CArchiver7ZIP::InspectArchiveNext()
 {
-	// レスポンスファイル用テンポラリファイル名取得
-	TCHAR ResponceFileName[_MAX_PATH+1];
-	FILL_ZERO(ResponceFileName);
-	if(!UtilGetTemporaryFileName(ResponceFileName,_T("zip"))){
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_CREATE));
+	ASSERT(_a);
+	if (_a) {
+		return ARCHIVE_OK == archive_read_next_header(_a, &_entry);
+	} else {
 		return false;
 	}
-	ASSERT(0!=_tcslen(ResponceFileName));
-
-	//===一時的にファイルをコピー
-	//---\で終わる基点パスを取得
-	CPath strBasePath;
-	UtilGetBaseDirectory(strBasePath,FileList);
-	TRACE(_T("%s\n"),strBasePath);
-
-	//---テンポラリに対象ファイルをコピー
-	//テンポラリ準備
-	CTemporaryDirectoryManager tdm(_T("lhaf"));
-	CPath strDestPath(tdm.GetDirPath());
-	strDestPath+=lpDestDir;
-	UtilMakeSureDirectoryPathExists(strDestPath);
-
-	// 圧縮対象ファイル名を修正する
-	const int BasePathLength=((CString)strBasePath).GetLength();
-	CString strSrcFiles;	//コピー元ファイルの一覧
-	CString strDestFiles;	//コピー先ファイルの一覧
-	std::list<CString>::const_iterator ite;
-	for(ite=FileList.begin();ite!=FileList.end();++ite){
-		//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
-		LPCTSTR lpSrc((LPCTSTR)(*ite)+BasePathLength);
-
-		//送り側ファイル名指定
-		strSrcFiles+=(strBasePath+lpSrc);	//PathAppend相当
-		strSrcFiles+=_T('|');
-		//受け側ファイル名指定
-		strDestFiles+=strDestPath+lpSrc;
-		strDestFiles+=_T('|');
-	}
-	strSrcFiles+=_T('|');
-	strDestFiles+=_T('|');
-
-	//'|'を'\0'に変換する
-	std::vector<TCHAR> srcBuf(strSrcFiles.GetLength()+1);
-	UtilMakeFilterString(strSrcFiles,&srcBuf[0],srcBuf.size());
-	std::vector<TCHAR> destBuf(strDestFiles.GetLength()+1);
-	UtilMakeFilterString(strDestFiles,&destBuf[0],destBuf.size());
-
-	//ファイル操作内容
-	SHFILEOPSTRUCT fileOp={0};
-	fileOp.wFunc=FO_COPY;
-	fileOp.fFlags=FOF_MULTIDESTFILES|FOF_NOCONFIRMATION|FOF_NOCONFIRMMKDIR|FOF_NOCOPYSECURITYATTRIBS|FOF_NO_CONNECTED_ELEMENTS;
-	fileOp.pFrom=&srcBuf[0];
-	fileOp.pTo=&destBuf[0];
-
-	//コピー実行
-	if(::SHFileOperation(&fileOp)){
-		//エラー
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY));
-		return false;
-	}else if(fileOp.fAnyOperationsAborted){
-		//キャンセル
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL));
-		return false;
-	}
-
-	//カレントディレクトリ設定
-	::SetCurrentDirectory(tdm.GetDirPath());
-	// 同時に、レスポンスファイル内にアーカイブ名および圧縮対象ファイル名を記入する
-	{
-		HANDLE hFile=CreateFile(ResponceFileName,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
-		if(INVALID_HANDLE_VALUE==hFile){
-			strLog=CString(MAKEINTRESOURCE(IDS_ERROR_TEMPORARY_FILE_ACCESS));
-			return false;
-		}
-		//レスポンスファイルへの書き込み
-		//全て圧縮
-		WriteResponceFile(hFile,_T("*"));
-		CloseHandle(hFile);
-	}
-
-
-	//===========================
-	// DLLに渡すオプションの設定
-	//===========================
-	TRACE(_T("DLLに渡すオプションの設定\n"));
-
-	CString Param;//コマンドライン パラメータ バッファ
-
-	int option=0;
-	if(bEncrypted){
-		option |= COMPRESS_PASSWORD;
-	}
-	CConfigZIP confZIP;
-	CConfig7Z  conf7Z;
-	ASSERT(ArchiverGetArchiveType);
-	switch(ArchiverGetArchiveType(C2UTF8(ArcFileName))){
-	case 1:	//ZIP形式で圧縮
-		confZIP.load(ConfMan);
-		if(!FormatCompressCommandZIP(confZIP,Param,false,option,NULL,NULL,strLog)){
-			DeleteFile(ResponceFileName);
-			return false;
-		}
-		break;
-	case 2:	//7z形式で圧縮
-		conf7Z.load(ConfMan);
-		if(!FormatCompressCommand7Z(conf7Z,Param,option,NULL,NULL,strLog)){
-			DeleteFile(ResponceFileName);
-			return false;
-		}
-		break;
-	default:
-		ASSERT(!"This code cannot be run");
-		//エラー処理が面倒なので放っておく。
-		return false;
-	}
-
-	Param+=_T("-scsUTF-8 ");	//レスポンスファイルのコードページ指定
-
-	//作業ディレクトリ
-	Param+=_T("\"-w");
-	Param+=UtilGetTempPath();
-	Param+=_T("\" ");
-
-	//圧縮先ファイル名指定
-	Param+=_T("\"");
-	Param+=ArcFileName;
-	Param+=_T("\" ");
-
-	//レスポンスファイル名指定
-	Param+=_T("\"@");
-	Param+=ResponceFileName;
-	Param+=_T("\"");
-
-	ASSERT(!Param.IsEmpty());
-	TRACE(_T("ArchiveHandler Commandline Parameter:%s\n"),Param);
-
-	TRACE(_T("ArchiveHandler呼び出し\n"));
-	//char szLog[LOG_BUFFER_SIZE]={0};
-	std::vector<BYTE> szLog(LOG_BUFFER_SIZE);
-	szLog[0]='\0';
-	int Ret=ArchiveHandler(NULL,C2UTF8(Param),(LPSTR)&szLog[0],LOG_BUFFER_SIZE-1);
-	CString strTmp;
-	UtilToUNICODE(strTmp,&szLog[0],szLog.size()-1,UTILCP_UTF8);
-	//strLog=&szLog[0];
-	strLog=strTmp;
-
-	//使ったレスポンスファイルは消去
-	DeleteFile(ResponceFileName);
-
-	return 0==Ret;
 }
 
-
-//指定されたディレクトリ内部を展開する;高速実装
-bool CArchiver7ZIP::ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager &ConfMan,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog)
+int CArchiver7ZIP::InspectArchiveGetAttribute()
 {
-	//---一時フォルダ中にまとめて展開し、後からフォルダ構造を切り出す
-	std::list<CString> files;
-
-	CString strPath;
-
-	bool bRestoreDir=false;
-	if(lpDir->strFullPath.IsEmpty()){
-		//ディレクトリが登録されていないのでパス名を算出する
-		ArcEntryInfoTree_GetNodePathRelative(lpDir,lpBase,strPath);
-		strPath.Replace(_T('/'),_T('\\'));
-
-		CPath tmpPath(strPath);
-		tmpPath.RemoveBackslash();	//ディレクトリだったら裸にする
-		tmpPath.RemoveFileSpec();	//親ディレクトリまで切りつめる
-		tmpPath.Append(_T("*"));	//特定ディレクトリ以下の全てのファイルを展開
-		files.push_back(tmpPath);
-
-		bRestoreDir=true;
-	}else{
-		//ディレクトリもアーカイブ中にエントリとして登録されているなら出力する
-		CString tmpPath(lpDir->strFullPath);
-		if(tmpPath[tmpPath.GetLength()-1]==_T('\\')||tmpPath[tmpPath.GetLength()-1]==_T('/')){
-			//末尾の\もしくは/を削除
-			tmpPath.Delete(tmpPath.GetLength()-1);
-		}
-		files.push_back(tmpPath);
-
-		strPath=lpDir->strFullPath;
-		strPath.Replace(_T('/'),_T('\\'));
+	//TODO:statをそのまま読めるようにする
+	const auto *stat = archive_entry_stat(_entry);
+	int ret = 0;
+	if (stat->st_mode & S_IFDIR) {
+		ret |= FA_DIREC;
 	}
+	return ret;
+}
 
-	//--------------------------------------
-	// 修正された出力ディレクトリパスを算出
-	//--------------------------------------
-	//---本来の出力先
-	CString strOutputDir=lpszOutputBaseDir+strPath;
-	if(strOutputDir.GetLength()>_MAX_PATH){
-		//フォルダ名が長くなりすぎた
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
+bool CArchiver7ZIP::InspectArchiveGetOriginalFileSize(LARGE_INTEGER &FileSize)
+{
+	if (archive_entry_size_is_set(_entry)) {
+		const auto size = archive_entry_size(_entry);
+		FileSize.QuadPart = size;
+		return true;
+	} else {
 		return false;
 	}
+}
 
-	//FileListには１件しか入っていないはず
-	ASSERT(files.size()==1);
-
-	//一時フォルダ
-	CTemporaryDirectoryManager tdm(_T("lhaf"));
-	CPath strTempOutput(tdm.GetDirPath());
-	if(bRestoreDir){	//ディレクトリを手作業で復元
-		strTempOutput+=strPath;
-		strTempOutput.AddBackslash();
-		TRACE(_T("手作業でのディレクトリ復元:%s\n"),(LPCTSTR)strTempOutput);
-		if(!UtilMakeSureDirectoryPathExists(strTempOutput)){
-			strLog.Format(IDS_ERROR_CANNOT_MAKE_DIR,strTempOutput);
-			return false;
-		}
-	}
-	//---一時フォルダ中にまとめて展開し、後からフォルダ構造を切り出す
-	// ファイルを展開
-	if(!ExtractSpecifiedOnly(lpszArcFile,ConfMan,strTempOutput,files,strLog,true)){
-		return false;
-	}
-
-	//送り側ファイル名指定
-	CPath tmp(strTempOutput);
-	tmp+=(LPCTSTR)strPath;	//PathAppend相当
-	tmp.RemoveBackslash();
-	CString strSrcFiles(tmp);
-	strSrcFiles+=_T("||");
-	//受け側ファイル名指定
-	tmp=lpszOutputBaseDir;
-	{
-		CString strTmp;
-		ArcEntryInfoTree_GetNodePathRelative(lpDir,lpBase,strTmp);
-		strTmp.Replace(_T('/'),_T('\\'));
-		tmp+=(LPCTSTR)strTmp;
-	}
-	tmp.AddBackslash();
-	CString strDestFiles(tmp);
-	strDestFiles+=_T("||");
-
-	//'|'を'\0'に変換する
-	std::vector<TCHAR> srcBuf(strSrcFiles.GetLength()+1);
-	UtilMakeFilterString(strSrcFiles,&srcBuf[0],srcBuf.size());
-	std::vector<TCHAR> destBuf(strDestFiles.GetLength()+1);
-	UtilMakeFilterString(strDestFiles,&destBuf[0],destBuf.size());
-
-	//ファイル操作内容
-	SHFILEOPSTRUCT fileOp={0};
-	fileOp.wFunc=FO_MOVE;
-	fileOp.fFlags=FOF_MULTIDESTFILES|/*FOF_NOCONFIRMATION|*/FOF_NOCONFIRMMKDIR|FOF_NOCOPYSECURITYATTRIBS|FOF_NO_CONNECTED_ELEMENTS;
-	fileOp.pFrom=&srcBuf[0];
-	fileOp.pTo=&destBuf[0];
-
-	//移動実行
-	if(::SHFileOperation(&fileOp)){
-		//エラー
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_FILE_MOVE));
-		return false;
-	}else if(fileOp.fAnyOperationsAborted){
-		//キャンセル
-		strLog=CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL));
-		return false;
-	}
-
+bool CArchiver7ZIP::InspectArchiveGetWriteTime(FILETIME &FileTime)
+{
+	const auto mtime = archive_entry_mtime(_entry);
+	UtilUnixTimeToFileTime(mtime, &FileTime);
 	return true;
-
 }
 

@@ -244,7 +244,7 @@ public:
 	virtual void FreeDLL();
 	virtual WORD GetVersion()const;
 	virtual WORD GetSubVersion()const;
-	virtual bool IsUnicodeCapable()const{return false;}	//UNICODE対応DLLならtrueを返す
+	virtual bool IsUnicodeCapable()const{return true;}	//UNICODE対応DLLならtrueを返す
 	virtual bool IsWeakCheckArchive()const{return false;}	//CheckArchiveの機能が貧弱(UNBEL/AISHのように)ならtrue
 	virtual bool IsWeakErrorCheck()const{return false;}	//%Prefix%()のエラーチェックが甘い(XacRettのように)ならtrue;解凍後に削除するかの判断に使用
 	virtual BOOL CheckArchive(LPCTSTR);
