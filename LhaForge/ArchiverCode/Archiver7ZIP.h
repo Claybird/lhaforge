@@ -24,10 +24,6 @@
 
 #pragma once
 #include "arc_interface.h"
-#define LIBARCHIVE_STATIC
-
-#include <libarchive/archive.h>
-#include <libarchive/archive_entry.h>
 
 typedef int    (WINAPI *COMMON_ARCHIVER_GETARCHIVETYPE)(LPCSTR);
 
@@ -35,8 +31,6 @@ struct CConfigZIP;
 struct CConfig7Z;
 
 class CArchiver7ZIP:public CArchiverDLL{
-	struct archive *_a;
-	struct archive_entry *_entry;
 protected:
 	void WriteResponceFile(HANDLE,LPCTSTR);
 	COMMON_ARCHIVER_SETUNICODEMODE ArchiverSetUnicodeMode;
@@ -70,20 +64,16 @@ public:
 	//---UNICODE版をオーバーライド---
 	//-------------------------------
 	virtual BOOL CheckArchive(LPCTSTR)override;	//TODO:構成を変える
-	virtual int GetFileCount(LPCTSTR)override;	//TODO:構成を変える;複数ファイルがあるかどうかだけ判定
+	virtual bool isContentSingleFile(LPCTSTR)override;
 
 	// 書庫内検査用メソッド
-	virtual bool InspectArchiveBegin(LPCTSTR,CConfigManager&)override;				//書庫内調査開始
-	virtual bool InspectArchiveGetFileName(CString&)override;		//書庫内ファイル名取得
-	virtual bool InspectArchiveEnd()override;						//書庫内調査終了
-	virtual bool InspectArchiveNext()override;						//書庫内調査を次のファイルに進める
-	virtual bool InspectArchiveGetOriginalFileSize(LARGE_INTEGER&);	//書庫内圧縮前ファイルサイズ取得
-	int InspectArchiveGetAttribute()override;
-	virtual bool InspectArchiveGetWriteTime(FILETIME&);		//書庫内ファイル更新日時取得
-	virtual bool InspectArchiveGetCompressedFileSize(LARGE_INTEGER&)override { return false; }	//TODO:remove
-	virtual bool InspectArchiveGetMethodString(CString&)override { return false; }	//TODO:remove
-	virtual DWORD InspectArchiveGetCRC() { return -1; }	//TODO:remove
-	virtual WORD InspectArchiveGetRatio() { return -1; }	//TODO:remove
+	virtual bool InspectArchiveBegin(ARCHIVE_FILE&,LPCTSTR,CConfigManager&)override;				//書庫内調査開始
+	virtual bool InspectArchiveGetFileName(ARCHIVE_FILE&,CString&)override;		//書庫内ファイル名取得
+	virtual bool InspectArchiveEnd(ARCHIVE_FILE&)override;						//書庫内調査終了
+	virtual bool InspectArchiveNext(ARCHIVE_FILE&)override;						//書庫内調査を次のファイルに進める
+	virtual bool InspectArchiveGetOriginalFileSize(ARCHIVE_FILE&,LARGE_INTEGER&);	//書庫内圧縮前ファイルサイズ取得
+	int InspectArchiveGetAttribute(ARCHIVE_FILE&)override;
+	virtual bool InspectArchiveGetWriteTime(ARCHIVE_FILE&,FILETIME&);		//書庫内ファイル更新日時取得
 };
 
 

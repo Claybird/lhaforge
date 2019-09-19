@@ -63,17 +63,17 @@ bool ExtractOneArchive(CConfigManager &ConfMan,const CConfigGeneral &ConfGeneral
 	}
 
 	//アーカイブ中のファイル・フォルダの数を調べる
-	int nItemCount=-1;
+	bool isSingleEntry = false;
 	if(ConfExtract.CreateNoFolderIfSingleFileOnly){
 		//「ファイル・フォルダが一つだけの時フォルダを作成しない」設定の時にのみ調査する
-		nItemCount=lpArchiver->GetFileCount(lpArcFile);
+		isSingleEntry = lpArchiver->isContentSingleFile(lpArcFile);
 	}
 
 	bool bRet=false;
 	CPath pathOutputDir;
 	bool bUseForAll=false;	//今後も同じ出力フォルダを使うならtrue
 	CString strErr;
-	HRESULT hr=GetExtractDestDir(lpArcFile,ConfGeneral,ConfExtract,r_pathSpecificOutputDir,bInFolder,pathOutputDir,nItemCount,strBaseDir,r_pathOpenDir,bUseForAll,strErr);
+	HRESULT hr=GetExtractDestDir(lpArcFile,ConfGeneral,ConfExtract,r_pathSpecificOutputDir,bInFolder,pathOutputDir,isSingleEntry,strBaseDir,r_pathOpenDir,bUseForAll,strErr);
 	if(FAILED(hr)){
 		if(E_ABORT == hr){
 			r_ArcLog.Result=EXTRACT_CANCELED;
@@ -224,7 +224,7 @@ void GetArchiveDirectoryPath(const CConfigExtract &ConfExtract,LPCTSTR lpszArcNa
 出力先フォルダを二重に作成しないよう、bInFolder引数ですべて
 フォルダに入っているかどうか確認する
 *************************************************************/
-HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,LPCTSTR lpSpecificOutputDir,bool bInFolder,CPath &r_pathOutputDir,const int nItemCount,LPCTSTR lpszBaseDir,CPath &r_pathOpenDir,bool &r_bUseForAll/*以降もこのフォルダに解凍するならtrueが返る*/,CString &strErr)
+HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,LPCTSTR lpSpecificOutputDir,bool bInFolder,CPath &r_pathOutputDir,const bool isSingleEntry, LPCTSTR lpszBaseDir,CPath &r_pathOpenDir,bool &r_bUseForAll/*以降もこのフォルダに解凍するならtrueが返る*/,CString &strErr)
 {
 	CPath pathOutputDir;
 
@@ -252,7 +252,7 @@ HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,
 	CPath pathArchiveNamedDir;	//アーカイブ名のフォルダ
 	bool bCreateArchiveDir=false;	//アーカイブ名のフォルダを作成する場合にはtrue
 	if(
-		(!ConfExtract.CreateNoFolderIfSingleFileOnly || nItemCount!=1)&&
+		(!ConfExtract.CreateNoFolderIfSingleFileOnly || !isSingleEntry)&&
 			(
 				((CREATE_OUTPUT_DIR_SINGLE==ConfExtract.CreateDir)&&!bInFolder)||
 				 (CREATE_OUTPUT_DIR_ALWAYS==ConfExtract.CreateDir)
@@ -307,7 +307,7 @@ HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,
 	//開くパスの組み立て
 	CPath pathToOpen=pathOutputDir;
 	if(!bCreateArchiveDir){	//アーカイブ名フォルダを作成しない場合
-		if(ConfExtract.CreateNoFolderIfSingleFileOnly && nItemCount==1){
+		if(ConfExtract.CreateNoFolderIfSingleFileOnly && isSingleEntry){
 			//-ファイル・フォルダが一つだけであるためフォルダを作成しなかった
 			//Nothing to do
 		}else if(CREATE_OUTPUT_DIR_SINGLE==ConfExtract.CreateDir && bInFolder){

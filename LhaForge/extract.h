@@ -33,6 +33,6 @@ class CMDLINEINFO;
 //解凍を行う
 bool Extract(std::list<CString>&,CConfigManager&,DLL_ID,LPCTSTR lpSpecificOutputDir=NULL,const CMDLINEINFO* lpCmdLineInfo=NULL);
 //出力先のディレクトリを取得し、カレントディレクトリにセットする。
-HRESULT GetExtractDestDir(LPCTSTR,const CConfigGeneral&,const CConfigExtract&,LPCTSTR,bool,CPath&,const int,LPCTSTR,CPath&,bool &r_bUseForAll,CString &strErr);
+HRESULT GetExtractDestDir(LPCTSTR,const CConfigGeneral&,const CConfigExtract&,LPCTSTR,bool,CPath&,bool,LPCTSTR,CPath&,bool &r_bUseForAll,CString &strErr);
 
 const LPCTSTR LHAFORGE_EXTRACT_SEMAPHORE_NAME=_T("LhaForgeExtractLimitSemaphore");

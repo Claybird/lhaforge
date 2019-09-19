@@ -189,6 +189,34 @@ enum CREATE_OUTPUT_DIR{
 	ENUM_COUNT_AND_LASTITEM(CREATE_OUTPUT_DIR)
 };
 
+#define LIBARCHIVE_STATIC
+#include <libarchive/archive.h>
+#include <libarchive/archive_entry.h>
+
+struct ARCHIVE_FILE {
+	struct archive *_arc;
+	struct archive_entry *_entry;
+	ARCHIVE_FILE():_entry(NULL) {
+		_arc = archive_read_new();
+		archive_read_support_filter_all(_arc);
+		archive_read_support_format_all(_arc);
+	}
+	virtual ~ARCHIVE_FILE() {
+		close();
+	}
+	void close() {
+		if (_arc) {
+			archive_read_close(_arc);
+			archive_read_free(_arc);
+			_arc = NULL;
+			_entry = NULL;
+		}
+	}
+	operator struct archive*() { return _arc; }
+	operator struct archive_entry*() { return _entry; }
+	const ARCHIVE_FILE& operator=(const ARCHIVE_FILE&) = delete;
+};
+
 struct CConfigExtract;
 //統合アーカイバDLLラップ用クラスのベース
 class CArchiverDLL{
@@ -214,7 +242,6 @@ protected:
 	COMMON_ARCHIVER_GETVERSION		ArchiverGetVersion;
 	COMMON_ARCHIVER_GETVERSION		ArchiverGetSubVersion;
 	COMMON_ARCHIVER_CHECKARCHIVE	ArchiverCheckArchive;
-	COMMON_ARCHIVER_GETFILECOUNT	ArchiverGetFileCount;
 	//以下の関数は二重フォルダ判定および危険アーカイブ判定などアーカイブ内調査に使う
 	COMMON_ARCHIVER_QUERYFUNCTIONLIST		ArchiverQueryFunctionList;
 	COMMON_ARCHIVER_GETFILENAME				ArchiverGetFileName;
@@ -229,9 +256,7 @@ protected:
 	COMMON_ARCHIVER_GETWRITETIMEEX			ArchiverGetWriteTimeEx;
 	COMMON_ARCHIVER_GETMETHOD				ArchiverGetMethod;
 
-	virtual bool _ExamineArchive(LPCTSTR,CConfigManager&,bool &bInFolder,bool &bSafeArchive,const int,CString&,CString &strErr);
-	virtual bool _ExamineArchiveFast(LPCTSTR,CConfigManager&,bool &bInFolder,CString&,CString &strErr);
-
+	
 	virtual bool ExtractSubDirectories(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputDir,bool bCollapseDir,CString &strLog);
 	virtual bool ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
 
@@ -255,7 +280,7 @@ public:
 	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnlyがサポートされているかどうか
 	virtual bool GetVersionString(CString&)const;
 	virtual LPCTSTR GetName()const{return m_strDllName;}	//DLL名を返す
-	virtual int GetFileCount(LPCTSTR);	//アーカイブ中のファイル数を返す
+	virtual bool isContentSingleFile(LPCTSTR)=0;	//アーカイブ中に複数ファイルが含まれていればfalse
 
 	//アーカイブから指定したファイルを削除
 	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &){return false;}
@@ -278,17 +303,13 @@ public:
 	// 書庫内検査用メソッド
 	//----------------------
 	virtual bool QueryInspectSupported()const{return true;}		//書庫内調査がサポートされているかどうか
-	virtual bool InspectArchiveBegin(LPCTSTR,CConfigManager&);				//書庫内調査開始
-	virtual bool InspectArchiveEnd();						//書庫内調査終了
-	virtual bool InspectArchiveGetFileName(CString&);		//書庫内ファイル名取得
-	virtual bool InspectArchiveNext();						//書庫内調査を次のファイルに進める
-	virtual int  InspectArchiveGetAttribute();				//書庫内ファイル属性取得
-	virtual bool InspectArchiveGetOriginalFileSize(LARGE_INTEGER&);	//書庫内圧縮前ファイルサイズ取得
-	virtual bool InspectArchiveGetCompressedFileSize(LARGE_INTEGER&);	//書庫内圧縮後ファイルサイズ取得
-	virtual bool InspectArchiveGetWriteTime(FILETIME&);		//書庫内ファイル更新日時取得
-	virtual DWORD InspectArchiveGetCRC();					//書庫内ファイルCRC取得
-	virtual WORD InspectArchiveGetRatio();					//書庫内ファイル圧縮率取得
-	virtual bool InspectArchiveGetMethodString(CString&);	//書庫内ファイル格納モード取得
+	virtual bool InspectArchiveBegin(ARCHIVE_FILE&,LPCTSTR,CConfigManager&)=0;				//書庫内調査開始
+	virtual bool InspectArchiveEnd(ARCHIVE_FILE&) = 0;						//書庫内調査終了
+	virtual bool InspectArchiveGetFileName(ARCHIVE_FILE&,CString&) = 0;		//書庫内ファイル名取得
+	virtual bool InspectArchiveNext(ARCHIVE_FILE&) = 0;						//書庫内調査を次のファイルに進める
+	virtual int  InspectArchiveGetAttribute(ARCHIVE_FILE&) = 0;				//書庫内ファイル属性取得
+	virtual bool InspectArchiveGetOriginalFileSize(ARCHIVE_FILE&,LARGE_INTEGER&) = 0;	//書庫内圧縮前ファイルサイズ取得
+	virtual bool InspectArchiveGetWriteTime(ARCHIVE_FILE&,FILETIME&) = 0;		//書庫内ファイル更新日時取得
 };
 
 

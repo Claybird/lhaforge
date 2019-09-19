@@ -76,7 +76,8 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 {
 	//解析開始
 	TRACE(_T("ディレクトリ構造解析開始\n"));
-	if(!lpArchiver->InspectArchiveBegin(lpFile,ConfMan)){
+	ARCHIVE_FILE arc;
+	if(!lpArchiver->InspectArchiveBegin(arc,lpFile,ConfMan)){
 		//スキャンできない
 		return E_LF_FILELIST_NOT_SUPPORTED;
 	}
@@ -86,34 +87,32 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 
 	HRESULT hr=S_OK;
 	//一覧取得
-	while(lpArchiver->InspectArchiveNext()){
+	while(lpArchiver->InspectArchiveNext(arc)){
 		ARCHIVE_ENTRY_INFO item;
 
 		//格納ファイル名取得
-		lpArchiver->InspectArchiveGetFileName(item.strFullPath);
+		lpArchiver->InspectArchiveGetFileName(arc,item.strFullPath);
 		//属性取得
-		item.nAttribute=lpArchiver->InspectArchiveGetAttribute();
+		item.nAttribute=lpArchiver->InspectArchiveGetAttribute(arc);
 		//ファイルサイズ(圧縮前)
-		if(!lpArchiver->InspectArchiveGetOriginalFileSize(item.llOriginalSize)){
+		if(!lpArchiver->InspectArchiveGetOriginalFileSize(arc,item.llOriginalSize)){
 			item.llOriginalSize.LowPart=-1;
 			item.llOriginalSize.HighPart=-1;
 		}
 		//ファイルサイズ(圧縮後)
-		if(!lpArchiver->InspectArchiveGetCompressedFileSize(item.llCompressedSize)){
-			item.llCompressedSize.LowPart=-1;
-			item.llCompressedSize.HighPart=-1;
-		}
+		item.llCompressedSize.LowPart=-1;
+		item.llCompressedSize.HighPart=-1;
 		//日時取得
-		if(!lpArchiver->InspectArchiveGetWriteTime(item.cFileTime)){
+		if(!lpArchiver->InspectArchiveGetWriteTime(arc,item.cFileTime)){
 			item.cFileTime.dwLowDateTime=-1;
 			item.cFileTime.dwHighDateTime=-1;
 		}
 		//圧縮率
-		item.wRatio=lpArchiver->InspectArchiveGetRatio();
+		item.wRatio=-1;
 		//CRC
-		item.dwCRC=lpArchiver->InspectArchiveGetCRC();
+		item.dwCRC=-1;
 		//メソッド
-		lpArchiver->InspectArchiveGetMethodString(item.strMethod);
+		item.strMethod=L"---";
 
 		//暗号
 		bEncrypted = bEncrypted || ((item.nAttribute & FA_ENCRYPTED)!=0);
@@ -132,7 +131,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 		}
 	}
 	//解析終了
-	lpArchiver->InspectArchiveEnd();
+	lpArchiver->InspectArchiveEnd(arc);
 
 	m_bEncrypted = bEncrypted;
 	return hr;
