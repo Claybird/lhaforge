@@ -36,7 +36,6 @@ enum DLL_ID{
 };
 
 class CConfigManager;
-#include "ConfigCode/ConfigDLL.h"
 
 DLL_ID GuessDllIDFromFileName(LPCTSTR,CConfigManager&);
 DLL_ID GetDllIDFromParameterType(PARAMETER_TYPE);
@@ -46,7 +45,6 @@ protected:
 	CArchiver7ZIP	Arc7ZIP;
 	std::list<std::pair<CArchiverDLL*,DLL_ID> > ArchiverList;	//listもしくはvectorにしておくこと;pushの順番がアーカイブ形式推定の順番になる
 
-	CConfigDLL m_ConfDLL;
 	CConfigManager *m_lpConfig;
 protected:
 	CArchiverDLLManager();
@@ -63,8 +61,7 @@ public:
 	void Final();
 	void Free();
 
-	void SetConfigManager(CConfigManager &Config){m_lpConfig=&Config;UpdateDLLConfig();}
-	void UpdateDLLConfig();
+	void SetConfigManager(CConfigManager &Config){m_lpConfig=&Config;}
 };
 
 //---------------------

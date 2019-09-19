@@ -82,9 +82,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_DLL.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_dll_update.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -116,9 +113,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigCompress.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigDLL.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigExtract.cpp">
@@ -324,9 +318,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_DLL.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_dll_update.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
@@ -358,9 +349,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigCompress.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigDLL.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigExtract.h">

@@ -40,7 +40,6 @@
 #include "./Dialogs/Dlg_filelistwindow.h"
 #include "./Dialogs/Dlg_openaction.h"
 #include "./Dialogs/Dlg_shellext.h"
-#include "./Dialogs/Dlg_DLL.h"
 
 //====================================
 // 設定項目をまとめる
@@ -61,7 +60,6 @@ protected:
 	CConfigDlgDetail				PageDetail;
 	CConfigDlgShortcut				PageShortcut;
 	CConfigDlgFileListWindow		PageFileListWindow;
-	CConfigDlgDLL					PageDLL;
 
 	HWND						hActiveDialogWnd;	//アクティブなダイアログ
 	CTreeViewCtrl				SelectTreeView;

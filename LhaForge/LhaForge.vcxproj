@@ -151,7 +151,6 @@
     <ClCompile Include="ConfigCode\AssocSettings.cpp" />
     <ClCompile Include="ConfigCode\Config7Z.cpp" />
     <ClCompile Include="ConfigCode\ConfigCompress.cpp" />
-    <ClCompile Include="ConfigCode\ConfigDLL.cpp" />
     <ClCompile Include="ConfigCode\ConfigExtract.cpp" />
     <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp" />
     <ClCompile Include="ConfigCode\ConfigGeneral.cpp" />
@@ -165,7 +164,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_DLL.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_dll_update.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
@@ -234,7 +232,6 @@
     <ClInclude Include="ConfigCode\AssocSettings.h" />
     <ClInclude Include="ConfigCode\Config7Z.h" />
     <ClInclude Include="ConfigCode\ConfigCompress.h" />
-    <ClInclude Include="ConfigCode\ConfigDLL.h" />
     <ClInclude Include="ConfigCode\ConfigExtract.h" />
     <ClInclude Include="ConfigCode\ConfigFileListWindow.h" />
     <ClInclude Include="ConfigCode\ConfigGeneral.h" />
@@ -249,7 +246,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_compress_general.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_DLL.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_dll_update.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_filelistwindow.h" />

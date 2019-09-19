@@ -149,10 +149,6 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 
 		ASSERT(lpArchiver);
 
-		if(!m_ConfDLL.EnableDLL[(*ite).second]){
-			continue;
-		}
-
 		if(lpGuessedArchiver==lpArchiver)continue;	//既に適合しないことが分かっている
 		if(!lpArchiver->IsOK()){
 			CString strDummy;
@@ -194,14 +190,6 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 
 	if(lpArchiver){
 		//DLL有効/無効の判定
-		if(!m_ConfDLL.EnableDLL[Type]){
-			lpArchiver->FreeDLL();
-			if(!bSilent){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_DISABLED_DLL)));
-			}
-			return lpArchiver;
-		}
-
 		if(!lpArchiver->IsOK()){
 			CString strErr;
 			if(LOAD_RESULT_OK!=lpArchiver->LoadDLL(*m_lpConfig,strErr) && !bSilent){
@@ -216,8 +204,4 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 	return NULL;
 }
 
-void CArchiverDLLManager::UpdateDLLConfig()
-{
-	if(m_lpConfig)m_ConfDLL.load(*m_lpConfig);
-}
 

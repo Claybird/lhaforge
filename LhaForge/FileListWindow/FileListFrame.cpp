@@ -558,8 +558,6 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		}
 	}
 
-	CArchiverDLLManager::GetInstance().UpdateDLLConfig();
-
 	m_TabClientWnd.ReloadArchiverIfLost();
 /*	else{	別にIDCANCELでもロードし直す必要はない。なぜならデータはダイアログ内で留まり、Config構造体に入らず捨てられているから
 		Config.LoadConfig(CONFIG_LOAD_ALL);
