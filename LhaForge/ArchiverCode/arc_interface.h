@@ -27,46 +27,6 @@
 #include "ArcEntryInfo.h"
 #include "../ConfigCode/ConfigManager.h"
 
-typedef	HGLOBAL	HARC;
-#ifndef FNAME_MAX32
-#define FNAME_MAX32		512
-#endif
-typedef struct {
-	DWORD 			dwOriginalSize;		/* ファイルのサイズ */
- 	DWORD 			dwCompressedSize;	/* 圧縮後のサイズ */
-	DWORD			dwCRC;				/* 格納ファイルのチェックサム */
-	UINT			uFlag;				/* 処理結果 */
-	UINT			uOSType;			/* 書庫作成に使われたＯＳ */
-	WORD			wRatio;				/* 圧縮率 */
-	WORD			wDate;				/* 格納ファイルの日付(DOS 形式) */
-	WORD 			wTime;				/* 格納ファイルの時刻(〃) */
-	char			szFileName[FNAME_MAX32 + 1];	/* 書庫名 */
-	char			dummy1[3];
-	char			szAttribute[8];		/* 格納ファイルの属性(書庫固有) */
-	char			szMode[8];			/* 格納ファイルの格納モード(〃) */
-}	INDIVIDUALINFO, *LPINDIVIDUALINFO;
-
-typedef int   (WINAPI *COMMON_ARCHIVER_HANDLER)(const HWND,LPCSTR,LPSTR,const DWORD);
-typedef WORD  (WINAPI *COMMON_ARCHIVER_GETVERSION)(VOID);	//GetVersion/GetSubVersion
-typedef BOOL  (WINAPI *COMMON_ARCHIVER_CHECKARCHIVE)(LPCSTR,const int);
-
-typedef int	  (WINAPI *COMMON_ARCHIVER_GETFILENAME)(HARC,LPCSTR,int);
-typedef BOOL  (WINAPI *COMMON_ARCHIVER_QUERYFUNCTIONLIST)(const int);
-typedef HARC  (WINAPI *COMMON_ARCHIVER_OPENARCHIVE)(const HWND,LPCSTR,const DWORD);
-typedef HARC  (WINAPI *COMMON_ARCHIVER_OPENARCHIVE2)(const HWND,LPCSTR,const DWORD,LPCSTR);
-typedef int   (WINAPI *COMMON_ARCHIVER_CLOSEARCHIVE)(HARC);
-typedef int   (WINAPI *COMMON_ARCHIVER_FINDFIRST)(HARC,LPCSTR,LPINDIVIDUALINFO);
-typedef int   (WINAPI *COMMON_ARCHIVER_FINDNEXT)(HARC,LPINDIVIDUALINFO);
-typedef int   (WINAPI *COMMON_ARCHIVER_GETATTRIBUTE)(HARC);
-typedef BOOL  (WINAPI *COMMON_ARCHIVER_GETORIGINALSIZEEX)(HARC,LARGE_INTEGER*);
-typedef DWORD (WINAPI *COMMON_ARCHIVER_GETWRITETIME)(HARC);
-typedef BOOL  (WINAPI *COMMON_ARCHIVER_GETWRITETIMEEX)(HARC,LPFILETIME);
-typedef int	  (WINAPI *COMMON_ARCHIVER_GETFILECOUNT)(LPCSTR);
-typedef int   (WINAPI *COMMON_ARCHIVER_GETMETHOD)(HARC,LPSTR,const int);
-
-typedef BOOL   (WINAPI *COMMON_ARCHIVER_SETUNICODEMODE)(BOOL);
-
-
 #define	CHECKARCHIVE_RAPID		0
 #define	CHECKARCHIVE_BASIC		1
 #define	CHECKARCHIVE_FULLCRC	2
@@ -83,12 +43,6 @@ typedef BOOL   (WINAPI *COMMON_ARCHIVER_SETUNICODEMODE)(BOOL);
 
 enum PARAMETER_TYPE;
 
-enum LOAD_DLL_LEVEL{
-	LOAD_DLL_STANDARD	=0x00000001L,					//通常
-	LOAD_DLL_MINIMUM	=0x00000002L,					//OpenArchive*が使えないDLL用
-	LOAD_DLL_SIMPLE_INSPECTION	=0x00000004L,				//%Prefix%(),OpenArchive(),FindFile*()以外が使えないDLL(BGA32.DLL)用
-//	LOAD_DLL_STANDARD_WITHOUT_GETATTRIBUTE=0x00000004L,	//GetAttributeが使えないDLL用の通常
-};
 
 enum LOAD_RESULT{
 	LOAD_RESULT_OK,			//DLLは正常にロードされた
@@ -222,46 +176,10 @@ struct CConfigExtract;
 class CArchiverDLL{
 protected:
 	//DLL固有のデータ
-	DWORD			m_dwInspectMode;		//OpenArchiveのモード
-	CString			m_strDllName;			//DLL名
-	CStringA		m_AstrPrefix;				//関数プリフィックス
-	CStringA		m_AstrFindParam;			//InspectArchiveFileNext()の引数
-	LOAD_DLL_LEVEL	m_LoadLevel;			//LoadDLLで要求する関数のレベル
-	WORD			m_nRequiredVersion;	//LhaForgeがサポートするDLLの最低バージョン
-	WORD			m_nRequiredSubVersion;	//LhaForgeがサポートするDLLの最低サブバージョン
-
 	//---------
 	//書庫内検査の状態を記録するための変数
-	HARC m_hInspectArchive;
 	bool m_bInspectFirstTime;
-	INDIVIDUALINFO m_IndividualInfo;
 
-	//---------
-	HINSTANCE	m_hInstDLL;			//DLLインスタンス
-	COMMON_ARCHIVER_HANDLER			ArchiveHandler;	//Un???関数
-	COMMON_ARCHIVER_GETVERSION		ArchiverGetVersion;
-	COMMON_ARCHIVER_GETVERSION		ArchiverGetSubVersion;
-	COMMON_ARCHIVER_CHECKARCHIVE	ArchiverCheckArchive;
-	//以下の関数は二重フォルダ判定および危険アーカイブ判定などアーカイブ内調査に使う
-	COMMON_ARCHIVER_QUERYFUNCTIONLIST		ArchiverQueryFunctionList;
-	COMMON_ARCHIVER_GETFILENAME				ArchiverGetFileName;
-	COMMON_ARCHIVER_OPENARCHIVE				ArchiverOpenArchive;
-	COMMON_ARCHIVER_CLOSEARCHIVE			ArchiverCloseArchive;
-	COMMON_ARCHIVER_FINDFIRST				ArchiverFindFirst;
-	COMMON_ARCHIVER_FINDNEXT				ArchiverFindNext;
-	COMMON_ARCHIVER_GETATTRIBUTE			ArchiverGetAttribute;
-	COMMON_ARCHIVER_GETORIGINALSIZEEX		ArchiverGetOriginalSizeEx;
-	COMMON_ARCHIVER_GETORIGINALSIZEEX		ArchiverGetCompressedSizeEx;
-	COMMON_ARCHIVER_GETWRITETIME			ArchiverGetWriteTime;
-	COMMON_ARCHIVER_GETWRITETIMEEX			ArchiverGetWriteTimeEx;
-	COMMON_ARCHIVER_GETMETHOD				ArchiverGetMethod;
-
-	
-	virtual bool ExtractSubDirectories(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputDir,bool bCollapseDir,CString &strLog);
-	virtual bool ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
-
-	//レスポンスファイルにデータを書き込む:MBCS,エスケープを必要としないもの限定
-	virtual void WriteResponceFile(HANDLE,LPCTSTR,bool bQuoteSpaces=true);
 public:
 	CArchiverDLL();
 	virtual ~CArchiverDLL(){};
@@ -279,7 +197,7 @@ public:
 	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false)=0;	//指定したファイルのみ解凍
 	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnlyがサポートされているかどうか
 	virtual bool GetVersionString(CString&)const;
-	virtual LPCTSTR GetName()const{return m_strDllName;}	//DLL名を返す
+	virtual LPCTSTR GetName()const{return L"DUMMY";}	//DLL名を返す//TODO:remove
 	virtual bool isContentSingleFile(LPCTSTR)=0;	//アーカイブ中に複数ファイルが含まれていればfalse
 
 	//アーカイブから指定したファイルを削除
@@ -295,7 +213,7 @@ public:
 		//そしてアーカイブが安全かどうかを調査する
 		//bSkipDirは二重フォルダ判定が不要な場合にtrueになる。このとき、_ExamineArchiveFastは呼びださななくて済む
 
-	virtual bool IsOK()const{return NULL!=m_hInstDLL;}		//アーカイバDLLがロードされているか
+	virtual bool IsOK()const{return true;}	//TODO:remove		//アーカイバDLLがロードされているか
 
 	virtual bool ExtractItems(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
 

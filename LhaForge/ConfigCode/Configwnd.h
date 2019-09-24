@@ -31,8 +31,6 @@
 #include "./Dialogs/Dlg_general.h"
 #include "./Dialogs/Dlg_compress_general.h"
 #include "./Dialogs/Dlg_extract_general.h"
-#include "./Dialogs/Dlg_zip.h"
-#include "./Dialogs/Dlg_7z.h"
 #include "./Dialogs/Dlg_dll_update.h"
 #include "./Dialogs/Dlg_assoc.h"
 #include "./Dialogs/Dlg_detail.h"
@@ -52,8 +50,6 @@ protected:
 	CConfigDlgVersion				PageVersion;
 	CConfigDlgCompressGeneral		PageCompressGeneral;
 	CConfigDlgExtractGeneral		PageExtractGeneral;
-	CConfigDlgZIP					PageZIP;
-	CConfigDlg7Z					Page7Z;
 	CConfigDlgDLLUpdate				PageDLLUpdate;
 	CConfigDlgAssociation			PageAssociation;
 	CConfigDlgOpenAction			PageOpenAction;

@@ -25,21 +25,7 @@
 #pragma once
 #include "arc_interface.h"
 
-typedef int    (WINAPI *COMMON_ARCHIVER_GETARCHIVETYPE)(LPCSTR);
-
-struct CConfigZIP;
-struct CConfig7Z;
-
 class CArchiver7ZIP:public CArchiverDLL{
-protected:
-	void WriteResponceFile(HANDLE,LPCTSTR);
-	COMMON_ARCHIVER_SETUNICODEMODE ArchiverSetUnicodeMode;
-	COMMON_ARCHIVER_GETARCHIVETYPE ArchiverGetArchiveType;
-
-	virtual bool ExtractDirectoryEntry(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpDir,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
-
-	bool FormatCompressCommandZIP(const CConfigZIP&,CString &Param,bool bSFX,int Options,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
-	bool FormatCompressCommand7Z(const CConfig7Z&,CString &Param,int Options,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
 public:
 	CArchiver7ZIP();
 	virtual ~CArchiver7ZIP();
@@ -53,8 +39,6 @@ public:
 	//アーカイブからファイルを削除
 	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &)override;
 	virtual bool QueryDeleteItemFromArchiveSupported(LPCTSTR ArcFileName)const override{return true;}		//DeleteFileがサポートされているかどうか
-
-	virtual ARCRESULT TestArchive(LPCTSTR,CString &)override;	//アーカイブが正しいかどうかチェックする
 
 	//アーカイブに指定したファイルを追加
 	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&)override;

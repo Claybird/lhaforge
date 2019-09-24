@@ -70,9 +70,6 @@
     <ClCompile Include="ConfigCode\Configwnd.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_7z.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -106,12 +103,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_zip.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Config7Z.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\ConfigCompress.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
@@ -131,9 +122,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigUpdate.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigZIP.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="FileListWindow\ArcFileContent.cpp">
@@ -303,9 +291,6 @@
     <ClInclude Include="ConfigCode\Configwnd.h">
       <Filter>Configs\Other</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_7z.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
@@ -342,12 +327,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_zip.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Config7Z.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\ConfigCompress.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
@@ -367,9 +346,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigUpdate.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigZIP.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="FileListWindow\AnimationUpdater.h">
@@ -426,9 +402,6 @@
     <ClInclude Include="Utilities\ConfigFile.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\DummyWindow.h">
-      <Filter>Util</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\EventDispatcher.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -459,9 +432,6 @@
     <ClInclude Include="Utilities\variant.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\JackVolumeSizeDlg.h">
-      <Filter>Dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="Dialogs\LogDialog.h">
       <Filter>Dialogs</Filter>
     </ClInclude>
@@ -472,9 +442,6 @@
       <Filter>Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Dialogs\SelectDlg.h">
-      <Filter>Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="Dialogs\SevenZipVolumeSizeDlg.h">
       <Filter>Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Dialogs\TextInputDlg.h">
