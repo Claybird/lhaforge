@@ -1601,7 +1601,6 @@ STRINGTABLE
 BEGIN
     IDS_MESSAGE_CAPTION     "LhaForge"
     IDS_UNTITLED            "無題"
-    IDS_CALDIX_EXE_NAME     "LFCaldix.exe"
     IDS_ERROR_EXAMINEARCHIVE "圧縮ファイルの検査に失敗しました。"
     IDS_ICON_FILE_NAME_DEFAULT "LFIcons.DLL"
     IDS_ERROR_DISABLED_DLL  "このDLLを使用しない設定になっているため、いくつかの機能が使用不能です。"

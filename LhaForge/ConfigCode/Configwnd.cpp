@@ -100,7 +100,6 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(PageAssociation,TVI_ROOT);
 	ADD_PAGE(PageOpenAction,TVI_ROOT);
 //	ADD_PAGE(PageAssociation2,TVI_ROOT);
-	ADD_PAGE(PageDLLUpdate,TVI_ROOT);
 	ADD_PAGE(PageVersion,TVI_ROOT);
 
 	//----------------

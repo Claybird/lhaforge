@@ -79,9 +79,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_dll_update.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -119,9 +116,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigUpdate.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="FileListWindow\ArcFileContent.cpp">
@@ -220,9 +214,6 @@
     <ClCompile Include="TestArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Update.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs\LogDialog.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
@@ -276,9 +267,6 @@
     <ClInclude Include="TestArchive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Update.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
@@ -301,9 +289,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_dll_update.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h">
@@ -343,9 +328,6 @@
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigShellExt.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigUpdate.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="FileListWindow\AnimationUpdater.h">

@@ -33,24 +33,8 @@
 CConfigManager::CConfigManager()
 {
 	TRACE(_T("CConfigManager()\n"));
-	//---CaldixのINIファイル名
-	TCHAR szIniPath[_MAX_PATH+1]={0};
-	_tcsncpy_s(szIniPath,UtilGetModuleDirectoryPath(),_MAX_PATH);
-	PathAppend(szIniPath,CALDIX_INI_FILE_NAME);
-	if(PathFileExists(szIniPath)){
-		//LhaForgeフォルダと同じ場所にINIがあれば使用する
-		m_strCaldixIniPath=szIniPath;
-	}else{
-		//CSIDL_COMMON_APPDATAにINIを用意し、使用する
-		SHGetFolderPath(NULL,CSIDL_COMMON_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szIniPath);
-		PathAppend(szIniPath,PROGRAMDIR_NAME);
-		PathAddBackslash(szIniPath);
-		UtilMakeSureDirectoryPathExists(szIniPath);
-		PathAppend(szIniPath,CALDIX_INI_FILE_NAME);
-		m_strCaldixIniPath=szIniPath;
-	}
 
-	//---LhaForge.ini/LFCaldix.iniの場所
+	//---LhaForge.iniの場所
 	UtilGetDefaultFilePath(m_strIniPath,PROGRAMDIR_NAME,INI_FILE_NAME,m_bUserCommon);
 }
 
@@ -87,17 +71,6 @@ bool CConfigManager::LoadConfig(CString &strErr)
 		m_Config.erase(_T("YZ1"));
 	}
 
-	//caldix
-	m_CaldixConfig.clear();
-	if(PathFileExists(m_strCaldixIniPath)){
-		std::list<CONFIG_SECTION> sections;
-		if(!UtilReadSectionedConfig(m_strCaldixIniPath,sections,strErr))return false;
-
-		for(std::list<CONFIG_SECTION>::iterator ite=sections.begin();ite!=sections.end();++ite){
-			GetCaldixSection((*ite).SectionName.c_str())=*ite;
-		}
-	}
-
 	return true;
 }
 
@@ -117,17 +90,6 @@ bool CConfigManager::SaveConfig(CString &strErr)
 	return true;
 }
 
-void CConfigManager::WriteUpdateTime(time_t LastTime)
-{
-	LPCTSTR SectionName=_T("Update");
-
-	//更新キャンセル時など、LFCaldix.iniをLhaForgeが更新する必要があるとき
-	//---LFCaldix.iniに記録
-	UtilWritePrivateProfileInt(SectionName,_T("LastTime"),LastTime,m_strCaldixIniPath);
-	//---ユーザー用ファイルに記録
-	UtilWritePrivateProfileInt(SectionName,_T("LastTime"),LastTime,m_strIniPath);
-}
-
 CONFIG_SECTION &CConfigManager::GetSection(LPCTSTR lpszSection)
 {
 	CONFIG_DICT::iterator ite=m_Config.find(lpszSection);
@@ -135,18 +97,6 @@ CONFIG_SECTION &CConfigManager::GetSection(LPCTSTR lpszSection)
 		return (*ite).second;
 	}else{
 		CONFIG_SECTION &Conf=m_Config[lpszSection];
-		Conf.SectionName=lpszSection;
-		return Conf;
-	}
-}
-
-CONFIG_SECTION &CConfigManager::GetCaldixSection(LPCTSTR lpszSection)
-{
-	CONFIG_DICT::iterator ite=m_CaldixConfig.find(lpszSection);
-	if(ite!=m_CaldixConfig.end()){
-		return (*ite).second;
-	}else{
-		CONFIG_SECTION &Conf=m_CaldixConfig[lpszSection];
 		Conf.SectionName=lpszSection;
 		return Conf;
 	}

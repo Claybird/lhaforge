@@ -4,7 +4,6 @@
 //
 #define IDS_MESSAGE_CAPTION             1
 #define IDS_UNTITLED                    2
-#define IDS_CALDIX_EXE_NAME             3
 #define IDC_BUTTON_USEB2E               3
 #define IDS_ERROR_EXAMINEARCHIVE        4
 #define IDS_ICON_FILE_NAME_DEFAULT      5

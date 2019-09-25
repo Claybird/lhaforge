@@ -36,7 +36,6 @@
 #include "Dialogs/ProgressDlg.h"
 #include "Utilities/OSUtil.h"
 #include "Utilities/StringUtil.h"
-#include "Update.h"
 #include "CmdLineInfo.h"
 
 CAppModule _Module;
@@ -93,7 +92,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 
 	*/
 
-	bool bCheckUpdate=true;	//LFCaldixを起動するならtrue
+	bool bCheckUpdate=true;	//Update managerを起動するならtrue
 
 	CMDLINEINFO cli;	//CommandLineInfo
 
@@ -157,41 +156,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	}
 	CArchiverDLLManager::GetInstance().SetConfigManager(ConfigManager);
 
-	//DLLインストール先を取得して%PATH%に追加
-	CConfigUpdate ConfUpdate;
-	ConfUpdate.load(ConfigManager);
-	{
-		//コマンド・パラメータ展開
-		//---新しい環境変数
-		CString strPath=ConfUpdate.strDLLPath;
-		if(!strPath.IsEmpty()){
-			//---実行情報取得
-			//パラメータ展開に必要な情報
-			std::map<stdString,CString> envInfo;
-			UtilMakeExpandInformation(envInfo);
-			//環境変数展開
-			UtilExpandTemplateString(strPath, strPath, envInfo);
-
-			//絶対パスに変換
-			if(PathIsRelative(strPath)){
-				CPath tmp=UtilGetModuleDirectoryPath();
-				tmp.AddBackslash();
-				tmp+=strPath;
-				strPath=(LPCTSTR)tmp;
-			}
-			UtilGetCompletePathName(strPath,strPath);
-			strPath+=_T(";");
-			//---環境変数取得
-			int len=GetEnvironmentVariable(_T("PATH"),NULL,0);
-			CString strEnv;
-			GetEnvironmentVariable(_T("PATH"),strEnv.GetBuffer(len+1),len);
-			strEnv.ReleaseBuffer();
-
-			strPath+=strEnv;
-			SetEnvironmentVariable(_T("PATH"),strPath);
-		}
-	}
-
 	switch(ProcessMode){
 	case PROCESS_COMPRESS://圧縮
 		DoCompress(ConfigManager,cli);
@@ -222,10 +186,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		{
 			//ここで確認を行うので終了時の確認は不要
 			bCheckUpdate=false;
-			//DLL更新確認
-			if(CheckUpdateArchiverDLLRequired(ConfUpdate)){
-				DoUpdateArchiverDLL(ConfigManager);
-			}
 			//ダイアログ表示
 			CConfigDialog confdlg(ConfigManager);
 			if(IDOK==confdlg.DoModal()){
@@ -243,10 +203,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	}
 	//アップデートチェック
 	if(bCheckUpdate){
-		//DLL更新確認
-		if(CheckUpdateArchiverDLLRequired(ConfUpdate)){
-			DoUpdateArchiverDLL(ConfigManager);
-		}
+		//更新確認
+		//TODO
 	}
 
 	TRACE(_T("Terminating...\n"));

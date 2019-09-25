@@ -32,7 +32,6 @@
 //----------
 //INIファイル名
 const LPCTSTR INI_FILE_NAME=_T("LhaForge.ini");
-const LPCTSTR CALDIX_INI_FILE_NAME=_T("LFCaldix.ini");
 const LPCTSTR PROGRAMDIR_NAME=_T("LhaForge");	//ApplicationDataに入れるときに必要なディレクトリ名
 
 
@@ -57,11 +56,9 @@ class CConfigManager
 {
 protected:
 	CString m_strIniPath;
-	CString m_strCaldixIniPath;
 	bool m_bUserCommon;	//ユーザー間で共通の設定を使う場合はtrue;表示で使うためだけに用意
 	typedef std::map<stdString,CONFIG_SECTION,less_ignorecase> CONFIG_DICT;
 	CONFIG_DICT m_Config;
-	CONFIG_DICT m_CaldixConfig;
 public:
 	CConfigManager();
 	virtual ~CConfigManager();
@@ -69,10 +66,8 @@ public:
 	bool LoadConfig(CString &strErr);
 	bool SaveConfig(CString &strErr);
 	CONFIG_SECTION &GetSection(LPCTSTR lpszSection);
-	CONFIG_SECTION &GetCaldixSection(LPCTSTR lpszSection);
 	void DeleteSection(LPCTSTR lpszSection);
 	bool HasSection(LPCTSTR lpszSection)const;
-	void WriteUpdateTime(time_t=time(NULL));
 	bool IsUserCommon(){return m_bUserCommon;}	//ユーザー間共通設定？
 };
 
