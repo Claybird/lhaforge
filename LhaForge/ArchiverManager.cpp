@@ -28,47 +28,12 @@
 #include "Utilities/FileOperation.h"
 #include "Utilities/StringUtil.h"
 
-//拡張子から解凍に使うDLLを推定
-DLL_ID GuessDllIDFromFileName(LPCTSTR ArcFileName,CConfigManager &Config)
-{
-	TRACE(_T("GuessDllIDFromFileName()\n"));
-	TRACE(_T("ArcFileName=%s\n"),ArcFileName);
-
-	//拡張子抜きだし
-	CString strExt=PathFindExtension(ArcFileName);
-	strExt.MakeLower();
-
-	//参照表から拡張子比較
-	for(int i=0;i<ARRAY_EXT_DLLID_COUNT;i++){
-		if(Array_ExtDLLID[i].lpszExt==strExt){
-			return Array_ExtDLLID[i].DllID;
-		}
-	}
-	return DLL_ID_UNKNOWN;
-}
-
-//圧縮タイプからDLLのIDを取得
-DLL_ID GetDllIDFromParameterType(PARAMETER_TYPE Type)
-{
-	//参照表から合致するPARAMETER_TYPE取得
-	for(int i=0;i<ARRAY_PARAMETERTYPE_DLLID_COUNT;i++){
-		if(Array_ParameterTypeDLLID[i].ParameterType==Type){
-			return Array_ParameterTypeDLLID[i].DllID;
-		}
-	}
-	ASSERT(!"Out of range");
-	return DLL_ID_UNKNOWN;
-}
-
 
 //---------------------
-#define PAIR_DLL_ITEM(name)		std::pair<CArchiverDLL*,DLL_ID>(&Arc##name,DLL_ID_##name)	
 CArchiverDLLManager::CArchiverDLLManager()
 	:m_lpConfig(NULL)
 {
 	TRACE(_T("ArchiverDLLManager()\n"));
-	ArchiverList.push_back(PAIR_DLL_ITEM(7ZIP));
-
 }
 
 CArchiverDLLManager::~CArchiverDLLManager()
@@ -83,48 +48,20 @@ void CArchiverDLLManager::Final()
 	TRACE(_T("Freeing dlls...\n"));
 
 	Free();
-	ArchiverList.clear();
 }
 
 void CArchiverDLLManager::Free()
 {
-	//全開放
-	if(ArchiverList.empty())return;
-	for(std::list<std::pair<CArchiverDLL*,DLL_ID> >::iterator ite=ArchiverList.begin();ite!=ArchiverList.end();ite++){
-		(*ite).first->FreeDLL();
-	}
 }
 
-CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDenyExt,DLL_ID ForceDLL)
+CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDenyExt)
 {
-	ASSERT(m_lpConfig);
+	return &Arc7ZIP;
+/*	ASSERT(m_lpConfig);
 	if(!m_lpConfig)return NULL;
 	TRACE(_T("CArchiverDLLManager::GetArchiver(LPCTSTR)\n"));
 
 	if(lpDenyExt && UtilExtMatchSpec(ArcFileName,lpDenyExt))return NULL;
-
-	//-----使用するDLLを指定されている
-	if(DLL_ID_UNKNOWN!=ForceDLL){
-		CArchiverDLL* Archiver=GetArchiver(ForceDLL);	//ロードできないときにはエラーメッセージ
-		if(Archiver){
-			if(!Archiver->IsOK()){
-				CString strDummy;
-				Archiver->LoadDLL(*m_lpConfig,strDummy);
-			}
-			if(Archiver->IsOK()){
-				if(!Archiver->IsUnicodeCapable()){		//UNICODE未対応DLLなら、文字をチェックする
-					if(!UtilCheckT2A(ArcFileName)){
-						//現在のロケールで表現できない文字を使った
-						return NULL;
-					}
-				}
-				if(Archiver->CheckArchive(ArcFileName)){
-					return Archiver;
-				}
-			}
-		}
-		return NULL;
-	}
 
 	//拡張子から目星をつける
 	DLL_ID Type=GuessDllIDFromFileName(ArcFileName,*m_lpConfig);
@@ -170,12 +107,13 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(LPCTSTR ArcFileName,LPCTSTR lpDen
 	}
 
 	TRACE(_T("DLL決定に失敗\n"));
-	return NULL;
+	return NULL;*/
 }
 
-CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIgnoreError)
+CArchiverDLL* CArchiverDLLManager::GetArchiver(bool bSilent,bool bIgnoreError)
 {
-	TRACE(_T("CArchiverDLLManager::GetArchiver(DLL_ID)\n"));
+	return &Arc7ZIP;
+/*	TRACE(_T("CArchiverDLLManager::GetArchiver(DLL_ID)\n"));
 	ASSERT(m_lpConfig);
 	if(!m_lpConfig)return NULL;
 
@@ -201,7 +139,7 @@ CArchiverDLL* CArchiverDLLManager::GetArchiver(DLL_ID Type,bool bSilent,bool bIg
 		}
 	}
 	TRACE(_T("適切なDLLの取得に失敗\n"));
-	return NULL;
+	return NULL;*/
 }
 
 

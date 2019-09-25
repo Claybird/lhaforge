@@ -27,7 +27,6 @@
 class CConfigManager;
 class CMDLINEINFO;
 enum PROCESS_MODE;
-enum DLL_ID;
 
 //圧縮を行う
 bool DoCompress(CConfigManager&,CMDLINEINFO&);
@@ -42,4 +41,4 @@ bool DoList(CConfigManager &,CMDLINEINFO&);
 bool DoTest(CConfigManager &,CMDLINEINFO&);
 
 //リストからフォルダを削除し、サブフォルダの対応形式のファイルのみ(デフォルト)を追加
-void MakeListFilesOnly(std::list<CString> &FileList,DLL_ID idForceDLL,LPCTSTR lpDenyExt,bool bArchivesOnly);
+void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArchivesOnly);

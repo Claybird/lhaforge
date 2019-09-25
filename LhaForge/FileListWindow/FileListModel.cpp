@@ -44,8 +44,7 @@ CFileListModel::CFileListModel(CConfigManager &conf):
 	m_bSortDescending(true),
 	m_nSortKeyType(FILEINFO_INVALID),
 	m_TempDirManager(_T("lhaf")),
-	m_Mode(FILELIST_TREE),
-	m_idForceDLL(DLL_ID_UNKNOWN)
+	m_Mode(FILELIST_TREE)
 {
 }
 
@@ -53,12 +52,11 @@ CFileListModel::~CFileListModel()
 {
 }
 
-HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
+HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
 	CString strArchive=lpszArchive;	//次のClearでlpszArchveが破壊されるため、ここで保持
 	Clear();
 	m_Mode=flMode;
-	m_idForceDLL=idForceDLL;
 
 	if(!PathFileExists(strArchive)){	//存在しないならエラー
 		strErr.Format(IDS_ERROR_FILE_NOT_FOUND,(LPCTSTR)strArchive);
@@ -72,9 +70,9 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 	if(flMode==FILELIST_TREE){
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
-		hr=m_Content.ConstructTree(strArchive,mr_Config,idForceDLL,ConfExtract.DenyExt,BOOL2bool(ConfFLW.IgnoreMeaninglessPath),strErr,lpHandler);
+		hr=m_Content.ConstructTree(strArchive,mr_Config,ConfExtract.DenyExt,BOOL2bool(ConfFLW.IgnoreMeaninglessPath),strErr,lpHandler);
 	}else{
-		hr=m_Content.ConstructFlat(strArchive,mr_Config,idForceDLL,ConfExtract.DenyExt,(flMode==FILELIST_FLAT_FILESONLY),strErr,lpHandler);
+		hr=m_Content.ConstructFlat(strArchive,mr_Config,ConfExtract.DenyExt,(flMode==FILELIST_FLAT_FILESONLY),strErr,lpHandler);
 	}
 
 	if(FAILED(hr)){
@@ -92,7 +90,7 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 
 HRESULT CFileListModel::ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
-	return OpenArchiveFile(GetArchiveFileName(),m_idForceDLL,flMode,strErr,lpHandler);
+	return OpenArchiveFile(GetArchiveFileName(),flMode,strErr,lpHandler);
 }
 
 void CFileListModel::Clear()
@@ -451,7 +449,7 @@ bool CFileListModel::ExtractArchive()
 	//解凍
 	std::list<CString> archiveList;
 	archiveList.push_back(GetArchiveFileName());
-	return ::Extract(archiveList,mr_Config,m_idForceDLL,NULL);
+	return ::Extract(archiveList,mr_Config,NULL);
 }
 
 void CFileListModel::TestArchive()

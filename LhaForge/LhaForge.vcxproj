@@ -143,7 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp" />
-    <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp" />
     <ClCompile Include="ArchiverCode\arc_interface.cpp" />
     <ClCompile Include="ArchiverManager.cpp" />
     <ClCompile Include="Association.cpp" />
@@ -217,7 +216,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArchiverCode\ArcEntryInfo.h" />
-    <ClInclude Include="ArchiverCode\Archiver7ZIP.h" />
     <ClInclude Include="ArchiverCode\arc_interface.h" />
     <ClInclude Include="ArchiverManager.h" />
     <ClInclude Include="Association.h" />

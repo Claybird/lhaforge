@@ -25,25 +25,12 @@
 #pragma once
 #include "stdafx.h"
 #include "ArchiverCode/arc_interface.h"
-#include "ArchiverCode/Archiver7ZIP.h"
-
-//DLL種類
-enum DLL_ID{
-	DLL_ID_UNKNOWN=-1,
-	DLL_ID_7ZIP,
-
-	ENUM_COUNT_AND_LASTITEM(DLL_ID),
-};
 
 class CConfigManager;
 
-DLL_ID GuessDllIDFromFileName(LPCTSTR,CConfigManager&);
-DLL_ID GetDllIDFromParameterType(PARAMETER_TYPE);
-
 class CArchiverDLLManager{
 protected:
-	CArchiver7ZIP	Arc7ZIP;
-	std::list<std::pair<CArchiverDLL*,DLL_ID> > ArchiverList;	//listもしくはvectorにしておくこと;pushの順番がアーカイブ形式推定の順番になる
+	CArchiverDLL	Arc7ZIP;
 
 	CConfigManager *m_lpConfig;
 protected:
@@ -56,8 +43,8 @@ public:
 		return Singleton;
 	}
 
-	CArchiverDLL* GetArchiver(LPCTSTR,LPCTSTR lpDenyExt,DLL_ID ForceDLL=DLL_ID_UNKNOWN);	//ForceDLLにDLL_IDを指定するとそのDLLを返す
-	CArchiverDLL* GetArchiver(DLL_ID,bool bSilent=false,bool bIgnoreError=false);
+	CArchiverDLL* GetArchiver(LPCTSTR,LPCTSTR lpDenyExt);	//ForceDLLにDLL_IDを指定するとそのDLLを返す
+	CArchiverDLL* GetArchiver(bool bSilent=false,bool bIgnoreError=false);
 	void Final();
 	void Free();
 
@@ -69,18 +56,18 @@ public:
 //---------------------
 
 //拡張子とDLL_IDの対応表
-const struct ARRAYITEM_EXT_DLLID{
+/*const struct ARRAYITEM_EXT_DLLID{
 	LPCTSTR	lpszExt;
 	DLL_ID	DllID;
 }Array_ExtDLLID[]={
-/*	{_T(".lzh"),	DLL_ID_UNLHA},
+	{_T(".lzh"),	DLL_ID_UNLHA},
 	{_T(".lha"),	DLL_ID_UNLHA},
 	{_T(".lzs"),	DLL_ID_UNLHA},
-	{_T(".cab"),	DLL_ID_CAB},*/
+	{_T(".cab"),	DLL_ID_CAB},
 	{_T(".zip"),	DLL_ID_7ZIP},
 	{_T(".7z"),		DLL_ID_7ZIP},
 	{_T(".jar"),	DLL_ID_7ZIP},
-/*	{_T(".tar"),	DLL_ID_TAR},
+	{_T(".tar"),	DLL_ID_TAR},
 	{_T(".tgz"),	DLL_ID_TAR},
 	{_T(".gz"),		DLL_ID_TAR},
 	{_T(".tbz"),	DLL_ID_TAR},
@@ -117,19 +104,7 @@ const struct ARRAYITEM_EXT_DLLID{
 	{_T(".ace"),	DLL_ID_UNACE},
 	{_T(".imp"),	DLL_ID_UNIMP},
 	{_T(".bel"),	DLL_ID_UNBEL},
-	{_T(".iso"),	DLL_ID_UNISO},*/
+	{_T(".iso"),	DLL_ID_UNISO},
 };
-const int ARRAY_EXT_DLLID_COUNT=COUNTOF(Array_ExtDLLID);
-
-
-//PARAMETER_TYPEとDLL_IDの対応表
-const struct ARRAYITEM_PARAMETERTYPE_DLLID{
-	PARAMETER_TYPE	ParameterType;
-	DLL_ID			DllID;
-}Array_ParameterTypeDLLID[]={
-	{PARAMETER_ZIP,		DLL_ID_7ZIP},
-	{PARAMETER_7Z,		DLL_ID_7ZIP},
-};
-const int ARRAY_PARAMETERTYPE_DLLID_COUNT=COUNTOF(Array_ParameterTypeDLLID);
-
+const int ARRAY_EXT_DLLID_COUNT=COUNTOF(Array_ExtDLLID);*/
 

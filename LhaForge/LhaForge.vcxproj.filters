@@ -58,9 +58,6 @@
     <ClCompile Include="ArchiverCode\arc_interface.cpp">
       <Filter>ArchiverCode\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\AssocSettings.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -235,9 +232,6 @@
       <Filter>ArchiverCode</Filter>
     </ClInclude>
     <ClInclude Include="ArchiverCode\arc_interface.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\Archiver7ZIP.h">
       <Filter>ArchiverCode\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ArchiverManager.h">

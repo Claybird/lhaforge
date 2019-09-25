@@ -24,14 +24,13 @@
 
 #pragma once
 
-enum DLL_ID;
 class CConfigManager;
 struct CConfigGeneral;
 struct CConfigExtract;
 enum OUTPUT_TO;
 class CMDLINEINFO;
 //解凍を行う
-bool Extract(std::list<CString>&,CConfigManager&,DLL_ID,LPCTSTR lpSpecificOutputDir=NULL,const CMDLINEINFO* lpCmdLineInfo=NULL);
+bool Extract(std::list<CString>&,CConfigManager&,LPCTSTR lpSpecificOutputDir=NULL,const CMDLINEINFO* lpCmdLineInfo=NULL);
 //出力先のディレクトリを取得し、カレントディレクトリにセットする。
 HRESULT GetExtractDestDir(LPCTSTR,const CConfigGeneral&,const CConfigExtract&,LPCTSTR,bool,CPath&,bool,LPCTSTR,CPath&,bool &r_bUseForAll,CString &strErr);
 

@@ -38,7 +38,6 @@ enum PROCESS_MODE{
 
 
 class CConfigManager;
-enum DLL_ID;
 enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
 enum LFPROCESS_PRIORITY;
@@ -52,7 +51,6 @@ public:
 	CString OutputFileName;			//出力先ファイル名
 	PARAMETER_TYPE CompressType;
 	int Options;				//圧縮オプション
-	DLL_ID idForceDLL;			//使用を強制するDLL
 	bool bSingleCompression;	//ファイルを一つずつ圧縮するならtrue
 	CString ConfigPath;			//設定ファイルのパス
 	OUTPUT_TO OutputToOverride;

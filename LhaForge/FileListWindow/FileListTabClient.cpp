@@ -75,7 +75,7 @@ LRESULT CFileListTabClient::OnDestroy()
 	return 0;
 }
 
-HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr)
+HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr)
 {
 	int idx=CreateNewTab(ConfFLW);
 	ASSERT(idx>=0);
@@ -96,7 +96,7 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,cons
 
 	m_rFrameWnd.EnableWindow(FALSE);
 	//---解析
-	HRESULT hr=pItem->OpenArchive(lpszArc,forceID,ConfFLW,ConfFLW.FileListMode,&au,strErr);
+	HRESULT hr=pItem->OpenArchive(lpszArc,ConfFLW,ConfFLW.FileListMode,&au,strErr);
 	if(FAILED(hr)){
 		m_rFrameWnd.EnableWindow(TRUE);
 		WaitDialog.DestroyWindow();

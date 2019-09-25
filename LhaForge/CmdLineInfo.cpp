@@ -39,7 +39,6 @@ CMDLINEINFO::CMDLINEINFO():
 	CompressType(PARAMETER_UNDEFINED),
 	Options(0),
 	bSingleCompression(false),
-	idForceDLL(DLL_ID_UNKNOWN),
 	OutputToOverride((OUTPUT_TO)-1),
 	CreateDirOverride((CREATE_OUTPUT_DIR)-1),
 	IgnoreTopDirOverride(-1),

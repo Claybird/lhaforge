@@ -38,7 +38,6 @@ struct IArchiveContentUpdateHandler{
  * アーカイブ内のファイル構造を保持
  */
 class CArchiverDLL;
-enum DLL_ID;
 class CArchiveFileContent{
 protected:
 	//ファイル情報
@@ -77,8 +76,8 @@ public:
 	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return &m_Root;}
 	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return &m_Root;}
 
-	HRESULT ConstructFlat(LPCTSTR lpFile,CConfigManager&,DLL_ID idForce,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler*);
-	HRESULT ConstructTree(LPCTSTR lpFile,CConfigManager&,DLL_ID idForce,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler*);
+	HRESULT ConstructFlat(LPCTSTR lpFile,CConfigManager&,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler*);
+	HRESULT ConstructTree(LPCTSTR lpFile,CConfigManager&,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler*);
 	void Clear();
 
 	bool ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr);

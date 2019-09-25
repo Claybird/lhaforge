@@ -138,13 +138,13 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 }
 
 
-HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,DLL_ID idForce,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
+HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
 	Clear();
 
 	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
 
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
+	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt);
 	if(!lpArchiver){
 		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
 		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
@@ -197,13 +197,13 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 	return S_OK;
 }
 
-HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMan,DLL_ID idForce,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
+HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
 	Clear();
 
 	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
 
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
+	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt);
 	if(!lpArchiver){
 		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
 		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);

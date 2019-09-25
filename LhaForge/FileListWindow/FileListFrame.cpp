@@ -321,7 +321,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 }
 
 
-HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen)
+HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 {
 	if(m_TabClientWnd.GetPageCount()>0 && !m_TabClientWnd.IsTabEnabled()){
 		//タブ機能が無効なので、自分自身を重複起動し表示させる
@@ -351,7 +351,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 				 */
 				DWORD dwID=GetCurrentProcessId();
 				::SetProp(g_hFirstWindow,fname,(HANDLE)dwID);
-				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,idForceDLL);
+				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,0);
 				::RemoveProp(g_hFirstWindow,fname);
 				if(SUCCEEDED(hr))return S_FALSE;
 				//else return hr;	拒否されたので自分で開く
@@ -378,7 +378,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 
 		//ファイル一覧作成
 		CString strErr;
-		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,idForceDLL,ConfFLW,strMutex,hMutex,strErr);
+		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,ConfFLW,strMutex,hMutex,strErr);
 
 		EnableWindow(TRUE);
 		//SetForegroundWindow(m_hWnd);
@@ -404,11 +404,10 @@ BOOL CALLBACK CFileListFrame::EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hD
 LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	DWORD dwID=wParam;
-	DLL_ID idForceDLL=(DLL_ID)lParam;
 	g_FileToOpen=_T("");
 	EnumPropsEx(m_hWnd,EnumPropProc,dwID);
 	if(!g_FileToOpen.IsEmpty() && m_TabClientWnd.IsTabEnabled()){
-		return OpenArchiveFile(g_FileToOpen,idForceDLL,false);
+		return OpenArchiveFile(g_FileToOpen,false);
 	}else{
 		return E_FAIL;
 	}
@@ -871,7 +870,7 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	CString tmp;
 	if(dlg.GetFirstPathName(tmp)){
 		do{
-			HRESULT hr=OpenArchiveFile(tmp,DLL_ID_UNKNOWN,false);
+			HRESULT hr=OpenArchiveFile(tmp,false);
 			if(E_ABORT==hr)break;
 		}while(dlg.GetNextPathName(tmp));
 	}
@@ -988,7 +987,7 @@ HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffec
 
 		//開く
 		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			HRESULT hr=OpenArchiveFile(*ite,DLL_ID_UNKNOWN,false);
+			HRESULT hr=OpenArchiveFile(*ite,false);
 			if(E_ABORT==hr)break;
 		}
 

@@ -169,7 +169,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		}else{
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
-			if(CArchiverDLLManager::GetInstance().GetArchiver(*cli.FileList.begin(),ConfExtract.DenyExt,cli.idForceDLL)){	//解凍可能な形式かどうか
+			if(CArchiverDLLManager::GetInstance().GetArchiver(*cli.FileList.begin(),ConfExtract.DenyExt)){	//解凍可能な形式かどうか
 				DoExtract(ConfigManager,cli);
 			}else{
 				DoCompress(ConfigManager,cli);
@@ -248,8 +248,6 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				if(PARAMETER_UNDEFINED==cli.CompressType){	//キャンセルの場合
 					return false;
 				}else{
-					cli.idForceDLL=DLL_ID_UNKNOWN;
-
 					cli.Options=SelDlg.GetOptions();
 					cli.bSingleCompression=SelDlg.IsSingleCompression();
 					cli.DeleteAfterProcess=SelDlg.GetDeleteAfterCompress() ? 1 : 0;
@@ -300,12 +298,12 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	MakeListFilesOnly(cli.FileList,cli.idForceDLL,ConfExtract.DenyExt,true);
+	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,true);
 	if(cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 		return false;
 	}
-	return Extract(cli.FileList,ConfigManager,cli.idForceDLL,cli.OutputDir,&cli);
+	return Extract(cli.FileList,ConfigManager,cli.OutputDir,&cli);
 }
 
 bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
@@ -313,7 +311,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
 	bool bSpecified=!cli.FileList.empty();
-	MakeListFilesOnly(cli.FileList,cli.idForceDLL,ConfExtract.DenyExt,true);
+	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,true);
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(bSpecified && cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
@@ -333,7 +331,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		std::list<CString>::iterator ite=cli.FileList.begin();
 		const std::list<CString>::iterator End=cli.FileList.end();
 		for(;ite!=cli.FileList.end();++ite){
-			HRESULT hr=ListWindow.OpenArchiveFile(*ite,cli.idForceDLL);
+			HRESULT hr=ListWindow.OpenArchiveFile(*ite);
 			if(SUCCEEDED(hr)){
 				if(hr!=S_FALSE)bAllFailed=false;
 			}else if(hr==E_ABORT){
@@ -355,7 +353,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
 	//全てのファイルを検査対象にする
-	MakeListFilesOnly(cli.FileList,cli.idForceDLL,ConfExtract.DenyExt,false);
+	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,false);
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
@@ -367,7 +365,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 }
 
 //リストからフォルダを削除し、サブフォルダのファイルを追加
-void MakeListFilesOnly(std::list<CString> &FileList,DLL_ID idForceDLL,LPCTSTR lpDenyExt,bool bArchivesOnly)
+void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArchivesOnly)
 {
 	std::list<CString>::iterator ite;
 	for(ite=FileList.begin();ite!=FileList.end();){
@@ -377,7 +375,7 @@ void MakeListFilesOnly(std::list<CString> &FileList,DLL_ID idForceDLL,LPCTSTR lp
 			UtilRecursiveEnumFile(*ite,subFileList);
 
 			for(std::list<CString>::iterator ite2=subFileList.begin();ite2!=subFileList.end();ite2++){
-				if(!bArchivesOnly||CArchiverDLLManager::GetInstance().GetArchiver(*ite2,lpDenyExt,idForceDLL)){
+				if(!bArchivesOnly||CArchiverDLLManager::GetInstance().GetArchiver(*ite2,lpDenyExt)){
 					//対応している形式のみ追加する必要がある時は、解凍可能な形式かどうか判定する
 					FileList.push_back(*ite2);
 				}

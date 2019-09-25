@@ -323,9 +323,10 @@ HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,
 	return true;
 }
 
-bool Extract(std::list<CString> &ParamList,CConfigManager &ConfigManager,DLL_ID ForceDLL,LPCTSTR lpSpecificOutputDir,const CMDLINEINFO* lpCmdLineInfo)
+bool Extract(std::list<CString> &ParamList,CConfigManager &ConfigManager,LPCTSTR lpSpecificOutputDir,const CMDLINEINFO* lpCmdLineInfo)
 {
-	TRACE(_T("Function ::Extract() started.\n"));
+	return false;
+/*	TRACE(_T("Function ::Extract() started.\n"));
 	CConfigGeneral ConfGeneral;
 	CConfigExtract ConfExtract;
 
@@ -464,6 +465,6 @@ bool Extract(std::list<CString> &ParamList,CConfigManager &ConfigManager,DLL_ID 
 	}
 
 	TRACE(_T("Exit Extract()\n"));
-	return bAllOK;
+	return bAllOK;*/
 }
 

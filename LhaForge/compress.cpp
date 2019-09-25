@@ -66,7 +66,7 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 		ConfCompress.DeleteAfterCompress=CmdLineInfo.DeleteAfterProcess;
 	}
 
-	CArchiverDLL *lpArchiver=ArchiverManager.GetArchiver(GetDllIDFromParameterType(Type));
+	CArchiverDLL *lpArchiver=ArchiverManager.GetArchiver();
 	if(!lpArchiver || !lpArchiver->IsOK()){
 		return false;
 	}

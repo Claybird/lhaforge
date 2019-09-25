@@ -29,7 +29,6 @@
 #include "../Utilities/TemporaryDirMgr.h"
 
 class CArchiverDLL;
-enum DLL_ID;
 
 enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
 	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示
@@ -73,7 +72,6 @@ protected:
 	int		m_nSortKeyType;
 
 	FILELISTMODE m_Mode;
-	DLL_ID	m_idForceDLL;
 	//openassoc
 	static CString ms_strExtAccept,ms_strExtDeny;
 protected:
@@ -83,7 +81,7 @@ public:
 	CFileListModel(CConfigManager&);
 	virtual ~CFileListModel();
 
-	HRESULT OpenArchiveFile(LPCTSTR,DLL_ID idForceDLL,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
+	HRESULT OpenArchiveFile(LPCTSTR,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
 	HRESULT ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
 	void Clear();
 

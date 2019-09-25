@@ -212,7 +212,7 @@ public:
 	}
 	BOOL PreTranslateMessage(MSG* pMsg);
 
-	HRESULT OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen=true);
+	HRESULT OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen=true);
 
 	void GetFreeClientRect(CRect &rc){
 		GetClientRect(rc);

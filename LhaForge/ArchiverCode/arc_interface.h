@@ -192,13 +192,13 @@ public:
 	virtual bool IsWeakErrorCheck()const{return false;}	//%Prefix%()のエラーチェックが甘い(XacRettのように)ならtrue;解凍後に削除するかの判断に使用
 	virtual BOOL CheckArchive(LPCTSTR);
 	virtual ARCRESULT TestArchive(LPCTSTR,CString&);	//アーカイブが正しいかどうかチェックする
-	virtual bool Compress(LPCTSTR ArcFileName,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int Options,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog)=0;
-	virtual bool Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtract&,bool bSafeArchive,LPCTSTR OutputDir,CString &)=0;
-	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false)=0;	//指定したファイルのみ解凍
+	virtual bool Compress(LPCTSTR ArcFileName,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int Options,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
+	virtual bool Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtract&,bool bSafeArchive,LPCTSTR OutputDir,CString &);
+	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false);	//指定したファイルのみ解凍
 	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnlyがサポートされているかどうか
 	virtual bool GetVersionString(CString&)const;
 	virtual LPCTSTR GetName()const{return L"DUMMY";}	//DLL名を返す//TODO:remove
-	virtual bool isContentSingleFile(LPCTSTR)=0;	//アーカイブ中に複数ファイルが含まれていればfalse
+	virtual bool isContentSingleFile(LPCTSTR);	//アーカイブ中に複数ファイルが含まれていればfalse
 
 	//アーカイブから指定したファイルを削除
 	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &){return false;}
@@ -208,7 +208,7 @@ public:
 	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&){return false;}
 	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const{return false;}
 
-	virtual bool ExamineArchive(LPCTSTR,CConfigManager&,bool bSkipDir,bool &bInFolder,bool &bSafeArchive,CString&,CString &strErr)=0;
+	virtual bool ExamineArchive(LPCTSTR,CConfigManager&,bool bSkipDir,bool &bInFolder,bool &bSafeArchive,CString&,CString &strErr);
 		//アーカイブされたファイルが既にフォルダ内に入っているかどうか、
 		//そしてアーカイブが安全かどうかを調査する
 		//bSkipDirは二重フォルダ判定が不要な場合にtrueになる。このとき、_ExamineArchiveFastは呼びださななくて済む
@@ -221,13 +221,13 @@ public:
 	// 書庫内検査用メソッド
 	//----------------------
 	virtual bool QueryInspectSupported()const{return true;}		//書庫内調査がサポートされているかどうか
-	virtual bool InspectArchiveBegin(ARCHIVE_FILE&,LPCTSTR,CConfigManager&)=0;				//書庫内調査開始
-	virtual bool InspectArchiveEnd(ARCHIVE_FILE&) = 0;						//書庫内調査終了
-	virtual bool InspectArchiveGetFileName(ARCHIVE_FILE&,CString&) = 0;		//書庫内ファイル名取得
-	virtual bool InspectArchiveNext(ARCHIVE_FILE&) = 0;						//書庫内調査を次のファイルに進める
-	virtual int  InspectArchiveGetAttribute(ARCHIVE_FILE&) = 0;				//書庫内ファイル属性取得
-	virtual bool InspectArchiveGetOriginalFileSize(ARCHIVE_FILE&,LARGE_INTEGER&) = 0;	//書庫内圧縮前ファイルサイズ取得
-	virtual bool InspectArchiveGetWriteTime(ARCHIVE_FILE&,FILETIME&) = 0;		//書庫内ファイル更新日時取得
+	virtual bool InspectArchiveBegin(ARCHIVE_FILE&,LPCTSTR,CConfigManager&);				//書庫内調査開始
+	virtual bool InspectArchiveEnd(ARCHIVE_FILE&);						//書庫内調査終了
+	virtual bool InspectArchiveGetFileName(ARCHIVE_FILE&,CString&);		//書庫内ファイル名取得
+	virtual bool InspectArchiveNext(ARCHIVE_FILE&);						//書庫内調査を次のファイルに進める
+	virtual int  InspectArchiveGetAttribute(ARCHIVE_FILE&);				//書庫内ファイル属性取得
+	virtual bool InspectArchiveGetOriginalFileSize(ARCHIVE_FILE&,LARGE_INTEGER&);	//書庫内圧縮前ファイルサイズ取得
+	virtual bool InspectArchiveGetWriteTime(ARCHIVE_FILE&,FILETIME&);		//書庫内ファイル更新日時取得
 };
 
 

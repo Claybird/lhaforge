@@ -32,7 +32,6 @@ struct CConfigFileListWindow;
 struct CFileListTabItem{
 	DISALLOW_COPY_AND_ASSIGN(CFileListTabItem);
 public:
-	DLL_ID idForceDLL;	//強制使用するDLL
 	CFileListModel	Model;
 
 	CSplitterWindow	Splitter;	// スプリッタウィンドウ
@@ -52,7 +51,7 @@ public:
 	CFileListTabItem(CConfigManager &rMan);
 	virtual ~CFileListTabItem(){DestroyWindow();}
 	bool CreateTabItem(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow&);
-	HRESULT OpenArchive(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr);
+	HRESULT OpenArchive(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr);
 
 	void DestroyWindow();
 	void ShowWindow(int nCmdShow);
