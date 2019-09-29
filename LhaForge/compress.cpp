@@ -28,7 +28,6 @@
 
 #include "resource.h"
 
-#include "archivermanager.h"
 #include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"

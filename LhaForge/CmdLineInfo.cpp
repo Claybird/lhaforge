@@ -25,7 +25,6 @@
 #include "stdafx.h"
 #include "ConfigCode/ConfigManager.h"
 #include "CmdLineInfo.h"
-#include "ArchiverManager.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
 #include "Utilities/StringUtil.h"

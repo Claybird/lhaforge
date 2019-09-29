@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "extract.h"
-#include "ArchiverManager.h"
 #include "resource.h"
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"

@@ -24,7 +24,6 @@
 
 #pragma once
 #include "../resource.h"
-#include "../ArchiverManager.h"
 #include "../ConfigCode/ConfigManager.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"

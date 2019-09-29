@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "TestArchive.h"
-#include "ArchiverManager.h"
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "Dialogs/LogListDialog.h"

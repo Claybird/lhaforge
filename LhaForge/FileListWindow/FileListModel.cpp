@@ -23,7 +23,6 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverManager.h"
 #include "FileListModel.h"
 #include "../ConfigCode/ConfigManager.h"
 #include "../ConfigCode/ConfigFileListWindow.h"

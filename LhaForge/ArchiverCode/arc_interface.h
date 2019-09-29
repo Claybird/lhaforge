@@ -26,6 +26,8 @@
 #include "../resource.h"
 #include "ArcEntryInfo.h"
 #include "../ConfigCode/ConfigManager.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
 
 #define	CHECKARCHIVE_RAPID		0
 #define	CHECKARCHIVE_BASIC		1
@@ -42,16 +44,6 @@
 
 
 enum PARAMETER_TYPE;
-
-
-enum LOAD_RESULT{
-	LOAD_RESULT_OK,			//DLLは正常にロードされた
-	LOAD_RESULT_NOT_FOUND,	//DLLが見つからない
-	LOAD_RESULT_INVALID,	//不正なDLL
-	LOAD_RESULT_TOO_OLD		//DLLはサポートされているバージョンより古い
-};
-
-const int LOG_BUFFER_SIZE=512*1024;	//512KB
 
 enum COMPRESS_MODE{
 	COMPRESS_SFX				=	0x00000001L,
@@ -146,98 +138,141 @@ enum CREATE_OUTPUT_DIR{
 #define LIBARCHIVE_STATIC
 #include <libarchive/archive.h>
 #include <libarchive/archive_entry.h>
+#include <errno.h>
 
-struct ARCHIVE_FILE {
+struct ARCHIVE_EXCEPTION {
+	std::wstring _msg;
+	int _errno;
+	ARCHIVE_EXCEPTION(const std::wstring &err) {
+		_msg = err;
+		_errno = 0;
+	}
+	ARCHIVE_EXCEPTION(archive* arc) {
+		_errno = archive_errno(arc);
+		_msg = CUTF8String(archive_error_string(arc)).toWstring();
+	}
+	const wchar_t* what()const { return _msg.c_str(); }
+};
+
+template<bool _readMode>
+struct ARCHIVE_FILE_BASE {
 	struct archive *_arc;
-	struct archive_entry *_entry;
-	ARCHIVE_FILE():_entry(NULL) {
+	ARCHIVE_FILE_BASE() {
 		_arc = archive_read_new();
 		archive_read_support_filter_all(_arc);
 		archive_read_support_format_all(_arc);
 	}
-	virtual ~ARCHIVE_FILE() {
+	virtual ~ARCHIVE_FILE_BASE() {
 		close();
 	}
 	void close() {
 		if (_arc) {
-			archive_read_close(_arc);
-			archive_read_free(_arc);
+			if (_readMode) {
+				archive_read_close(_arc);
+				archive_read_free(_arc);
+			} else {
+				archive_write_close(_arc);
+				archive_write_free(_arc);
+			}
 			_arc = NULL;
-			_entry = NULL;
 		}
 	}
 	operator struct archive*() { return _arc; }
-	operator struct archive_entry*() { return _entry; }
-	const ARCHIVE_FILE& operator=(const ARCHIVE_FILE&) = delete;
+	const ARCHIVE_FILE_BASE& operator=(const ARCHIVE_FILE_BASE&) = delete;
 };
 
-struct CConfigExtract;
-//統合アーカイバDLLラップ用クラスのベース
-class CArchiverDLL{
-protected:
-	//DLL固有のデータ
-	//---------
-	//書庫内検査の状態を記録するための変数
-	bool m_bInspectFirstTime;
+struct ARCHIVE_ENTRY{
+	struct archive_entry *_entry;
 
-public:
-	CArchiverDLL();
-	virtual ~CArchiverDLL(){};
-	virtual LOAD_RESULT LoadDLL(CConfigManager&,CString &strErr);
-	virtual void FreeDLL();
-	virtual WORD GetVersion()const;
-	virtual WORD GetSubVersion()const;
-	virtual bool IsUnicodeCapable()const{return true;}	//UNICODE対応DLLならtrueを返す
-	virtual bool IsWeakCheckArchive()const{return false;}	//CheckArchiveの機能が貧弱(UNBEL/AISHのように)ならtrue
-	virtual bool IsWeakErrorCheck()const{return false;}	//%Prefix%()のエラーチェックが甘い(XacRettのように)ならtrue;解凍後に削除するかの判断に使用
-	virtual BOOL CheckArchive(LPCTSTR);
-	virtual ARCRESULT TestArchive(LPCTSTR,CString&);	//アーカイブが正しいかどうかチェックする
-	virtual bool Compress(LPCTSTR ArcFileName,std::list<CString>&,CConfigManager&,const PARAMETER_TYPE,int Options,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CString &strLog);
-	virtual bool Extract(LPCTSTR ArcFileName,CConfigManager&,const CConfigExtract&,bool bSafeArchive,LPCTSTR OutputDir,CString &);
-	virtual bool ExtractSpecifiedOnly(LPCTSTR ArcFileName,CConfigManager&,LPCTSTR OutputDir,std::list<CString>&,CString &,bool bUsePath=false);	//指定したファイルのみ解凍
-	virtual bool QueryExtractSpecifiedOnlySupported(LPCTSTR)const{return true;}		//ExtractSpecifiedOnlyがサポートされているかどうか
-	virtual bool GetVersionString(CString&)const;
-	virtual LPCTSTR GetName()const{return L"DUMMY";}	//DLL名を返す//TODO:remove
-	virtual bool isContentSingleFile(LPCTSTR);	//アーカイブ中に複数ファイルが含まれていればfalse
-
-	//アーカイブから指定したファイルを削除
-	virtual bool DeleteItemFromArchive(LPCTSTR ArcFileName,CConfigManager&,const std::list<CString>&,CString &){return false;}
-	virtual bool QueryDeleteItemFromArchiveSupported(LPCTSTR ArcFileName)const{return false;}		//DeleteFileがサポートされているかどうか
-
-	//アーカイブに指定したファイルを追加
-	virtual bool AddItemToArchive(LPCTSTR ArcFileName,bool bEncrypted,const std::list<CString>&,CConfigManager&,LPCTSTR lpDestDir,CString&){return false;}
-	virtual bool QueryAddItemToArchiveSupported(LPCTSTR ArcFileName)const{return false;}
-
-	virtual bool ExamineArchive(LPCTSTR,CConfigManager&,bool bSkipDir,bool &bInFolder,bool &bSafeArchive,CString&,CString &strErr);
-		//アーカイブされたファイルが既にフォルダ内に入っているかどうか、
-		//そしてアーカイブが安全かどうかを調査する
-		//bSkipDirは二重フォルダ判定が不要な場合にtrueになる。このとき、_ExamineArchiveFastは呼びださななくて済む
-
-	virtual bool IsOK()const{return true;}	//TODO:remove		//アーカイバDLLがロードされているか
-
-	virtual bool ExtractItems(LPCTSTR lpszArcFile,CConfigManager&,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,LPCTSTR lpszOutputBaseDir,bool bCollapseDir,CString &strLog);
-
-	//----------------------
-	// 書庫内検査用メソッド
-	//----------------------
-	virtual bool QueryInspectSupported()const{return true;}		//書庫内調査がサポートされているかどうか
-	virtual bool InspectArchiveBegin(ARCHIVE_FILE&,LPCTSTR,CConfigManager&);				//書庫内調査開始
-	virtual bool InspectArchiveEnd(ARCHIVE_FILE&);						//書庫内調査終了
-	virtual bool InspectArchiveGetFileName(ARCHIVE_FILE&,CString&);		//書庫内ファイル名取得
-	virtual bool InspectArchiveNext(ARCHIVE_FILE&);						//書庫内調査を次のファイルに進める
-	virtual int  InspectArchiveGetAttribute(ARCHIVE_FILE&);				//書庫内ファイル属性取得
-	virtual bool InspectArchiveGetOriginalFileSize(ARCHIVE_FILE&,LARGE_INTEGER&);	//書庫内圧縮前ファイルサイズ取得
-	virtual bool InspectArchiveGetWriteTime(ARCHIVE_FILE&,FILETIME&);		//書庫内ファイル更新日時取得
+	ARCHIVE_ENTRY(){
+		_entry = archive_entry_new();
+	}
+	ARCHIVE_ENTRY(ARCHIVE_ENTRY& a) {
+		_entry = archive_entry_clone(a._entry);
+	}
+	ARCHIVE_ENTRY(archive_entry* entry) {
+		_entry = archive_entry_clone(entry);
+	}
+	const ARCHIVE_ENTRY& operator=(const ARCHIVE_ENTRY& a) {
+		if (_entry) {
+			archive_entry_free(_entry);
+		}
+		_entry = archive_entry_clone(a._entry);
+	}
+	const wchar_t* get_pathname(){
+		return archive_entry_pathname_w(_entry);
+	}
+	LARGE_INTEGER get_original_filesize() {
+		LARGE_INTEGER size;
+		if (archive_entry_size_is_set(_entry)) {
+			size.QuadPart = archive_entry_size(_entry);
+		} else {
+			size.QuadPart = -1;
+		}
+		return size;
+	}
+	FILETIME get_write_time() {
+		FILETIME ft;
+		if (archive_entry_mtime_is_set(_entry)) {
+			const auto mtime = archive_entry_mtime(_entry);
+			//archive_entry_mtime_nsec is not used, because it returns 32bit value on Windows
+			UtilUnixTimeToFileTime(mtime, &ft);
+		} else {
+			UtilUnixTimeToFileTime(0, &ft);
+		}
+		return ft;
+	};
+	unsigned short get_file_mode() {
+		const auto *stat = archive_entry_stat(_entry);
+		return stat->st_mode;
+	}
+	void extract() {
+		//TODO:いくらかバッファをもらってくる?
+	}
 };
 
+struct ARCHIVE_FILE_TO_READ:public ARCHIVE_FILE_BASE<true>
+{
+	struct iterator{
+		struct archive *_arc;
+		ARCHIVE_ENTRY _entry;
+		iterator(struct archive* arc):_arc(arc) {
+			operator++();
+		}
+		iterator& operator++() {
+			if (ARCHIVE_OK == archive_read_next_header2(_arc, _entry._entry)) {
+				return *this;
+			} else {
+				_arc = NULL;
+			}
+		}
+		iterator operator++(int) = delete;
+		ARCHIVE_ENTRY& operator*() { return _entry; }
+		ARCHIVE_ENTRY& operator->() { return _entry; }
+		bool operator==(iterator& ite) {
+			if (!_arc && !ite._arc)return true;
+			if (_arc != ite._arc)return false;
+			auto pathA = std::wstring(_entry.get_pathname());
+			auto pathB = std::wstring((*ite).get_pathname());
+			return pathA == pathB;
+		}
+	};
+	iterator begin() { return iterator(_arc); }
+	iterator end() { return iterator(NULL); }
+	void read_open(const wchar_t* arcname) {
+		int r = archive_read_open_filename_w(_arc, arcname, 10240);
+		if (r != ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
+		}
+	}
 
-/*
-  Compress()を呼び出す上では、
-1.カレントディレクトリの設定
-2.レスポンスファイルへの書き込み(出力先ファイル名の設定含む)
-3.レスポンスファイルの削除
-  は呼び出し側の責任で実行する。
-
-  DLLごとのスイッチの設定の違いをCompress()が吸収する。
-
-*/
+	void test_archive() {
+		ASSERT(_arc);
+		if (!_arc) {
+			auto err = ARCHIVE_EXCEPTION(L"Archive not opened");
+			err._errno = EBADF;
+			throw err;
+		}
+		//TODO
+	}
+};

@@ -48,13 +48,13 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
     <LinkIncremental />
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -143,8 +143,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp" />
-    <ClCompile Include="ArchiverCode\arc_interface.cpp" />
-    <ClCompile Include="ArchiverManager.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -217,7 +215,6 @@
   <ItemGroup>
     <ClInclude Include="ArchiverCode\ArcEntryInfo.h" />
     <ClInclude Include="ArchiverCode\arc_interface.h" />
-    <ClInclude Include="ArchiverManager.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />
     <ClInclude Include="CommonUtil.h" />

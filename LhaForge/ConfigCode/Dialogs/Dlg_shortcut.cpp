@@ -26,7 +26,6 @@
 #include "Dlg_shortcut.h"
 #include "../../Compress.h"
 #include "../../Dialogs/SelectDlg.h"
-#include "../../ArchiverManager.h"
 #include "../../Utilities/OSUtil.h"
 
 //========================
