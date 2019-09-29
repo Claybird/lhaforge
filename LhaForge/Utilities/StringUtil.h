@@ -36,26 +36,52 @@ enum UTIL_CODEPAGE{
 //MFCスタイルでCFileDialogのフィルター文字列を作る
 void UtilMakeFilterString(LPCTSTR,LPTSTR,int);
 
+struct CUTF8String;
+struct CUTF8String {
+	CUTF8String() {}
+	CUTF8String(const CUTF8String& utf8) {
+		_utf8_str = utf8._utf8_str;
+	}
+	CUTF8String(const char* utf8) {
+		_utf8_str = (const char*)utf8;
+	}
+	CUTF8String(const std::wstring& wstr) {
+		this->operator=(wstr);
+	}
+	virtual ~CUTF8String() {}
+	std::string _utf8_str;
+	std::wstring toWstring()const {
+		int bufSize = ::MultiByteToWideChar(CP_UTF8, 0, _utf8_str.c_str(), -1, NULL, 0);
+
+		std::wstring wstr;
+		wstr.resize(bufSize);
+
+		::MultiByteToWideChar(CP_UTF8, 0, _utf8_str.c_str(), -1, &wstr[0], bufSize);
+		return wstr;
+	}
+	const char* utf8() const { return _utf8_str.c_str(); }
+	const CUTF8String& operator=(const CUTF8String& c) {
+		_utf8_str = c._utf8_str;
+		return *this;
+	}
+	const CUTF8String& operator=(LPCBYTE utf8) {
+		_utf8_str = (const char*)utf8;
+	}
+	const CUTF8String& operator=(const std::wstring& wstr) {
+		int bufSize = ::WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+		_utf8_str.resize(bufSize);
+		::WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &_utf8_str[0], bufSize, NULL, NULL);
+		return *this;
+	}
+	size_t length_utf8()const { return _utf8_str.length(); }
+};
+
 
 //適当な文字コード->UNICODE
 //dwSizeはUTILCP_UTF16のときのみ必要
 bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage);
 //UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
 void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
-//UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc);
-
-//UNICODEをUTF8に変換するためのアダプタクラス
-class C2UTF8{
-protected:
-	std::vector<BYTE> m_cArray;
-public:
-	C2UTF8(LPCWSTR str){
-		UtilToUTF8(m_cArray,str);
-	}
-	virtual ~C2UTF8(){}
-	operator LPCSTR(){return (LPCSTR)&m_cArray[0];}
-};
 
 //UNICODEとして安全ならtrue
 bool UtilIsSafeUnicode(LPCTSTR);
@@ -75,3 +101,12 @@ void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd);
 //文字列を分解し数値配列として取得
 void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
 
+template <typename ...Args>
+std::wstring Format(const wchar_t* fmt, Args && ...args)
+{
+	auto size = _snwprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
+	wchar_t *work = (wchar_t*)_malloca((size + 1) * sizeof(wchar_t));
+	memset(work, 0, (size + 1) * sizeof(wchar_t));
+	_snwprintf(work, size, fmt, std::forward<Args>(args)...);
+	return std::wstring(work);
+}

@@ -159,23 +159,6 @@ void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize)
 #endif//defined(_UNICODE)||defined(UNICODE)
 }
 
-//UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	cArray.resize(::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,NULL,0,NULL,NULL));	//バッファ確保
-	//変換
-	if(!::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,(LPSTR)&cArray[0],cArray.size(),NULL,NULL)){
-		TRACE(_T("文字コード変換失敗(UTF16->UTF8)"));
-		return false;
-	}
-	return true;
-#else//defined(_UNICODE)||defined(UNICODE)
-#error("not implemented")
-	return false;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
 inline bool between(WCHAR a,WCHAR begin,WCHAR end){
 	return (begin<=a && a<=end);
 }
