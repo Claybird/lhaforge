@@ -24,17 +24,6 @@
 
 #pragma once
 
-//統合アーカイバプロジェクト仕様のファイル属性
-#define FA_RDONLY		0x001			// 書き込み保護属性
-#define FA_HIDDEN		0x002			// 隠し属性
-#define FA_SYSTEM		0x004			// システム属性
-#define FA_LABEL		0x008			// ボリューム・ラベル
-#define FA_DIREC		0x010			// ディレクトリ
-#define FA_ARCH			0x020			// アーカイブ属性
-#define FA_ENCRYPTED	0x040			// パスワード保護されたファイル
-#define FA_UNKNOWN		0x100			// 不明な属性(LhaForgeの独自拡張)
-
-
 //フォルダの識別文字列(拡張子)
 const LPCTSTR FOLDER_EXTENSION_STRING=_T("***");
 
@@ -43,13 +32,8 @@ struct ARCHIVE_ENTRY_INFO{	//ファイルアイテム情報保持
 	virtual ~ARCHIVE_ENTRY_INFO(){}
 
 	CString			strFullPath;	//格納されたときの名前
-	CString			strExt;			//ファイル拡張子
 	int				nAttribute;		//属性;自分がフォルダかどうかなどの情報
-	CString			strMethod;		//圧縮メソッド
-	WORD			wRatio;			//圧縮率
-	DWORD			dwCRC;			//CRC
 	LARGE_INTEGER	llOriginalSize;		//格納ファイルの圧縮前のサイズ(ディレクトリなら、中に入っているファイルサイズの合計)
-	LARGE_INTEGER	llCompressedSize;	//格納ファイルの圧縮後のサイズ(ディレクトリなら、中に入っているファイルサイズの合計)
 	FILETIME		cFileTime;		//格納ファイル最終更新日時
 
 	bool bSafe;
@@ -73,12 +57,8 @@ struct ARCHIVE_ENTRY_INFO_TREE:public ARCHIVE_ENTRY_INFO{
 		childrenDict.clear();
 
 		nAttribute=-1;
-		wRatio=0xFFFF;
-		dwCRC=-1;
 		llOriginalSize.HighPart=-1;
 		llOriginalSize.LowPart=-1;
-		llCompressedSize.HighPart=-1;
-		llCompressedSize.LowPart=-1;
 		cFileTime.dwLowDateTime=-1;
 		cFileTime.dwHighDateTime=-1;
 		bSafe=true;

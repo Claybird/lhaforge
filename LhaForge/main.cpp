@@ -31,7 +31,6 @@
 #include "TestArchive.h"
 #include "ArchiverCode/arc_interface.h"
 #include "FileListWindow/FileListFrame.h"
-#include "ArchiverManager.h"
 #include "Dialogs/SelectDlg.h"
 #include "Dialogs/ProgressDlg.h"
 #include "Utilities/OSUtil.h"

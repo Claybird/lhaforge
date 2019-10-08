@@ -71,7 +71,6 @@ public:
 	//処理対象アーカイブ名を取得
 	void SetArchiveFileName(LPCTSTR lpFile){m_pathArcFileName=lpFile;}
 	LPCTSTR GetArchiveFileName()const{return m_pathArcFileName;}
-	const CArchiverDLL* GetArchiver()const{return m_lpArchiver;}
 
 	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return &m_Root;}
 	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return &m_Root;}
@@ -82,10 +81,6 @@ public:
 
 	bool ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr);
 
-	bool IsExtractEachSupported()const{return m_bExtractEachSupported;}
-	bool IsDeleteItemsSupported()const;
-	bool IsAddItemsSupported()const;
-	bool IsUnicodeCapable()const;
 	bool IsArchiveEncrypted()const{return m_bEncrypted;}
 	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
 
