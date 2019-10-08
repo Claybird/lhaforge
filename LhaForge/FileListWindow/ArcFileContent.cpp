@@ -74,66 +74,51 @@ ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_
 HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,CArchiverDLL *lpArchiver,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
 {
 	//解析開始
-	TRACE(_T("ディレクトリ構造解析開始\n"));
-	ARCHIVE_FILE arc;
-	if(!lpArchiver->InspectArchiveBegin(arc,lpFile,ConfMan)){
-		//スキャンできない
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
+	try {
+		HRESULT hr = S_OK;
+		ARCHIVE_FILE_TO_READ arc;
+		arc.read_open(lpFile);
+		
+		//少なくとも一つのファイルが暗号化されているならtrue
+		bool bEncrypted = false;
 
-	//少なくとも一つのファイルが暗号化されているならtrue
-	bool bEncrypted = false;
+		//一覧取得
+		for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+			ARCHIVE_ENTRY_INFO item;
 
-	HRESULT hr=S_OK;
-	//一覧取得
-	while(lpArchiver->InspectArchiveNext(arc)){
-		ARCHIVE_ENTRY_INFO item;
+			item.strFullPath = entry->get_pathname();	//格納されたときの名前
+			item.nAttribute = entry->get_file_mode();		//属性;自分がフォルダかどうかなどの情報
 
-		//格納ファイル名取得
-		lpArchiver->InspectArchiveGetFileName(arc,item.strFullPath);
-		//属性取得
-		item.nAttribute=lpArchiver->InspectArchiveGetAttribute(arc);
-		//ファイルサイズ(圧縮前)
-		if(!lpArchiver->InspectArchiveGetOriginalFileSize(arc,item.llOriginalSize)){
-			item.llOriginalSize.LowPart=-1;
-			item.llOriginalSize.HighPart=-1;
-		}
-		//ファイルサイズ(圧縮後)
-		item.llCompressedSize.LowPart=-1;
-		item.llCompressedSize.HighPart=-1;
-		//日時取得
-		if(!lpArchiver->InspectArchiveGetWriteTime(arc,item.cFileTime)){
-			item.cFileTime.dwLowDateTime=-1;
-			item.cFileTime.dwHighDateTime=-1;
-		}
-		//圧縮率
-		item.wRatio=-1;
-		//CRC
-		item.dwCRC=-1;
-		//メソッド
-		item.strMethod=L"---";
+			//ファイルサイズ(圧縮前)
+			item.llOriginalSize = entry->get_original_filesize();
+			//日時取得
+			item.cFileTime = entry->get_write_time();
 
-		//暗号
-		bEncrypted = bEncrypted || ((item.nAttribute & FA_ENCRYPTED)!=0);
+			//暗号
+			bEncrypted = bEncrypted || entry->is_encrypted();
 
-		//登録		
-		entries.push_back(item);
+			//登録		
+			entries.push_back(item);
 
-		//更新
-		if(lpHandler){
-			while(UtilDoMessageLoop())continue;
-			lpHandler->onUpdated(item);
-			if(lpHandler->isAborted()){
-				hr=E_ABORT;
-				break;
+			//更新
+			if (lpHandler) {
+				while (UtilDoMessageLoop())continue;
+				lpHandler->onUpdated(item);
+				if (lpHandler->isAborted()) {
+					hr = E_ABORT;
+					break;
+				}
 			}
 		}
-	}
-	//解析終了
-	lpArchiver->InspectArchiveEnd(arc);
+		//解析終了
+		arc.close();
 
-	m_bEncrypted = bEncrypted;
-	return hr;
+		m_bEncrypted = bEncrypted;
+		return hr;
+	}catch(const ARCHIVE_EXCEPTION& e) {
+		ErrorMessage(e.what());
+		return E_FAIL;
+	}
 }
 
 
@@ -142,18 +127,6 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 	Clear();
 
 	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
-
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt);
-	if(!lpArchiver){
-		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
-		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
-		return E_LF_UNKNOWN_FORMAT;
-	}
-	if(!lpArchiver->QueryInspectSupported()){
-		//閲覧できない形式
-		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
 
 	//--構造取得
 	std::vector<ARCHIVE_ENTRY_INFO> entries;

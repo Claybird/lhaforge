@@ -181,24 +181,16 @@ struct ARCHIVE_FILE_BASE {
 	const ARCHIVE_FILE_BASE& operator=(const ARCHIVE_FILE_BASE&) = delete;
 };
 
-struct ARCHIVE_ENTRY{
+struct LF_ARCHIVE_ENTRY{
+	struct archive *_arc;
 	struct archive_entry *_entry;
 
-	ARCHIVE_ENTRY(){
+	LF_ARCHIVE_ENTRY(){
 		_entry = archive_entry_new();
 	}
-	ARCHIVE_ENTRY(ARCHIVE_ENTRY& a) {
-		_entry = archive_entry_clone(a._entry);
-	}
-	ARCHIVE_ENTRY(archive_entry* entry) {
-		_entry = archive_entry_clone(entry);
-	}
-	const ARCHIVE_ENTRY& operator=(const ARCHIVE_ENTRY& a) {
-		if (_entry) {
-			archive_entry_free(_entry);
-		}
-		_entry = archive_entry_clone(a._entry);
-	}
+	LF_ARCHIVE_ENTRY(LF_ARCHIVE_ENTRY& a) = delete;
+	LF_ARCHIVE_ENTRY(archive_entry* entry) = delete;
+	const LF_ARCHIVE_ENTRY& operator=(const LF_ARCHIVE_ENTRY& a) = delete;
 	const wchar_t* get_pathname(){
 		return archive_entry_pathname_w(_entry);
 	}
@@ -226,53 +218,49 @@ struct ARCHIVE_ENTRY{
 		const auto *stat = archive_entry_stat(_entry);
 		return stat->st_mode;
 	}
-	void extract() {
-		//TODO:いくらかバッファをもらってくる?
+	bool is_encrypted() {
+		return archive_entry_is_encrypted(_entry);
 	}
 };
 
 struct ARCHIVE_FILE_TO_READ:public ARCHIVE_FILE_BASE<true>
 {
-	struct iterator{
-		struct archive *_arc;
-		ARCHIVE_ENTRY _entry;
-		iterator(struct archive* arc):_arc(arc) {
-			operator++();
+	LF_ARCHIVE_ENTRY _entry;
+
+	LF_ARCHIVE_ENTRY* begin() { return next(); }
+	LF_ARCHIVE_ENTRY* next() {
+		LF_ARCHIVE_ENTRY entry;
+		if (ARCHIVE_OK == archive_read_next_header2(_arc, _entry._entry)) {
+			return &_entry;
+		} else {
+			return NULL;
 		}
-		iterator& operator++() {
-			if (ARCHIVE_OK == archive_read_next_header2(_arc, _entry._entry)) {
-				return *this;
-			} else {
-				_arc = NULL;
-			}
-		}
-		iterator operator++(int) = delete;
-		ARCHIVE_ENTRY& operator*() { return _entry; }
-		ARCHIVE_ENTRY& operator->() { return _entry; }
-		bool operator==(iterator& ite) {
-			if (!_arc && !ite._arc)return true;
-			if (_arc != ite._arc)return false;
-			auto pathA = std::wstring(_entry.get_pathname());
-			auto pathB = std::wstring((*ite).get_pathname());
-			return pathA == pathB;
-		}
-	};
-	iterator begin() { return iterator(_arc); }
-	iterator end() { return iterator(NULL); }
+	}
+
 	void read_open(const wchar_t* arcname) {
 		int r = archive_read_open_filename_w(_arc, arcname, 10240);
-		if (r != ARCHIVE_OK) {
+		if (ARCHIVE_OK != r) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 	}
 
-	void test_archive() {
-		ASSERT(_arc);
-		if (!_arc) {
-			auto err = ARCHIVE_EXCEPTION(L"Archive not opened");
-			err._errno = EBADF;
-			throw err;
+	struct INTERNAL_BUFFER_INFO {
+		//contains buffer and its size in libarchive's internal memory
+		size_t size;	//0 if it reaches EOF
+		size_t offset;
+		const void* buffer;
+	};
+
+	INTERNAL_BUFFER_INFO read_block() {
+		INTERNAL_BUFFER_INFO info;
+		int r = archive_read_data_block(_arc, &info.buffer, &info.size, &info.offset);
+		if (ARCHIVE_EOF == r) {
+			info.size = 0;
+			info.offset = 0;
+			info.buffer = NULL;
+		} else if (ARCHIVE_OK != r) {
+			throw ARCHIVE_EXCEPTION(_arc);
 		}
-		//TODO
+		return info;
 	}
 };
