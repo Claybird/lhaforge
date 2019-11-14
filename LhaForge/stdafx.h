@@ -43,11 +43,6 @@
 //#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 //#endif
 
-#define _USE_32BIT_TIME_T	//time_tを32bitにする
-
-#define _STLP_USE_NEWALLOC	//STLで標準のアロケータを使う
-//#define _STLP_LEAKS_PEDANTIC	//STLのメモリリークを消す
-
 //ATLのCStringを使う
 //(cf.)http://hp.vector.co.jp/authors/VA022575/c/cstring.html
 //#define _WTL_FORWARD_DECLARE_CSTRING
