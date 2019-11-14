@@ -36,7 +36,6 @@ enum UTIL_CODEPAGE{
 //MFCスタイルでCFileDialogのフィルター文字列を作る
 void UtilMakeFilterString(LPCTSTR,LPTSTR,int);
 
-struct CUTF8String;
 struct CUTF8String {
 	CUTF8String() {}
 	CUTF8String(const CUTF8String& utf8) {
@@ -104,9 +103,26 @@ void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
 template <typename ...Args>
 std::wstring Format(const wchar_t* fmt, Args && ...args)
 {
-	auto size = _snwprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
-	wchar_t *work = (wchar_t*)_malloca((size + 1) * sizeof(wchar_t));
-	memset(work, 0, (size + 1) * sizeof(wchar_t));
-	_snwprintf(work, size, fmt, std::forward<Args>(args)...);
-	return std::wstring(work);
+	std::wstring work;
+	auto size = _snwprintf_s(nullptr, 0, 0, fmt, std::forward<Args>(args)...);
+	work.resize(size);
+	_snwprintf_s(&work[0], work.size(), work.size(), fmt, std::forward<Args>(args)...);
+	return work;
+}
+
+std::wstring FormatFileTime(const FILETIME &rFileTime)
+{
+	if (-1 == rFileTime.dwHighDateTime && -1 == rFileTime.dwLowDateTime) {
+		return L"------";
+	} else {
+		FILETIME LocalFileTime;
+		SYSTEMTIME SystemTime;
+
+		FileTimeToLocalFileTime(&rFileTime, &LocalFileTime);
+		FileTimeToSystemTime(&LocalFileTime, &SystemTime);
+
+		return Format(L"%04d/%02d/%02d %02d:%02d:%02d",
+			SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay,
+			SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond);
+	}
 }
