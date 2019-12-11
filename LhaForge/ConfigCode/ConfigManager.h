@@ -35,8 +35,6 @@ const LPCTSTR INI_FILE_NAME=_T("LhaForge.ini");
 const LPCTSTR PROGRAMDIR_NAME=_T("LhaForge");	//ApplicationDataに入れるときに必要なディレクトリ名
 
 
-enum PARAMETER_TYPE;
-
 class CConfigManager;
 struct IConfigConverter{
 protected:

@@ -25,7 +25,7 @@
 #pragma once
 
 enum OUTPUT_TO;
-enum PARAMETER_TYPE;
+enum LF_ARCHIVE_FORMAT;
 struct CConfigCompress:public IConfigConverter{
 public:
 	OUTPUT_TO OutputDirType;
@@ -35,7 +35,7 @@ public:
 	BOOL LimitCompressFileCount;	//同時に圧縮するファイルの数を限定するならtrue
 	int MaxCompressFileCount;		//同時に圧縮するファイルの数の上限
 	BOOL UseDefaultParameter;	//デフォルト圧縮パラメータを使用するならtrue
-	PARAMETER_TYPE DefaultType;	//デフォルト圧縮パラメータ(形式指定)
+	LF_ARCHIVE_FORMAT DefaultType;	//デフォルト圧縮パラメータ(形式指定)
 	int DefaultOptions;			//デフォルト圧縮パラメータのオプション
 
 	BOOL DeleteAfterCompress;	//正常に圧縮できたファイルを削除

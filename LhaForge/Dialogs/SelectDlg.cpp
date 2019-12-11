@@ -110,21 +110,21 @@ int CSelectDialog::GetOptions()
 
 //---------------------------------------------------------------
 
-//圧縮形式選択:キャンセルでPARAMETER_UNDEFINEDが返る
-PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression)
+//圧縮形式選択:キャンセルでLF_FMT_INVALIDが返る
+LF_ARCHIVE_FORMAT SelectCompressType(int &Options,bool &bSingleCompression)
 {
 	//初期化
-	PARAMETER_TYPE CompressType=PARAMETER_UNDEFINED;
+	LF_ARCHIVE_FORMAT CompressType = LF_FMT_INVALID;
 	bSingleCompression=false;
 	Options=0;
 
 	//OkかCancelまで繰り返し
 	while(true){	//---使用DLLを決定
-		if(PARAMETER_UNDEFINED==CompressType){	//形式が指定されていない場合
+		if(LF_FMT_INVALID == CompressType){	//形式が指定されていない場合
 			CSelectDialog SelDlg;
-			CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
-			if(PARAMETER_UNDEFINED==CompressType){	//キャンセルの場合
-				return PARAMETER_UNDEFINED;
+			CompressType=(LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+			if(LF_FMT_INVALID == CompressType){	//キャンセルの場合
+				return LF_FMT_INVALID;
 			}else{
 				Options=SelDlg.GetOptions();
 				bSingleCompression=SelDlg.IsSingleCompression();

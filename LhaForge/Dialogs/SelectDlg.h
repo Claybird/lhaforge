@@ -72,7 +72,6 @@ public:
 
 //-----------------------------------
 
-enum PARAMETER_TYPE;
-//圧縮形式選択:キャンセルでPARAMETER_UNDEFINEDが返る
+//圧縮形式選択:キャンセルでLF_FMT_INVALIDが返る
 //SelectDialogのラッパ
-PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression);
+LF_ARCHIVE_FORMAT SelectCompressType(int &Options,bool &bSingleCompression);

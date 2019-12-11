@@ -55,7 +55,8 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	UseDefaultParameter=Config.Data[_T("UseDefaultParameter")].GetNParam(FALSE);
 
 	//デフォルト圧縮パラメータ(形式指定)
-	DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
+	//TODO DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
+	DefaultType = LF_FMT_INVALID;
 
 	//デフォルト圧縮パラメータのオプション
 	DefaultOptions=Config.Data[_T("DefaultOptions")].GetNParam(0);

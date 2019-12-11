@@ -28,8 +28,6 @@
 #include "../Utilities/EventDispatcher.h"
 #include "../Utilities/TemporaryDirMgr.h"
 
-class CArchiverDLL;
-
 enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
 	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示
 	FILELIST_FLAT,				//フォルダ階層を無視して表示
@@ -101,7 +99,7 @@ public:
 	bool MoveDownDir(ARCHIVE_ENTRY_INFO_TREE*);
 
 	bool IsRoot()const{return (GetCurrentNode()==m_Content.GetRootNode());}
-	bool IsOK()const{return m_Content.GetArchiver()!=NULL;}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
+	bool IsOK()const{return m_Content.IsOK();}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
 	bool IsFindMode()const{return m_lpCurrentNode==&m_FoundItems;}
 
 	ARCHIVE_ENTRY_INFO_TREE* GetFileListItemByIndex(long iIndex);
@@ -114,14 +112,9 @@ public:
 
 	//処理対象アーカイブ名を取得
 	LPCTSTR GetArchiveFileName()const{return m_Content.GetArchiveFileName();}
-	const CArchiverDLL* GetArchiver()const{return m_Content.GetArchiver();}
 	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return m_Content.GetRootNode();}
 	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return m_Content.GetRootNode();}
 
-	bool IsExtractEachSupported()const{return m_Content.IsExtractEachSupported();}
-	bool IsDeleteItemsSupported()const{return m_Content.IsDeleteItemsSupported();}
-	bool IsAddItemsSupported()const{return m_Content.IsAddItemsSupported();}
-	bool IsUnicodeCapable()const{return m_Content.IsUnicodeCapable();}
 	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
 
