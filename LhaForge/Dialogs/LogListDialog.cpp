@@ -40,8 +40,7 @@ void CLogListDialog::SetLogArray(const std::vector<ARCLOG> &rLog)
 			//break;
 		}
 		//文字の置き換え
-		m_LogArray[i].strMsg.Replace(_T("\n"),_T("\r\n"));
-		m_LogArray[i].strMsg.Replace(_T("\r\r\n"),_T("\r\n"));
+		m_LogArray[i].strMsg = replace(m_LogArray[i].strMsg, L"\n", L"\r\n");
 	}
 }
 
@@ -124,7 +123,7 @@ LRESULT CLogListDialog::OnGetDispInfo(LPNMHDR pnmh)
 	switch(pstLVDInfo->item.iSubItem){
 	case 0:	//ファイル名
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			_tcsncpy_s(pstLVDInfo->item.pszText,pstLVDInfo->item.cchTextMax, LogInfo.strFile,pstLVDInfo->item.cchTextMax);
+			_tcsncpy_s(pstLVDInfo->item.pszText, pstLVDInfo->item.cchTextMax, LogInfo.strFile.c_str(), pstLVDInfo->item.cchTextMax);
 			PathStripPath(pstLVDInfo->item.pszText);
 		}
 		break;
@@ -225,8 +224,8 @@ LRESULT CLogListDialog::OnItemChanged(LPNMHDR pnmh)
 	int iItem=m_ItemListView.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
 	//iItem==-1 if not found
 	if(iItem<0||(unsigned)iItem>=m_LogArray.size())return FALSE;
-	m_MsgEdit.SetWindowText(m_LogArray[iItem].strMsg);
-	m_PathEdit.SetWindowText(m_LogArray[iItem].strFile);
+	m_MsgEdit.SetWindowText(m_LogArray[iItem].strMsg.c_str());
+	m_PathEdit.SetWindowText(m_LogArray[iItem].strFile.c_str());
 	return TRUE;
 }
 
@@ -247,7 +246,7 @@ struct COMP{
 	bool operator()(const ARCLOG& x, const ARCLOG& y)const{
 		switch(nCol){
 		case 0:	//ファイル名
-			return (_tcsicmp(x.strFile, y.strFile)<0);
+			return (_tcsicmp(x.strFile.c_str(), y.strFile.c_str())<0);
 		case 1:	//ステータス
 			return (x.Result< y.Result);
 		default:
