@@ -104,3 +104,13 @@ template <typename arrayclass,typename valueclass>
 void remove_item(arrayclass &theArray,const valueclass &theValue){
 	theArray.erase(std::remove(theArray.begin(), theArray.end(), theValue), theArray.end());
 }
+
+template<typename T, typename U>
+bool isIn(const T &collection, U value)
+{
+	for (const auto &i : collection) {
+		if (i == value)return true;
+	}
+	return false;
+}
+

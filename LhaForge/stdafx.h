@@ -145,3 +145,10 @@ void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
+
+#ifdef _MSC_VER
+ #define WEAK_SYMBOL __declspec(selectany)
+#else
+ #define WEAK_SYMBOL __attribute__((weak))
+#endif
+

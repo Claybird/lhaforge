@@ -93,3 +93,47 @@ bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER&);
 //https://support.microsoft.com/ja-jp/help/167296/how-to-convert-a-unix-time-t-to-a-win32-filetime-or-systemtime
 void UtilUnixTimeToFileTime(time_t t, LPFILETIME pft);
 
+
+struct LF_BUFFER_INFO {
+	//contains buffer and its size in libarchive's internal memory
+	size_t size;	//0 if it reaches EOF
+	int64_t offset;
+	const void* buffer;
+	bool is_eof()const { return NULL == buffer; }
+	void make_eof() {
+		size = 0;
+		offset = 0;
+		buffer = NULL;
+	}
+};
+
+struct FILE_READER {
+	FILE* fp;
+	LF_BUFFER_INFO ibi;
+	std::vector<unsigned char> buffer;
+	FILE_READER() : fp(NULL) {
+		ibi.make_eof();
+		buffer.resize(1024 * 1024);
+	}
+	virtual ~FILE_READER() {
+		close();
+	}
+	const LF_BUFFER_INFO& operator()() {
+		if (!fp || feof(fp)) {
+			ibi.make_eof();
+		} else {
+			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
+			ibi.buffer = &buffer[0];
+			ibi.offset = _ftelli64(fp);
+		}
+		return ibi;
+	}
+	void open(const wchar_t* path) {
+		close();
+		_wfopen_s(&fp, path, L"rb");
+	}
+	void close() {
+		if (fp)fclose(fp);
+		fp = NULL;
+	}
+};
