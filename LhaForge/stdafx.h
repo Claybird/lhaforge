@@ -80,6 +80,7 @@ extern CAppModule _Module;
 #include <stack>
 #include <unordered_map>
 #include <set>
+#include <regex>
 
 #include <comcat.h>
 
@@ -151,4 +152,16 @@ void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #else
  #define WEAK_SYMBOL __attribute__((weak))
 #endif
+
+
+struct LF_EXCEPTION {
+	std::wstring _msg;
+	LF_EXCEPTION(const std::wstring &err) {
+		_msg = err;
+	}
+	virtual ~LF_EXCEPTION() {}
+	const wchar_t* what()const { return _msg.c_str(); }
+};
+
+#define RAISE_EXCEPTION(...) throw LF_EXCEPTION(Format(__VA_ARGS__))
 

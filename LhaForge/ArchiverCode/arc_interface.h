@@ -24,7 +24,6 @@
 
 #pragma once
 #include "resource.h"
-#include "ArcEntryInfo.h"
 #include "ConfigCode/ConfigManager.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
@@ -90,24 +89,22 @@ enum CREATE_OUTPUT_DIR{
 #include <libarchive/archive_entry.h>
 #include <errno.h>
 
-struct ARCHIVE_EXCEPTION {
-	std::wstring _msg;
+struct ARCHIVE_EXCEPTION: public LF_EXCEPTION {
 	int _errno;
-	ARCHIVE_EXCEPTION(const std::wstring &err) {
-		_msg = err;
+	ARCHIVE_EXCEPTION(const std::wstring &err) :LF_EXCEPTION(err) {
 		_errno = 0;
 	}
-	ARCHIVE_EXCEPTION(int errno_code) {
+	ARCHIVE_EXCEPTION(int errno_code) :LF_EXCEPTION(L"") {
 		const int max_msg_len = 94;
 		wchar_t work[max_msg_len];
 		_errno = errno_code;
 		_msg = _wcserror_s(work, _errno);
 	}
-	ARCHIVE_EXCEPTION(archive* arc) {
+	ARCHIVE_EXCEPTION(archive* arc) :LF_EXCEPTION(L"") {
 		_errno = archive_errno(arc);
 		_msg = CUTF8String(archive_error_string(arc)).toWstring();
 	}
-	const wchar_t* what()const { return _msg.c_str(); }
+	virtual ~ARCHIVE_EXCEPTION() {}
 };
 
 
