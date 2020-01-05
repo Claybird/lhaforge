@@ -142,7 +142,6 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -213,7 +212,6 @@
     <ClCompile Include="Utilities\variant.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArchiverCode\ArcEntryInfo.h" />
     <ClInclude Include="ArchiverCode\arc_interface.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />

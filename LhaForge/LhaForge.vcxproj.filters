@@ -52,9 +52,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp">
-      <Filter>ArchiverCode</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\AssocSettings.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -222,9 +219,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArchiverCode\ArcEntryInfo.h">
-      <Filter>ArchiverCode</Filter>
-    </ClInclude>
     <ClInclude Include="ArchiverCode\arc_interface.h">
       <Filter>ArchiverCode\Header Files</Filter>
     </ClInclude>
