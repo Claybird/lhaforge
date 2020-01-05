@@ -82,9 +82,6 @@ bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uS
 //UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
 void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
 
-//UNICODEとして安全ならtrue
-bool UtilIsSafeUnicode(LPCTSTR);
-
 //TCHARファイル名がSJISファイル名で表現できるならtrue
 bool UtilCheckT2A(LPCTSTR);
 bool UtilCheckT2AList(const std::list<CString>&);	//複数ファイルのうち、一つでもUNICODE専用ファイル名があればfalse

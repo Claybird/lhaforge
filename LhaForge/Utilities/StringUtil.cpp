@@ -163,46 +163,6 @@ inline bool between(WCHAR a,WCHAR begin,WCHAR end){
 	return (begin<=a && a<=end);
 }
 
-//UNICODEとして安全ならtrue
-bool UtilIsSafeUnicode(LPCTSTR lpChar)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	ASSERT(lpChar);
-	if(!lpChar){
-		return true;
-	}
-	const static WCHAR chars[]={
-		0x001e,
-		0x001f,
-		0x00ad,
-		0xFEFF,
-		0xFFF9,
-		0xFFFA,
-		0xFFFB,
-		0xFFFE,
-	};
-	const static UINT len=COUNTOF(chars);
-	for(;*lpChar!=L'\0';lpChar++){
-		WCHAR c=*lpChar;
-		//単独文字との比較
-		for(UINT i=0;i<len;i++){
-			if(c==chars[i])return false;
-		}
-
-		//範囲のある文字との比較
-		if(between(c,0x200b,0x200f))return false;
-		if(between(c,0x202a,0x202e))return false;
-		if(between(c,0x2060,0x2063))return false;
-		if(between(c,0x206a,0x206f))return false;
-	}
-	return true;
-
-#else//defined(_UNICODE)||defined(UNICODE)
-	return true;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
-
 //指定されたフォーマットで書かれた文字列を展開する
 void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env)
 {
