@@ -246,3 +246,23 @@ void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
 	}
 }
 
+std::vector<std::wstring> split_string(const std::wstring& target, const std::wstring& separator)
+{
+	std::vector<std::wstring> splitted;
+	if (separator.empty()) {
+		splitted.push_back(target);
+	} else {
+		std::wstring::size_type first = 0;
+		while (true) {
+			auto pos = target.find(separator, first);
+			if (std::wstring::npos == pos) {
+				splitted.push_back(target.substr(first));
+				break;
+			} else {
+				splitted.push_back(target.substr(first, pos - first));
+				first = pos + separator.length();
+			}
+		}
+	}
+	return splitted;
+}

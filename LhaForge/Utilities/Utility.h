@@ -99,10 +99,17 @@ int index_of(const arrayclass &theArray,valueclass theValue){
 	}
 	return -1;
 }
-//コンテナの要素を削除する
+
+//remove items from container if theValue==ite
 template <typename arrayclass,typename valueclass>
 void remove_item(arrayclass &theArray,const valueclass &theValue){
 	theArray.erase(std::remove(theArray.begin(), theArray.end(), theValue), theArray.end());
+}
+
+//remove items from container if cond(ite)==true
+template <typename arrayclass, typename COND>
+void remove_item_if(arrayclass &theArray, const COND &cond) {
+	theArray.erase(std::remove_if(theArray.begin(), theArray.end(), cond), theArray.end());
 }
 
 template<typename T, typename U>

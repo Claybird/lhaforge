@@ -168,3 +168,7 @@ std::wstring replace(const std::wstring &_s, const T& target, const U& replaceme
 	}
 	return s;
 }
+
+//split a string with a separator string
+std::vector<std::wstring> split_string(const std::wstring& target, const std::wstring& separator);
+
