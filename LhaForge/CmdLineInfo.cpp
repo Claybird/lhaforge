@@ -35,7 +35,7 @@
 
 
 CMDLINEINFO::CMDLINEINFO():
-	CompressType(PARAMETER_UNDEFINED),
+	CompressType(LF_FMT_INVALID),
 	Options(0),
 	bSingleCompression(false),
 	OutputToOverride((OUTPUT_TO)-1),
@@ -182,23 +182,23 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				// 圧縮形式の解読
 				//----------------
 				if(_T("/c")==Parameter){	//形式が指定されていない場合
-					cli.CompressType=PARAMETER_UNDEFINED;
+					cli.CompressType= LF_FMT_INVALID;
 				}else if(0!=_tcsncmp(_T("/c:"),Parameter,3)){
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}else{
-					cli.CompressType=PARAMETER_UNDEFINED;
+					cli.CompressType= LF_FMT_INVALID;
 					//コマンドラインパラメータと形式の対応表から探す
-					for(int i=0;i<COMPRESS_PARAM_COUNT;i++){
-						if(CompressParameterArray[i].Param==Parameter){
-							cli.CompressType=CompressParameterArray[i].Type;
-							cli.Options=CompressParameterArray[i].Options;
+					for(const auto &p: g_CompressionCmdParams){
+						if(p.Options==Parameter){
+							cli.CompressType=p.Type;
+							cli.Options=p.Options;
 							break;
 						}
 					}
-					if(PARAMETER_UNDEFINED==cli.CompressType){
+					if(-1 ==cli.CompressType){
 						CString msg;
 						msg.Format(IDS_ERROR_INVALID_COMPRESS_PARAMETER,Parameter);
 						ErrorMessage(msg);
@@ -312,10 +312,6 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					return PROCESS_INVALID;
 				}
 				TRACE(_T("OutputFileName=%s\n"),cli.OutputFileName);
-			}else if(0==_tcsncmp(_T("/method:"),Parameter,8)){//圧縮メソッド指定
-				cli.strMethod=(LPCTSTR)Parameter+8;
-			}else if(0==_tcsncmp(_T("/level:"),Parameter,7)){//圧縮メソッド指定
-				cli.strLevel=(LPCTSTR)Parameter+7;
 			}else if(0==_tcsncmp(_T("/mkdir:"),Parameter,7)){//解凍時の出力ディレクトリ制御
 				CString mode=(LPCTSTR)Parameter+7;
 				if(_T("no")==mode){
@@ -371,8 +367,6 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/volume:"),Parameter,8)){	//分割サイズ
-				cli.strSplitSize=((LPCTSTR)ParamsArray[iIndex])+8;
 			}else{	//未知のオプション
 				CString msg;
 				msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);

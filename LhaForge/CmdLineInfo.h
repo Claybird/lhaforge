@@ -41,6 +41,7 @@ class CConfigManager;
 enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
 enum LFPROCESS_PRIORITY;
+enum LF_ARCHIVE_FORMAT;
 //コマンドライン解釈の結果を格納するためのクラス
 class CMDLINEINFO{
 public:
@@ -49,7 +50,7 @@ public:
 	std::list<CString> FileList;	//ファイル名リスト
 	CString OutputDir;				//出力先フォルダ
 	CString OutputFileName;			//出力先ファイル名
-	PARAMETER_TYPE CompressType;
+	LF_ARCHIVE_FORMAT CompressType;
 	int Options;				//圧縮オプション
 	bool bSingleCompression;	//ファイルを一つずつ圧縮するならtrue
 	CString ConfigPath;			//設定ファイルのパス
@@ -58,12 +59,6 @@ public:
 	int IgnoreTopDirOverride;	//-1:default,0:false,1:true
 	int DeleteAfterProcess;	//-1:default,0:false, other:true
 	LFPROCESS_PRIORITY PriorityOverride;	//default:no change, other:change priority
-
-	CString strMethod;
-	CString strFormat;
-	CString strLevel;
-
-	CString strSplitSize;	//分割ボリュームサイズ
 };
 
 //コマンドラインを解釈する
