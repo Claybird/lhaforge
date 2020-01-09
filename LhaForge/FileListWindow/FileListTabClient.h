@@ -110,8 +110,6 @@ public:
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	void ReloadArchiverIfLost();
-
 	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
 	HRESULT ReopenArchiveFile(FILELISTMODE,int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);

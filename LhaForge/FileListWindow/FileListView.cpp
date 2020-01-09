@@ -257,7 +257,7 @@ LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 	if(items.empty())return 0;
 	ARCHIVE_ENTRY_INFO_TREE* lpNode=*(items.begin());
 
-	if(lpNode->bDir){
+	if(lpNode->isDirectory()){
 		//階層構造を無視する場合には、この動作は無視される
 		if(mr_Model.GetListMode()==FILELIST_TREE){
 			mr_Model.MoveDownDir(lpNode);
@@ -477,7 +477,8 @@ DWORD CFileListView::OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 
 DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 {
-	if(lpnmcd->hdr.hwndFrom == m_hWnd){
+#pragma message("Need to think again if this was useful")
+	/*if(lpnmcd->hdr.hwndFrom == m_hWnd){
 		LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
 
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(lpnmcd->dwItemSpec);
@@ -488,7 +489,7 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 				lpnmlv->clrTextBk = RGB(255, 0, 0);
 			}
 		}
-	}
+	}*/
 	return CDRF_DODEFAULT;
 }
 
@@ -511,7 +512,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	switch(m_ColumnIndexArray[pstLVDInfo->item.iSubItem]){
 	case FILEINFO_FILENAME:	//ファイル名
 		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strTitle;
-		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->strExt);
+		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->getExt());
 		break;
 	case FILEINFO_FULLPATH:	//格納パス
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
@@ -551,14 +552,8 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			lpText=strBuffer;
 		}
 		break;
-	case FILEINFO_COMPRESSEDSIZE:	//サイズ(圧縮後)
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatFileSize(strBuffer,lpNode->llCompressedSize);
-			lpText=strBuffer;
-		}
-		break;
 	case FILEINFO_TYPENAME:	//ファイルタイプ
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->strExt);
+		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->getExt());
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
@@ -567,24 +562,12 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		}
 		break;
 	case FILEINFO_ATTRIBUTE:	//属性
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatAttribute(strBuffer,lpNode->nAttribute);
-			lpText=strBuffer;
-		}
-		break;
 	case FILEINFO_METHOD:	//圧縮メソッド
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strMethod;
-		break;
 	case FILEINFO_RATIO:	//圧縮率
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatRatio(strBuffer,lpNode->wRatio);
-			lpText=strBuffer;
-		}
-		break;
 	case FILEINFO_CRC:	//CRC
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatCRC(strBuffer,lpNode->dwCRC);
-			lpText=strBuffer;
+	case FILEINFO_COMPRESSEDSIZE:	//サイズ(圧縮後)
+		if (pstLVDInfo->item.mask & LVIF_TEXT) {
+			lpText = L"";
 		}
 		break;
 	}
@@ -618,32 +601,13 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 	//ファイルタイプ
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
-	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->strExt);	strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt());	strInfo+=_T("\n");
 	//ファイル日時
 	FormatFileTime(strBuffer,lpNode->cFileTime);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//属性
-	FormatAttribute(strBuffer,lpNode->nAttribute);
-	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_ATTRIBUTE));
-	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//圧縮後サイズ
-	FormatFileSize(strBuffer,lpNode->llCompressedSize);
-	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_COMPRESSEDSIZE));
-	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//圧縮メソッド
-	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_METHOD));
-	strInfo+=_T(" : ");	strInfo+=lpNode->strMethod;	strInfo+=_T("\n");
-	//圧縮率
-	FormatRatio(strBuffer,lpNode->wRatio);
-	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_RATIO));
-	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
-	//CRC
-	FormatCRC(strBuffer,lpNode->dwCRC);
-	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_CRC));
-	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 
-	if(lpNode->nAttribute&FA_DIREC){
+	if(lpNode->isDirectory()){
 		//--------------
 		// ディレクトリ
 		//--------------
@@ -659,24 +623,23 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	return 0;
 }
 
-void CFileListView::FormatFileSizeInBytes(CString &Info,const LARGE_INTEGER &_Size)
+void CFileListView::FormatFileSizeInBytes(CString &Info, UINT64 Size)
 {
 	CString format(MAKEINTRESOURCE(IDS_ORDERUNIT_BYTE));
 
 	std::wstringstream ss;
 	ss.imbue(std::locale(""));
-	ss << (unsigned __int64)_Size.QuadPart;
+	ss << Size;
 
 	Info.Format(format,ss.str().c_str());
 }
 
-void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
+void CFileListView::FormatFileSize(CString &Info, UINT64 Size)
 {
-	LARGE_INTEGER Size=_Size;
 	bool bInByte=m_bDisplayFileSizeInByte;
 	Info.Empty();
-	if(-1==Size.LowPart&&-1==Size.HighPart){
-		Info=_T("---");
+	if(-1==Size){
+		Info=L"---";
 		return;
 	}
 
@@ -690,29 +653,29 @@ void CFileListView::FormatFileSize(CString &Info,const LARGE_INTEGER &_Size)
 	static const int MAX_ORDERUNIT=COUNTOF(OrderUnit);
 
 	if(bInByte){	//ファイルサイズをバイト単位で表記する
-		FormatFileSizeInBytes(Info,_Size);
+		FormatFileSizeInBytes(Info,Size);
 		return;
 	}
 
 	int Order=0;
 	for(;Order<MAX_ORDERUNIT;Order++){
-		if(Size.QuadPart<1024*1024){
+		if(Size<1024*1024){
 			break;
 		}
-		Size.QuadPart=Int64ShrlMod32(Size.QuadPart,10);	//1024で割る
+		Size = Size / 1024;
 	}
-	if(0==Order && Size.QuadPart<1024){
+	if(0==Order && Size<1024){
 		//1KBに満たないのでバイト単位でそのまま表記
-		FormatFileSizeInBytes(Info,_Size);
+		FormatFileSizeInBytes(Info,Size);
 	}else{
 		TCHAR Buffer[64]={0};
 		if(Order<MAX_ORDERUNIT-1){
-			double SizeToDisplay=Size.QuadPart/1024.0;
+			double SizeToDisplay = Size / 1024.0;
 			Order++;
-			Info.Format(OrderUnit[Order],SizeToDisplay);
+			Info.Format(OrderUnit[Order], SizeToDisplay);
 		}else{
 			//過大サイズ
-			Info.Format(OrderUnit[Order],Size.QuadPart);
+			Info.Format(OrderUnit[Order], Size);
 		}
 	}
 }
@@ -735,33 +698,6 @@ void CFileListView::FormatFileTime(CString &Info,const FILETIME &rFileTime)
 				SystemTime.wHour, SystemTime.wMinute,SystemTime.wSecond);
 		Info+=Buffer;
 	}
-}
-
-void CFileListView::FormatAttribute(CString &strBuffer,int nAttribute)
-{
-	if(nAttribute&FA_UNKNOWN){
-		strBuffer=_T("?????");
-	}else{
-		strBuffer="";
-		strBuffer+=(nAttribute&FA_RDONLY)	? _T("R") : _T("-");
-		strBuffer+=(nAttribute&FA_HIDDEN)	? _T("H") : _T("-");
-		strBuffer+=(nAttribute&FA_SYSTEM)	? _T("S") : _T("-");
-		strBuffer+=(nAttribute&FA_DIREC)	? _T("D") : _T("-");
-		strBuffer+=(nAttribute&FA_ARCH)		? _T("A") : _T("-");
-		strBuffer+=(nAttribute&FA_ENCRYPTED)? _T("P") : _T("-");
-	}
-}
-
-void CFileListView::FormatRatio(CString &strBuffer,WORD wRatio)
-{
-	if(0xFFFF==wRatio)strBuffer=_T("?????");	//取得失敗
-	else strBuffer.Format(_T("%.1f%%"),(double)wRatio/10.0);
-}
-
-void CFileListView::FormatCRC(CString &strBuffer,DWORD dwCRC)
-{
-	if(-1==dwCRC)strBuffer=_T("?????");	//取得失敗
-	else strBuffer.Format(_T("%08x"),dwCRC);
 }
 
 //-------
@@ -962,7 +898,7 @@ HRESULT CFileListView::DragOver(IDataObject *,POINTL &pt,DWORD &dwEffect)
 			ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 			if(lpNode){		//アイテム上にDnD
 				//アイテムがフォルダだったらハイライト
-				if(lpNode->bDir){
+				if(lpNode->isDirectory()){
 					SetItemState( nIndex, LVIS_DROPHILITED, LVIS_DROPHILITED);
 					m_nDropHilight=nIndex;
 				}
@@ -994,7 +930,7 @@ HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
-			if(lpNode->bDir){
+			if(lpNode->isDirectory()){
 				ArcEntryInfoTree_GetNodePathRelative(lpNode,mr_Model.GetRootNode(),strDest);
 			}else{
 				//カレントフォルダに追加
@@ -1196,13 +1132,13 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
 		for(;ite!=end;++ite){
 			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%I64d\n"),lpItem->llOriginalSize.QuadPart);
+			info.AppendFormat(_T("%I64d\n"),lpItem->llOriginalSize);
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETYPE:
 		for(;ite!=end;++ite){
 			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(lpItem->strExt));
+			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(lpItem->getExt()));
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETIME:
@@ -1214,62 +1150,26 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		}
 		break;
 	case ID_MENUITEM_COPY_ATTRIBUTE:
-		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strBuffer;
-			FormatAttribute(strBuffer,lpItem->nAttribute);
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
-		}
-		break;
 	case ID_MENUITEM_COPY_COMPRESSED_SIZE:
-		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%I64d\n"),lpItem->llCompressedSize.QuadPart);
-		}
-		break;
 	case ID_MENUITEM_COPY_METHOD:
-		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strMethod);
-		}
-		break;
 	case ID_MENUITEM_COPY_COMPRESSION_RATIO:
-		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strBuffer;
-			FormatRatio(strBuffer,lpItem->wRatio);
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
-		}
-		break;
 	case ID_MENUITEM_COPY_CRC:
-		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strBuffer;
-			FormatCRC(strBuffer,lpItem->dwCRC);
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
-		}
+#pragma message("FIXME!")
+		//TODO
 		break;
 	case ID_MENUITEM_COPY_ALL:
 		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
 		for(;ite!=end;++ite){
 			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strFileTime, strAttrib, strRatio, strCRC;
+			CString strFileTime;
 			FormatFileTime(strFileTime,lpItem->cFileTime);
-			FormatAttribute(strAttrib,lpItem->nAttribute);
-			FormatRatio(strRatio,lpItem->wRatio);
-			FormatCRC(strCRC,lpItem->dwCRC);
 
-			info.AppendFormat(_T("%s\t%s\t%I64d\t%s\t%s\t%s\t%I64d\t%s\t%s\t%s\n"),
+			info.AppendFormat(L"%s\t%s\t%I64d\t%s\t%s\n",
 				(LPCTSTR)lpItem->strTitle,
 				(LPCTSTR)lpItem->strFullPath,
-				lpItem->llOriginalSize.QuadPart,
-				m_ShellDataManager.GetTypeName(lpItem->strExt),
-				(LPCTSTR)strFileTime,
-				(LPCTSTR)strAttrib,
-				lpItem->llCompressedSize.QuadPart,
-				(LPCTSTR)lpItem->strMethod,
-				(LPCTSTR)strRatio,
-				(LPCTSTR)strCRC);
+				lpItem->llOriginalSize,
+				m_ShellDataManager.GetTypeName(lpItem->getExt()),
+				(LPCTSTR)strFileTime);
 		}
 		break;
 	default:

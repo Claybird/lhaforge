@@ -40,13 +40,288 @@
 
 bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList);
 
-bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CConfigManager &ConfigManager,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CMDLINEINFO& CmdLineInfo)
+HRESULT CheckArchiveName(LPCTSTR lpszArcFile, const std::list<CString> &rOrgFileList, bool bOverwrite, CString &strErr)
 {
-	TRACE(_T("Function ::Compress() started.\n"));
+	// ファイル名が長すぎたとき
+	if (_tcslen(lpszArcFile) >= _MAX_PATH) {
+		strErr = CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
+		return E_LF_CANNOT_DECIDE_FILENAME;
+	}
 
-	std::list<CString> ParamList=_ParamList;
+	// できあがったファイル名が入力元のファイル名と同じか
+	std::list<CString>::const_iterator ite, end;
+	end = rOrgFileList.end();
+	for (ite = rOrgFileList.begin(); ite != end; ++ite) {
+		if (0 == (*ite).CompareNoCase(lpszArcFile)) {
+			strErr.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT, lpszArcFile);
+			return E_LF_OVERWRITE_SOURCE;
+		}
+	}
 
-	CArchiverDLLManager &ArchiverManager=CArchiverDLLManager::GetInstance();
+	// ファイルが既に存在するかどうか
+	if (!bOverwrite) {
+		if (PathFileExists(lpszArcFile)) {
+			// ファイルが存在したら問題あり
+			// この場合はエラーメッセージを出さずにファイル名を入力させる
+			return S_LF_ARCHIVE_EXISTS;
+		}
+	}
+
+	return S_OK;
+}
+
+
+//上書き確認など
+HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rOrgFileNameList, LPCTSTR lpExt, BOOL bAskName)
+{
+	//----------------------------
+	// ファイル名指定が適切か確認
+	//----------------------------
+	bool bForceOverwrite = false;
+	BOOL bInputFilenameFirst = bAskName;//Config.Common.Compress.SpecifyOutputFilename;
+
+	HRESULT hStatus = E_UNEXPECTED;
+	while (S_OK != hStatus) {
+		if (!bInputFilenameFirst) {
+			//ファイル名の長さなど確認
+			CString strLocalErr;
+			hStatus = CheckArchiveName(r_pathArcFileName, rOrgFileNameList, bForceOverwrite, strLocalErr);
+			if (FAILED(hStatus)) {
+				ErrorMessage(strLocalErr);
+			}
+			if (S_OK == hStatus) {
+				break;	//完了
+			}
+		}
+
+		//最初のファイル名は仮生成したものを使う
+		//選択されたファイル名が返ってくる
+		CPath pathFile;
+		if (E_LF_CANNOT_DECIDE_FILENAME == hStatus) {
+			//ファイル名が決定できない場合、カレントディレクトリを現行パスとする
+			TCHAR szBuffer[_MAX_PATH + 1] = { 0 };
+			GetCurrentDirectory(_MAX_PATH, szBuffer);
+			pathFile = szBuffer;
+			pathFile.Append(CString(MAKEINTRESOURCE(IDS_UNTITLED)) + lpExt);
+		} else {
+			pathFile = r_pathArcFileName;
+		}
+
+		//==================
+		// 名前を付けて保存
+		//==================
+		//フィルタ文字列生成
+		CString strFilter(MAKEINTRESOURCE(IDS_COMPRESS_FILE));
+		strFilter.AppendFormat(_T(" (*%s)|*%s"), lpExt, lpExt);
+		TCHAR filter[_MAX_PATH + 2] = { 0 };
+		UtilMakeFilterString(strFilter, filter, COUNTOF(filter));
+
+		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter);
+		if (IDCANCEL == dlg.DoModal()) {	//キャンセル
+			return E_ABORT;
+		}
+
+		r_pathArcFileName = dlg.m_szFileName;
+		//DELETED:ファイル名のロングパスを取得
+
+		bForceOverwrite = true;
+		bInputFilenameFirst = false;
+	}
+	return S_OK;
+}
+
+
+bool isAllowedCombination(LF_ARCHIVE_FORMAT fmt, int option)
+{
+	const auto &cap = get_archive_capability(fmt);
+	for (auto allowed : cap.allowed_combinations) {
+		if (allowed == option) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//returns extension with first "."
+std::wstring getArchiveFileExtension(LF_ARCHIVE_FORMAT fmt, LPCTSTR lpszOrgExt, int option)
+{
+	const auto &cap = get_archive_capability(fmt);
+	for (auto allowed : cap.allowed_combinations) {
+		if (allowed == option) {
+			if (cap.multi_file_archive) {
+				if (option & LF_WOPT_SFX) {
+					return L".exe";
+				} else {
+					return cap.extension;
+				}
+			} else {
+				if (option & LF_WOPT_SFX) {
+					return std::wstring(lpszOrgExt) + L".exe";
+				} else {
+					return std::wstring(lpszOrgExt) + L"." + cap.extension;
+				}
+			}
+		}
+	}
+	RAISE_EXCEPTION(L"unexpected format");
+}
+
+/*************************************************************
+アーカイブファイル名を決定する。
+
+ 基本的には、コマンドライン引数で与えられるファイル名のうち、
+最初のファイル名を元にして、拡張子だけを変えたファイルを作る。
+*************************************************************/
+HRESULT GetArchiveName(
+	CPath &r_pathArcFileName,
+	const std::list<CString> &OrgFileNameList,
+	LF_ARCHIVE_FORMAT format,
+	int option,
+	const CConfigCompress &ConfCompress,
+	const CConfigGeneral &ConfGeneral,
+	CMDLINEINFO &rCmdLineInfo,
+	CString &strErr)
+{
+	ASSERT(!OrgFileNameList.empty());
+
+	//==================
+	// ファイル名の生成
+	//==================
+	BOOL bDirectory = FALSE;	//圧縮対象に指定された物がフォルダならtrue;フォルダとファイルで末尾の'.'の扱いを変える
+	BOOL bDriveRoot = FALSE;	//圧縮対象がドライブのルート(X:\ etc.)ならtrue
+	CPath pathOrgFileName;
+
+
+	bool bFileNameSpecified = (0 < rCmdLineInfo.OutputFileName.GetLength());
+
+	//---元のファイル名
+	if (bFileNameSpecified) {
+		//TODO:ここで処理するのはおかしい
+		pathOrgFileName = (LPCTSTR)rCmdLineInfo.OutputFileName;
+		pathOrgFileName.StripPath();	//パス名を取り除く
+	} else {
+		//先頭のファイル名を元に暫定的にファイル名を作り出す
+		pathOrgFileName = (LPCTSTR)*OrgFileNameList.begin();
+
+		//---判定
+		//ディレクトリかどうか
+		bDirectory = pathOrgFileName.IsDirectory();
+		//ドライブのルートかどうか
+		CPath pathRoot = pathOrgFileName;
+		pathRoot.AddBackslash();
+		bDriveRoot = pathRoot.IsRoot();
+		if (bDriveRoot) {
+			//ボリューム名取得
+			TCHAR szVolume[MAX_PATH];
+			GetVolumeInformation(pathRoot, szVolume, MAX_PATH, NULL, NULL, NULL, NULL, 0);
+			//ドライブを丸ごと圧縮する場合には、ボリューム名をファイル名とする
+			UtilFixFileName(pathOrgFileName, szVolume, _T('_'));
+		}
+	}
+
+	CString strExt;
+	if (isAllowedCombination(format, option)) {
+		//拡張子決定
+		if (bFileNameSpecified) {
+			strExt = PathFindExtension(pathOrgFileName);
+		} else {
+			strExt = getArchiveFileExtension(format, pathOrgFileName, option).c_str();
+		}
+	} else {
+		strErr = CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE));
+		return E_INVALIDARG;
+	}
+
+
+	//出力先フォルダ名
+	CPath pathOutputDir;
+	if (0 != rCmdLineInfo.OutputDir.GetLength()) {
+		//出力先フォルダが指定されている場合
+		pathOutputDir = (LPCTSTR)rCmdLineInfo.OutputDir;
+	} else {
+		//設定を元に出力先を決める
+		bool bUseForAll;
+		HRESULT hr = GetOutputDirPathFromConfig(ConfCompress.OutputDirType, pathOrgFileName, ConfCompress.OutputDir, pathOutputDir, bUseForAll, strErr);
+		if (FAILED(hr)) {
+			return hr;
+		}
+		if (bUseForAll) {
+			rCmdLineInfo.OutputDir = (LPCTSTR)pathOutputDir;
+		}
+	}
+	pathOutputDir.AddBackslash();
+
+	// 出力先がネットワークドライブ/リムーバブルディスクであるなら警告
+	// 出力先が存在しないなら、作成確認
+	HRESULT hRes = ConfirmOutputDir(ConfGeneral, pathOutputDir, strErr);
+	if (FAILED(hRes)) {
+		//キャンセルなど
+		return hRes;
+	}
+
+	//ファイル名から拡張子とパス名を削除
+	if (bDirectory || bDriveRoot) {	//ディレクトリ
+		//ディレクトリからは拡張子(最後の'.'以降の文字列)を削除しない
+		CPath pathDir = pathOrgFileName;
+		pathDir.StripPath();
+
+		r_pathArcFileName = pathOutputDir;
+		r_pathArcFileName.Append(pathDir);
+		r_pathArcFileName = (LPCTSTR)(((CString)r_pathArcFileName) + strExt);
+	} else {	//ファイル
+		CPath pathFile = pathOrgFileName;
+		pathFile.StripPath();
+		r_pathArcFileName = pathOutputDir;
+		r_pathArcFileName.Append(pathFile);
+		r_pathArcFileName = (LPCTSTR)(((CString)r_pathArcFileName) + strExt);
+	}
+
+	//ドライブルートを圧縮する場合、ファイル名は即決しない
+	return ConfirmOutputFile(r_pathArcFileName, OrgFileNameList, strExt, ConfCompress.SpecifyOutputFilename || bDriveRoot);
+}
+
+//pathFileNameは最初のファイル名
+//深さ優先探索
+//圧縮対象のファイルを探す;戻り値は
+//0:ファイルは含まれていない
+//1:単一ファイルのみが含まれている
+//2:複数ファイルが含まれている
+int CheckIfMultipleFilesToCompress(LPCTSTR lpszPath, CPath &pathFileName)
+{
+	if (!PathIsDirectory(lpszPath)) {	//パスがファイルの場合
+		pathFileName = lpszPath;
+		return 1;
+	} else {	//パスがフォルダの場合、フォルダ内部のファイルを探す
+		int nFileCount = 0;
+
+		CPath pathWild = lpszPath;
+		pathWild.Append(_T("\\*"));
+		CFindFile cFind;
+
+		BOOL bFound = cFind.FindFile(pathWild);
+		for (; bFound; bFound = cFind.FindNextFile()) {
+			if (cFind.IsDots())continue;
+
+			if (cFind.IsDirectory()) {	//サブディレクトリ検索
+				nFileCount += CheckIfMultipleFilesToCompress(cFind.GetFilePath(), pathFileName);
+				if (nFileCount >= 2) {
+					return 2;
+				}
+			} else {
+				pathFileName = (LPCTSTR)cFind.GetFilePath();
+				nFileCount++;
+				if (nFileCount >= 2) {
+					return 2;
+				}
+			}
+		}
+		return min(2, nFileCount);
+	}
+}
+
+
+bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, CConfigManager &ConfigManager,CMDLINEINFO& CmdLineInfo)
+{
 	CConfigCompress ConfCompress;
 	ConfCompress.load(ConfigManager);
 	CConfigGeneral ConfGeneral;
@@ -65,47 +340,32 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 		ConfCompress.DeleteAfterCompress=CmdLineInfo.DeleteAfterProcess;
 	}
 
-	CArchiverDLL *lpArchiver=ArchiverManager.GetArchiver();
-	if(!lpArchiver || !lpArchiver->IsOK()){
-		return false;
-	}
-
 	//ディレクトリ内にファイルが全て入っているかの判定
+	auto sourcePathList = _sourcePathList;
 	if(ConfCompress.IgnoreTopDirectory){
 		//NOTE: this code equals to ParamList.size()==1
-		std::list<CString>::const_iterator ite=ParamList.begin();
+		auto ite= sourcePathList.begin();
 		ite++;
-		if(ite==ParamList.end()){
+		if(ite == sourcePathList.end()){
 			//ファイルが一つしかない
-			CPath path=*ParamList.begin();
+			CPath path = sourcePathList.front();
 			path.AddBackslash();
 			if(path.IsDirectory()){
 				//単体のディレクトリを圧縮
-				UtilPathExpandWild(ParamList,path+_T("*"));
+				UtilPathExpandWild(sourcePathList, path+L"*");
 			}
-			if(ParamList.empty()){
-				ParamList=_ParamList;
+			if(sourcePathList.empty()){
+				sourcePathList = sourcePathList;
 			}
 		}
 	}
 
-	//UNICODE対応のチェック
-	if(!lpArchiver->IsUnicodeCapable()){		//UNICODEに対応していない
-		if(!UtilCheckT2AList(ParamList)){
-			//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-			return false;
-		}
-	}
-
-	//----------------------------------------------
-	// GZ/BZ2/JACKで圧縮可能(単ファイル)かどうかチェック
-	//----------------------------------------------
-	if(PARAMETER_GZ==Type||PARAMETER_BZ2==Type||PARAMETER_XZ==Type||PARAMETER_LZMA==Type||PARAMETER_JACK==Type){
+	const auto& cap = get_archive_capability(format);
+	if(!cap.multi_file_archive){
 		int nFileCount=0;
 		CPath pathFileName;
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
-			nFileCount+=FindFileToCompress(*ite,pathFileName);
+		for(const auto &path: sourcePathList){
+			nFileCount += CheckIfMultipleFilesToCompress(path, pathFileName);
 			if(nFileCount>=2){
 				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_SINGLE_FILE_ONLY)));
 				return false;
@@ -115,32 +375,22 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 			return false;
 		}
-		ParamList.clear();
-		ParamList.push_back(pathFileName);
-	}else if(PARAMETER_ISH==Type||PARAMETER_UUE==Type){	// ISH/UUEで変換可能か(ファイルかどうか)チェック
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
-			if(PathIsDirectory(*ite)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CANT_COMPRESS_FOLDER)));
-				return false;
-			}
-		}
+		sourcePathList.clear();
+		sourcePathList.push_back(pathFileName);
 	}
 
 	//=========================================================
-	// カレントディレクトリ設定のために\で終わる基点パスを取得
+	// get common path for base path
 	//=========================================================
 	CString pathBase;
-	UtilGetBaseDirectory(pathBase,ParamList);
-	TRACE(pathBase),TRACE(_T("\n"));
-
-	//カレントディレクトリ設定
-	SetCurrentDirectory(pathBase);
+	UtilGetBaseDirectory(pathBase, sourcePathList);
+	TRACE((LPCTSTR)pathBase),TRACE(_T("\n"));
 
 	//圧縮先ファイル名決定
 	TRACE(_T("圧縮先ファイル名決定\n"));
 	CPath pathArcFileName;
 	CString strErr;
-	HRESULT hr=GetArchiveName(pathArcFileName,_ParamList,Type,Options,ConfCompress,ConfGeneral,CmdLineInfo,lpArchiver->IsUnicodeCapable(),strErr);
+	HRESULT hr=GetArchiveName(pathArcFileName, sourcePathList, format, Options,ConfCompress,ConfGeneral,CmdLineInfo,strErr);
 	if(FAILED(hr)){
 		if(hr!=E_ABORT){
 			ErrorMessage(strErr);
@@ -148,17 +398,7 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 		return false;
 	}
 
-	//====================================================================
-	// 未対応DLLでファイル名にUNICODE文字を持つファイルを圧縮しようとした
-	//====================================================================
-	if(!lpArchiver->IsUnicodeCapable()&&!UtilCheckT2A(pathArcFileName)){
-		//GetArchiveNameで弾き切れなかったもの(B2E/JACKなど)をここで弾く
-		//B2Eは別系統で処理されているが、念のため。
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-		return false;
-	}
-
-	if(PARAMETER_JACK!=Type){
+	{
 		if(PathFileExists(pathArcFileName)){
 			if(!DeleteFile(pathArcFileName)){
 				//削除できなかった
@@ -173,11 +413,10 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 		}
 
 		//======================================
-		// レスポンスファイル内に記入するために
 		// 圧縮対象ファイル名を修正する
 		//======================================
 		const int nBasePathLength=pathBase.GetLength();
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
+		for(std::list<CString>::iterator ite=sourcePathList.begin();ite!= sourcePathList.end();++ite){
 			//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
 			//(*ite)=(*ite).Right((*ite).GetLength()-BasePathLength);
 			//(*ite).Delete(0,nBasePathLength);
@@ -185,7 +424,7 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 
 			//もしBasePathと同じになって空になってしまったパスがあれば、カレントディレクトリ指定を代わりに入れておく
 			if((*ite).IsEmpty()){
-				*ite=_T(".");
+				*ite=L".";
 			}
 		}
 	}
@@ -196,30 +435,43 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 		SemaphoreLock.Lock(LHAFORGE_COMPRESS_SEMAPHORE_NAME,ConfCompress.MaxCompressFileCount);
 	}
 
-
 	TRACE(_T("ArchiverHandler 呼び出し\n"));
 	//------------
 	// 圧縮を行う
 	//------------
 	CString strLog;
-	/*
-	formatの指定は、B2E32.dllでのみ有効
-	levelの指定は、B2E32.dll以外で有効
-	*/
-	bool bRet=lpArchiver->Compress(pathArcFileName,ParamList,ConfigManager,Type,Options,lpszFormat,lpszMethod,lpszLevel,strLog);
+	bool bError = false;
+	try {
+		ARCHIVE_FILE_TO_WRITE archive;
+		_wchdir(pathBase);
+		archive.write_open(pathArcFileName, format, options);
+		for (const auto &fname : sourcePathList) {
+			strLog += Format(L"Compress %s\n", (LPCWSTR)fname).c_str();
+			LF_ARCHIVE_ENTRY entry;
+			entry.copy_file_stat(fname);
+			FILE_READER provider;
+			provider.open(fname);
+			archive.add_entry(entry, provider);
+		}
+	} catch (const ARCHIVE_EXCEPTION& e) {
+		strLog += e.what();
+		bError = true;
+	}
 	//---ログ表示
 	switch(ConfGeneral.LogViewEvent){
 	case LOGVIEW_ON_ERROR:
-		if(!bRet){
+		if(bError){
 			CLogDialog LogDlg;
 			LogDlg.SetData(strLog);
 			LogDlg.DoModal();
 		}
 		break;
 	case LOGVIEW_ALWAYS:
+	{
 		CLogDialog LogDlg;
 		LogDlg.SetData(strLog);
 		LogDlg.DoModal();
+	}
 		break;
 	}
 
@@ -229,7 +481,7 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 	}
 
 	//出力先フォルダを開く
-	if(bRet && ConfCompress.OpenDir){
+	if(!bError && ConfCompress.OpenDir){
 		CPath pathOpenDir=pathArcFileName;
 		pathOpenDir.RemoveFileSpec();
 		pathOpenDir.AddBackslash();
@@ -250,301 +502,19 @@ bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CCo
 	}
 
 	//正常に圧縮できたファイルを削除orごみ箱に移動
-	if(bRet && ConfCompress.DeleteAfterCompress){
-		if(!ConfCompress.ForceDelete && lpArchiver->IsWeakErrorCheck()){
-			//エラーチェック機構が貧弱なため、圧縮失敗時にも正常と判断してしまうような
-			//DLLを使ったときには明示的に指定しない限り削除させない
-			MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_MESSAGE_COMPRESS_DELETE_SKIPPED)),UtilGetMessageCaption(),MB_OK|MB_ICONINFORMATION);
-		}else{
-			//カレントディレクトリは削除できないので別の場所へ移動
-			::SetCurrentDirectory(UtilGetModuleDirectoryPath());
-			//削除:オリジナルの指定で消す
-			DeleteOriginalFiles(ConfCompress,_ParamList);
-		}
+	if(!bError && ConfCompress.DeleteAfterCompress){
+		//カレントディレクトリは削除できないので別の場所へ移動
+		::SetCurrentDirectory(UtilGetModuleDirectoryPath());
+		//削除:オリジナルの指定で消す
+		DeleteOriginalFiles(ConfCompress,_sourcePathList);
 	}
 
 
 	TRACE(_T("Exit Compress()\n"));
-	return bRet;
-}
-
-void GetArchiveFileExtension(PARAMETER_TYPE type,LPCTSTR lpszOrgFile,CString &rExt,LPCTSTR lpszDefaultExt)
-{
-	switch(type){
-	case PARAMETER_GZ:
-	case PARAMETER_BZ2:
-	case PARAMETER_XZ:
-	case PARAMETER_LZMA:
-		rExt=PathFindExtension(lpszOrgFile);
-		rExt+=lpszDefaultExt;
-		break;
-	case PARAMETER_JACK:
-		//JACKの場合にはアーカイブファイル名が出力先フォルダ名になる
-		//:ファイル名はDLLが生成する
-		rExt.Empty();
-		break;
-	default:
-		rExt=lpszDefaultExt;
-		break;
-	}
-}
-
-HRESULT CheckArchiveName(LPCTSTR lpszArcFile,const std::list<CString> &rOrgFileList,bool bOverwrite,bool bUnicodeCapable,CString &strErr)
-{
-	// ファイル名が長すぎたとき
-	if(_tcslen(lpszArcFile)>=_MAX_PATH){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
-		return E_LF_CANNOT_DECIDE_FILENAME;
-	}
-
-	// できあがったファイル名が入力元のファイル名と同じか
-	std::list<CString>::const_iterator ite,end;
-	end=rOrgFileList.end();
-	for(ite=rOrgFileList.begin();ite!=end;++ite){
-		if(0==(*ite).CompareNoCase(lpszArcFile)){
-			strErr.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT,lpszArcFile);
-			return E_LF_OVERWRITE_SOURCE;
-		}
-	}
-
-	// 未対応DLLにUNICODEファイル名を渡していないか
-	if(!bUnicodeCapable && !UtilCheckT2A(lpszArcFile)){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH));
-		return E_LF_CANNOT_DECIDE_FILENAME;
-	}
-
-	// ファイルが既に存在するかどうか
-	if(!bOverwrite){
-		if(PathFileExists(lpszArcFile)){
-			// ファイルが存在したら問題あり
-			// この場合はエラーメッセージを出さずにファイル名を入力させる
-			return S_LF_ARCHIVE_EXISTS;
-		}
-	}
-
-	return S_OK;
-}
-
-int FindCompressionParamIndex(PARAMETER_TYPE type,int Options)
-{
-	//圧縮形式の情報を検索
-	for(int nIndex=0;nIndex<COMPRESS_PARAM_COUNT;nIndex++){
-		if(type==CompressParameterArray[nIndex].Type){
-			if(Options==CompressParameterArray[nIndex].Options){
-				return nIndex;
-			}
-		}
-	}
-	return -1;
-}
-
-//上書き確認など
-HRESULT ConfirmOutputFile(CPath &r_pathArcFileName,const std::list<CString> &rOrgFileNameList,LPCTSTR lpExt,BOOL bAskName,bool bUnicodeCapable)
-{
-	//----------------------------
-	// ファイル名指定が適切か確認
-	//----------------------------
-	bool bForceOverwrite=false;
-	BOOL bInputFilenameFirst=bAskName;//Config.Common.Compress.SpecifyOutputFilename;
-
-	HRESULT hStatus=E_UNEXPECTED;
-	while(S_OK!=hStatus){
-		if(!bInputFilenameFirst){
-			//ファイル名の長さなど確認
-			CString strLocalErr;
-			hStatus=CheckArchiveName(r_pathArcFileName,rOrgFileNameList,bForceOverwrite,bUnicodeCapable,strLocalErr);
-			if(FAILED(hStatus)){
-				ErrorMessage(strLocalErr);
-			}
-			if(S_OK==hStatus){
-				break;	//完了
-			}
-		}
-
-		//最初のファイル名は仮生成したものを使う
-		//選択されたファイル名が返ってくる
-		CPath pathFile;
-		if(E_LF_CANNOT_DECIDE_FILENAME==hStatus){
-			//ファイル名が決定できない場合、カレントディレクトリを現行パスとする
-			TCHAR szBuffer[_MAX_PATH+1]={0};
-			GetCurrentDirectory(_MAX_PATH,szBuffer);
-			pathFile=szBuffer;
-			pathFile.Append(CString(MAKEINTRESOURCE(IDS_UNTITLED)) + lpExt);
-		}else{
-			pathFile=r_pathArcFileName;
-		}
-
-		//==================
-		// 名前を付けて保存
-		//==================
-		//フィルタ文字列生成
-		CString strFilter(MAKEINTRESOURCE(IDS_COMPRESS_FILE));
-		strFilter.AppendFormat(_T(" (*%s)|*%s"),lpExt,lpExt);
-		TCHAR filter[_MAX_PATH+2]={0};
-		UtilMakeFilterString(strFilter,filter,COUNTOF(filter));
-
-		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT|OFN_NOCHANGEDIR,filter);
-		if(IDCANCEL==dlg.DoModal()){	//キャンセル
-			return E_ABORT;
-		}
-
-		r_pathArcFileName=dlg.m_szFileName;
-		//DELETED:ファイル名のロングパスを取得
-
-		bForceOverwrite=true;
-		bInputFilenameFirst=false;
-	}
-	return S_OK;
-}
-
-/*************************************************************
-アーカイブファイル名を決定する。
-
- 基本的には、コマンドライン引数で与えられるファイル名のうち、
-最初のファイル名を元にして、拡張子だけを変えたファイルを作る。
-*************************************************************/
-HRESULT GetArchiveName(CPath &r_pathArcFileName,const std::list<CString> &OrgFileNameList,const PARAMETER_TYPE Type,const int Options,const CConfigCompress &ConfCompress,const CConfigGeneral &ConfGeneral,CMDLINEINFO &rCmdLineInfo,bool bUnicodeCapable,CString &strErr)
-{
-	ASSERT(!OrgFileNameList.empty());
-
-	//==================
-	// ファイル名の生成
-	//==================
-	BOOL bDirectory=FALSE;	//圧縮対象に指定された物がフォルダならtrue;フォルダとファイルで末尾の'.'の扱いを変える
-	BOOL bDriveRoot=FALSE;	//圧縮対象がドライブのルート(X:\ etc.)ならtrue
-	CPath pathOrgFileName;
-
-
-	bool bFileNameSpecified=(0<rCmdLineInfo.OutputFileName.GetLength());
-
-	//---元のファイル名
-	if(bFileNameSpecified){
-		//TODO:ここで処理するのはおかしい
-		pathOrgFileName=(LPCTSTR)rCmdLineInfo.OutputFileName;
-		pathOrgFileName.StripPath();	//パス名を取り除く
-	}else{
-		//先頭のファイル名を元に暫定的にファイル名を作り出す
-		pathOrgFileName=(LPCTSTR)*OrgFileNameList.begin();
-
-		//---判定
-		//ディレクトリかどうか
-		bDirectory=pathOrgFileName.IsDirectory();
-		//ドライブのルートかどうか
-		CPath pathRoot=pathOrgFileName;
-		pathRoot.AddBackslash();
-		bDriveRoot=pathRoot.IsRoot();
-		if(bDriveRoot){
-			//ボリューム名取得
-			TCHAR szVolume[MAX_PATH];
-			GetVolumeInformation(pathRoot,szVolume,MAX_PATH,NULL,NULL,NULL,NULL,0);
-			//ドライブを丸ごと圧縮する場合には、ボリューム名をファイル名とする
-			UtilFixFileName(pathOrgFileName,szVolume,_T('_'));
-		}
-	}
-
-	//圧縮形式の情報を検索
-	int nIndex=FindCompressionParamIndex(Type,Options);
-	if(-1==nIndex){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE));
-		return E_FAIL;
-	}
-
-	//拡張子決定
-	CString strExt;
-	if(bFileNameSpecified){
-		strExt=PathFindExtension(pathOrgFileName);
-	}else{
-		GetArchiveFileExtension(Type,pathOrgFileName,strExt,CompressParameterArray[nIndex].Ext);
-	}
-
-	//出力先フォルダ名
-	CPath pathOutputDir;
-	if(0!=rCmdLineInfo.OutputDir.GetLength()){
-		//出力先フォルダが指定されている場合
-		pathOutputDir=(LPCTSTR)rCmdLineInfo.OutputDir;
-	}else{
-		//設定を元に出力先を決める
-		bool bUseForAll;
-		HRESULT hr=GetOutputDirPathFromConfig(ConfCompress.OutputDirType,pathOrgFileName,ConfCompress.OutputDir,pathOutputDir,bUseForAll,strErr);
-		if(FAILED(hr)){
-			return hr;
-		}
-		if(bUseForAll){
-			rCmdLineInfo.OutputDir=(LPCTSTR)pathOutputDir;
-		}
-	}
-	pathOutputDir.AddBackslash();
-
-	// 出力先がネットワークドライブ/リムーバブルディスクであるなら警告
-	// 出力先が存在しないなら、作成確認
-	HRESULT hRes=ConfirmOutputDir(ConfGeneral,pathOutputDir,strErr);
-	if(FAILED(hRes)){
-		//キャンセルなど
-		return hRes;
-	}
-
-	if(PARAMETER_JACK==Type){
-		//JACK形式の場合は出力フォルダだけ指定
-		r_pathArcFileName=pathOutputDir;
-		return S_OK;
-	}
-
-	//ファイル名から拡張子とパス名を削除
-	if(bDirectory || bDriveRoot){	//ディレクトリ
-		//ディレクトリからは拡張子(最後の'.'以降の文字列)を削除しない
-		CPath pathDir=pathOrgFileName;
-		pathDir.StripPath();
-
-		r_pathArcFileName=pathOutputDir;
-		r_pathArcFileName.Append(pathDir);
-		r_pathArcFileName=(LPCTSTR)(((CString)r_pathArcFileName)+strExt);
-	}else{	//ファイル
-		CPath pathFile=pathOrgFileName;
-		pathFile.StripPath();
-		r_pathArcFileName=pathOutputDir;
-		r_pathArcFileName.Append(pathFile);
-		r_pathArcFileName=(LPCTSTR)(((CString)r_pathArcFileName)+strExt);
-	}
-
-	//ドライブルートを圧縮する場合、ファイル名は即決しない
-	return ConfirmOutputFile(r_pathArcFileName,OrgFileNameList,strExt,ConfCompress.SpecifyOutputFilename || bDriveRoot,bUnicodeCapable);
+	return bError ? E_FAIL : S_OK;
 }
 
 
-//pathFileNameは最初のファイル名
-//深さ優先探索
-int FindFileToCompress(LPCTSTR lpszPath,CPath &pathFileName)
-{
-	if(!PathIsDirectory(lpszPath)){	//パスがファイルの場合
-		pathFileName=lpszPath;
-		return 1;
-	}else{	//パスがフォルダの場合、フォルダ内部のファイルを探す
-		int nFileCount=0;
-
-		CPath pathWild=lpszPath;
-		pathWild.Append(_T("\\*"));
-		CFindFile cFind;
-
-		BOOL bFound=cFind.FindFile(pathWild);
-		for(;bFound;bFound=cFind.FindNextFile()){
-			if(cFind.IsDots())continue;
-
-			if(cFind.IsDirectory()){	//サブディレクトリ検索
-				nFileCount+=FindFileToCompress(cFind.GetFilePath(),pathFileName);
-				if(nFileCount>=2){
-					return 2;
-				}
-			}else{
-				pathFileName=(LPCTSTR)cFind.GetFilePath();
-				nFileCount++;
-				if(nFileCount>=2){
-					return 2;
-				}
-			}
-		}
-		return nFileCount;
-	}
-}
 
 bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList)
 {
@@ -599,4 +569,42 @@ bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CSt
 		}
 		return true;
 	}
+}
+
+
+const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
+	{L"/c:zip",		LF_FMT_ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
+	{L"/c:zippass",	LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
+//	{L"/c:zipsfx",	LF_FMT_ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
+//	{L"/c:zippasssfx",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
+//	{L"/c:zipsplit",	LF_FMT_ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
+//	{L"/c:zippasssplit",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
+	{L"/c:7z",		LF_FMT_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
+//	{L"/c:7zpass",	LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
+//	{L"/c:7zsfx",	LF_FMT_7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
+//	{L"/c:7zsplit",	LF_FMT_7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
+//	{L"/c:7zpasssplit",LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
+	{L"/c:gz",		LF_FMT_GZ,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_GZ},
+	{L"/c:bz2",		LF_FMT_BZ2,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_BZ2},
+	{L"/c:lzma",	LF_FMT_LZMA,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_LZMA},
+	{L"/c:xz",		LF_FMT_XZ,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_XZ},
+//	{L"/c:z",		LF_FMT_Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_Z},
+	{L"/c:tar",		LF_FMT_TAR,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TAR},
+	{L"/c:tgz",		LF_FMT_TAR_GZ,	LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TGZ},
+	{L"/c:tbz",		LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TBZ},
+	{L"/c:tlz",		LF_FMT_TAR_LZMA,	LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TAR_LZMA},
+	{L"/c:txz",		LF_FMT_TAR_XZ,	LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TAR_XZ},
+//	{L"/c:taz",		LF_FMT_TAR_Z,	LF_WOPT_STANDARD					,IDS_FORMAT_NAME_TAR_Z},
+	{L"/c:uue",		LF_FMT_UUE,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_UUE},
+};
+
+
+const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT fmt, int opts)
+{
+	for (const auto &item : g_CompressionCmdParams) {
+		if (item.Type == fmt && item.Options == opts) {
+			return item;
+		}
+	}
+	throw ARCHIVE_EXCEPTION(EINVAL);
 }

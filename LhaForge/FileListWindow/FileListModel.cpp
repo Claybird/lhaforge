@@ -97,13 +97,8 @@ void CFileListModel::Clear()
 	m_Content.Clear();
 	m_lpCurrentNode=NULL;
 	m_SortedChildren.clear();
-	//m_nSortKeyType=FILEINFO_INVALID;
 
 	m_FoundItems.Clear();
-	m_FoundItems.bDir=true;
-	m_FoundItems.bSafe=true;
-
-	//dispatchEvent(WM_FILELIST_NEWCONTENT);
 }
 
 void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
@@ -155,7 +150,7 @@ bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO_TREE* lpNode)
 	if(!lpNode){
 		return false;
 	}
-	if(!lpNode->bDir){
+	if(!lpNode->isDirectory()){
 		//ディレクトリでなければ帰ってもらう
 		return false;
 	}
@@ -230,22 +225,25 @@ void CFileListModel::SetSortMode(bool bSortDescending)
 struct COMP{
 	FILEINFO_TYPE Type;
 	bool bReversed;
-	bool operator()(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const{
+	bool operator()(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const {
+		return compare_no_reversed(x, y) ^ bReversed;
+	}
+	bool compare_no_reversed(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const {
 		switch(Type){
 		case FILEINFO_FILENAME:
 			{
 				//ディレクトリが上に来るようにする
-				if(x->bDir){
-					if(!y->bDir){
+				if(x->isDirectory()){
+					if(!y->isDirectory()){
 						return true;
 					}
-				}else if(y->bDir){
+				}else if(y->isDirectory()){
 					return false;
 				}
 				int result = _tcsicmp(x->strTitle , y->strTitle);
 				if(result == 0){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 				}else{
 					return (result<0);
 				}
@@ -253,18 +251,18 @@ struct COMP{
 		case FILEINFO_FULLPATH:
 			return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 		case FILEINFO_ORIGINALSIZE:
-			if(x->llOriginalSize.QuadPart == y->llOriginalSize.QuadPart){
+			if(x->llOriginalSize == y->llOriginalSize){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 			}else{
-				return (x->llOriginalSize.QuadPart < y->llOriginalSize.QuadPart);
+				return (x->llOriginalSize < y->llOriginalSize);
 			}
 		case FILEINFO_TYPENAME:
 			{
-				int result = _tcsicmp(x->strExt , y->strExt);
+				int result = _tcsicmp(x->getExt() , y->getExt());
 				if(result == 0){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 				}else{
 					return (result < 0);
 				}
@@ -274,7 +272,7 @@ struct COMP{
 				int result = CompareFileTime(&x->cFileTime , &y->cFileTime);
 				if(result == 0){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 				}else{
 					return (result < 0);
 				}
@@ -282,41 +280,22 @@ struct COMP{
 		case FILEINFO_ATTRIBUTE:
 			if(x->nAttribute == y->nAttribute){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 			}else{
 				return (x->nAttribute < y->nAttribute);
 			}
 		case FILEINFO_COMPRESSEDSIZE://圧縮後ファイルサイズ
-			if(x->llCompressedSize.QuadPart == y->llCompressedSize.QuadPart){
-				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-			}else{
-				return (x->llCompressedSize.QuadPart < y->llCompressedSize.QuadPart);
-			}
 		case FILEINFO_METHOD:			//圧縮メソッド
-			{
-				int result = _tcsicmp(x->strMethod , y->strMethod);;
-				if(result == 0){
-					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-				}else{
-					return (result < 0);
-				}
-			}
 		case FILEINFO_RATIO:			//圧縮率
-			if(x->wRatio == y->wRatio){
-				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-			}else{
-				return (x->wRatio < y->wRatio);
-			}
 		case FILEINFO_CRC:			//CRC
-			if(x->dwCRC < y->dwCRC){
+			/*if(x->llCompressedSize == y->llCompressedSize){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 			}else{
-				return (x->dwCRC < y->dwCRC);
-			}
+				return (x->llCompressedSize < y->llCompressedSize);
+			}*/
+#pragma message("FIXME!")
+			return false;
 		}
 		return false;
 	}
@@ -366,11 +345,6 @@ void CFileListModel::EndFindItem()
 	if(IsFindMode()){
 		SetCurrentNode(m_FoundItems.lpParent);
 	}
-}
-
-bool CFileListModel::ReloadArchiverIfLost(CString &strErr)
-{
-	return m_Content.ReloadArchiverIfLost(mr_Config,strErr);
 }
 
 bool CFileListModel::ExtractItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)

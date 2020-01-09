@@ -41,20 +41,41 @@
 //削除対象の記号リスト
 const LPCWSTR g_szTable=L"0123456789./*-+{}[]@`:;!\"#$%&\'()_><=~^|,\\ 　";	//最後は半角空白,全角空白
 
+
+bool archive_isContentSingleFile(LPCTSTR _szFileName)
+{
+	ARCHIVE_FILE_TO_READ a;
+	try {
+		a.read_open(_szFileName);
+		for (size_t count = 0; count < 2; count++) {
+			auto entry = a.next();
+			if (!entry) {
+				return true;
+			}
+		}
+		return false;
+	} catch (const ARCHIVE_EXCEPTION&) {
+		return false;
+	}
+}
+
+
+
 //strOpenDir:解凍先を開くとき、実際に開くパス
-bool ExtractOneArchive(CConfigManager &ConfMan,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,CArchiverDLL *lpArchiver,LPCTSTR lpArcFile,CPath &r_pathSpecificOutputDir,ARCLOG &r_ArcLog,CPath &r_pathOpenDir)
+bool ExtractOneArchive(CConfigManager &ConfMan,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,LPCTSTR lpArcFile,CPath &r_pathSpecificOutputDir,ARCLOG &r_ArcLog,CPath &r_pathOpenDir)
 {
 	//ファイル名を記録
 	r_ArcLog.strFile=lpArcFile;
 
 	//安全なアーカイブかどうか、および
 	//二重にフォルダを作らないよう、先にフォルダが必要かどうかを判定する
-	bool bInFolder,bSafeArchive;
 	bool bSkipDirCheck=(CREATE_OUTPUT_DIR_SINGLE!=ConfExtract.CreateDir);
 
+#pragma message("Extract is disabled")
+/*
 	CString strBaseDir;	//二重フォルダチェックのときに得られる、全てのファイルを内包するフォルダの名前(もしあれば)
 	CString strExamErr;
-	if(!lpArchiver->ExamineArchive(lpArcFile,ConfMan,bSkipDirCheck,bInFolder,bSafeArchive,strBaseDir,strExamErr)){
+	if(!lpArchiver->PreExtractCheck(lpArcFile,ConfMan,bSkipDirCheck,bInFolder,bSafeArchive,strBaseDir,strExamErr)){
 		//NOTE:B2E32.dllのために、エラーチェックを弱くしてある
 		ErrorMessage(strExamErr);
 		bInFolder=false;
@@ -115,7 +136,8 @@ bool ExtractOneArchive(CConfigManager &ConfMan,const CConfigGeneral &ConfGeneral
 		//解凍完了を通知
 		::SHChangeNotify(SHCNE_UPDATEDIR,SHCNF_PATH,pathOutputDir,NULL);
 	}
-	return bRet;
+	return bRet;*/
+	return false;
 }
 
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)

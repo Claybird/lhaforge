@@ -4,14 +4,6 @@
     <Filter Include="ArchiverCode">
       <UniqueIdentifier>{854a309e-3c50-48db-8a1c-ebe02ad50151}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ArchiverCode\Source Files">
-      <UniqueIdentifier>{29d6c73e-1a60-4659-b47a-ca7972bbeb45}</UniqueIdentifier>
-      <Extensions>.cpp</Extensions>
-    </Filter>
-    <Filter Include="ArchiverCode\Header Files">
-      <UniqueIdentifier>{7e6da0fd-6b93-439b-b7ba-be5b81826355}</UniqueIdentifier>
-      <Extensions>.h</Extensions>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{1de02a92-b5f1-439d-b9c7-1d870925f473}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl</Extensions>
@@ -219,9 +211,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArchiverCode\arc_interface.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Association.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -410,6 +399,9 @@
     </ClInclude>
     <ClInclude Include="Dialogs\WaitDialog.h">
       <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\arc_interface.h">
+      <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

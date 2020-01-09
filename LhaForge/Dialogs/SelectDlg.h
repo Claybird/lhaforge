@@ -29,6 +29,7 @@
 class CSelectDialog : public CDialogImpl<CSelectDialog>,public CWinDataExchange<CSelectDialog>
 {
 protected:
+#pragma message("Need to be updated")
 	bool bSFX;
 	bool bSplit;
 	bool bPassword;
@@ -74,4 +75,5 @@ public:
 
 //圧縮形式選択:キャンセルでLF_FMT_INVALIDが返る
 //SelectDialogのラッパ
+enum LF_ARCHIVE_FORMAT;
 LF_ARCHIVE_FORMAT SelectCompressType(int &Options,bool &bSingleCompression);

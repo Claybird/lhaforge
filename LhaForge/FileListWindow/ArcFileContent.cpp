@@ -28,6 +28,34 @@
 #include "../Utilities/FileOperation.h"
 #include "../ArchiverCode/arc_interface.h"
 
+void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode, const ARCHIVE_ENTRY_INFO_TREE* lpBase, CString &strPath)
+{
+	//ここで面倒なことをしているのは、
+	//lpBaseがフルパス名を持っていない(=LhaForgeが仮想的に作り出したフォルダ)ことがあるから。
+	strPath = _T("");
+
+	for (; lpNode->lpParent && lpBase != lpNode; lpNode = lpNode->lpParent) {
+		CString strTmp = lpNode->strTitle;
+		strTmp.Replace(_T('/'), _T('\\'));
+
+		CPath strBuffer = strTmp;
+		if (-1 != strTmp.Find(_T('\\'))) {
+			//ディレクトリノードの名前にパス区切り文字が入るのは、階層構造を無視した一覧の時のみ。
+			//このときは、パス区切りを全部飛ばす必要がある。
+			strBuffer.StripPath();	//一番最後の部分を残して、パスをカット
+			strBuffer.RemoveBackslash();	//パス区切り文字を一旦削除
+		}
+		if (lpNode->isDirectory()) {
+			strBuffer.AddBackslash();
+		}
+		strPath.Insert(0, strBuffer);
+	}
+	// 出力パスの修正
+	UtilModifyPath(strPath);
+}
+
+
+
 CArchiveFileContent::CArchiveFileContent():
 m_bReadOnly(false),
 m_bEncrypted(false)
@@ -48,7 +76,6 @@ void CArchiveFileContent::Clear()
 	m_bReadOnly=false;
 	m_GC.DeleteAll();
 
-	m_lpArchiver=NULL;
 	m_pathArcFileName.Empty();
 	m_bExtractEachSupported=false;
 }
@@ -71,7 +98,7 @@ ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_
 	}
 }
 
-HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,CArchiverDLL *lpArchiver,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
+HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
 {
 	//解析開始
 	try {
@@ -92,7 +119,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 			//ファイルサイズ(圧縮前)
 			item.llOriginalSize = entry->get_original_filesize();
 			//日時取得
-			item.cFileTime = entry->get_write_time();
+			item.cFileTime = entry->get_mtime();
 
 			//暗号
 			bEncrypted = bEncrypted || entry->is_encrypted();
@@ -130,7 +157,7 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 
 	//--構造取得
 	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
+	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,entries,lpHandler);
 	if(FAILED(hr)){
 		ASSERT(hr==E_ABORT);
 		if(hr==E_ABORT){
@@ -139,14 +166,12 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 		return hr;
 	}
 	//記録
-	m_lpArchiver=lpArchiver;
 	m_pathArcFileName=lpFile;
-	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
 
 	//解析
 	size_t numEntries=entries.size();
 	for(size_t i=0;i<numEntries;i++){
-		if(bFilesOnly && entries[i].nAttribute&FA_DIREC)continue;	//ファイルのみの場合はディレクトリは無視
+		if(bFilesOnly && entries[i].nAttribute & S_IFDIR)continue;	//ファイルのみの場合はディレクトリは無視
 
 		ARCHIVE_ENTRY_INFO_TREE* lpEntry=new ARCHIVE_ENTRY_INFO_TREE;
 		m_GC.Add(lpEntry);
@@ -159,13 +184,9 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 
 		m_Root.childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type((LPCTSTR)lpEntry->strTitle,lpEntry));
 		m_Root.childrenArray.push_back(lpEntry);
-
-		//後で設定する
-		lpEntry->bDir=false;
-		lpEntry->bSafe=true;
 	}
 
-	PostProcess(m_lpArchiver->IsUnicodeCapable(),NULL);
+	PostProcess(NULL);
 	return S_OK;
 }
 
@@ -175,27 +196,9 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 
 	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
 
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt);
-	if(!lpArchiver){
-		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
-		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
-		//UNICODE関係のチェック
-		if(!UtilCheckT2A(lpFile)){
-			//UNICODEに対応していないのにUNICODEファイル名のファイルを扱おうとした可能性がある
-			strErr+=_T("\r\n\r\n");
-			strErr.AppendFormat(IDS_ERROR_UNICODEPATH);
-		}
-		return E_LF_UNKNOWN_FORMAT;
-	}
-	if(!lpArchiver->QueryInspectSupported()){
-		//閲覧できない形式
-		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
-
 	//--構造取得
 	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
+	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,entries,lpHandler);
 	if(FAILED(hr)){
 		ASSERT(hr==E_ABORT && "Not Implemented");
 		if(hr==E_ABORT){
@@ -205,9 +208,7 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 	}
 
 	//記録
-	m_lpArchiver=lpArchiver;
 	m_pathArcFileName=lpFile;
-	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
 
 	//解析
 	//TODO:既に出現したディレクトリのみを対象に比較を行う
@@ -250,80 +251,53 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
 
 		lpEntry->strTitle=strTitle;
-
-		//後で設定する
-		lpEntry->bDir=false;
-		lpEntry->bSafe=true;
 	}
 
-	PostProcess(m_lpArchiver->IsUnicodeCapable(),NULL);
+	PostProcess(NULL);
 	return S_OK;
 }
 
 /*
  * ファイル一覧追加後の処理
  * ディレクトリ内ファイルのサイズを取得するなど
- * bUnicodeは使用したDLLがUNICODEに対応している場合にはtrue
  */
-void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNode)
+void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO_TREE* pNode)
 {
-	if(!pNode)pNode=&m_Root;
+	if (!pNode)pNode = &m_Root;
 	//属性
-	if(-1==pNode->nAttribute){	//まったく分かっていない場合
-		if(!pNode->childrenDict.empty()||UtilPathEndWithSeparator(pNode->strFullPath)){
+	if (0 == pNode->nAttribute) {	//まったく分かっていない場合
+		if (!pNode->childrenDict.empty() || UtilPathEndWithSeparator(pNode->strFullPath)) {
 			//以下の条件のいずれかに合致すればディレクトリ
-			//・ノード名末尾にパス区切り文字が付いている(bDir)
+			//・ノード名末尾にパス区切り文字が付いている
 			//・子ノードが空でない
-			pNode->nAttribute=FA_DIREC;
-			pNode->bDir=true;
-		}else{
-			pNode->nAttribute=FA_UNKNOWN;
+			pNode->nAttribute = S_IFDIR;
+		} else {
+			pNode->nAttribute = S_IFREG;
 		}
-	}else{
-		if(!pNode->childrenDict.empty()||UtilPathEndWithSeparator(pNode->strFullPath)){
-			pNode->nAttribute|=FA_DIREC;
-			pNode->bDir=true;
+	} else {
+		if (!pNode->childrenDict.empty() || UtilPathEndWithSeparator(pNode->strFullPath)) {
+			pNode->nAttribute |= S_IFDIR;
 		}
 	}
-	if(pNode->nAttribute&FA_DIREC){
-		//フォルダには拡張子はない
-		pNode->strExt=FOLDER_EXTENSION_STRING;
-
-		pNode->llOriginalSize.QuadPart=0;
-		pNode->llCompressedSize.QuadPart=0;
-	}else{
-		pNode->strExt=PathFindExtension(pNode->strFullPath);
-	}
-
-	//危険判定
-	if(bUnicode){
-		pNode->bSafe=UtilIsSafeUnicode(pNode->strFullPath);
+	if (pNode->isDirectory()) {
+		pNode->llOriginalSize=0;
 	}
 
 	//子ノードにも適用
 	size_t numChildren=pNode->childrenArray.size();
 	for(size_t i=0;i<numChildren;i++){
 		ARCHIVE_ENTRY_INFO_TREE* pChild=pNode->childrenArray[i];
-		PostProcess(bUnicode,pChild);
+		PostProcess(pChild);
 
 		//---ディレクトリなら、中のデータのサイズを集計する
-		if(pNode->bDir){
+		if (pNode->isDirectory()) {
 			//---圧縮前サイズ
-			if(pNode->llOriginalSize.QuadPart>=0){	//ファイルサイズ取得に失敗していない
-				if(pChild->llOriginalSize.QuadPart>=0){
-					pNode->llOriginalSize.QuadPart+=pChild->llOriginalSize.QuadPart;
-				}else{
-					pNode->llOriginalSize.LowPart=-1;
-					pNode->llOriginalSize.HighPart=-1;
-				}
-			}
-			//---圧縮後サイズ
-			if(pNode->llCompressedSize.QuadPart>=0){	//ファイルサイズ取得に失敗していない
-				if(pChild->llCompressedSize.QuadPart>=0){
-					pNode->llCompressedSize.QuadPart+=pChild->llCompressedSize.QuadPart;
-				}else{
-					pNode->llCompressedSize.LowPart=-1;
-					pNode->llCompressedSize.HighPart=-1;
+			if(pNode->llOriginalSize>=0){	//ファイルサイズ取得済み
+				if (pChild->llOriginalSize >= 0) {
+					pNode->llOriginalSize += pChild->llOriginalSize;
+				} else {
+					//ファイルサイズ不明な物あり、
+					pNode->llOriginalSize = -1;
 				}
 			}
 		}
@@ -349,7 +323,7 @@ void CArchiveFileContent::FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARC
 		if(::PathMatchSpec(strKey,lpszMask)){
 			founds.push_back(lpNode);
 		}
-		if(lpNode->bDir){	//ディレクトリは再帰検索
+		if(lpNode->isDirectory()){	//ディレクトリは再帰検索
 			dirs.push_back(lpNode);
 		}
 	}
@@ -382,12 +356,9 @@ void CArchiveFileContent::FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TRE
 
 bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)
 {
-	if(!IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		return false;
-	}
-
-	return m_lpArchiver->ExtractItems(m_pathArcFileName,ConfMan,lpBase,items,lpszDir,bCollapseDir,strLog);
+	//TODO
+	RAISE_EXCEPTION(L"NOT INMPELEMTED");
+	return false;// return m_lpArchiver->ExtractItems(m_pathArcFileName, ConfMan, lpBase, items, lpszDir, bCollapseDir, strLog);
 }
 
 void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpParent,std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > &toExtractList)
@@ -431,7 +402,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 
 		if(bOverwrite){
 			// 上書き解凍するので、存在するファイルは削除
-			if(lpNode->bDir){
+			if(lpNode->isDirectory()){
 				if(::PathIsDirectory(path))UtilDeleteDir(path,true);
 			}else{
 				if(::PathFileExists(path))UtilDeletePath(path);
@@ -479,225 +450,104 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 
 HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR lpDestDir,CConfigManager& rConfig,CString &strLog)
 {
-	ASSERT(IsAddItemsSupported());
-	if(!IsAddItemsSupported())return false;
-
 	//---ファイル名チェック
-	bool bUnicode=IsUnicodeCapable();
 	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		if(0==m_pathArcFileName.CompareNoCase(*ite)){
 			//アーカイブ自身を追加しようとした
 			return E_LF_SAME_INPUT_AND_OUTPUT;
 		}
-		//---UNICODEチェック
-		if(!bUnicode){
-			if(!UtilCheckT2A(*ite)){
-				//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-				return E_LF_UNICODE_NOT_SUPPORTED;
-			}
-		}
 	}
 
-	//---追加
+	//TODO
+	RAISE_EXCEPTION(L"NOT INMPELEMTED");
+	return E_NOTIMPL;
+/*	//---追加
 	//基底ディレクトリ取得などはCArchiverDLL側に任せる
 	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
 		return S_OK;
 	}else{
 		return S_FALSE;
-	}
+	}*/
 }
 
 bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &fileList,CString &strLog)
 {
-	ASSERT(IsDeleteItemsSupported());
-	if(!IsDeleteItemsSupported())return false;
-	//削除対象を列挙
+	//TODO
+	RAISE_EXCEPTION(L"NOT INMPELEMTED");
+	return false;
+/*	//削除対象を列挙
 	std::list<CString> filesToDel;
 	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		(*ite)->EnumFiles(filesToDel);
 	}
-	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);
+	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);*/
 }
 
-bool CArchiveFileContent::IsDeleteItemsSupported()const
+std::wstring LF_sanitize_pathname(const std::wstring& rawPath)
 {
-	return (!m_bReadOnly) && m_lpArchiver && m_lpArchiver->QueryDeleteItemFromArchiveSupported(m_pathArcFileName);
-}
+	const std::pair<std::wregex, wchar_t*> pattern[] = {
+		//potential directory traversals
+		{std::wregex(L"/{2,}"),L"/"},	//not harmful if properly treated
+		{std::wregex(L"(^|/).(/|$)"),L"/"},		//not harmful if properly treated
+		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$0_@@@_$2"},
+		{std::wregex(L"\\\\"),L"_@@@_"},
+		{std::wregex(L"^/"),L""},
 
-bool CArchiveFileContent::IsAddItemsSupported()const
-{
-	return (!m_bReadOnly) && m_lpArchiver && m_lpArchiver->QueryAddItemToArchiveSupported(m_pathArcFileName);
-}
+		//unicode control characters
+		{std::wregex(L"("
+			L"\u001e|\u001f|\u00ad|\uFEFF|\uFFF9|\uFFFA|\uFFFB|\uFFFE|"
+			L"[\u200b-\u200f]|"
+			L"[\u202a-\u202e]|"
+			L"[\u2060-\u2063]|"
+			L"[\u206a-\u206f]|"
+			L")"),
+			L"_(UNICODE_CTRL)_"},
+	};
 
-bool CArchiveFileContent::IsUnicodeCapable()const
-{
-	return m_lpArchiver && m_lpArchiver->IsUnicodeCapable();
-}
-
-bool CArchiveFileContent::ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr)
-{
-	if(m_lpArchiver && !m_lpArchiver->IsOK()){
-		return (LOAD_RESULT_OK==m_lpArchiver->LoadDLL(ConfigManager,strErr));
-	}
-	return true;
-}
-
-
-
-//=============================================================
-// SevenZipGetFileName()の出力結果を基に、格納されたファイルが
-// パス情報を持っているかどうか判別し、二重フォルダ作成を防ぐ
-//=============================================================
-bool CArchiverDLL::ExamineArchive(LPCTSTR ArcFileName, CConfigManager& ConfMan, bool bSkipDir, bool &bInFolder, bool &bSafeArchive, CString &BaseDir, CString &strErr)
-{
-	/*
-	Separator('/' or '\')は格納ファイルの先頭にいくら含まれていても無視すべきであるので、
-	格納ファイル名の先頭にいくらSeparatorがあってもフォルダに格納された状態とは見なさない。
-	SeparatorがMaxRepeatより多いと不正とする
-	ただし、MaxRepeatが-1のときはエラーとはしない
-	*/
-	const int MaxRepeat = -1;
-
-	ASSERT(IsOK());
-	if (!IsOK()) {
-		return false;
-	}
-
-	ARCHIVE_FILE arc;
-	if (!InspectArchiveBegin(arc, ArcFileName, ConfMan)) {
-		strErr.Format(IDS_ERROR_OPEN_ARCHIVE, ArcFileName);
-		return false;
-	}
-
-	bInFolder = true;
-	bool bSureDir = false;	//BaseDirに入っている文字列が確かにフォルダであるならtrue
-	TRACE(_T("========\n"));
-
-	while (InspectArchiveNext(arc)) {
-		CString Buffer;
-		InspectArchiveGetFileName(arc, Buffer);
-		Buffer.Replace(_T('\\'), _T('/'));		//パス区切り文字の置き換え
-		TRACE(_T("%s\n"), Buffer);
-
-		const int Length = Buffer.GetLength();
-		int StartIndex = 0;
-		for (; StartIndex < Length; StartIndex++) {
-			//先頭の'/'をとばしていく
-#if defined(_UNICODE)||defined(UNICODE)
-			if (_T('/') != Buffer[StartIndex])break;
-#else
-			if (_MBC_SINGLE == _mbsbtype((const unsigned char *)(LPCTSTR)Buffer, StartIndex)) {
-				if (_T('/') != Buffer[StartIndex])break;
-			} else {	//全角文字なら'/'であるはずがない
-				break;
+	auto buf = rawPath;
+	for (;;) {
+		bool modified = false;
+		for (const auto &p : pattern) {
+			auto updated = std::regex_replace(buf, p.first, p.second);
+			if ((!modified) && (updated != buf)) {
+				modified = true;
 			}
-#endif//defined(_UNICODE)||defined(UNICODE)
-			if (-1 != MaxRepeat) {
-				if (StartIndex >= MaxRepeat) {	//'/'がMaxRepeat個以上続く場合
-					//危険なファイルと分かったので監査終了
-					InspectArchiveEnd(arc);
-					bSafeArchive = false;
-					bInFolder = false;
-					return true;
-				}
+			buf = updated;
+		}
+		if (!modified)break;
+	}
+	return buf;
+}
+
+//check for archive content structure
+PRE_EXTRACT_CHECK_RESULT CArchiveFileContent::PreExtractCheck(ARCHIVE_FILE_TO_READ &arc, CConfigManager& ConfMan, bool bSkipDir)
+{
+	bool bFirst = true;
+	PRE_EXTRACT_CHECK_RESULT result;
+
+	for (auto entry = arc.begin(); entry != NULL; entry = arc.next()) {
+		std::wstring fname = entry->get_pathname();
+		fname = LF_sanitize_pathname(fname);
+		TRACE(L"%s\n", fname.c_str());
+
+		auto path_components = split_string(fname, L"/");
+		//to remove trailing '/'
+		remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
+
+		if (path_components.empty())continue;
+
+		if (bFirst) {
+			result.baseDirName = path_components.front();
+			result.allInOneDir = true;
+			bFirst = false;
+		} else {
+			if (0!=_wcsicmp(result.baseDirName.c_str(),path_components.front().c_str())) {
+				//another root entry found
+				result.allInOneDir = false;
+				return result;
 			}
 		}
-		if ((-1 != Buffer.Find(_T("../"), StartIndex)) ||	//相対パス指定が見つかれば、それは安全なファイルではない
-			(-1 != Buffer.Find(_T(':'), StartIndex))) {	//ドライブ名が見つかれば、それは安全なファイルではない
-			//危険なファイルと分かったので監査終了
-			InspectArchiveEnd(arc);
-			bSafeArchive = false;
-			bInFolder = false;
-			return true;
-		}
-
-		//ここからは二重ディレクトリ判定
-		//すでに二重ディレクトリ判定が付いている場合は安全判定のみに徹する
-
-		int FoundIndex = 0;
-		while (bInFolder) {
-			FoundIndex = Buffer.Find(_T('/'), StartIndex);
-			if (-1 == FoundIndex) {	//'/'が格納ファイル名の先頭以外に含まれない場合
-				if (!BaseDir.IsEmpty() && BaseDir == Buffer) {
-					bSureDir = true;	//BaseDirがフォルダであると確認された
-					break;
-				} else if (BaseDir.IsEmpty()) {
-					//フォルダ名の後ろに'/'が付かないアーカイバもある
-					//そういうものが最初に出てきたときは、フォルダ名と仮定する
-					BaseDir = Buffer;
-					bSureDir = false;
-					break;
-				}
-			}
-			CString Dir = Buffer.Mid(StartIndex, FoundIndex - StartIndex);	//Separatorの前までの文字列(ディレクトリに相当)を抜き出してくる
-			//これまでの調べでDirはEmptyではないことが保証されている
-			//また、危険ではないことも分かっている
-			TRACE(_T("Base=%s,Dir=%s\n"), BaseDir, Dir);
-
-			if (_T('.') == Dir) {	//./があればディレクトリ指定としては無視する
-				StartIndex = FoundIndex + 1;
-				continue;
-			}
-			if (BaseDir.IsEmpty()) {
-				BaseDir = Dir;
-				bSureDir = true;
-			} else if (BaseDir != Dir) {
-				bInFolder = false;
-			} else bSureDir = true;	//BaseDirがディレクトリと確認された
-			break;
-		}
 	}
-	TRACE(_T("========\n"));
-
-	InspectArchiveEnd(arc);
-	bSafeArchive = true;
-
-	//フォルダに入っているようではあるが、ディレクトリと仮定されただけの場合
-	if (bInFolder && !bSureDir)bInFolder = false;
-	return true;
-
+	return result;
 }
-
-bool CArchiverDLL::ExtractSpecifiedOnly(LPCTSTR ArcFileName, CConfigManager&, LPCTSTR OutputDir, std::list<CString> &FileList, CString &strLog, bool bUsePath)
-{
-	//出力先移動
-	CCurrentDirManager currentDir(OutputDir);
-	return false;
-}
-
-
-
-bool CArchiverDLL::isContentSingleFile(LPCTSTR _szFileName)
-{
-	ARCHIVE_FILE a;
-	int r = archive_read_open_filename_w(a, _szFileName, 10240);
-	if (r == ARCHIVE_OK) {
-		return true;
-	} else {
-		return false;
-	}
-	for (size_t count = 0; count < 2; count++) {
-		struct archive_entry *entry;
-		if (ARCHIVE_OK != archive_read_next_header(a, &entry)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

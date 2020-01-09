@@ -40,6 +40,18 @@
 CAppModule _Module;
 
 
+bool LF_isExtractable(const wchar_t* fname)
+{
+	ARCHIVE_FILE_TO_READ f;
+	try {
+		f.read_open(fname);
+		return true;
+	} catch (const ARCHIVE_EXCEPTION& ) {
+		return false;
+	}
+}
+
+
 //---------------------------------------------
 
 //エントリーポイント
@@ -153,7 +165,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		//ファイル一覧ウィンドウを出す場合以外は、ファイル指定が無いときは設定ダイアログを出す
 		ProcessMode=PROCESS_CONFIGURE;
 	}
-	CArchiverDLLManager::GetInstance().SetConfigManager(ConfigManager);
 
 	switch(ProcessMode){
 	case PROCESS_COMPRESS://圧縮
@@ -168,7 +179,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		}else{
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
-			if(CArchiverDLLManager::GetInstance().GetArchiver(*cli.FileList.begin(),ConfExtract.DenyExt)){	//解凍可能な形式かどうか
+			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(CString(PathFindExtension(*cli.FileList.begin())).MakeLower()) == -1;
+			if(!isDenied && LF_isExtractable(*cli.FileList.begin())){	//解凍可能な形式かどうか
 				DoExtract(ConfigManager,cli);
 			}else{
 				DoCompress(ConfigManager,cli);
@@ -207,8 +219,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	}
 
 	TRACE(_T("Terminating...\n"));
-	CArchiverDLLManager::GetInstance().Final();
-//	Sleep(1);	//対症療法 for 0xC0000005: Access Violation
 	_Module.RemoveMessageLoop();
 	_Module.Term();
 	OleUninitialize();
@@ -223,35 +233,26 @@ levelの指定は、B2E32.dll以外で有効
 */
 bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
-	//圧縮オプション指定
-	CString strFormat=cli.strFormat;
-	CString strMethod=cli.strMethod;
-	CString strLevel=cli.strLevel;
-
-	strFormat = cli.strSplitSize;
-
 	CConfigCompress ConfCompress;
 	CConfigGeneral ConfGeneral;
 	ConfCompress.load(ConfigManager);
 	ConfGeneral.load(ConfigManager);
 
-	while(PARAMETER_UNDEFINED==cli.CompressType){	//---使用DLLを決定
-		if(PARAMETER_UNDEFINED==cli.CompressType){	//形式が指定されていない場合
-			if(ConfCompress.UseDefaultParameter){	//デフォルトパラメータを使うならデータ取得
-				cli.CompressType=ConfCompress.DefaultType;
-				cli.Options=ConfCompress.DefaultOptions;
-			}else{	//入力を促す
-				CSelectDialog SelDlg;
-				SelDlg.SetDeleteAfterCompress(BOOL2bool(ConfCompress.DeleteAfterCompress));
-				cli.CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
-				if(PARAMETER_UNDEFINED==cli.CompressType){	//キャンセルの場合
-					return false;
-				}else{
-					cli.Options=SelDlg.GetOptions();
-					cli.bSingleCompression=SelDlg.IsSingleCompression();
-					cli.DeleteAfterProcess=SelDlg.GetDeleteAfterCompress() ? 1 : 0;
-					break;
-				}
+	while(LF_FMT_INVALID == cli.CompressType){	//---使用DLLを決定
+		if(ConfCompress.UseDefaultParameter){	//デフォルトパラメータを使うならデータ取得
+			cli.CompressType = ConfCompress.DefaultType;
+			cli.Options = ConfCompress.DefaultOptions;
+		}else{	//入力を促す
+			CSelectDialog SelDlg;
+			SelDlg.SetDeleteAfterCompress(BOOL2bool(ConfCompress.DeleteAfterCompress));
+			cli.CompressType=(LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+			if(LF_FMT_INVALID ==cli.CompressType){	//キャンセルの場合
+				return false;
+			}else{
+				cli.Options=SelDlg.GetOptions();
+				cli.bSingleCompression=SelDlg.IsSingleCompression();
+				cli.DeleteAfterProcess=SelDlg.GetDeleteAfterCompress() ? 1 : 0;
+				break;
 			}
 		}
 	}
@@ -280,7 +281,8 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			std::list<CString> TempList;
 			TempList.push_back(*ite);
 
-			bRet=bRet && Compress(TempList,cli.CompressType,ConfigManager,strFormat,strMethod,strLevel,cli);
+#pragma message("FIXME!")
+			//bRet=bRet && Compress(TempList,cli.CompressType,ConfigManager,cli);
 		}
 		//プログレスバーを閉じる
 		if(dlg.IsWindow())dlg.DestroyWindow();
@@ -289,7 +291,9 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		KillTimer(NULL,timer);
 		return bRet;
 	}else{	//通常圧縮
-		return Compress(cli.FileList,cli.CompressType,ConfigManager,strFormat,strMethod,strLevel,cli);
+#pragma message("FIXME!")
+		//return Compress(cli.FileList,cli.CompressType,ConfigManager,cli);
+		return FALSE;
 	}
 }
 
@@ -366,24 +370,25 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 //リストからフォルダを削除し、サブフォルダのファイルを追加
 void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArchivesOnly)
 {
-	std::list<CString>::iterator ite;
-	for(ite=FileList.begin();ite!=FileList.end();){
+	for(auto ite=FileList.begin();ite!=FileList.end();){
 		if(PathIsDirectory(*ite)){
 			//---解凍対象がフォルダなら再帰解凍する
 			std::list<CString> subFileList;
 			UtilRecursiveEnumFile(*ite,subFileList);
 
-			for(std::list<CString>::iterator ite2=subFileList.begin();ite2!=subFileList.end();ite2++){
-				if(!bArchivesOnly||CArchiverDLLManager::GetInstance().GetArchiver(*ite2,lpDenyExt)){
+			for(const auto& subFile: subFileList){
+				bool isDenied = CString(lpDenyExt).MakeLower().Find(CString(PathFindExtension(subFile)).MakeLower()) == -1;
+
+				if(!bArchivesOnly|| (!isDenied && LF_isExtractable(subFile))){
 					//対応している形式のみ追加する必要がある時は、解凍可能な形式かどうか判定する
-					FileList.push_back(*ite2);
+					FileList.push_back(subFile);
 				}
 			}
 			//自分は削除
 			ite=FileList.erase(ite);
 		}
 		else{
-			ite++;
+			++ite;
 		}
 	}
 }

@@ -557,7 +557,6 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		}
 	}
 
-	m_TabClientWnd.ReloadArchiverIfLost();
 /*	else{	別にIDCANCELでもロードし直す必要はない。なぜならデータはダイアログ内で留まり、Config構造体に入らず捨てられているから
 		Config.LoadConfig(CONFIG_LOAD_ALL);
 	}*/
@@ -727,11 +726,12 @@ void CFileListFrame::UpdateStatusBar()
 	if(pTab){
 		CString Text;
 		//---DLL情報
-		const CArchiverDLL *pDLL=pTab->Model.GetArchiver();
+#pragma message("FIXME!")
+		/*const CArchiverDLL *pDLL = pTab->Model.GetArchiver();
 		if(pDLL){
 			Text.Format(IDS_PANE_DLL_NAME,pDLL->GetName());
 			m_StatusBar.SetPaneText(IDS_PANE_DLL_NAME_INITIAL,Text);
-		}
+		}*/
 
 		//---ファイル選択情報
 		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),pTab->ListView.GetSelectedCount());

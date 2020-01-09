@@ -451,7 +451,7 @@ WEAK_SYMBOL std::vector<LF_ARCHIVE_CAPABILITY> g_capabilities = {
 };
 
 
-const LF_ARCHIVE_CAPABILITY& get_archive_capability(LF_ARCHIVE_FORMAT fmt)
+inline const LF_ARCHIVE_CAPABILITY& get_archive_capability(LF_ARCHIVE_FORMAT fmt)
 {
 	for (const auto &cap : g_capabilities) {
 		if (fmt == cap.format) {
@@ -550,3 +550,4 @@ struct ARCHIVE_FILE_TO_WRITE
 	arc.close();
 
 */
+

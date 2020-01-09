@@ -23,21 +23,99 @@
 */
 
 #pragma once
-#include "../ArchiverCode/ArcEntryInfo.h"
 #include "../ConfigCode/ConfigManager.h"
 #include "../Utilities/PtrCollection.h"
 
-struct IArchiveContentUpdateHandler{
-	virtual ~IArchiveContentUpdateHandler(){}
-	virtual void onUpdated(ARCHIVE_ENTRY_INFO&)=0;
-	virtual bool isAborted()=0;
+
+
+//フォルダの識別文字列(拡張子)
+const LPCTSTR FOLDER_EXTENSION_STRING = _T("***");
+
+//アーカイブ中のファイル/フォルダのエントリを保持
+struct ARCHIVE_ENTRY_INFO {	//ファイルアイテム情報保持
+	virtual ~ARCHIVE_ENTRY_INFO() {}
+
+	CString		strFullPath;	//格納されたときの名前
+	int			nAttribute;		//属性;自分がフォルダかどうかなどの情報
+	UINT64		llOriginalSize;		//格納ファイルの圧縮前のサイズ(ディレクトリなら、中に入っているファイルサイズの合計)
+	FILETIME	cFileTime;		//格納ファイル最終更新日時
+
+	bool isDirectory()const { return (nAttribute&S_IFDIR) != 0; }
+	const wchar_t* getExt()const { return PathFindExtensionW(strFullPath); }
 };
 
+struct IArchiveContentUpdateHandler {
+	virtual ~IArchiveContentUpdateHandler() {}
+	virtual void onUpdated(ARCHIVE_ENTRY_INFO&) = 0;
+	virtual bool isAborted() = 0;
+};
+
+//reconstructed archive content structure
+struct ARCHIVE_ENTRY_INFO_TREE :public ARCHIVE_ENTRY_INFO {
+	virtual ~ARCHIVE_ENTRY_INFO_TREE() {}
+	typedef std::unordered_map<stdString, ARCHIVE_ENTRY_INFO_TREE*> DICT;
+	std::vector<ARCHIVE_ENTRY_INFO_TREE*> childrenArray;
+	DICT					childrenDict;
+	ARCHIVE_ENTRY_INFO_TREE	*lpParent;
+	CString					strTitle;
+
+	size_t GetNumChildren()const { return childrenArray.size(); }
+	ARCHIVE_ENTRY_INFO_TREE* GetChild(size_t idx)const {
+		if (0 <= idx && idx < GetNumChildren()) {
+			return childrenArray[idx];
+		} else return NULL;
+	}
+	ARCHIVE_ENTRY_INFO_TREE* GetChild(LPCTSTR lpName)const {
+		CString strTmp = lpName;
+		strTmp.MakeLower();
+		DICT::const_iterator ite = childrenDict.find((LPCTSTR)strTmp);
+		if (ite != childrenDict.end()) {
+			return (*ite).second;
+		} else return NULL;
+	}
+	void Clear() {
+		lpParent = NULL;
+		childrenArray.clear();
+		childrenDict.clear();
+
+		nAttribute = 0;
+		llOriginalSize = -1;
+		cFileTime.dwLowDateTime = -1;
+		cFileTime.dwHighDateTime = -1;
+	}
+
+	//自分以下のファイルを列挙
+	void EnumFiles(std::list<CString> &rFileList)const {
+		if (isDirectory()) {
+			size_t size = childrenArray.size();
+			for (size_t i = 0; i < size; i++) {
+				childrenArray[i]->EnumFiles(rFileList);
+			}
+		}
+		if (!strFullPath.IsEmpty()) {
+			rFileList.push_back(strFullPath);
+		}
+	}
+
+	//ディレクトリならtrue
+	bool isDirectory()const {
+		return (nAttribute & S_IFDIR) != 0;
+	}
+};
+
+//ルートからみて自分までのパスを取得
+void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpDir, const ARCHIVE_ENTRY_INFO_TREE* lpBase, CString &strPath);
+
+struct ARCHIVE_FILE_TO_READ;
+
+struct PRE_EXTRACT_CHECK_RESULT {
+	bool allInOneDir;	//true if all the contents are under one root directory
+	std::wstring baseDirName;	//valid if allInOneDir is true
+};
 
 /*
  * アーカイブ内のファイル構造を保持
  */
-class CArchiverDLL;
 class CArchiveFileContent{
 protected:
 	//ファイル情報
@@ -46,7 +124,6 @@ protected:
 	//Semi-Auto Garbage Collector
 	CSmartPtrCollection<ARCHIVE_ENTRY_INFO> m_GC;
 
-	CArchiverDLL*	m_lpArchiver;
 	CString			m_pathArcFileName;
 	bool			m_bExtractEachSupported;
 	bool			m_bReadOnly;
@@ -60,8 +137,8 @@ protected:
 	//bMatchPath:trueならパスも含め検索、falseならファイル名のみ検索
 	void FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
 
-	void PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE*);
-	HRESULT InspectArchiveStruct(LPCTSTR lpFile,CConfigManager&,CArchiverDLL*,std::vector<ARCHIVE_ENTRY_INFO>&,IArchiveContentUpdateHandler*);
+	void PostProcess(ARCHIVE_ENTRY_INFO_TREE*);
+	HRESULT InspectArchiveStruct(LPCTSTR lpFile,CConfigManager&,std::vector<ARCHIVE_ENTRY_INFO>&,IArchiveContentUpdateHandler*);
 	void CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpParent,std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > &toExtractList);
 
 public:
@@ -79,10 +156,11 @@ public:
 	HRESULT ConstructTree(LPCTSTR lpFile,CConfigManager&,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler*);
 	void Clear();
 
-	bool ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr);
-
 	bool IsArchiveEncrypted()const{return m_bEncrypted;}
 	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
+	bool IsOK()const { return false; /*TODO*/
+#pragma message("FIXME!")
+	}
 
 	//lpTop以下のファイルを検索
 	void FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
@@ -92,4 +170,6 @@ public:
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
 	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
+	PRE_EXTRACT_CHECK_RESULT PreExtractCheck(ARCHIVE_FILE_TO_READ &arc, CConfigManager& ConfMan, bool bSkipDir);
 };
+

@@ -134,7 +134,7 @@ bool CFileTreeView::ConstructTree(HTREEITEM hParentItem,ARCHIVE_ENTRY_INFO_TREE*
 	UINT numItems=lpNode->GetNumChildren();
 	for(UINT i=0;i<numItems;i++){
 		ARCHIVE_ENTRY_INFO_TREE* lpChild=lpNode->GetChild(i);
-		if(lpChild->bDir){
+		if(lpChild->isDirectory()){
 			//ディレクトリなら追加
 			ConstructTree(hItem,lpChild);
 		}
@@ -267,7 +267,7 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		ARCHIVE_ENTRY_INFO_TREE* lpNode=(ARCHIVE_ENTRY_INFO_TREE*)GetItemData(hItem);
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
-			ASSERT(lpNode->bDir);
+			ASSERT(lpNode->isDirectory());
 			ArcEntryInfoTree_GetNodePathRelative(lpNode,mr_Model.GetRootNode(),strDest);
 		}else{
 			return E_HANDLE;

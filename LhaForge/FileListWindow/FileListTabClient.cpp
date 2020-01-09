@@ -442,18 +442,6 @@ void CFileListTabClient::SetListViewStyle(DWORD dwStyle)
 	}
 }
 
-void CFileListTabClient::ReloadArchiverIfLost()
-{
-	CString strErr;
-	size_t count=GetPageCount();
-	for(size_t idx=0;idx<count;idx++){
-		CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
-		ASSERT(pItem);
-		pItem->Model.ReloadArchiverIfLost(strErr);
-		//ErrorMessage(strErr);
-	}
-}
-
 
 LRESULT CFileListTabClient::OnTabSelChanging(LPNMHDR pnmh)
 {

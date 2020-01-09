@@ -32,11 +32,8 @@
 
 bool TestArchive(const std::list<CString> &rArcList,CConfigManager &ConfigManager)
 {
-	CArchiverDLLManager &ArchiverManager=CArchiverDLLManager::GetInstance();
-
-	//XacRettはチェックが甘いため使わない
-
-	//プログレスバー
+#pragma message("FIXME!")
+/*	//プログレスバー
 	CProgressDialog dlg;
 	int nFiles=rArcList.size();
 	dlg.Create(NULL);
@@ -87,7 +84,7 @@ bool TestArchive(const std::list<CString> &rArcList,CConfigManager &ConfigManage
 	CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
 	LogDlg.SetLogArray(LogArray);
 	LogDlg.DoModal(::GetDesktopWindow());
-
+	*/
 	return true;
 }
 

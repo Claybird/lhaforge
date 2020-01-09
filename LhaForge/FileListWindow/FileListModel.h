@@ -108,14 +108,15 @@ public:
 	ARCHIVE_ENTRY_INFO_TREE* FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO_TREE *lpTop);
 	void EndFindItem();
 
-	bool ReloadArchiverIfLost(CString &strErr);
-
 	//処理対象アーカイブ名を取得
 	LPCTSTR GetArchiveFileName()const{return m_Content.GetArchiveFileName();}
 	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return m_Content.GetRootNode();}
 	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return m_Content.GetRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
+	[[deprecated("just a placeholder")]] bool IsExtractEachSupported()const { return false; }
+	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
+	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮

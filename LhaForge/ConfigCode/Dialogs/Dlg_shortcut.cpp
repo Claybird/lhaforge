@@ -178,41 +178,33 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 		bool bSingleCompression=false;
 
 		//形式選択ダイアログ
-		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression);
-		if(CompressType==PARAMETER_UNDEFINED)return false;	//キャンセル
+		auto format = SelectCompressType(Options,bSingleCompression);
+		if(format==LF_FMT_INVALID)return false;	//キャンセル
 
-		//通常DLLを使用
 		//選択ダイアログの条件に一致するパラメータを検索
-		int Index=0;
-		for(;Index<COMPRESS_PARAM_COUNT;Index++){
-			if(CompressType==CompressParameterArray[Index].Type){
-				if(Options==CompressParameterArray[Index].Options){
-					break;
-				}
+		try {
+			const auto &args = get_archive_format_args(format, Options);
+			//ショートカット名取得
+			CString Buf;
+			if (bSingleCompression) {
+				//一つずつ圧縮
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, CString(MAKEINTRESOURCE(args.FormatName)));
+			} else {
+				//通常
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX, CString(MAKEINTRESOURCE(args.FormatName)));
 			}
-		}
-		if(Index>=COMPRESS_PARAM_COUNT){
+			PathAppend(Path, Buf);
+			//パラメータ
+			Param = args.arg;
+			if (bSingleCompression) {
+				//一つずつ圧縮
+				Param += _T(" /s");
+			}
+		} catch (const ARCHIVE_EXCEPTION&) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 			return false;
-		}
-		//ショートカット名取得
-		CString Buf;
-		if(bSingleCompression){
-			//一つずつ圧縮
-			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-		}
-		else{
-			//通常
-			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-		}
-		PathAppend(Path,Buf);
-		//パラメータ
-		Param=CompressParameterArray[Index].Param;
-		if(bSingleCompression){
-			//一つずつ圧縮
-			Param+=_T(" /s");
 		}
 	}
 	else{

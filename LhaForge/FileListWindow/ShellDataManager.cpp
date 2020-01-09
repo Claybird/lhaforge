@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "ShellDataManager.h"
-#include "../ArchiverCode/ArcEntryInfo.h"
+#include "../FileListWindow/ArcFileContent.h"
 
 int CShellDataManager::GetIconIndex(LPCTSTR Ext)
 {
