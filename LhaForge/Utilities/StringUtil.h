@@ -107,24 +107,6 @@ std::wstring Format(const wchar_t* fmt, Args && ...args)
 	return work;
 }
 
-std::wstring FormatFileTime(const FILETIME &rFileTime)
-{
-	if (-1 == rFileTime.dwHighDateTime && -1 == rFileTime.dwLowDateTime) {
-		return L"------";
-	} else {
-		FILETIME LocalFileTime;
-		SYSTEMTIME SystemTime;
-
-		FileTimeToLocalFileTime(&rFileTime, &LocalFileTime);
-		FileTimeToSystemTime(&LocalFileTime, &SystemTime);
-
-		return Format(L"%04d/%02d/%02d %02d:%02d:%02d",
-			SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay,
-			SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond);
-	}
-}
-
-
 template<class T, class U>
 std::wstring replace(const std::wstring &_s, const T& target, const U& replacement, bool replace_first = 0, bool replace_empty = 0)
 {
