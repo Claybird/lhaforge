@@ -54,26 +54,22 @@ bool LF_isExtractable(const wchar_t* fname)
 
 //---------------------------------------------
 
-//エントリーポイント
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
 {
 #if defined(_DEBUG)
-	// メモリリーク検出用
+	// detect memory leaks
 	_CrtSetDbgFlag(
 		_CRTDBG_ALLOC_MEM_DF
 		| _CRTDBG_LEAK_CHECK_DF
 		);
 #endif
-	_tsetlocale(LC_ALL,_T(""));	//ロケールを環境変数から取得
+	_tsetlocale(LC_ALL,L"");	//default locale
 
 	HRESULT hRes = ::CoInitialize(NULL);
 	ATLASSERT(SUCCEEDED(hRes));
 	OleInitialize(NULL);
-	// これはMicrosoft Layer for Unicode (MSLU) が使用された時の
-	// ATLウインドウ thunking 問題を解決する
-	::DefWindowProc(NULL, 0, 0, 0L);
 
-	// 他のコントロールをサポートするためのフラグを追加
+	// support control flags
 	AtlInitCommonControls(ICC_WIN95_CLASSES|ICC_COOL_CLASSES | ICC_BAR_CLASSES);
 	_Module.Init(NULL,hInstance);
 	CMessageLoop theLoop;
@@ -102,8 +98,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 	/$[file]	レスポンスファイル指定:レスポンスファイルは読み取り完了後削除
 
 	*/
-
-	bool bCheckUpdate=true;	//Update managerを起動するならtrue
 
 	CMDLINEINFO cli;	//CommandLineInfo
 
@@ -136,7 +130,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 			break;
 		}
 
-		//一時ディレクトリの変更
+		//To use custom temporary directory, if necessary
 		CString strPath=ConfGeneral.TempPath;
 		if(!strPath.IsEmpty()){
 			//パラメータ展開に必要な情報
@@ -155,8 +149,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 			UtilGetCompletePathName(strPath,strPath);
 
 			//環境変数設定
-			SetEnvironmentVariable(_T("TEMP"),strPath);
-			SetEnvironmentVariable(_T("TMP"),strPath);
+			SetEnvironmentVariable(L"TEMP",strPath);
+			SetEnvironmentVariable(L"TMP",strPath);
 		}
 	}
 
@@ -195,8 +189,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		break;
 	case PROCESS_CONFIGURE://設定画面表示
 		{
-			//ここで確認を行うので終了時の確認は不要
-			bCheckUpdate=false;
 			//ダイアログ表示
 			CConfigDialog confdlg(ConfigManager);
 			if(IDOK==confdlg.DoModal()){
@@ -211,11 +203,6 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR lpCmdLine, int nCmdS
 		break;
 	default:
 		ASSERT(!"Unexpected Process Mode");
-	}
-	//アップデートチェック
-	if(bCheckUpdate){
-		//更新確認
-		//TODO
 	}
 
 	TRACE(_T("Terminating...\n"));
