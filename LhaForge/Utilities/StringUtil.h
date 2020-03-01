@@ -23,7 +23,10 @@
 */
 
 #pragma once
-//---文字列処理
+//---string operations
+
+//trim trailing symbols
+std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets);
 
 //文字コード
 enum UTIL_CODEPAGE{
@@ -86,8 +89,7 @@ void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
 bool UtilCheckT2A(LPCTSTR);
 bool UtilCheckT2AList(const std::list<CString>&);	//複数ファイルのうち、一つでもUNICODE専用ファイル名があればfalse
 
-//末尾から指定された文字を削る
-void UtilTrimString(CStringW&,LPCWSTR lpszSubject);
+
 
 //指定されたフォーマットで書かれた文字列を展開する
 void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env);

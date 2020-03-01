@@ -26,15 +26,11 @@
 #include "StringUtil.h"
 #include "Utility.h"
 
-void UtilTrimString(CStringW &strTarget,LPCWSTR lpszSubject)
+std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets)
 {
-	const std::wstring strSubject(lpszSubject);
-	int idx;
-	for(idx=strTarget.GetLength()-1;idx>=0;idx--){
-		wchar_t ch=strTarget.operator[](idx);
-		if(-1==index_of(strSubject,ch))break;
-	}
-	strTarget=strTarget.Left(idx+1);
+	auto idx = target.find_last_not_of(trimTargets);
+	if (idx == std::wstring::npos)return L"";
+	else return target.substr(0, idx + 1);
 }
 
 //MFCスタイルでCFileDialogのフィルター文字列を作る
