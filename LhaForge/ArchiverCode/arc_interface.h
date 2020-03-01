@@ -528,26 +528,3 @@ struct ARCHIVE_FILE_TO_WRITE
 		//, as it is called automatically by archive_write_next_header() and archive_write_close() as needed. 
 	}
 };
-
-
-/*
-	ARCHIVE_FILE_TO_WRITE arc;
-	arc.write_open(L"Z:\\test\\create_test.7z", LF_FMT_7Z, LF_WOPT_DATA_ENCRYPTION);
-	{
-		LF_ARCHIVE_ENTRY entry;
-		entry.read_file_stat(L"Z:\\test\\06時\\2019071206.mp4");
-		FILE_READER readfile;
-		readfile.open(L"Z:\\test\\06時\\2019071206.mp4");
-		arc.add_entry(entry, readfile);
-	}
-	{
-		LF_ARCHIVE_ENTRY entry;
-		entry.read_file_stat(L"Z:\\test\\20時\\2019071220.mp4");
-		FILE_READER readfile;
-		readfile.open(L"Z:\\test\\20時\\2019071220.mp4");
-		arc.add_entry(entry, readfile);
-	}
-	arc.close();
-
-*/
-
