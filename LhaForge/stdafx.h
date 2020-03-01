@@ -73,6 +73,7 @@ extern CAppModule _Module;
 #include <time.h>
 
 #include <algorithm>
+#include <functional>
 #include <list>
 #include <vector>
 #include <string>
@@ -163,5 +164,13 @@ struct LF_EXCEPTION {
 	const wchar_t* what()const { return _msg.c_str(); }
 };
 
-#define RAISE_EXCEPTION(...) throw LF_EXCEPTION(Format(__VA_ARGS__))
+struct LF_USER_CANCEL_EXCEPTION: LF_EXCEPTION {
+	LF_USER_CANCEL_EXCEPTION() :LF_EXCEPTION(L"Cancel") {}
+	virtual ~LF_USER_CANCEL_EXCEPTION() {}
+};
 
+#define RAISE_EXCEPTION(...) throw LF_EXCEPTION(Format(__VA_ARGS__))
+#define CANCEL_EXCEPTION() throw LF_USER_CANCEL_EXCEPTION()
+
+
+#include <filesystem>
