@@ -63,6 +63,7 @@ LPCTSTR UtilGetModulePath();
 LPCTSTR UtilGetModuleDirectoryPath();
 
 //複数階層のディレクトリを一気に作成する
+[[deprecated("use std::filesystem::create_directories instead")]]
 BOOL UtilMakeSureDirectoryPathExists(LPCTSTR lpszPath);
 
 //TCHARファイル名をSJISファイル名に変換する。正しく変換できない場合には、falseを返す
@@ -137,3 +138,29 @@ struct FILE_READER {
 		fp = NULL;
 	}
 };
+
+class CAutoFile {
+protected:
+	FILE *_fp;
+	CAutoFile(const CAutoFile&) = delete;
+	const CAutoFile& operator=(const CAutoFile&) = delete;
+public:
+	CAutoFile() :_fp(NULL){}
+	virtual ~CAutoFile() {
+		close();
+	}
+	operator FILE*() { return _fp; }
+	bool is_opened() const { return _fp != NULL; }
+	void close() {
+		if (_fp) {
+			fclose(_fp);
+			_fp = NULL;
+		}
+	}
+	void open(const wchar_t* fname, const wchar_t* mode = L"r") {
+		close();
+		_fp = _wfopen(fname, mode);
+	}
+};
+
+
