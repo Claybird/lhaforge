@@ -37,7 +37,7 @@ enum UTIL_CODEPAGE{
 
 
 //MFCスタイルでCFileDialogのフィルター文字列を作る
-void UtilMakeFilterString(LPCTSTR,LPTSTR,int);
+std::wstring UtilMakeFilterString(const wchar_t* lpszIn);
 
 struct CUTF8String {
 	CUTF8String() {}
@@ -66,7 +66,7 @@ struct CUTF8String {
 		_utf8_str = c._utf8_str;
 		return *this;
 	}
-	const CUTF8String& operator=(LPCBYTE utf8) {
+	const CUTF8String& operator=(const unsigned char* utf8) {
 		_utf8_str = (const char*)utf8;
 	}
 	const CUTF8String& operator=(const std::wstring& wstr) {
@@ -81,9 +81,9 @@ struct CUTF8String {
 
 //適当な文字コード->UNICODE
 //dwSizeはUTILCP_UTF16のときのみ必要
-bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage);
+bool UtilToUNICODE(CString &strRet, const unsigned char* lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage);
 //UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
-void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
+void UtilGuessToUNICODE(CString &strRet, const unsigned char* lpcByte,DWORD dwSize);
 
 //TCHARファイル名がSJISファイル名で表現できるならtrue
 bool UtilCheckT2A(LPCTSTR);

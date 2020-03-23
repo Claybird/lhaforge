@@ -34,25 +34,17 @@ std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trim
 }
 
 //MFCスタイルでCFileDialogのフィルター文字列を作る
-void UtilMakeFilterString(LPCTSTR lpszIn,LPTSTR lpszOut,int outSize)
+std::wstring UtilMakeFilterString(const wchar_t* lpszIn)
 {
-	ASSERT(outSize>=2);
-	if(outSize<2)return;
-	_tcsncpy_s(lpszOut,outSize,lpszIn,outSize);
-	lpszOut[outSize-1]=_T('\0');
-	lpszOut[outSize-2]=_T('\0');
+	std::wstring out = lpszIn;
+	out += L"||";
 
-	LPTSTR lpChar=lpszOut;
-	for(;*lpChar!=_T('\0');lpChar++){
-#if !defined(_UNICODE)&&!defined(UNICODE)
-		if(_MBC_SINGLE==_mbsbtype((LPCBYTE)lpChar,0))
-#endif
-			if(*lpChar==_T('|')){
-				*lpChar=_T('\0');
-			}
+	for(auto& c:out){
+		if(c==L'|'){
+			c = L'\0';
+		}
 	}
-	*lpChar++;
-	*lpChar=_T('\0');
+	return out;
 }
 
 //TCHARファイル名がSJISファイル名で表現できるかチェックする
