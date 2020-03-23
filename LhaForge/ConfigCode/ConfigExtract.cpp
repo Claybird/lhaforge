@@ -34,9 +34,9 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 
 	CString Buffer=Config.Data[_T("OutputDir")];
 	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
+		UtilGetCompletePathName(OutputDirUserSpecified, Buffer);
 	}else{
-		OutputDir=_T("");
+		OutputDirUserSpecified =L"";
 	}
 
 	//解凍後フォルダを開くかどうか
@@ -90,7 +90,7 @@ void CConfigExtract::store(CONFIG_SECTION &Config)const
 {
 	Config.Data[_T("OutputDirType")]=OutputDirType;
 
-	Config.Data[_T("OutputDir")]=OutputDir;
+	Config.Data[_T("OutputDir")]= OutputDirUserSpecified;
 
 	//解凍後フォルダを開くかどうか
 	Config.Data[_T("OpenFolder")]=OpenDir;

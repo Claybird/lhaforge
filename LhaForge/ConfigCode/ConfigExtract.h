@@ -29,7 +29,7 @@ enum CREATE_OUTPUT_DIR;
 struct CConfigExtract:public IConfigConverter{
 public:
 	OUTPUT_TO OutputDirType;
-	CString OutputDir;
+	CString OutputDirUserSpecified;
 	BOOL OpenDir;
 	CREATE_OUTPUT_DIR CreateDir;
 	BOOL ForceOverwrite;

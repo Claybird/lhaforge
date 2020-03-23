@@ -50,7 +50,7 @@ LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//----------------------------------------------------
 	Edit_ExtractOutputDirPath=GetDlgItem(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR);
 	Edit_ExtractOutputDirPath.SetLimitText(_MAX_PATH);
-	Edit_ExtractOutputDirPath.SetWindowText(m_Config.OutputDir);
+	Edit_ExtractOutputDirPath.SetWindowText(m_Config.OutputDirUserSpecified);
 
 	Button_ExtractToFolder=GetDlgItem(IDC_BUTTON_EXTRACT_BROWSE_FOLDER);
 
@@ -124,7 +124,7 @@ LRESULT CConfigDlgExtractGeneral::OnApply()
 	//----------------------
 	// 出力先フォルダのパス
 	//----------------------
-	Edit_ExtractOutputDirPath.GetWindowText(m_Config.OutputDir);
+	Edit_ExtractOutputDirPath.GetWindowText(m_Config.OutputDirUserSpecified);
 
 	//--------------------------------------
 	// 出力先のフォルダを二重にするかどうか
