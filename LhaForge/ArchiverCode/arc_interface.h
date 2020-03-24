@@ -150,38 +150,26 @@ struct _LIBARCHIVE_INTERNAL {
 			return -1;
 		}
 	}
-	FILETIME get_mtime() {
-		FILETIME ft;
+	time_t get_mtime() {
 		if (archive_entry_mtime_is_set(_entry)) {
-			const auto mtime = archive_entry_mtime(_entry);
-			//archive_entry_mtime_nsec is not used, because it returns 32bit value on Windows
-			UtilUnixTimeToFileTime(mtime, &ft);
+			return archive_entry_mtime(_entry);
 		} else {
-			UtilUnixTimeToFileTime(0, &ft);
+			return 0;
 		}
-		return ft;
 	};
-	FILETIME get_atime() {
-		FILETIME ft;
+	time_t get_atime() {
 		if (archive_entry_atime_is_set(_entry)) {
-			const auto atime = archive_entry_atime(_entry);
-			//archive_entry_mtime_nsec is not used, because it returns 32bit value on Windows
-			UtilUnixTimeToFileTime(atime, &ft);
+			return archive_entry_atime(_entry);
 		} else {
-			UtilUnixTimeToFileTime(0, &ft);
+			return 0;
 		}
-		return ft;
 	};
-	FILETIME get_ctime() {
-		FILETIME ft;
+	time_t get_ctime() {
 		if (archive_entry_ctime_is_set(_entry)) {
-			const auto ctime = archive_entry_ctime(_entry);
-			//archive_entry_mtime_nsec is not used, because it returns 32bit value on Windows
-			UtilUnixTimeToFileTime(ctime, &ft);
+			return archive_entry_ctime(_entry);
 		} else {
-			UtilUnixTimeToFileTime(0, &ft);
+			return 0;
 		}
-		return ft;
 	};
 	unsigned short get_file_mode() {
 		return archive_entry_filetype(_entry);
@@ -200,7 +188,7 @@ struct _LIBARCHIVE_INTERNAL {
 struct LF_ARCHIVE_ENTRY {
 	std::wstring _pathname;
 	UINT64 _original_filesize;
-	FILETIME _mtime, _atime, _ctime;
+	__time64_t _atime, _ctime, _mtime;
 	unsigned short _filemode;
 	bool _is_encrypted;
 	std::string _format_name;
@@ -208,7 +196,7 @@ struct LF_ARCHIVE_ENTRY {
 
 	_LIBARCHIVE_INTERNAL  _la_internal;
 
-	LF_ARCHIVE_ENTRY() {}
+	LF_ARCHIVE_ENTRY() { renew(); }
 	LF_ARCHIVE_ENTRY(LF_ARCHIVE_ENTRY& a) = delete;
 	LF_ARCHIVE_ENTRY(archive_entry* entry) = delete;
 	const LF_ARCHIVE_ENTRY& operator=(const LF_ARCHIVE_ENTRY& a) = delete;
@@ -218,9 +206,9 @@ struct LF_ARCHIVE_ENTRY {
 		_la_internal.renew();
 		_pathname.clear();
 		_original_filesize = -1;
-		UtilUnixTimeToFileTime(0, &_mtime);
-		UtilUnixTimeToFileTime(0, &_atime);
-		UtilUnixTimeToFileTime(0, &_ctime);
+		_mtime = 0;
+		_atime = 0;
+		_ctime = 0;
 		_filemode = 0;
 		_is_encrypted = false;
 		_format_name.clear();
@@ -259,9 +247,9 @@ struct LF_ARCHIVE_ENTRY {
 
 	const wchar_t* get_pathname()const { return _pathname.c_str(); }
 	UINT64 get_original_filesize()const { return _original_filesize; }
-	FILETIME get_mtime()const { return _mtime; }
-	FILETIME get_atime()const { return _atime; }
-	FILETIME get_ctime()const { return _ctime; }
+	__time64_t get_mtime()const { return _mtime; }
+	__time64_t get_atime()const { return _atime; }
+	__time64_t get_ctime()const { return _ctime; }
 	unsigned short get_file_mode()const { return _filemode; }
 	bool is_encrypted()const { return _is_encrypted; }
 	const char* get_format_name()const { return _format_name.c_str(); }
@@ -276,9 +264,9 @@ struct LF_ARCHIVE_ENTRY {
 		}
 		_original_filesize = st.st_size;
 		_la_internal.set_stat(st);
-		UtilUnixTimeToFileTime(st.st_mtime, &_mtime);
-		UtilUnixTimeToFileTime(st.st_atime, &_atime);
-		UtilUnixTimeToFileTime(st.st_ctime, &_ctime);
+		_mtime = st.st_mtime;
+		_atime = st.st_atime;
+		_ctime = st.st_ctime;
 		_filemode = st.st_mode;
 		_is_encrypted = false;
 	}
