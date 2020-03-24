@@ -153,3 +153,8 @@ std::wstring replace(const std::wstring &_s, const T& target, const U& replaceme
 //split a string with a separator string
 std::vector<std::wstring> split_string(const std::wstring& target, const std::wstring& separator);
 
+
+// (size in bytes) to (size in suitable unit)
+std::wstring UtilFormatSize(UINT64 size);
+
+std::wstring UtilFormatTime(__time64_t timer);

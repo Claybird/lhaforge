@@ -214,3 +214,38 @@ std::vector<std::wstring> split_string(const std::wstring& target, const std::ws
 	}
 	return splitted;
 }
+
+std::wstring UtilFormatSize(UINT64 size)
+{
+	if (-1 == size) {
+		return L"---";
+	}
+	const std::vector<std::pair<UINT64, wchar_t*> > units = {
+		{1,L"Bytes"},
+		{1024,L"KB"},
+		{1024 * 1024,L"MB"},
+		{1024 * 1024 * 1024,L"GB" },
+		{1024 * 1024 * 1024 * 1024, L"TB"},
+		{1024 * 1024 * 1024 * 1024 * 1024, L"PB"},
+	};
+
+	for (const auto &unit : units) {
+		if (size / unit.first < 1024) {
+			return Format(L"%'d %s", size / unit.first, unit.second);
+		}
+	}
+
+	return Format(L"%'d %s", size / units.back().first, units.back().second);
+}
+
+std::wstring UtilFormatTime(__time64_t timer)
+{
+	std::wstring buf;
+	buf.resize(64);
+	struct tm localtime;
+	_localtime64_s(&localtime, &timer);
+	for (;;buf.resize(buf.size()*2)) {
+		auto ret = wcsftime(&buf[0], buf.size(), L"%c", &localtime);
+		if (0 != ret)return buf;
+	}
+}
