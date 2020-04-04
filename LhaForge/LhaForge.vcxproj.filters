@@ -200,9 +200,6 @@
     <ClCompile Include="Dialogs\LogListDialog.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\ProgressDlg.cpp">
-      <Filter>Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
@@ -402,6 +399,9 @@
     </ClInclude>
     <ClInclude Include="ArchiverCode\arc_interface.h">
       <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h">
+      <Filter>Dialogs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
