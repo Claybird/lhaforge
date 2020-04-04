@@ -48,13 +48,13 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;$(ProjectDir)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
     <LinkIncremental />
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;$(ProjectDir)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
@@ -76,8 +76,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -120,8 +120,8 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -167,7 +167,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
     <ClCompile Include="Dialogs\LogDialog.cpp" />
     <ClCompile Include="Dialogs\LogListDialog.cpp" />
-    <ClCompile Include="Dialogs\ProgressDlg.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
@@ -237,6 +236,7 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
+    <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
     <ClInclude Include="Dialogs\LogDialog.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
     <ClInclude Include="Dialogs\ProgressDlg.h" />
