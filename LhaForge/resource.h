@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by resource.rc
+// Microsoft Visual C++ で生成されたインクルード ファイル。
+// resource.rc で使用
 //
 #define IDS_MESSAGE_CAPTION             1
 #define IDS_UNTITLED                    2
@@ -354,10 +354,13 @@
 #define IDC_BUTTON_FORMAT_TAR_XZ        1106
 #define IDC_BUTTON_EXTRACT_CONTINUE     1107
 #define IDC_BUTTON_FORMAT_TAR_LZMA      1107
+#define IDC_BUTTON_EXTRACT_OVERWRITE    1107
 #define IDC_BUTTON_EXTRACT_ABORT        1108
 #define IDC_BUTTON_EXTRACT_OVERWRITE_ALL 1109
 #define IDC_RADIO_JACK_VOLUME_SIZE_USE_STORED_SETTING 1110
+#define IDC_BUTTON_EXTRACT_SKIP         1110
 #define IDC_RADIO_JACK_VOLUME_SIZE_SPECIFY_AT_COMPRESS 1111
+#define IDC_BUTTON_EXTRACT_SKIP_ALL     1111
 #define IDC_EDIT_JACK_VOLUME_SIZE       1112
 #define IDC_EDIT_JACK_VOLUME_SIZE_AT_COMPRESS 1113
 #define IDC_LIST_ICON                   1114
@@ -536,10 +539,15 @@
 #define IDC_EDIT_DEFAULTPARAMETER       1277
 #define IDC_BUTTON_SELECT_DEFAULTPARAMETER 1278
 #define IDC_STATIC_INFO                 1279
+#define IDC_STATIC_FILEINFO             1279
 #define IDC_PROGRESS_STATUS             1280
+#define IDC_PROGRESS_ENTRY              1280
 #define IDC_BUTTON_B2E_MENUCACHE_GENERATE 1281
+#define IDC_PROGRESS_FILE               1281
 #define IDC_BUTTON_B2E_MENUCACHE_DELETE 1282
+#define IDC_STATIC_ENTRY                1282
 #define IDC_EDIT_EXTRACT_DENY_EXT       1283
+#define IDC_STATIC_FILEINFO2            1283
 #define IDC_CHECK_ENABLE_UNLHA          1284
 #define IDC_CHECK_ENABLE_7ZIP           1285
 #define IDC_CHECK_TAR_CONVERT_CHARSET   1285
@@ -582,6 +590,13 @@
 #define IDC_COMBO_ZIP_SPLIT_SIZE_UNIT   1302
 #define IDC_CHECK_7Z_SPECIFY_SPLIT_SIZE 1303
 #define IDC_COMBO_7Z_SPLIT_SIZE_UNIT    1304
+#define IDC_EXTRACTING_FILENAME         1306
+#define IDC_EXTRACTING_FILESIZE         1307
+#define IDC_BUTTON_ABORT                1307
+#define IDC_EXTRACTING_FILETIME         1308
+#define IDC_EXISTING_FILENAME           1309
+#define IDC_EXISTING_FILESIZE           1310
+#define IDC_EXISTING_FILETIME           1311
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -749,9 +764,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        184
+#define _APS_NEXT_RESOURCE_VALUE        186
 #define _APS_NEXT_COMMAND_VALUE         40156
-#define _APS_NEXT_CONTROL_VALUE         1305
+#define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

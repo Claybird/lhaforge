@@ -134,9 +134,9 @@ BEGIN
     IDD_DIALOG_CONFIRM_OVERWRITE, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 244
+        RIGHTMARGIN, 309
         TOPMARGIN, 7
-        BOTTOMMARGIN, 78
+        BOTTOMMARGIN, 140
     END
 
     IDD_PROPPAGE_CONFIG_JACK, DIALOG
@@ -304,7 +304,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 208
         TOPMARGIN, 7
-        BOTTOMMARGIN, 54
+        BOTTOMMARGIN, 107
     END
 
     IDD_PROPPAGE_CONFIG_DLL, DIALOG
@@ -764,15 +764,31 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,153,150,50,14
 END
 
-IDD_DIALOG_CONFIRM_OVERWRITE DIALOGEX 0, 0, 251, 85
+IDD_DIALOG_CONFIRM_OVERWRITE DIALOGEX 0, 0, 316, 147
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "上書き確認"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "上書き(&O)",IDC_BUTTON_EXTRACT_CONTINUE,7,64,51,14
-    PUSHBUTTON      "以降全て上書き(&W)",IDC_BUTTON_EXTRACT_OVERWRITE_ALL,95,64,61,14
-    PUSHBUTTON      "中止(&A)",IDC_BUTTON_EXTRACT_ABORT,194,64,51,14
-    EDITTEXT        IDC_EDIT_CONFIRM_OVERWRITE_MESSAGE,7,7,237,51,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL,WS_EX_STATICEDGE
+    LTEXT           "既に同名のファイルが存在します。",IDC_STATIC,7,7,102,8
+    GROUPBOX        "これから解凍するファイル",IDC_STATIC,7,20,302,48
+    LTEXT           "ファイル名",IDC_STATIC,7,30,31,8
+    LTEXT           "<filename>",IDC_EXTRACTING_FILENAME,57,30,186,8
+    LTEXT           "サイズ",IDC_STATIC,7,41,20,8
+    LTEXT           "<filesize>",IDC_EXTRACTING_FILESIZE,57,41,186,8
+    LTEXT           "更新日時",IDC_STATIC,7,54,28,8
+    LTEXT           "<mtime>",IDC_EXTRACTING_FILETIME,57,54,186,8
+    GROUPBOX        "既存ファイル",IDC_STATIC,7,72,302,48
+    LTEXT           "ファイル名",IDC_STATIC,7,82,31,8
+    LTEXT           "<filename>",IDC_EXISTING_FILENAME,57,82,186,8
+    LTEXT           "サイズ",IDC_STATIC,7,94,20,8
+    LTEXT           "<filesize>",IDC_EXISTING_FILESIZE,57,94,186,8
+    LTEXT           "更新日時",IDC_STATIC,7,106,28,8
+    LTEXT           "<mtime>",IDC_EXISTING_FILETIME,57,106,186,8
+    PUSHBUTTON      "上書き(&O)",IDC_BUTTON_EXTRACT_OVERWRITE,5,126,57,14
+    PUSHBUTTON      "全て上書き(&A)",IDC_BUTTON_EXTRACT_OVERWRITE_ALL,66,126,57,14
+    PUSHBUTTON      "スキップ(&S)",IDC_BUTTON_EXTRACT_SKIP,127,126,57,14
+    PUSHBUTTON      "全てスキップ(&K)",IDC_BUTTON_EXTRACT_SKIP_ALL,186,126,57,14
+    DEFPUSHBUTTON   "中止(&A)",IDC_BUTTON_EXTRACT_ABORT,252,126,57,14
 END
 
 IDD_PROPPAGE_CONFIG_JACK DIALOGEX 0, 0, 147, 106
@@ -1157,14 +1173,17 @@ BEGIN
     EDITTEXT        IDC_EDIT_LOGINFO_MSG,169,50,246,261,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL,WS_EX_CLIENTEDGE
 END
 
-IDD_DIALOG_PROGRESS DIALOGEX 0, 0, 215, 61
+IDD_DIALOG_PROGRESS DIALOGEX 0, 0, 215, 114
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 EXSTYLE WS_EX_WINDOWEDGE
-CAPTION "処理状況[%d/%d] - LhaForge"
+CAPTION "処理中 - LhaForge"
 FONT 9, "ＭＳ Ｐゴシック", 400, 0, 0x80
 BEGIN
-    LTEXT           "%s を処理しています",IDC_STATIC_INFO,7,7,201,24,SS_NOPREFIX
-    CONTROL         "",IDC_PROGRESS_STATUS,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,35,201,19
+    LTEXT           "<file>",IDC_STATIC_FILEINFO,7,7,201,9,SS_NOPREFIX
+    CONTROL         "",IDC_PROGRESS_FILE,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,24,201,19
+    LTEXT           "<entry>",IDC_STATIC_ENTRY,7,50,201,10,SS_NOPREFIX
+    CONTROL         "",IDC_PROGRESS_ENTRY,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,64,201,19
+    PUSHBUTTON      "中断(&A)",IDC_BUTTON_ABORT,83,93,50,14
 END
 
 IDD_PROPPAGE_CONFIG_DLL DIALOGEX 0, 0, 242, 129
@@ -1200,10 +1219,15 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_APP                 ICON                    "LhaForge.ico"
+
 IDI_APP_COMPRESS        ICON                    "compress.ico"
+
 IDI_APP_EXTRACT         ICON                    "extract.ico"
+
 IDI_APP_LIST            ICON                    "list.ico"
+
 IDI_APP_TEST            ICON                    "app_test.ico"
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -1460,8 +1484,11 @@ END
 //
 
 IDB_BITMAP_ANIMATION    BITMAP                  "animation.bmp"
+
 IDR_MAINFRAME           BITMAP                  "toolbar.bmp"
+
 IDB_BITMAP_SORTMARK     BITMAP                  "sortmark.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1524,6 +1551,22 @@ END
 IDR_ACCEL_EX ACCELERATORS
 BEGIN
     VK_ESCAPE,      ID_MENUITEM_CLOSE_WINDOW, VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_DIALOG_CONFIRM_OVERWRITE AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_PROGRESS AFX_DIALOG_LAYOUT
+BEGIN
+    0
 END
 
 
