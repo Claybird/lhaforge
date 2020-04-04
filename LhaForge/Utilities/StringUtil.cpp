@@ -225,8 +225,8 @@ std::wstring UtilFormatSize(UINT64 size)
 		{1024,L"KB"},
 		{1024 * 1024,L"MB"},
 		{1024 * 1024 * 1024,L"GB" },
-		{1024 * 1024 * 1024 * 1024, L"TB"},
-		{1024 * 1024 * 1024 * 1024 * 1024, L"PB"},
+		{1024 * 1024 * 1024 * 1024ull, L"TB"},
+		{1024 * 1024 * 1024 * 1024ull * 1024ull, L"PB"},
 	};
 
 	for (const auto &unit : units) {
