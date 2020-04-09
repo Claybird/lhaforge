@@ -26,7 +26,7 @@
 #include "../ConfigCode/ConfigManager.h"
 #include "../Utilities/PtrCollection.h"
 
-
+#pragma message("FIXME: move this file to more generic position")
 
 //フォルダの識別文字列(拡張子)
 const LPCTSTR FOLDER_EXTENSION_STRING = _T("***");
@@ -38,7 +38,7 @@ struct ARCHIVE_ENTRY_INFO {	//ファイルアイテム情報保持
 	CString		strFullPath;	//格納されたときの名前
 	int			nAttribute;		//属性;自分がフォルダかどうかなどの情報
 	UINT64		llOriginalSize;		//格納ファイルの圧縮前のサイズ(ディレクトリなら、中に入っているファイルサイズの合計)
-	FILETIME	cFileTime;		//格納ファイル最終更新日時
+	__time64_t	cFileTime;		//格納ファイル最終更新日時
 
 	bool isDirectory()const { return (nAttribute&S_IFDIR) != 0; }
 	const wchar_t* getExt()const { return PathFindExtensionW(strFullPath); }
@@ -80,8 +80,7 @@ struct ARCHIVE_ENTRY_INFO_TREE :public ARCHIVE_ENTRY_INFO {
 
 		nAttribute = 0;
 		llOriginalSize = -1;
-		cFileTime.dwLowDateTime = -1;
-		cFileTime.dwHighDateTime = -1;
+		cFileTime = 0;
 	}
 
 	//自分以下のファイルを列挙
@@ -105,13 +104,6 @@ struct ARCHIVE_ENTRY_INFO_TREE :public ARCHIVE_ENTRY_INFO {
 
 //ルートからみて自分までのパスを取得
 void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpDir, const ARCHIVE_ENTRY_INFO_TREE* lpBase, CString &strPath);
-
-struct ARCHIVE_FILE_TO_READ;
-
-struct PRE_EXTRACT_CHECK_RESULT {
-	bool allInOneDir;	//true if all the contents are under one root directory
-	std::wstring baseDirName;	//valid if allInOneDir is true
-};
 
 /*
  * アーカイブ内のファイル構造を保持
@@ -170,6 +162,5 @@ public:
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
 	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
-	PRE_EXTRACT_CHECK_RESULT PreExtractCheck(ARCHIVE_FILE_TO_READ &arc, CConfigManager& ConfMan, bool bSkipDir);
 };
 
