@@ -159,7 +159,7 @@ public:
 	}
 	void open(const wchar_t* fname, const wchar_t* mode = L"r") {
 		close();
-		_fp = _wfopen(fname, mode);
+		_wfopen_s(&_fp, fname, mode);
 	}
 };
 
