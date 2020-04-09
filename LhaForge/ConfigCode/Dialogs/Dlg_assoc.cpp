@@ -337,14 +337,12 @@ void CIconSelectDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	TCHAR filter[_MAX_PATH+2]={0};
-	UtilMakeFilterString(
-		_T("Icon File|*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl|")
-		_T("All Files|*.*||")
-		,filter,_MAX_PATH+2);
+	auto filter = UtilMakeFilterString(
+		L"Icon File|*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl|"
+		L"All Files|*.*");
 
 	if(!DoDataExchange(TRUE))return;
-	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
+	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
