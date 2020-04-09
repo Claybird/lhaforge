@@ -124,7 +124,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 			//暗号
 			bEncrypted = bEncrypted || entry->is_encrypted();
 
-			//登録		
+			//登録
 			entries.push_back(item);
 
 			//更新
@@ -481,73 +481,5 @@ bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<AR
 		(*ite)->EnumFiles(filesToDel);
 	}
 	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);*/
-}
-
-std::wstring LF_sanitize_pathname(const std::wstring& rawPath)
-{
-	const std::pair<std::wregex, wchar_t*> pattern[] = {
-		//potential directory traversals
-		{std::wregex(L"/{2,}"),L"/"},	//not harmful if properly treated
-		{std::wregex(L"(^|/).(/|$)"),L"/"},		//not harmful if properly treated
-		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$0_@@@_$2"},
-		{std::wregex(L"\\\\"),L"_@@@_"},
-		{std::wregex(L"^/"),L""},
-
-		//unicode control characters
-		{std::wregex(L"("
-			L"\u001e|\u001f|\u00ad|\uFEFF|\uFFF9|\uFFFA|\uFFFB|\uFFFE|"
-			L"[\u200b-\u200f]|"
-			L"[\u202a-\u202e]|"
-			L"[\u2060-\u2063]|"
-			L"[\u206a-\u206f]|"
-			L")"),
-			L"_(UNICODE_CTRL)_"},
-	};
-
-	auto buf = rawPath;
-	for (;;) {
-		bool modified = false;
-		for (const auto &p : pattern) {
-			auto updated = std::regex_replace(buf, p.first, p.second);
-			if ((!modified) && (updated != buf)) {
-				modified = true;
-			}
-			buf = updated;
-		}
-		if (!modified)break;
-	}
-	return buf;
-}
-
-//check for archive content structure
-PRE_EXTRACT_CHECK_RESULT CArchiveFileContent::PreExtractCheck(ARCHIVE_FILE_TO_READ &arc, CConfigManager& ConfMan, bool bSkipDir)
-{
-	bool bFirst = true;
-	PRE_EXTRACT_CHECK_RESULT result;
-
-	for (auto entry = arc.begin(); entry != NULL; entry = arc.next()) {
-		std::wstring fname = entry->get_pathname();
-		fname = LF_sanitize_pathname(fname);
-		TRACE(L"%s\n", fname.c_str());
-
-		auto path_components = split_string(fname, L"/");
-		//to remove trailing '/'
-		remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
-
-		if (path_components.empty())continue;
-
-		if (bFirst) {
-			result.baseDirName = path_components.front();
-			result.allInOneDir = true;
-			bFirst = false;
-		} else {
-			if (0!=_wcsicmp(result.baseDirName.c_str(),path_components.front().c_str())) {
-				//another root entry found
-				result.allInOneDir = false;
-				return result;
-			}
-		}
-	}
-	return result;
 }
 
