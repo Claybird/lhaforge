@@ -24,7 +24,8 @@
 
 #pragma once
 #include "../resource.h"
-#include "../TestArchive.h"
+#include "ArchiverCode/arc_interface.h"
+#include "Utilities/OSUtil.h"
 
 class CLogListDialog:public CDialogImpl<CLogListDialog>,public CDialogResize<CLogListDialog>, public CCustomDraw<CLogListDialog>
 {
