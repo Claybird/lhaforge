@@ -576,20 +576,20 @@ void GUI_extract_multiple_files(
 			logs.resize(logs.size() + 1);
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
-			arcLog.archivePath = archive_path;
+			arcLog.setArchivePath(archive_path.c_str());
 			extractOneArchive(archive_path.c_str(), output_dir.c_str(), args, arcLog, preExtractHandler, progressHandler);
-			arcLog.overallResult = EXTRACT_OK;
+			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = EXTRACT_CANCELED;
+			arcLog.overallResult = LF_RESULT::CANCELED;
 			break;
 		} catch (const ARCHIVE_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = EXTRACT_NOTARCHIVE;
+			arcLog.overallResult = LF_RESULT::NOTARCHIVE;
 			continue;
 		} catch (const LF_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = EXTRACT_NG;
+			arcLog.overallResult = LF_RESULT::NG;
 			continue;
 		}
 
@@ -623,7 +623,7 @@ void GUI_extract_multiple_files(
 
 	bool bAllOK = true;
 	for (const auto& log : logs) {
-		bAllOK = bAllOK && (log.overallResult == EXTRACT_OK);
+		bAllOK = bAllOK && (log.overallResult == LF_RESULT::OK);
 	}
 	//---display logs
 	bool displayLog = false;

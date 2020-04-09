@@ -28,29 +28,33 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 
-//Compress/Extract/TestArchiveの戻り値
-enum ARCRESULT{
-	//---解凍系
-	EXTRACT_OK,//正常終了
-	EXTRACT_NG,//異常終了
-	EXTRACT_CANCELED,//キャンセル
-	EXTRACT_NOTARCHIVE,//圧縮ファイルではない
-	EXTRACT_INFECTED,//ウィルスの可能性あり
-
-	//---検査系
-	TEST_OK,	//ファイルは正常
-	TEST_NG,	//ファイルに異常あり
-	TEST_NOTIMPL,//検査は実装されていない
-	TEST_NOTARCHIVE,//圧縮ファイルではない
-	TEST_INFECTED,//ウィルスの可能性あり
-	TEST_ERROR,	//内部エラー(DLLがロードされていないのに呼び出された、等)
+enum class LF_RESULT {
+	OK,//successful or archive test passed
+	NG,//abnormal end or archive test failed
+	CANCELED,//user cancel
+	NOTARCHIVE,//not an archive
+	NOTIMPL,//not implemented
 };
 
-struct ARCLOG{	//アーカイブ操作の結果を格納する
+struct ARCLOG{
 	virtual ~ARCLOG(){}
-	std::wstring strFile;	//アーカイブのフルパス
-	std::wstring strMsg;		//ログ
-	ARCRESULT Result;	//結果
+	void setArchivePath(const wchar_t* archivePath) {
+		_archivePath = archivePath;
+		_archiveFilename = std::filesystem::path(archivePath).filename().generic_wstring().c_str();
+	}
+	std::wstring _archivePath;
+	std::wstring _archiveFilename;
+	LF_RESULT overallResult;
+
+	struct LOGENTRY {
+		std::wstring entryPath;
+		std::wstring message;
+	};
+	std::vector<LOGENTRY> logs;
+	void operator()(const wchar_t* entryPath, const wchar_t* message) {
+		LOGENTRY e = { entryPath,message };
+		logs.push_back(e);
+	}
 };
 
 
@@ -254,6 +258,7 @@ struct LF_ARCHIVE_ENTRY {
 	bool is_encrypted()const { return _is_encrypted; }
 	const char* get_format_name()const { return _format_name.c_str(); }
 	const char* get_mode_name()const { return _mode_name.c_str(); }
+	bool is_dir()const { return (_filemode & S_IFDIR) != 0; }
 
 	void copy_file_stat(const wchar_t* path) {
 		_pathname = path;
