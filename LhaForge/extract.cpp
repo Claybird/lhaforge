@@ -29,7 +29,6 @@
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigExtract.h"
 #include "Utilities/Semaphore.h"
-#include "Dialogs/LogDialog.h"
 #include "Dialogs/LogListDialog.h"
 #include "Dialogs/ProgressDlg.h"
 #include "Dialogs/ConfirmOverwriteDlg.h"

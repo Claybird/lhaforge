@@ -194,9 +194,6 @@
     <ClCompile Include="TestArchive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\LogDialog.cpp">
-      <Filter>Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
@@ -375,9 +372,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\variant.h">
       <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Dialogs\LogDialog.h">
-      <Filter>Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Dialogs\LogListDialog.h">
       <Filter>Dialogs</Filter>

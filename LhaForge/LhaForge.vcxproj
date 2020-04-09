@@ -165,7 +165,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
-    <ClCompile Include="Dialogs\LogDialog.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
@@ -236,7 +235,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
     <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
-    <ClInclude Include="Dialogs\LogDialog.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
     <ClInclude Include="Dialogs\ProgressDlg.h" />
     <ClInclude Include="Dialogs\SelectDlg.h" />
