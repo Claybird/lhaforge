@@ -166,7 +166,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
     <ClCompile Include="Dialogs\LogDialog.cpp" />
-    <ClCompile Include="Dialogs\LogListDialog.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>

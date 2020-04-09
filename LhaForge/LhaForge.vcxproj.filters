@@ -197,9 +197,6 @@
     <ClCompile Include="Dialogs\LogDialog.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\LogListDialog.cpp">
-      <Filter>Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
