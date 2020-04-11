@@ -246,7 +246,7 @@ protected:
 		EndDialog(nID);
 	}
 
-protected:
+public:
 	//custom draw
 	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd) {
 		if (lpnmcd->hdr.idFrom == IDC_LIST_LOGINFO_ITEMS)return CDRF_NOTIFYITEMDRAW;
