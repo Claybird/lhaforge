@@ -269,12 +269,11 @@ struct COMP{
 			}
 		case FILEINFO_FILETIME:
 			{
-				int result = CompareFileTime(&x->cFileTime , &y->cFileTime);
-				if(result == 0){
+				if(x->st_mtime == y->st_mtime){
 					//同じならパス名でソート
 					return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 				}else{
-					return (result < 0);
+					return (x->st_mtime < y->st_mtime);
 				}
 			}
 		case FILEINFO_ATTRIBUTE:
@@ -365,7 +364,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	if(bSameDir){
 		destType=OUTPUT_TO_SAME_DIR;
 	}
-	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDir,pathOutputBaseDir,bTmp,strLog);
+	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDirUserSpecified,pathOutputBaseDir,bTmp,strLog);
 	if(FAILED(hr)){
 		return hr;
 	}

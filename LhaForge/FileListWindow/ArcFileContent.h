@@ -38,7 +38,7 @@ struct ARCHIVE_ENTRY_INFO {	//ファイルアイテム情報保持
 	CString		strFullPath;	//格納されたときの名前
 	int			nAttribute;		//属性;自分がフォルダかどうかなどの情報
 	UINT64		llOriginalSize;		//格納ファイルの圧縮前のサイズ(ディレクトリなら、中に入っているファイルサイズの合計)
-	__time64_t	cFileTime;		//格納ファイル最終更新日時
+	__time64_t	st_mtime;		//格納ファイル最終更新日時
 
 	bool isDirectory()const { return (nAttribute&S_IFDIR) != 0; }
 	const wchar_t* getExt()const { return PathFindExtensionW(strFullPath); }
@@ -80,7 +80,7 @@ struct ARCHIVE_ENTRY_INFO_TREE :public ARCHIVE_ENTRY_INFO {
 
 		nAttribute = 0;
 		llOriginalSize = -1;
-		cFileTime = 0;
+		st_mtime = 0;
 	}
 
 	//自分以下のファイルを列挙

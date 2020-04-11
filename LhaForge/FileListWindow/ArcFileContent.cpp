@@ -119,7 +119,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 			//ファイルサイズ(圧縮前)
 			item.llOriginalSize = entry->get_original_filesize();
 			//日時取得
-			item.cFileTime = entry->get_mtime();
+			item.st_mtime = entry->get_mtime();
 
 			//暗号
 			bEncrypted = bEncrypted || entry->is_encrypted();
