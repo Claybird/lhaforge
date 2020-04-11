@@ -25,7 +25,7 @@
 #include "stdafx.h"
 #include "FileTreeView.h"
 #include "../resource.h"
-#include "../Dialogs/LogDialog.h"
+#include "Dialogs/LogListDialog.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/OSUtil.h"
 
@@ -295,10 +295,16 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 				break;
 			case S_FALSE:	//追加処理に問題
 				{
-					CLogDialog LogDialog;
-					LogDialog.SetData(strLog);
-					LogDialog.DoModal();
-				}
+				//TODO
+				CLogListDialog LogDlg(L"Log");
+				std::vector<ARCLOG> logs;
+				logs.resize(1);
+				logs.back().logs.resize(1);
+				logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+				logs.back().logs.back().message = strLog;
+				LogDlg.SetLogArray(logs);
+				LogDlg.DoModal(m_hFrameWnd);
+			}
 				break;
 			default:
 				ASSERT(!"This code cannot be run");
@@ -422,8 +428,14 @@ void CFileTreeView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	::EnableWindow(m_hFrameWnd,TRUE);
 	SetForegroundWindow(m_hFrameWnd);
 	if(!bRet){
-		CLogDialog LogDlg;
-		LogDlg.SetData(strLog);
+		//TODO
+		CLogListDialog LogDlg(L"Log");
+		std::vector<ARCLOG> logs;
+		logs.resize(1);
+		logs.back().logs.resize(1);
+		logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+		logs.back().logs.back().message = strLog;
+		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal(m_hFrameWnd);
 	}
 
@@ -461,9 +473,15 @@ bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	if(!items.empty()){
 		CString strLog;
 		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,false,strLog)){
-			CLogDialog LogDialog;
-			LogDialog.SetData(strLog);
-			LogDialog.DoModal();
+			//TODO
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs;
+			logs.resize(1);
+			logs.back().logs.resize(1);
+			logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+			logs.back().logs.back().message = strLog;
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
 			return false;
 		}
 	}
@@ -526,9 +544,15 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 	if(!items.empty()){
 		CString strLog;
 		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,false,strLog)){
-			CLogDialog LogDialog;
-			LogDialog.SetData(strLog);
-			LogDialog.DoModal();
+			//TODO
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs;
+			logs.resize(1);
+			logs.back().logs.resize(1);
+			logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+			logs.back().logs.back().message = strLog;
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
 			return false;
 		}
 	}
@@ -546,8 +570,7 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		}
 		strFiles+=_T('|');
 		//TRACE(strFiles);
-		std::vector<TCHAR> srcBuf(strFiles.GetLength()+1);
-		UtilMakeFilterString(strFiles,&srcBuf[0],srcBuf.size());
+		auto filter = UtilMakeFilterString(strFiles);
 
 		CPath destDir=sendToCmd[nID].strCmd;
 		destDir.AddBackslash();
@@ -555,7 +578,7 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		SHFILEOPSTRUCT fileOp={0};
 		fileOp.wFunc=FO_COPY;
 		fileOp.fFlags=FOF_NOCONFIRMMKDIR|FOF_NOCOPYSECURITYATTRIBS|FOF_NO_CONNECTED_ELEMENTS;
-		fileOp.pFrom=&srcBuf[0];
+		fileOp.pFrom=&filter[0];
 		fileOp.pTo=destDir;
 
 		//コピー実行
@@ -621,9 +644,15 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	SetForegroundWindow(m_hFrameWnd);
 
 	if(FAILED(hr)){
-		CLogDialog LogDialog;
-		LogDialog.SetData(strLog);
-		LogDialog.DoModal();
+		//TODO
+		CLogListDialog LogDlg(L"Log");
+		std::vector<ARCLOG> logs;
+		logs.resize(1);
+		logs.back().logs.resize(1);
+		logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+		logs.back().logs.back().message = strLog;
+		LogDlg.SetLogArray(logs);
+		LogDlg.DoModal(m_hFrameWnd);
 	}
 }
 
@@ -676,9 +705,15 @@ bool CFileTreeView::OpenAssociation(bool bOverwrite,bool bOpen)
 		std::list<CString> filesList;
 		CString strLog;
 		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,bOverwrite,strLog)){
-			CLogDialog LogDialog;
-			LogDialog.SetData(strLog);
-			LogDialog.DoModal();
+			//TODO
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs;
+			logs.resize(1);
+			logs.back().logs.resize(1);
+			logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
+			logs.back().logs.back().message = strLog;
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
 		}
 		if(bOpen)OpenAssociation(filesList);
 	}
