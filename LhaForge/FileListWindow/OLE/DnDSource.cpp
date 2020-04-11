@@ -25,8 +25,8 @@
 #include "stdafx.h"
 #include "DnDSource.h"
 #include "../../Utilities/StringUtil.h"
-#include "../../Dialogs/LogDialog.h"
 #include "../FileListModel.h"
+#include "resource.h"
 
 HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,ARCHIVE_ENTRY_INFO_TREE *lpBase,LPCTSTR lpszOutputDir,CString &strLog)
 {
@@ -116,7 +116,9 @@ HDROP COLEDnDSource::CreateHDrop(const std::list<stdString> &filesList)
 	strFiles += _T('|');
 	strFiles += _T('|');
 
-	size_t bufsize=(strFiles.length()+1)*sizeof(strFiles[0]);
+	auto buf = UtilMakeFilterString(strFiles.c_str());
+
+	size_t bufsize = buf.size() * sizeof(strFiles[0]);
 	HDROP hDrop = (HDROP)::GlobalAlloc(GHND,sizeof(DROPFILES) + bufsize);
 	if(!hDrop){
 		return NULL;
@@ -130,8 +132,8 @@ HDROP COLEDnDSource::CreateHDrop(const std::list<stdString> &filesList)
 	lpDropFile->fNC = FALSE;
 	lpDropFile->fWide = TRUE;					// ワイドキャラの場合は TRUE
 
-	wchar_t *buf = (wchar_t *)(&lpDropFile[1]);
-	UtilMakeFilterString(strFiles.c_str(),buf,bufsize/sizeof(strFiles[0]));
+	wchar_t *p = (wchar_t *)(&lpDropFile[1]);
+	memcpy(p, &buf[0], bufsize);
 	::GlobalUnlock(hDrop);
 
 	return hDrop;

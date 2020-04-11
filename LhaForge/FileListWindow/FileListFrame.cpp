@@ -28,7 +28,7 @@
 #include "../ConfigCode/ConfigManager.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../resource.h"
-#include "../Dialogs/LogDialog.h"
+#include "Dialogs/LogListDialog.h"
 #include "../Utilities/OSUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../CommonUtil.h"
@@ -859,10 +859,9 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//「全てのファイル」のフィルタ文字を作る
 	CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-	std::vector<TCHAR> filter(strAnyFile.GetLength()+1+1);
-	UtilMakeFilterString(strAnyFile,&filter[0],filter.size());
+	auto filter = UtilMakeFilterString(strAnyFile);
 	//CFileDialog dlg(TRUE, NULL, NULL, OFN_NOCHANGEDIR|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,&filter[0]);
-	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR|OFN_DONTADDTORECENT|OFN_HIDEREADONLY|OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_ALLOWMULTISELECT,&filter[0]);
+	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_ALLOWMULTISELECT, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}

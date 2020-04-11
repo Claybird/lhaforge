@@ -196,13 +196,12 @@ BOOL UtilMoveFileToRecycleBin(const std::list<CString> &fileList)
 		Param+=_T('|');
 	}
 	Param+=_T('|');
-	std::vector<TCHAR> Buffer(Param.GetLength()+1);
 
-	UtilMakeFilterString(Param,&Buffer[0],Buffer.size());
+	auto filter = UtilMakeFilterString(Param);
 
 	SHFILEOPSTRUCT shfo={0};
 	shfo.wFunc=FO_DELETE;	//削除
-	shfo.pFrom=&Buffer[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
+	shfo.pFrom=&filter[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
 	shfo.fFlags=FOF_SILENT/*進捗状況を表示しない*/|FOF_ALLOWUNDO/*UNDO情報付加;ごみ箱へ*/|FOF_NOCONFIRMATION/*確認ダイアログを表示しない*/;
 	return SHFileOperation(&shfo);
 }
