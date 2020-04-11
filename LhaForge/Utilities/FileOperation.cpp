@@ -664,8 +664,8 @@ bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
 	if(!UtilReadFile(lpFile,cReadBuffer))return false;
 	//終端の0追加
 	cReadBuffer.resize(cReadBuffer.size()+2);
-	cReadBuffer[cReadBuffer.size()-1];
-	cReadBuffer[cReadBuffer.size()-2];
+	cReadBuffer[cReadBuffer.size() - 1] = 0;
+	cReadBuffer[cReadBuffer.size() - 2] = 0;
 
 	{
 		CStringW strData;
