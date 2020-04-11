@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "compress.h"
-#include "Dialogs/LogDialog.h"
+#include "Dialogs/LogListDialog.h"
 
 #include "resource.h"
 
@@ -113,10 +113,9 @@ HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rO
 		//フィルタ文字列生成
 		CString strFilter(MAKEINTRESOURCE(IDS_COMPRESS_FILE));
 		strFilter.AppendFormat(_T(" (*%s)|*%s"), lpExt, lpExt);
-		TCHAR filter[_MAX_PATH + 2] = { 0 };
-		UtilMakeFilterString(strFilter, filter, COUNTOF(filter));
+		auto filter = UtilMakeFilterString(strFilter);
 
-		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter);
+		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
 		if (IDCANCEL == dlg.DoModal()) {	//キャンセル
 			return E_ABORT;
 		}
@@ -461,15 +460,27 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	switch(ConfGeneral.LogViewEvent){
 	case LOGVIEW_ON_ERROR:
 		if(bError){
-			CLogDialog LogDlg;
-			LogDlg.SetData(strLog);
+			//TODO
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs;
+			logs.resize(1);
+			logs.back().logs.resize(1);
+			logs.back().logs.back().entryPath = pathArcFileName;
+			logs.back().logs.back().message = strLog;
+			LogDlg.SetLogArray(logs);
 			LogDlg.DoModal();
 		}
 		break;
 	case LOGVIEW_ALWAYS:
 	{
-		CLogDialog LogDlg;
-		LogDlg.SetData(strLog);
+		//TODO
+		CLogListDialog LogDlg(L"Log");
+		std::vector<ARCLOG> logs;
+		logs.resize(1);
+		logs.back().logs.resize(1);
+		logs.back().logs.back().entryPath = pathArcFileName;
+		logs.back().logs.back().message = strLog;
+		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal();
 	}
 		break;
