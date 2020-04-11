@@ -138,7 +138,6 @@ protected:
 	//ファイル情報取得
 	static void FormatFileSizeInBytes(CString&, UINT64);
 	void FormatFileSize(CString&, UINT64);
-	static void FormatFileTime(CString&,const FILETIME&);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	void OpenAssociation(const std::list<CString> &filesList);
 	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)

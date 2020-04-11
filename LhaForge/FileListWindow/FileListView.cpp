@@ -557,7 +557,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatFileTime(strBuffer,lpNode->cFileTime);
+			strBuffer = UtilFormatTime(lpNode->st_mtime).c_str();
 			lpText=strBuffer;
 		}
 		break;
@@ -603,7 +603,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
 	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt());	strInfo+=_T("\n");
 	//ファイル日時
-	FormatFileTime(strBuffer,lpNode->cFileTime);
+	strBuffer = UtilFormatTime(lpNode->st_mtime).c_str();
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 
@@ -677,26 +677,6 @@ void CFileListView::FormatFileSize(CString &Info, UINT64 Size)
 			//過大サイズ
 			Info.Format(OrderUnit[Order], Size);
 		}
-	}
-}
-
-void CFileListView::FormatFileTime(CString &Info,const FILETIME &rFileTime)
-{
-	Info.Empty();
-	if(-1==rFileTime.dwHighDateTime && -1==rFileTime.dwLowDateTime){
-		Info=_T("------");
-	}else{
-		FILETIME LocalFileTime;
-		SYSTEMTIME SystemTime;
-
-		FileTimeToLocalFileTime(&rFileTime,&LocalFileTime);
-		FileTimeToSystemTime(&LocalFileTime, &SystemTime);
-		TCHAR Buffer[64];
-
-		wsprintf(Buffer,CString(MAKEINTRESOURCE(IDS_FILELIST_FILETIME_FORMAT)),
-				SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay,
-				SystemTime.wHour, SystemTime.wMinute,SystemTime.wSecond);
-		Info+=Buffer;
 	}
 }
 
@@ -1167,8 +1147,7 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	case ID_MENUITEM_COPY_FILETIME:
 		for(;ite!=end;++ite){
 			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strBuffer;
-			FormatFileTime(strBuffer,lpItem->cFileTime);
+			CString strBuffer = UtilFormatTime(lpItem->st_mtime).c_str();
 			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
 		}
 		break;
@@ -1184,8 +1163,7 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
 		for(;ite!=end;++ite){
 			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strFileTime;
-			FormatFileTime(strFileTime,lpItem->cFileTime);
+			CString strFileTime = UtilFormatTime(lpItem->st_mtime).c_str();
 
 			info.AppendFormat(L"%s\t%s\t%I64d\t%s\t%s\n",
 				(LPCTSTR)lpItem->strTitle,
