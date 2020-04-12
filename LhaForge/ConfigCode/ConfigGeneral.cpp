@@ -23,7 +23,8 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/arc_interface.h"
+#include "Utilities/OSUtil.h"
 #include "ConfigManager.h"
 #include "ConfigGeneral.h"
 
