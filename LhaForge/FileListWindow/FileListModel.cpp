@@ -418,10 +418,9 @@ bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &file
 //::Extract()を呼ぶ
 bool CFileListModel::ExtractArchive()
 {
-	//解凍
-	std::list<CString> archiveList;
+	std::vector<std::wstring> archiveList;
 	archiveList.push_back(GetArchiveFileName());
-	return ::Extract(archiveList,mr_Config,NULL);
+	return GUI_extract_multiple_files(archiveList, NULL);
 }
 
 void CFileListModel::TestArchive()

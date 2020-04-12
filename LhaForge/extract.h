@@ -25,10 +25,10 @@
 #pragma once
 
 struct LF_EXTRACT_ARGS;
-class CMDLINEINFO;
+struct CMDLINEINFO;
 
 bool Extract(const wchar_t* archive_name, const LF_EXTRACT_ARGS& args);
-void GUI_extract_multiple_files(
+bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
 );

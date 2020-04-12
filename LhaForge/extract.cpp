@@ -490,7 +490,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 	}
 }
 
-void GUI_extract_multiple_files(
+bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
 )
@@ -511,7 +511,7 @@ void GUI_extract_multiple_files(
 		parseExtractOption(args, mngr, lpCmdLineInfo);
 	} catch (const LF_EXCEPTION& e) {
 		MessageBox(NULL, e.what(), UtilGetMessageCaption(), MB_OK | MB_ICONERROR);
-		return;
+		return false;
 	}
 
 	UINT64 totalFiles = archive_files.size();
@@ -646,4 +646,5 @@ void GUI_extract_multiple_files(
 
 	// close progress bar
 	if (dlg.IsWindow())dlg.DestroyWindow();
+	return bAllOK;
 }

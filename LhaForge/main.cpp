@@ -253,23 +253,22 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		//プログレスバー
 		CProgressDialog dlg;
 		int nFiles=cli.FileList.size();
-		if(nFiles>=2){	//ファイルが複数ある時に限定
-			dlg.Create(NULL);
-			dlg.SetTotalFileCount(nFiles);
-			dlg.ShowWindow(SW_SHOW);
-		}
+		dlg.Create(NULL);
+		dlg.ShowWindow(SW_SHOW);
 		bool bRet=true;
-		for(std::list<CString>::iterator ite=cli.FileList.begin();ite!=cli.FileList.end();ite++){
+		int count = 0;
+		for(const auto &filename: cli.FileList){
 			//プログレスバーを進める
-			if(dlg.IsWindow())dlg.SetNextState(*ite);
+			if (dlg.IsWindow())dlg.SetProgress(filename, count, nFiles, L"*prepare*", 0, 0);
 			while(UtilDoMessageLoop())continue;
 
 			//圧縮作業
 			std::list<CString> TempList;
-			TempList.push_back(*ite);
+			TempList.push_back(filename);
 
 #pragma message("FIXME!")
 			//bRet=bRet && Compress(TempList,cli.CompressType,ConfigManager,cli);
+			count += 1;
 		}
 		//プログレスバーを閉じる
 		if(dlg.IsWindow())dlg.DestroyWindow();
@@ -293,7 +292,9 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 		return false;
 	}
-	return Extract(cli.FileList,ConfigManager,cli.OutputDir,&cli);
+	std::vector<std::wstring> archiveList;
+	archiveList.assign(cli.FileList.begin(), cli.FileList.end());	//TODO
+	return GUI_extract_multiple_files(archiveList, &cli);
 }
 
 bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
