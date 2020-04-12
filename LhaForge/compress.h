@@ -26,7 +26,7 @@
 #include "Utilities/Utility.h"
 #include "ArchiverCode/arc_interface.h"
 
-class CMDLINEINFO;
+struct CMDLINEINFO;
 
 
 //圧縮を行う。引数には必ずフルパスを渡すこと

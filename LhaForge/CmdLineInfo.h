@@ -42,11 +42,22 @@ enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
 enum LFPROCESS_PRIORITY;
 enum LF_ARCHIVE_FORMAT;
-//コマンドライン解釈の結果を格納するためのクラス
-class CMDLINEINFO{
-public:
-	CMDLINEINFO();
-	virtual ~CMDLINEINFO(){}
+
+#include "ArchiverCode/arc_interface.h"
+#include "Utilities/OSUtil.h"
+
+// command line arguments
+struct CMDLINEINFO{
+	CMDLINEINFO() :
+		CompressType(LF_FMT_INVALID),
+		Options(0),
+		bSingleCompression(false),
+		OutputToOverride((OUTPUT_TO)-1),
+		CreateDirOverride((CREATE_OUTPUT_DIR)-1),
+		IgnoreTopDirOverride(-1),
+		DeleteAfterProcess(-1),
+		PriorityOverride(LFPRIOTITY_DEFAULT) {}
+
 	std::list<CString> FileList;	//ファイル名リスト
 	CString OutputDir;				//出力先フォルダ
 	CString OutputFileName;			//出力先ファイル名

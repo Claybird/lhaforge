@@ -34,17 +34,6 @@
 #include "ConfigCode/ConfigGeneral.h"
 
 
-CMDLINEINFO::CMDLINEINFO():
-	CompressType(LF_FMT_INVALID),
-	Options(0),
-	bSingleCompression(false),
-	OutputToOverride((OUTPUT_TO)-1),
-	CreateDirOverride((CREATE_OUTPUT_DIR)-1),
-	IgnoreTopDirOverride(-1),
-	DeleteAfterProcess(-1),
-	PriorityOverride(LFPRIOTITY_DEFAULT)
-{}
-
 
 class COpenActionDialog : public CDialogImpl<COpenActionDialog>
 {

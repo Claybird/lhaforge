@@ -25,7 +25,7 @@
 #pragma once
 
 class CConfigManager;
-class CMDLINEINFO;
+struct CMDLINEINFO;
 enum PROCESS_MODE;
 
 //圧縮を行う
