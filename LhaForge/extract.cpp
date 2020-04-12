@@ -415,6 +415,7 @@ void extractOneArchive(
 }
 
 
+//TODO
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
 {
 	std::list<CString> fileList;	//削除対象のファイル一覧
@@ -490,8 +491,8 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 }
 
 void GUI_extract_multiple_files(
-	const CMDLINEINFO* lpCmdLineInfo,
-	const std::vector<std::wstring> &archive_files
+	const std::vector<std::wstring> &archive_files,
+	const CMDLINEINFO* lpCmdLineInfo
 )
 {
 	//プログレスバー
