@@ -5,16 +5,38 @@ VisualStudioVersion = 15.0.28307.852
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LhaForge", "LhaForge\LhaForge.vcxproj", "{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTest", "UnitTest\UnitTest.vcxproj", "{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LhaForgeCore", "LhaForge\LhaForgeCore.vcxproj", "{2A0A302D-ED69-475A-85F5-27D42E3F878D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Debug|Win32.Build.0 = Debug|Win32
+		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Debug|x64.ActiveCfg = Debug|Win32
 		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Release|Win32.ActiveCfg = Release|Win32
 		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Release|Win32.Build.0 = Release|Win32
+		{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}.Release|x64.ActiveCfg = Release|Win32
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Debug|Win32.Build.0 = Debug|Win32
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Debug|x64.ActiveCfg = Debug|x64
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Debug|x64.Build.0 = Debug|x64
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Release|Win32.ActiveCfg = Release|Win32
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Release|Win32.Build.0 = Release|Win32
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Release|x64.ActiveCfg = Release|x64
+		{7C17827C-4D63-4FF7-8A9E-AD4D01F31B21}.Release|x64.Build.0 = Release|x64
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Debug|Win32.Build.0 = Debug|Win32
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Debug|x64.ActiveCfg = Debug|Win32
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Release|Win32.ActiveCfg = Release|Win32
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Release|Win32.Build.0 = Release|Win32
+		{2A0A302D-ED69-475A-85F5-27D42E3F878D}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

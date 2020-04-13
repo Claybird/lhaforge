@@ -38,7 +38,7 @@
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
-std::wstring LF_sanitize_pathname(const std::wstring& rawPath)
+std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 {
 	const std::pair<std::wregex, wchar_t*> pattern[] = {
 		//potential directory traversals
