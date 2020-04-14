@@ -2,15 +2,393 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main_stub.cpp" />
+    <ClCompile Include="ConfigCode\AssocSettings.cpp">
+      <Filter>Configs\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigManager.cpp">
+      <Filter>Configs\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Configwnd.cpp">
+      <Filter>Configs\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_general.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_openaction.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigCompress.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigExtract.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigGeneral.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigOpenAction.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\SelectDlg.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\WaitDialog.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\ArcFileContent.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileListFrame.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileListModel.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileListTabClient.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileListTabItem.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileListView.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\FileTreeView.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\MenuCommand.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\ShellDataManager.cpp">
+      <Filter>FileListWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\DataObject.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\DnDSource.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\DropSource.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\DropTarget.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClCompile>
+    <ClCompile Include="Association.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CmdLineInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="compress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="extract.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestArchive.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\ConfigFile.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\FileOperation.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\OSUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\shellmanager.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\StringUtil.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\TemporaryDirMgr.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Utility.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\variant.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{798c5c6f-32f7-4319-b1a6-feceb2350b0d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ArchiverCode">
+      <UniqueIdentifier>{75c02246-c7b2-4859-8638-cebe46257450}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs">
+      <UniqueIdentifier>{af5df1ea-27c6-4389-848c-2787bdc38e46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\Other">
+      <UniqueIdentifier>{f01c2b13-faaf-453e-99bb-1befa1c0861c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\Dialogs">
+      <UniqueIdentifier>{e97a000f-93fd-4e94-8e9a-7fcfa1eaae8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\ConfigStruct">
+      <UniqueIdentifier>{075126cd-09f9-47ed-9488-33fa983864e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs">
+      <UniqueIdentifier>{6bc9c884-90de-4427-96fb-d273e9957aa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow">
+      <UniqueIdentifier>{1aae091b-6fc8-4171-bb0f-a9a5a3a900b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow\OLE">
+      <UniqueIdentifier>{bdac2e86-f9b0-455c-b380-48edc9b5605e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{8fb5dad6-b868-4e3c-899d-6751b3d71315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ad63b314-6e29-434f-9089-61d3aca1e0a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\arc_interface.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\AssocSettings.h">
+      <Filter>Configs\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigManager.h">
+      <Filter>Configs\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Configwnd.h">
+      <Filter>Configs\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_compress_general.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_filelistwindow.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_general.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigCompress.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigExtract.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigFileListWindow.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigGeneral.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigOpenAction.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigShellExt.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\LogListDialog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\ProgressDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\SelectDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\TextInputDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\WaitDialog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\AnimationUpdater.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\ArcFileContent.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListFrame.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListMessages.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListModel.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListTabClient.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListTabItem.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileListView.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\FileTreeView.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\MenuCommand.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\ShellDataManager.h">
+      <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\DataObject.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\DnDSource.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\DropSource.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\DropTarget.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\EnumFORMATETC.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h">
+      <Filter>FileListWindow\OLE</Filter>
+    </ClInclude>
+    <ClInclude Include="Association.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CmdLineInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="compress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestArchive.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ConfigFile.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\EventDispatcher.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\FileOperation.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\OSUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\PtrCollection.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Semaphore.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\shellmanager.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\StringUtil.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\TemporaryDirMgr.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Utility.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\variant.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

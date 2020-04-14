@@ -54,7 +54,7 @@ bool LF_isExtractable(const wchar_t* fname)
 
 //---------------------------------------------
 
-int LF_main(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
 {
 #if defined(_DEBUG)
 	// detect memory leaks
