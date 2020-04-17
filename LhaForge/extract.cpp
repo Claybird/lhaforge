@@ -41,11 +41,16 @@
 std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 {
 	const std::pair<std::wregex, wchar_t*> pattern[] = {
-		//potential directory traversals
-		{std::wregex(L"/{2,}"),L"/"},	//not harmful if properly treated
-		{std::wregex(L"(^|/).(/|$)"),L"/"},		//not harmful if properly treated
+		//---potential directory traversals are not harmful if properly replaced
+		//more than two directory separators, e.g., "//" -> "/"
+		{std::wregex(L"/{2,}"),L"/"},
+		//dot directory name, e.g., "/./" -> "/"
+		{std::wregex(L"(^|/)\\.(/|$)"),L"/"},
+		//parent directory name, e.g., "/../" -> "/_@@@_/"
 		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$0_@@@_$2"},
+		//backslashes "\\" -> "_@@@_" ; libarchive will use only "/" for directory separator
 		{std::wregex(L"\\\\"),L"_@@@_"},
+		//root directory, e.g., "/abc" -> "abc"
 		{std::wregex(L"^/"),L""},
 
 		//unicode control characters
