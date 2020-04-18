@@ -1,4 +1,4 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "CppUnitTest.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -19,6 +19,8 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(L"a/b"), LF_sanitize_pathname(L"a/./././b"));
 			Assert::AreEqual(std::wstring(L"c/_@@@_/d"), LF_sanitize_pathname(L"c/../d"));
 			Assert::AreEqual(std::wstring(L"e/_@@@_/f"), LF_sanitize_pathname(L"e/....../f"));
+
+			Assert::AreEqual(std::wstring(L"abc_(UNICODE_CTRL)_def"), LF_sanitize_pathname(L"abc\u202Edef"));
 		}
 
 		TEST_METHOD(test_trimArchiveName) {
@@ -44,8 +46,8 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(L"123abc456"), trimArchiveName(false, L"123abc456 "));
 
 			//full-width space
-			Assert::AreEqual(std::wstring(L"123abc"), trimArchiveName(true, L"123abc456Å@"));
-			Assert::AreEqual(std::wstring(L"123abc456"), trimArchiveName(false, L"123abc456Å@"));
+			Assert::AreEqual(std::wstring(L"123abc"), trimArchiveName(true, L"123abc456„ÄÄ"));
+			Assert::AreEqual(std::wstring(L"123abc456"), trimArchiveName(false, L"123abc456„ÄÄ"));
 		}
 	};
 }
