@@ -47,7 +47,7 @@ std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 		//dot directory name, e.g., "/./" -> "/"
 		{std::wregex(L"(^|/)\\.(/|$)"),L"/"},
 		//parent directory name, e.g., "/../" -> "/_@@@_/"
-		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$0_@@@_$2"},
+		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$1_@@@_$3"},
 		//backslashes "\\" -> "_@@@_" ; libarchive will use only "/" for directory separator
 		{std::wregex(L"\\\\"),L"_@@@_"},
 		//root directory, e.g., "/abc" -> "abc"
@@ -55,11 +55,15 @@ std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 
 		//unicode control characters
 		{std::wregex(L"("
-			L"\u001e|\u001f|\u00ad|\uFEFF|\uFFF9|\uFFFA|\uFFFB|\uFFFE|"
-			L"[\u200b-\u200f]|"
-			L"[\u202a-\u202e]|"
-			L"[\u2060-\u2063]|"
-			L"[\u206a-\u206f]|"
+			L"[\u0001-\u001f]"	//ISO 6429 C0 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+			L"|\u007F"	//DEL
+			L"|[\u0080-\u009F]"	//ISO 6429 C1 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+			L"|[\u200b-\u200d]"	//zero-width spaces
+
+			//https://en.wikipedia.org/wiki/Bidirectional_text
+			L"|\u200e|\u200f|\u061C"	//LRM,RLM,ALM
+			L"|[\u202a-\u202e]"	//RLE,LRO,PDF,RLE,RLO,
+			L"|[\u2066-\u2069]"	//LRI,RLI,FSI,PDI
 			L")"),
 			L"_(UNICODE_CTRL)_"},
 	};
@@ -141,7 +145,6 @@ std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_
 		dirname = an.stem();
 	}
 
-	dirname += L"/";
 	return dirname;
 }
 
