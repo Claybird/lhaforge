@@ -25,9 +25,6 @@
 #include "stdafx.h"
 #include "extract.h"
 #include "resource.h"
-#include "ConfigCode/ConfigManager.h"
-#include "ConfigCode/ConfigGeneral.h"
-#include "ConfigCode/ConfigExtract.h"
 #include "Utilities/Semaphore.h"
 #include "Dialogs/LogListDialog.h"
 #include "Dialogs/ProgressDlg.h"
@@ -36,7 +33,6 @@
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
 #include "CommonUtil.h"
-#include "CmdLineInfo.h"
 
 std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 {
@@ -117,13 +113,6 @@ struct PRE_EXTRACT_CHECK {
 	}
 };
 
-
-struct LF_EXTRACT_ARGS {
-//	std::wstring outputPath;
-//	std::wstring pathToOpen;
-	CConfigGeneral general;
-	CConfigExtract extract;
-};
 
 std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path)
 {

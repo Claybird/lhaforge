@@ -24,8 +24,17 @@
 
 #pragma once
 
-struct LF_EXTRACT_ARGS;
-struct CMDLINEINFO;
+#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigGeneral.h"
+#include "ConfigCode/ConfigExtract.h"
+#include "CmdLineInfo.h"
+
+struct LF_EXTRACT_ARGS {
+	//	std::wstring outputPath;
+	//	std::wstring pathToOpen;
+	CConfigGeneral general;
+	CConfigExtract extract;
+};
 
 bool Extract(const wchar_t* archive_name, const LF_EXTRACT_ARGS& args);
 bool GUI_extract_multiple_files(
