@@ -76,6 +76,7 @@ extern CAppModule _Module;
 #include <functional>
 #include <list>
 #include <vector>
+#include <array>
 #include <string>
 #include <map>
 #include <stack>

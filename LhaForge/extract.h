@@ -28,12 +28,14 @@
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigExtract.h"
 #include "CmdLineInfo.h"
+#include "CommonUtil.h"
 
 struct LF_EXTRACT_ARGS {
 	//	std::wstring outputPath;
 	//	std::wstring pathToOpen;
 	CConfigGeneral general;
 	CConfigExtract extract;
+	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
 };
 
 bool Extract(const wchar_t* archive_name, const LF_EXTRACT_ARGS& args);

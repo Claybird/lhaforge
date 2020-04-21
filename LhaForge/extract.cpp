@@ -142,66 +142,35 @@ std::wstring determineExtractBaseDir(
 	const wchar_t* archive_path,
 	LF_EXTRACT_ARGS& args)
 {
-	CPath outputDir;
-	CString strErr;
-	bool keepConfig;
-
-	auto hr = GetOutputDirPathFromConfig(
-		args.extract.OutputDirType,
-		archive_path,
-		args.extract.OutputDirUserSpecified,
-		outputDir,
-		keepConfig,
-		strErr);
-
-	if (E_ABORT == hr) {
-		CANCEL_EXCEPTION();
-	} else if (FAILED(hr)) {
-		RAISE_EXCEPTION(L"%s", (LPCTSTR)strErr);
-	}
+	args.output_dir_callback.setArchivePath(archive_path);
+	auto outputDir = LF_get_output_dir(args.extract.OutputDirType, archive_path, args.extract.OutputDirUserSpecified, args.output_dir_callback);
 
 	// Warn if output is on network or on a removable disk
-	// Confirm to make extract dir if it does not exist
-	hr = ConfirmOutputDir(args.general, outputDir, strErr);
-	//TODO
-	if (E_ABORT==hr) {
-		CANCEL_EXCEPTION();
-	} else if (FAILED(hr)) {
-		RAISE_EXCEPTION(L"%s", (LPCTSTR)strErr);
-	}
-
-/*	// pathname too long?
-	//TODO: _MAX_PATH should not be a limit any more.
-	if (S_OK == hStatus) {
-		if (_tcslen(pathOutputDir) >= _MAX_PATH) {
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH)));
-			hStatus = S_FALSE;
-		}
-	}*/
-
-	if (S_FALSE == hr) {
-		// Need to change path
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-		CFolderDialog dlg(NULL, title, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
-		if (IDOK == dlg.DoModal()) {
-			keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
-			std::filesystem::path pathOutputDir = dlg.GetFolderPath();
-			pathOutputDir /= L"/";
-			outputDir = pathOutputDir.c_str();
-			if (keepConfig) {
-				args.extract.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
-				args.extract.OutputDirUserSpecified = pathOutputDir.c_str();
-			}
+	for (;;) {
+		if (LF_confirm_output_dir_type(args.general, outputDir.c_str())) {
+			break;
 		} else {
-			CANCEL_EXCEPTION();
+			// Need to change path
+			CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
+			CFolderDialog dlg(NULL, title, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
+			if (IDOK == dlg.DoModal()) {
+				std::filesystem::path pathOutputDir = dlg.GetFolderPath();
+				pathOutputDir /= L"/";
+				outputDir = pathOutputDir.c_str();
+				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
+				if (keepConfig) {
+					args.extract.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
+					args.extract.OutputDirUserSpecified = pathOutputDir.c_str();
+				}
+			} else {
+				CANCEL_EXCEPTION();
+			}
 		}
 	}
+	// Confirm to make extract dir if it does not exist
+	LF_ask_and_make_sure_output_dir_exists(outputDir.c_str(), args.general.OnDirNotFound);
 
-	if (keepConfig) {
-		args.extract.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
-		args.extract.OutputDirUserSpecified = (LPCTSTR)outputDir;
-	}
-	return (LPCTSTR)outputDir;
+	return outputDir;
 }
 
 std::wstring determineExtractDir(

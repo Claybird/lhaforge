@@ -93,6 +93,39 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 	}
 }
 
+//returns output directory that corresponds to outputDirType
+std::wstring LF_get_output_dir(
+	OUTPUT_TO outputDirType,
+	const wchar_t* original_file_path,
+	const wchar_t* user_specified_path,
+	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback)
+{
+	switch (outputDirType) {
+	case OUTPUT_TO_SAME_DIR:
+		//directory is same as the original file path
+		return std::filesystem::path(original_file_path).parent_path().generic_wstring();
+	case OUTPUT_TO_ALWAYS_ASK_WHERE:
+		return ask_callback();
+	case OUTPUT_TO_SPECIFIC_DIR:	//use provided path
+		if (user_specified_path && wcslen(user_specified_path) > 0) {
+			return user_specified_path;
+		} else {
+			//user did not provide a valid path; fall back to desktop
+		}
+		//FALLTHROUGH
+	case OUTPUT_TO_DESKTOP:
+	default:
+	{
+		std::array<wchar_t, MAX_PATH + 1> buf = {};
+		if (SHGetSpecialFolderPathW(NULL, &buf[0], CSIDL_DESKTOPDIRECTORY, FALSE)) {
+			return std::wstring(&buf[0]);
+		} else {	//unexpected case; desktop does not exist?
+			RAISE_EXCEPTION(L"Unexpected error: %s", (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
+		}
+	}
+	}
+}
+
 
 //S_FALSEが返ったときには、「名前をつけて保存」ダイアログを開く
 HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CString &strErr)
@@ -150,6 +183,89 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 	}
 
 	return S_OK;
+}
+
+//check and ask for user options in case output dir is not suitable; true if user confirms to go
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outputDirIn)
+{
+	auto outputDir = std::filesystem::path(outputDirIn) / L"/";
+
+	for (;;) {
+		auto status = std::filesystem::status(outputDir);
+		if (status.type() != std::filesystem::file_type::not_found &&
+			status.type() != std::filesystem::file_type::directory) {
+			//file with same name as the output directory already exists
+			return false;	//no need to confirm
+		}
+
+		switch (GetDriveType(outputDir.c_str())) {
+		case DRIVE_REMOVABLE://removable
+		case DRIVE_CDROM://CD-ROM
+			if (Conf.WarnRemovable) {
+				if (IDNO == MessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)), UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			break;
+		case DRIVE_REMOTE://remote
+		case DRIVE_NO_ROOT_DIR:
+			if (Conf.WarnNetwork) {
+				if (IDNO == MessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)), UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			break;
+		}
+
+		if (outputDir.has_parent_path()) {
+			auto parent = outputDir.parent_path();
+			if (outputDir == parent) {
+				return true;
+			} else {
+				outputDir = parent;
+			}
+		} else {
+			return true;
+		}
+	}
+}
+
+void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR OnDirNotFound)
+{
+	auto status = std::filesystem::status(outputDir);
+	if (status.type() == std::filesystem::file_type::not_found) {
+		//destination does not exist
+		switch (OnDirNotFound) {
+		case LOSTDIR_ASK_TO_CREATE:
+		{
+			CString strMsg;
+			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir);
+			if (IDNO == MessageBox(NULL, strMsg, UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+				CANCEL_EXCEPTION();
+			}
+		}
+			//FALLTHROUGH
+		case LOSTDIR_FORCE_CREATE:
+			try {
+				std::filesystem::create_directories(outputDir);
+			} catch (const std::filesystem::filesystem_error &e) {
+				CString strErr;
+				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir);
+				RAISE_EXCEPTION((const wchar_t*)strErr);
+			}
+			break;
+		default://treat as error
+		{
+			CString strErr;
+			strErr.Format(IDS_ERROR_DIR_NOTFOUND, outputDir);
+			RAISE_EXCEPTION((const wchar_t*)strErr);
+		}
+		}
+	}
 }
 
 //UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
