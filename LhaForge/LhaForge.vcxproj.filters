@@ -160,6 +160,9 @@
     <ClCompile Include="test\test_extract.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
+    <ClCompile Include="test\test_commonutil.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
