@@ -102,11 +102,14 @@ void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
 template <typename ...Args>
 std::wstring Format(const wchar_t* fmt, Args && ...args)
 {
+	//snprintf_s will not return the required buffer size
 	std::wstring work;
-	auto size = _snwprintf_s(nullptr, 0, 0, fmt, std::forward<Args>(args)...);
-	work.resize(size);
-	_snwprintf_s(&work[0], work.size(), work.size(), fmt, std::forward<Args>(args)...);
-	return work;
+#pragma warning(disable:4996)
+	auto size = _snwprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
+	work.resize(size + 1);
+	_snwprintf(&work[0], work.size(), fmt, std::forward<Args>(args)...);
+#pragma warning(default:4996)
+	return work.c_str();
 }
 
 template<class T, class U>
