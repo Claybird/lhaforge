@@ -163,6 +163,9 @@
     <ClCompile Include="test\test_commonutil.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\test\test_StringUtil.cpp">
+      <Filter>Util\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -203,6 +206,9 @@
     </Filter>
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{3559a591-0f4f-4924-b151-8a73952c5604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\test">
+      <UniqueIdentifier>{4e1f840c-e4d7-48ff-b12a-722ae5cac635}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
