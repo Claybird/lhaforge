@@ -95,7 +95,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CString strErr;
 	if(!ConfigManager.LoadConfig(strErr))ErrorMessage(strErr);
 
-	UTIL_CODEPAGE uCodePage=UTILCP_SJIS;	//レスポンスファイルのコードページ指定
+	UTIL_CODEPAGE uCodePage= UTIL_CODEPAGE::CP932;	//レスポンスファイルのコードページ指定
 
 	for(int iIndex=1;iIndex<nArgc;iIndex++){
 		if(0!=_tcsncmp(_T("/"),ParamsArray[iIndex],1)){//オプションではない
@@ -146,11 +146,11 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					CString cp((LPCTSTR)Parameter+4);
 					cp.MakeLower();
 					if(cp==_T("utf8")||cp==_T("utf-8")){
-						uCodePage=UTILCP_UTF8;
+						uCodePage= UTIL_CODEPAGE::UTF8;
 					}else if(cp==_T("utf16")||cp==_T("utf-16")||cp==_T("unicode")){
-						uCodePage=UTILCP_UTF16;
+						uCodePage= UTIL_CODEPAGE::UTF16;
 					}else if(cp==_T("sjis")||cp==_T("shiftjis")||cp==_T("s-jis")||cp==_T("s_jis")){
-						uCodePage=UTILCP_SJIS;
+						uCodePage= UTIL_CODEPAGE::CP932;
 					}else{
 						CString msg;
 						msg.Format(IDS_ERROR_INVALID_PARAMETER,(LPCTSTR)ParamsArray[iIndex]+4);
@@ -158,7 +158,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 						return PROCESS_INVALID;
 					}
 				}else if(_T("/cp")==Parameter){
-					uCodePage=UTILCP_SJIS;	//デフォルトに戻す
+					uCodePage= UTIL_CODEPAGE::CP932;	//デフォルトに戻す
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);

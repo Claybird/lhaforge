@@ -28,67 +28,25 @@
 //trim trailing symbols
 std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets);
 
-//文字コード
-enum UTIL_CODEPAGE{
-	UTILCP_SJIS,
-	UTILCP_UTF8,
-	UTILCP_UTF16
-};
-
-
-//MFCスタイルでCFileDialogのフィルター文字列を作る
+//builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
 std::wstring UtilMakeFilterString(const wchar_t* lpszIn);
 
-struct CUTF8String {
-	CUTF8String() {}
-	CUTF8String(const CUTF8String& utf8) {
-		_utf8_str = utf8._utf8_str;
-	}
-	CUTF8String(const char* utf8) {
-		_utf8_str = (const char*)utf8;
-	}
-	CUTF8String(const std::wstring& wstr) {
-		this->operator=(wstr);
-	}
-	virtual ~CUTF8String() {}
-	std::string _utf8_str;
-	std::wstring toWstring()const {
-		int bufSize = ::MultiByteToWideChar(CP_UTF8, 0, _utf8_str.c_str(), -1, NULL, 0);
-
-		std::wstring wstr;
-		wstr.resize(bufSize);
-
-		::MultiByteToWideChar(CP_UTF8, 0, _utf8_str.c_str(), -1, &wstr[0], bufSize);
-		return wstr;
-	}
-	const char* utf8() const { return _utf8_str.c_str(); }
-	const CUTF8String& operator=(const CUTF8String& c) {
-		_utf8_str = c._utf8_str;
-		return *this;
-	}
-	const CUTF8String& operator=(const unsigned char* utf8) {
-		_utf8_str = (const char*)utf8;
-	}
-	const CUTF8String& operator=(const std::wstring& wstr) {
-		int bufSize = ::WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
-		_utf8_str.resize(bufSize);
-		::WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &_utf8_str[0], bufSize, NULL, NULL);
-		return *this;
-	}
-	size_t length_utf8()const { return _utf8_str.length(); }
+//文字コード
+enum class UTIL_CODEPAGE {
+	CP932 = 932,
+	UTF8 = CP_UTF8,
+	UTF16 = 1200,
+	//UTF16BE = 1201,
 };
 
+std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
+inline std::wstring UtilUTF8toUNICODE(const char* utf8, size_t length) { return UtilToUNICODE(utf8, length, UTIL_CODEPAGE::UTF8); }
+inline std::wstring UtilCP932toUNICODE(const char* cp932, size_t length) { return UtilToUNICODE(cp932, length, UTIL_CODEPAGE::CP932); }
+inline std::wstring UtilUTF16toUNICODE(const char* utf16, size_t length) { return UtilToUNICODE(utf16, length, UTIL_CODEPAGE::UTF16); }
 
-//適当な文字コード->UNICODE
-//dwSizeはUTILCP_UTF16のときのみ必要
-bool UtilToUNICODE(CString &strRet, const unsigned char* lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage);
-//UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
-void UtilGuessToUNICODE(CString &strRet, const unsigned char* lpcByte,DWORD dwSize);
-
-//TCHARファイル名がSJISファイル名で表現できるならtrue
-bool UtilCheckT2A(LPCTSTR);
-bool UtilCheckT2AList(const std::list<CString>&);	//複数ファイルのうち、一つでもUNICODE専用ファイル名があればfalse
-
+UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
+//checks if the code page is correct for the given string
+bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 
 
 //指定されたフォーマットで書かれた文字列を展開する

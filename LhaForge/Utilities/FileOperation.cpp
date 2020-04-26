@@ -667,8 +667,8 @@ bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
 	cReadBuffer[cReadBuffer.size() - 2] = 0;
 
 	{
-		CStringW strData;
-		UtilGuessToUNICODE(strData,&cReadBuffer[0],cReadBuffer.size());
+		auto cp = UtilGuessCodepage((const char*)&cReadBuffer[0], cReadBuffer.size());
+		CStringW strData = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), cp).c_str();
 		container.data.assign((LPCWSTR)strData,(LPCWSTR)strData+strData.GetLength());
 		container.data.push_back(L'\0');
 	}

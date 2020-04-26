@@ -170,11 +170,11 @@ bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,st
 	//---文字コード変換
 	//終端文字追加
 	switch(uSrcCodePage){
-	case UTILCP_SJIS:
-	case UTILCP_UTF8:	//FALLTHROUGH
+	case UTIL_CODEPAGE::CP932:
+	case UTIL_CODEPAGE::UTF8:	//FALLTHROUGH
 		cReadBuffer[dwSize]='\0';
 		break;
-	case UTILCP_UTF16:
+	case UTIL_CODEPAGE::UTF16:
 		*((LPWSTR)&cReadBuffer[dwSize])=L'\0';
 		break;
 	default:
@@ -182,8 +182,7 @@ bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,st
 		return false;
 	}
 	//文字コード変換
-	CString strBuffer;
-	if(!UtilToUNICODE(strBuffer,&cReadBuffer[0],cReadBuffer.size(),uSrcCodePage))return false;
+	CString strBuffer = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), uSrcCodePage).c_str();
 
 	LPCTSTR p=strBuffer;
 	const LPCTSTR end=p+strBuffer.GetLength()+1;

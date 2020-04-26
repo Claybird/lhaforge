@@ -26,6 +26,7 @@
 
 //デバッグ用関数および便利な関数群
 #pragma once
+#include "StringUtil.h"
 //#pragma warning(disable:4786)
 
 #if defined(_DEBUG) || defined(DEBUG)
@@ -53,7 +54,6 @@ void UtilGetLastErrorMessage(CString &strMsg);
 //配列の中に指定された数字が有ればその位置を返す;見つからなければ-1を返す
 int UtilCheckNumberArray(const int *lpcArray,int size,int c);
 
-enum UTIL_CODEPAGE;
 
 //レスポンスファイルを読み取る
 bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE,std::list<CString> &FileList);

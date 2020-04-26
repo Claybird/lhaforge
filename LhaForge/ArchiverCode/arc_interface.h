@@ -106,7 +106,8 @@ struct ARCHIVE_EXCEPTION: public LF_EXCEPTION {
 	}
 	ARCHIVE_EXCEPTION(archive* arc) :LF_EXCEPTION(L"") {
 		_errno = archive_errno(arc);
-		_msg = CUTF8String(archive_error_string(arc)).toWstring();
+		auto msg = archive_error_string(arc);
+		_msg = UtilUTF8toUNICODE(msg, strlen(msg));
 	}
 	virtual ~ARCHIVE_EXCEPTION() {}
 };
