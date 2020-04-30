@@ -223,7 +223,7 @@ HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMa
 		for(;*lpPath!=L'\0';){
 			LPCTSTR lpStart,lpEnd;
 			if(UtilPathNextSection(lpPath,lpStart,lpEnd,bSkipMeaningless)){
-				UtilAssignSubString(strEntry,lpStart,lpEnd);
+				strEntry = std::wstring(lpStart,lpEnd).c_str();
 				lpPath=lpEnd;
 				if(*lpPath!=L'\0')lpPath++;
 			}else{

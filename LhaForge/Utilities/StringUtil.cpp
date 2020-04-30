@@ -195,16 +195,6 @@ std::wstring UtilExpandTemplateString(const wchar_t* format, const std::map<std:
 	});
 }
 
-void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd)
-{
-	ASSERT(lpStart);
-	ASSERT(lpEnd);
-	strOut=_T("");
-	for(;lpStart!=lpEnd;++lpStart){
-		strOut+=*lpStart;
-	}
-}
-
 
 //文字列を分解し数値配列として取得
 void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
