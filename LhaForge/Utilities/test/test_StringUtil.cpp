@@ -67,12 +67,18 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(utf16_be_bom_ans), UtilUTF16toUNICODE(utf16_be_bom, sizeof(utf16_be_bom)));
 
 			//decode
-			Assert::AreEqual(UtilToUNICODE(cp932, sizeof(cp932), UTIL_CODEPAGE::CP932), std::wstring(cp932_ans));
-			Assert::AreEqual(UtilToUNICODE(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF16), std::wstring(utf16_le_ans));
-			Assert::AreEqual(UtilToUNICODE(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF16), std::wstring(utf16_le_bom_ans));
-			Assert::AreEqual(UtilToUNICODE(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF16), std::wstring(utf16_be_bom_ans));
-			Assert::AreEqual(UtilToUNICODE(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF8), std::wstring(utf8_ans));
-			Assert::AreEqual(UtilToUNICODE(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8), std::wstring(utf8_bom_ans));
+			Assert::AreEqual(std::wstring(cp932_ans),
+				UtilToUNICODE(cp932, sizeof(cp932), UTIL_CODEPAGE::CP932));
+			Assert::AreEqual(std::wstring(utf16_le_ans),
+				UtilToUNICODE(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF16));
+			Assert::AreEqual(std::wstring(utf16_le_bom_ans),
+				UtilToUNICODE(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF16));
+			Assert::AreEqual(std::wstring(utf16_be_bom_ans),
+				UtilToUNICODE(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF16));
+			Assert::AreEqual(std::wstring(utf8_ans),
+				UtilToUNICODE(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF8));
+			Assert::AreEqual(std::wstring(utf8_bom_ans),
+				UtilToUNICODE(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8));
 
 			//CP932
 			Assert::IsTrue(UtilVerityGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::CP932));
@@ -105,6 +111,16 @@ namespace UnitTest
 			Assert::IsTrue(UtilVerityGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8));
 
 		}
+
+		TEST_METHOD(test_UtilExpandTemplateString) {
+			std::map<std::wstring, std::wstring> envVars;
+			envVars[L"abc"] = L"123";
+			envVars[L"def"] = L"{abc}";
+			Assert::AreEqual(
+				std::wstring(L"123;123;{abc};{ghi};%jkl%;%F;%mnopq{}"),
+				UtilExpandTemplateString(L"%abc%;{abc};{def};{ghi};%jkl%;%F;%mnopq{}", envVars));
+		}
+
 
 		TEST_METHOD(test_UtilFormatSize) {
 			Assert::AreEqual(std::wstring(L"---"), UtilFormatSize(-1));

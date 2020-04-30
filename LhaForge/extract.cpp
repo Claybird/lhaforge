@@ -300,9 +300,7 @@ void extractOneArchive(
 		//filetime
 		auto cFileTime = entry->get_mtime();
 
-		auto fullPath = std::filesystem::path(output_dir) / originalPath;
-		fullPath = LF_sanitize_pathname(fullPath);
-		fullPath.make_preferred();
+		auto fullPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
 
 		auto outputPath = fullPath.generic_wstring();
 		progressHandler(outputPath.c_str(), 0, llOriginalSize);
@@ -563,14 +561,17 @@ bool GUI_extract_multiple_files(
 		if (args.extract.OpenDir) {
 			if (args.general.Filer.UseFiler) {
 				// expand environment
-				std::map<stdString, CString> envInfo;
-				MakeExpandInformationEx(envInfo, output_dir.c_str(), NULL);
+				std::map<stdString, CString> _envInfo;
+				MakeExpandInformationEx(_envInfo, output_dir.c_str(), NULL);
+				std::map<std::wstring, std::wstring> envInfo;
+				for (auto& item : _envInfo) {
+					envInfo[item.first] = item.second;
+				}
 
 				// expand command parameter
-				CString strCmd, strParam;
-				UtilExpandTemplateString(strCmd, args.general.Filer.FilerPath, envInfo);
-				UtilExpandTemplateString(strParam, args.general.Filer.Param, envInfo);
-				ShellExecuteW(NULL, L"open", strCmd, strParam, NULL, SW_SHOWNORMAL);
+				auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
+				auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
+				ShellExecuteW(NULL, L"open", strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 			} else {
 				//open with explorer
 				UtilNavigateDirectory(output_dir.c_str());

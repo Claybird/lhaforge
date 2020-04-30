@@ -44,7 +44,9 @@ public:
 		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
 		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
 		m_entryInfo = GetDlgItem(IDC_STATIC_ENTRY);
+		m_fileProgress.SetRange32(0, 100);
 		m_fileProgress.SetPos(0);
+		m_entryProgress.SetRange32(0, 100);
 		m_entryProgress.SetPos(0);
 
 		//SetWindowPos(NULL, 100, 100, 0, 0, SWP_NOSIZE);
@@ -62,22 +64,22 @@ public:
 		UINT64 currentSize,
 		UINT64 totalSize
 		) {
+		auto str = Format(L"%s\n%d / %d",
+			archivePath,
+			fileIndex,
+			totalFiles
+		);
 		m_fileInfo.SetWindowTextW(
-			Format(L"%s\n%d / %d",
-				archivePath,
-				fileIndex,
-				totalFiles
-			).c_str());
-		m_fileProgress.SetRange32(0, 100);
+			str.c_str());
 		m_fileProgress.SetPos(INT32(fileIndex * 100ull / totalFiles));
 
+		str = Format(L"%s\n%s / %s",
+			originalPath,
+			UtilFormatSize(currentSize).c_str(),
+			UtilFormatSize(totalSize).c_str()
+		);
 		m_fileInfo.SetWindowTextW(
-			Format(L"%s\n%s / %s",
-				originalPath,
-				UtilFormatSize(currentSize).c_str(),
-				UtilFormatSize(totalSize).c_str()
-			).c_str());
-		m_entryProgress.SetRange32(0, 100);
+			str.c_str());
 		m_entryProgress.SetPos(INT32(currentSize * 100ull / max(1ull, totalSize)));
 	}
 	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {

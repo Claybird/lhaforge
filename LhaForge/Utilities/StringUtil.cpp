@@ -141,20 +141,58 @@ bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE u
 	return !fallBack && std::string(lpSrc, lpSrc + length) == encoded;
 }
 
+//https://stackoverflow.com/questions/22617209/regex-replace-with-callback-in-c11
+template<class BidirIt, class Traits, class CharT, class UnaryFunction>
+std::basic_string<CharT> util_regex_replace(BidirIt first, BidirIt last,
+	const std::basic_regex<CharT, Traits>& re, UnaryFunction f)
+{
+	std::basic_string<CharT> s;
 
-inline bool between(WCHAR a,WCHAR begin,WCHAR end){
-	return (begin<=a && a<=end);
+	typename std::match_results<BidirIt>::difference_type
+		positionOfLastMatch = 0;
+	auto endOfLastMatch = first;
+
+	auto callback = [&](const std::match_results<BidirIt>& match)
+	{
+		auto positionOfThisMatch = match.position(0);
+		auto diff = positionOfThisMatch - positionOfLastMatch;
+
+		auto startOfThisMatch = endOfLastMatch;
+		std::advance(startOfThisMatch, diff);
+
+		s.append(endOfLastMatch, startOfThisMatch);
+		s.append(f(match));
+
+		auto lengthOfMatch = match.length(0);
+
+		positionOfLastMatch = positionOfThisMatch + lengthOfMatch;
+
+		endOfLastMatch = startOfThisMatch;
+		std::advance(endOfLastMatch, lengthOfMatch);
+	};
+
+	std::regex_iterator<BidirIt> begin(first, last, re), end;
+	std::for_each(begin, end, callback);
+
+	s.append(endOfLastMatch, last);
+
+	return s;
 }
 
-//指定されたフォーマットで書かれた文字列を展開する
-void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env)
+//expand variables, "{foo}" for process specific variables, and "%bar" for OS environment variables
+std::wstring UtilExpandTemplateString(const wchar_t* format, const std::map<std::wstring, std::wstring> &envVars)
 {
-	strOut=lpszFormat;
-	for(std::map<stdString,CString>::const_iterator ite=env.begin();ite!=env.end();++ite){
-		//%で始まるブロックは環境変数と見なすので{}による修飾は行わない
-		stdString strKey=( (*ite).first[0]==L'%' ? (*ite).first : _T("{")+(*ite).first+_T("}") );
-		strOut.Replace(strKey.c_str(),(*ite).second);
-	}
+	auto fmt = std::wstring(format);
+	return util_regex_replace(fmt.cbegin(), fmt.cend(), std::wregex(L"\\{([^;]*?)\\}|%([^;]*?)%"),
+		[&](const std::wsmatch& m) {
+		auto key = m.str(0);
+		auto found = envVars.find(key.substr(1, key.length() - 2));
+		if (found==envVars.end()) {
+			return key;
+		} else {
+			return (*found).second;
+		}
+	});
 }
 
 void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd)

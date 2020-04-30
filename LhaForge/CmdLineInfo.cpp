@@ -119,11 +119,16 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 					//---環境変数(LhaForge独自定義変数)展開
 					//パラメータ展開に必要な情報
-					std::map<stdString,CString> envInfo;
-					UtilMakeExpandInformation(envInfo);
+					std::map<stdString,CString> _envInfo;
+					UtilMakeExpandInformation(_envInfo);
+
+					std::map<std::wstring, std::wstring> envInfo;
+					for (auto& item : _envInfo) {
+						envInfo[item.first] = item.second;
+					}
 
 					//コマンド・パラメータ展開
-					UtilExpandTemplateString(cli.ConfigPath, cli.ConfigPath, envInfo);
+					cli.ConfigPath = UtilExpandTemplateString(cli.ConfigPath, envInfo).c_str();
 				}else if(_T("/cfg")==Parameter){
 					cli.ConfigPath.Empty();
 				}else{

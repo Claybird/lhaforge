@@ -488,17 +488,20 @@ bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 	//---実行情報取得
 	//パラメータ展開に必要な情報
-	std::map<stdString,CString> envInfo;
-	UtilMakeExpandInformation(envInfo);
+	std::map<stdString,CString> _envInfo;
+	UtilMakeExpandInformation(_envInfo);
+	std::map<std::wstring, std::wstring> envInfo;
+	for (auto& item : _envInfo) {
+		envInfo[item.first] = item.second;
+	}
 
 	//コマンド・パラメータ展開
-	CString strCmd,strParam,strDir;
-	UtilExpandTemplateString(strCmd,  menuCommandArray[nID].Path, envInfo);	//コマンド
-	UtilExpandTemplateString(strParam,menuCommandArray[nID].Param,envInfo);	//パラメータ
-	UtilExpandTemplateString(strDir,  menuCommandArray[nID].Dir,  envInfo);	//ディレクトリ
+	auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);	//コマンド
+	auto strParam = UtilExpandTemplateString(menuCommandArray[nID].Param, envInfo);	//パラメータ
+	auto strDir = UtilExpandTemplateString(menuCommandArray[nID].Dir, envInfo);	//ディレクトリ
 
 	//引数置換
-	if(-1!=strParam.Find(_T("%F"))){
+	if(std::wstring::npos!=strParam.find(L"%F")){
 		//ファイル一覧を連結して作成
 		CString strFileList;
 		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
@@ -507,21 +510,21 @@ bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 			strFileList+=(LPCTSTR)path;
 			strFileList+=_T(" ");
 		}
-		strParam.Replace(_T("%F"),strFileList);
+		strParam = replace(strParam, L"%F", strFileList);
 		//---実行
-		::ShellExecute(GetDesktopWindow(),NULL,strCmd,strParam,strDir,SW_SHOW);
-	}else if(-1!=strParam.Find(_T("%S"))){
+		::ShellExecute(GetDesktopWindow(),NULL,strCmd.c_str(),strParam.c_str(),strDir.c_str(),SW_SHOW);
+	}else if(std::wstring::npos!=strParam.find(L"%S")){
 		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
 			CPath path=*ite;
 			path.QuoteSpaces();
 
-			CString strParamTmp=strParam;
+			CString strParamTmp=strParam.c_str();
 			strParamTmp.Replace(_T("%S"),(LPCTSTR)path);
 			//---実行
-			::ShellExecute(GetDesktopWindow(),NULL,strCmd,strParamTmp,strDir,SW_SHOW);
+			::ShellExecute(GetDesktopWindow(),NULL,strCmd.c_str(),strParamTmp,strDir.c_str(),SW_SHOW);
 		}
 	}else{
-		::ShellExecute(GetDesktopWindow(),NULL,strCmd,strParam,strDir,SW_SHOW);
+		::ShellExecute(GetDesktopWindow(),NULL,strCmd.c_str(),strParam.c_str(),strDir.c_str(),SW_SHOW);
 	}
 
 	return true;

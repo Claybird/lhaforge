@@ -49,8 +49,8 @@ UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
 bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 
 
-//指定されたフォーマットで書かれた文字列を展開する
-void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env);
+//expand variables placed in braces, such as "{foo}"
+std::wstring UtilExpandTemplateString(const wchar_t* format,const std::map<std::wstring, std::wstring> &envVars);
 
 void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd);
 

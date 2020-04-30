@@ -498,14 +498,17 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		pathOpenDir.AddBackslash();
 		if(ConfGeneral.Filer.UseFiler){
 			//パラメータ展開に必要な情報
-			std::map<stdString,CString> envInfo;
-			MakeExpandInformationEx(envInfo,pathOpenDir,pathArcFileName);
+			std::map<stdString,CString> _envInfo;
+			MakeExpandInformationEx(_envInfo,pathOpenDir,pathArcFileName);
+			std::map<std::wstring, std::wstring> envInfo;
+			for (auto& item : _envInfo) {
+				envInfo[item.first] = item.second;
+			}
 
 			//コマンド・パラメータ展開
-			CString strCmd,strParam;
-			UtilExpandTemplateString(strCmd,ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
-			UtilExpandTemplateString(strParam,ConfGeneral.Filer.Param,envInfo);	//パラメータ
-			ShellExecute(NULL, _T("open"), strCmd,strParam, NULL, SW_SHOWNORMAL);
+			auto strCmd = UtilExpandTemplateString(ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
+			auto strParam = UtilExpandTemplateString(ConfGeneral.Filer.Param,envInfo);	//パラメータ
+			ShellExecute(NULL, _T("open"), strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 		}else{
 			//Explorerで開く
 			UtilNavigateDirectory(pathOpenDir);
