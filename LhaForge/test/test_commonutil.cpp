@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "CommonUtil.h"
 #include "ConfigCode/ConfigGeneral.h"
@@ -36,3 +37,5 @@ namespace UnitTest
 		}
 	};
 };
+
+#endif

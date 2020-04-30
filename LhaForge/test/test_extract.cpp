@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "extract.h"
 
@@ -81,3 +82,6 @@ namespace UnitTest
 		}
 	};
 }
+
+#endif
+
