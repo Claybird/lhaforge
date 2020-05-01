@@ -13,13 +13,6 @@ namespace UnitTest
 	TEST_CLASS(StringUtil)
 	{
 	public:
-		TEST_METHOD(test_Format) {
-			Assert::AreEqual(std::wstring(L""), Format(L""));
-			Assert::AreEqual(std::wstring(L"1234567"), Format(L"%d45%d", 123, 67));
-			Assert::AreEqual(std::wstring(L"abcde"), Format(L"%sde", L"abc"));
-			Assert::AreEqual(std::wstring(L"あいうえお"), Format(L"%sえお", L"あいう"));
-		}
-
 		TEST_METHOD(test_UtilTrimString) {
 			Assert::AreEqual(std::wstring(L"abc"), UtilTrimString(L"abc \t  ",L" \t"));
 			Assert::AreEqual(std::wstring(L"123abc"), UtilTrimString(L"123abc456", L"0123456789"));
@@ -121,6 +114,26 @@ namespace UnitTest
 				UtilExpandTemplateString(L"%abc%;{abc};{def};{ghi};%jkl%;%F;%mnopq{}", envVars));
 		}
 
+		TEST_METHOD(test_UtilSplitString) {
+			auto out = UtilSplitString(L"12,345,abc,あいう,,def,", L",");
+			Assert::AreEqual(size_t(7), out.size());
+			Assert::AreEqual(std::wstring(L"12"), out[0]);
+			Assert::AreEqual(std::wstring(L"345"), out[1]);
+			Assert::AreEqual(std::wstring(L"abc"), out[2]);
+			Assert::AreEqual(std::wstring(L"あいう"), out[3]);
+			Assert::AreEqual(std::wstring(L""), out[4]);
+			Assert::AreEqual(std::wstring(L"def"), out[5]);
+			Assert::AreEqual(std::wstring(L""), out[6]);
+		}
+
+		TEST_METHOD(test_UtilStringToIntArray) {
+			auto out = UtilStringToIntArray(L"1,23,,45.6");
+			Assert::AreEqual(size_t(4), out.size());
+			Assert::AreEqual(1, out[0]);
+			Assert::AreEqual(23, out[1]);
+			Assert::AreEqual(0, out[2]);
+			Assert::AreEqual(45, out[3]);
+		}
 
 		TEST_METHOD(test_UtilFormatSize) {
 			Assert::AreEqual(std::wstring(L"---"), UtilFormatSize(-1));
@@ -134,6 +147,28 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(L"10 PB"), UtilFormatSize(1024 * 1024 * 1024 * 1024ull * 1024ull * 10));
 		}
 
+		TEST_METHOD(test_UtilFormatTime) {
+			std::string currentLocale = setlocale(LC_TIME, NULL);
+			auto ret = setlocale(LC_TIME, "ja_JP");
+			Assert::AreNotEqual(NULL, ret);
+			Assert::AreEqual(std::wstring(L"2020/05/01 21:50:42"), UtilFormatTime(1588337442ul));
+
+			setlocale(LC_TIME, currentLocale.c_str());
+		}
+
+		TEST_METHOD(test_Format) {
+			Assert::AreEqual(std::wstring(L""), Format(L""));
+			Assert::AreEqual(std::wstring(L"1234567"), Format(L"%d45%d", 123, 67));
+			Assert::AreEqual(std::wstring(L"abcde"), Format(L"%sde", L"abc"));
+			Assert::AreEqual(std::wstring(L"12.35"), Format(L"%.2f", 12.3456));
+			Assert::AreEqual(std::wstring(L"あいうえお"), Format(L"%sえお", L"あいう"));
+		}
+
+		TEST_METHOD(test_replace) {
+			Assert::AreEqual(std::wstring(L""), replace(L"", L"", L""));
+			Assert::AreEqual(std::wstring(L"abcdeab"), replace(L"12cde12", L"12", L"ab"));
+			Assert::AreEqual(std::wstring(L"abcde12"), replace(L"12cde12", L"12", L"ab", true));
+		}
 	};
 };
 #endif

@@ -196,28 +196,7 @@ std::wstring UtilExpandTemplateString(const wchar_t* format, const std::map<std:
 }
 
 
-//文字列を分解し数値配列として取得
-void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
-{
-	numArr.clear();
-
-	for(;_T('\0')!=*str;){
-		CString Temp;
-		for(;;){
-			if(_T(',')==*str||_T('\0')==*str){
-				str++;
-				break;
-			}else{
-				Temp += *str;
-				str++;
-			}
-		}
-		int num = _ttoi(Temp);
-		numArr.push_back(num);
-	}
-}
-
-std::vector<std::wstring> split_string(const std::wstring& target, const std::wstring& separator)
+std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std::wstring& separator)
 {
 	std::vector<std::wstring> splitted;
 	if (separator.empty()) {
@@ -237,6 +216,17 @@ std::vector<std::wstring> split_string(const std::wstring& target, const std::ws
 	}
 	return splitted;
 }
+
+//split string into number array
+std::vector<int> UtilStringToIntArray(const wchar_t* str)
+{
+	std::vector<int> numArr;
+	for(const auto& sub: UtilSplitString(str, L",")){
+		numArr.push_back(_wtoi(sub.c_str()));
+	}
+	return numArr;
+}
+
 
 std::wstring UtilFormatSize(UINT64 size)
 {
@@ -269,6 +259,6 @@ std::wstring UtilFormatTime(__time64_t timer)
 	_localtime64_s(&localtime, &timer);
 	for (;;buf.resize(buf.size()*2)) {
 		auto ret = wcsftime(&buf[0], buf.size(), L"%c", &localtime);
-		if (0 != ret)return buf;
+		if (0 != ret)return buf.c_str();
 	}
 }

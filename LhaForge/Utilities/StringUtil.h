@@ -52,8 +52,14 @@ bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE u
 //expand variables placed in braces, such as "{foo}"
 std::wstring UtilExpandTemplateString(const wchar_t* format,const std::map<std::wstring, std::wstring> &envVars);
 
-//文字列を分解し数値配列として取得
-void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
+std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std::wstring& separator);
+//split string into number array
+std::vector<int> UtilStringToIntArray(const wchar_t*);
+
+// (size in bytes) to (size in suitable unit)
+std::wstring UtilFormatSize(UINT64 size);
+
+std::wstring UtilFormatTime(__time64_t timer);
 
 template <typename ...Args>
 std::wstring Format(const wchar_t* fmt, Args && ...args)
@@ -68,6 +74,7 @@ std::wstring Format(const wchar_t* fmt, Args && ...args)
 	return work.c_str();
 }
 
+//https://marycore.jp/prog/cpp/std-string-replace-first-all/
 template<class T, class U>
 std::wstring replace(const std::wstring &_s, const T& target, const U& replacement, bool replace_first = 0, bool replace_empty = 0)
 {
@@ -108,12 +115,3 @@ std::wstring replace(const std::wstring &_s, const T& target, const U& replaceme
 	}
 	return s;
 }
-
-//split a string with a separator string
-std::vector<std::wstring> split_string(const std::wstring& target, const std::wstring& separator);
-
-
-// (size in bytes) to (size in suitable unit)
-std::wstring UtilFormatSize(UINT64 size);
-
-std::wstring UtilFormatTime(__time64_t timer);

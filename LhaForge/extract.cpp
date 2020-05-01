@@ -92,7 +92,7 @@ struct PRE_EXTRACT_CHECK {
 			fname = LF_sanitize_pathname(fname);
 			TRACE(L"%s\n", fname.c_str());
 
-			auto path_components = split_string(fname, L"/");
+			auto path_components = UtilSplitString(fname, L"/");
 			//to remove trailing '/'
 			remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
 
