@@ -113,7 +113,7 @@ bool UtilWriteSectionedConfig(LPCTSTR lpFile,const std::list<CONFIG_SECTION> &r_
 {
 	HANDLE hFile=CreateFile(lpFile,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(INVALID_HANDLE_VALUE==hFile){
-		UtilGetLastErrorMessage(strErr);
+		strErr = UtilGetLastErrorMessage().c_str();
 		return false;
 	}
 
@@ -124,14 +124,14 @@ bool UtilWriteSectionedConfig(LPCTSTR lpFile,const std::list<CONFIG_SECTION> &r_
 	DWORD toWrite=sizeof(BOM);
 	if(!WriteFile(hFile,&BOM[0],toWrite,&dwWritten,NULL) || (toWrite!=dwWritten)){
 		CloseHandle(hFile);
-		UtilGetLastErrorMessage(strErr);
+		strErr = UtilGetLastErrorMessage().c_str();
 		return false;
 	}
 
 	bool bRet=true;
 	for(std::list<CONFIG_SECTION>::const_iterator ite=r_Sections.begin();ite!=r_Sections.end();++ite){
 		if(!UtilWriteSection(hFile,*ite)){
-			UtilGetLastErrorMessage(strErr);
+			strErr = UtilGetLastErrorMessage().c_str();
 			bRet=false;
 			break;
 		}
