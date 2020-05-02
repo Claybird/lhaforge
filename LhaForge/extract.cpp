@@ -420,7 +420,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 			}
 
 			//確認後ゴミ箱に移動
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}
@@ -442,7 +442,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 				//単一ファイル
 				Message.Format(IDS_ASK_DELETE_ARCHIVE,lpszArcFile);
 			}
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}
@@ -474,7 +474,7 @@ bool GUI_extract_multiple_files(
 		// load configuration, then override them with command line args
 		parseExtractOption(args, mngr, lpCmdLineInfo);
 	} catch (const LF_EXCEPTION& e) {
-		MessageBox(NULL, e.what(), UtilGetMessageCaption(), MB_OK | MB_ICONERROR);
+		UtilMessageBox(NULL, e.what(), MB_OK | MB_ICONERROR);
 		return false;
 	}
 

@@ -118,13 +118,13 @@ typedef std::string stdString;
 #define FILL_ZERO(x)	::ZeroMemory(&x,sizeof(x))
 #define ASSERT(x)	assert(x)
 
+#include "Utilities/StringUtil.h"
 //TRACE
-void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #if defined(_DEBUG) || defined(DEBUG)
-#define TRACE UtilDebugTrace
-#else	// Releaseのとき
+#define TRACE(fmt, ...)	OutputDebugString(Format(fmt, __VA_ARGS__).c_str())
+#else
 #define TRACE
-#endif	//_DEBUG
+#endif
 
 //enum
 #define ENUM_COUNT_AND_LASTITEM(x) x##_ITEM_COUNT,x##_LAST_ITEM=(x##_ITEM_COUNT-1)

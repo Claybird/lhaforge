@@ -177,11 +177,10 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 				shei.nShow=SW_SHOW;
 				if(!ShellExecuteEx(&shei)){
 					//実行エラー
-					CString strLastError;
-					UtilGetLastErrorMessage(strLastError);
+					auto strLastError = UtilGetLastErrorMessage();
 
 					CString msg;
-					msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,(LPCTSTR)strLastError);
+					msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
 					ErrorMessage(msg);
 				}
@@ -206,11 +205,10 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 		shei.nShow=SW_SHOW;
 		if(!ShellExecuteEx(&shei)){
 			//実行エラー
-			CString strLastError;
-			UtilGetLastErrorMessage(strLastError);
+			auto strLastError = UtilGetLastErrorMessage();
 
 			CString msg;
-			msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,(LPCTSTR)strLastError);
+			msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
 			ErrorMessage(msg);
 		}else{

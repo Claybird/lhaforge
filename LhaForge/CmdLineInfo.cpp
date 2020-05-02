@@ -78,7 +78,6 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	int nArgc=UtilGetCommandLineParams(ParamsArray);
 #if defined(_DEBUG)
 	//For Debug
-//	MessageBox(NULL,GetCommandLine(),_T("CommandLine"),MB_OK|MB_ICONINFORMATION);
 	TRACE(_T("---Command Parameter Dump---\n"));
 	for(int i=0;i<nArgc;i++)
 	{

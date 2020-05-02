@@ -23,69 +23,40 @@
 */
 
 #include "stdafx.h"
-#include "../resource.h"
-#include "Utility.h"
-#include "StringUtil.h"
-#include "FileOperation.h"
-#include "../Dialogs/TextInputDlg.h"
+#include "resource.h"
+#include "Utilities/Utility.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
+#include "Dialogs/TextInputDlg.h"
 
-#if !defined(_UNICODE)&&!defined(UNICODE)
- #include <imagehlp.h> //MakeSureDirectoryPathExists()
-#endif
-
-#if defined(DEBUG) || defined(_DEBUG)
-void UtilDebugTrace(LPCTSTR pszFormat, ...)
+int ErrorMessage(const wchar_t* message)
 {
-	va_list	args;
-
-	va_start(args, pszFormat);
-	CString str;
-	str.FormatV(pszFormat,args);
-	va_end(args);
-
-	OutputDebugString(str);
+	TRACE(L"ErrorMessage:%s\n", message);
+	return UtilMessageBox(NULL, message, MB_OK | MB_ICONSTOP);
 }
 
-void TraceLastError()
+int UtilMessageBox(HWND hWnd, const wchar_t* lpText, UINT uType)
+{
+	const CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
+	return MessageBoxW(
+		hWnd,
+		lpText,
+		strCaption,
+		uType);
+}
+
+std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 {
 	LPVOID lpMsgBuf;
-	FormatMessage(
+	FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // デフォルト言語
-		(LPTSTR)&lpMsgBuf, 0, NULL);
-	TRACE(_T("API Error : %s"),lpMsgBuf);
+		NULL, errorCode,
+		langID,
+		(wchar_t*)&lpMsgBuf, 0, NULL);
+
+	std::wstring out=(const wchar_t*)lpMsgBuf;
 	LocalFree(lpMsgBuf);
-}
-
-#endif
-
-//エラーメッセージ表示
-int ErrorMessage(LPCTSTR msg)
-{
-	TRACE(_T("ErrorMessage:")),TRACE(msg),TRACE(_T("\n"));
-	return MessageBox(NULL,msg,UtilGetMessageCaption(),MB_OK|MB_ICONSTOP);
-}
-
-//メッセージキャプションを取得
-LPCTSTR UtilGetMessageCaption()
-{
-	const static CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
-	return strCaption;
-}
-
-void UtilGetLastErrorMessage(CString &strMsg)
-{
-	//実行エラー
-	LPVOID lpMsgBuf;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf, 0, NULL);
-
-	strMsg=(LPCTSTR)lpMsgBuf;
-	LocalFree(lpMsgBuf);
+	return out;
 }
 
 

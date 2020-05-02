@@ -65,7 +65,7 @@ bool ShellRegisterServer(HWND hWnd,LPCTSTR inDllPath)
 		// ロード出来ませんでした
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_LOAD,inDllPath);
-		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
+		UtilMessageBox(hWnd,msg,MB_OK|MB_ICONSTOP);
 		return false;
 	}
 
@@ -80,7 +80,7 @@ bool ShellRegisterServer(HWND hWnd,LPCTSTR inDllPath)
 		// DllRegisterServer が見つかりません
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_FUNCTION_GET,inDllPath,_T("DllRegisterServer"));
-		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
+		UtilMessageBox(hWnd,msg,MB_OK|MB_ICONSTOP);
 		::FreeLibrary(theDllH);
 		return false;
 	}
@@ -99,7 +99,7 @@ bool ShellUnregisterServer(HWND hWnd,LPCTSTR inDllPath)
 		// ﾛｰﾄﾞ出来ませんでした
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_LOAD,inDllPath);
-		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
+		UtilMessageBox(hWnd,msg,MB_OK|MB_ICONSTOP);
 		return false;
 	}
 
@@ -114,7 +114,7 @@ bool ShellUnregisterServer(HWND hWnd,LPCTSTR inDllPath)
 		// DllUnregisterServer が見つかりません
 		CString msg;
 		msg.Format(IDS_ERROR_DLL_FUNCTION_GET,inDllPath,_T("DllUnregisterServer"));
-		MessageBox(hWnd,msg,CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION)),MB_OK|MB_ICONSTOP);
+		UtilMessageBox(hWnd,msg,MB_OK|MB_ICONSTOP);
 		::FreeLibrary(theDllH);
 		return false;
 	}

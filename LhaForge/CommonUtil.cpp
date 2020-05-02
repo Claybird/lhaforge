@@ -141,7 +141,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		case DRIVE_REMOVABLE://ドライブからディスクを抜くことができます。
 		case DRIVE_CDROM://CD-ROM
 			if(Conf.WarnRemovable){
-				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+				if(IDNO== UtilMessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),MB_YESNO|MB_ICONQUESTION)){
 					return S_FALSE;
 				}
 			}
@@ -149,7 +149,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		case DRIVE_REMOTE://リモート (ネットワーク) ドライブです。
 		case DRIVE_NO_ROOT_DIR:
 			if(Conf.WarnNetwork){
-				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+				if(IDNO== UtilMessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),MB_YESNO|MB_ICONQUESTION)){
 					return S_FALSE;
 				}
 			}
@@ -165,7 +165,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		switch(Conf.OnDirNotFound){
 		case LOSTDIR_ASK_TO_CREATE:	//作成するかどうか聞く
 			strMsg.Format(IDS_ASK_CREATE_DIR,lpszOutputDir);
-			if(IDNO==MessageBox(NULL,strMsg,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+			if(IDNO== UtilMessageBox(NULL,strMsg,MB_YESNO|MB_ICONQUESTION)){
 				return E_ABORT;
 			}
 			//FALLTHROUGH
@@ -202,7 +202,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outpu
 		case DRIVE_REMOVABLE://removable
 		case DRIVE_CDROM://CD-ROM
 			if (Conf.WarnRemovable) {
-				if (IDNO == MessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)), UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+				if (IDNO == UtilMessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)), MB_YESNO | MB_ICONQUESTION)) {
 					return false;
 				} else {
 					return true;
@@ -212,7 +212,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outpu
 		case DRIVE_REMOTE://remote
 		case DRIVE_NO_ROOT_DIR:
 			if (Conf.WarnNetwork) {
-				if (IDNO == MessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)), UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+				if (IDNO == UtilMessageBox(NULL, CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)), MB_YESNO | MB_ICONQUESTION)) {
 					return false;
 				} else {
 					return true;
@@ -244,7 +244,7 @@ void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR On
 		{
 			CString strMsg;
 			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir);
-			if (IDNO == MessageBox(NULL, strMsg, UtilGetMessageCaption(), MB_YESNO | MB_ICONQUESTION)) {
+			if (IDNO == UtilMessageBox(NULL, strMsg, MB_YESNO | MB_ICONQUESTION)) {
 				CANCEL_EXCEPTION();
 			}
 		}

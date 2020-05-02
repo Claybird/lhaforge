@@ -401,10 +401,9 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		if(PathFileExists(pathArcFileName)){
 			if(!DeleteFile(pathArcFileName)){
 				//削除できなかった
-				CString strLastError;
-				UtilGetLastErrorMessage(strLastError);
+				auto strLastError = UtilGetLastErrorMessage();
 				CString msg;
-				msg.Format(IDS_ERROR_FILE_REPLACE,(LPCTSTR)strLastError);
+				msg.Format(IDS_ERROR_FILE_REPLACE,strLastError.c_str());
 
 				ErrorMessage(msg);
 				return false;
@@ -556,7 +555,7 @@ bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CSt
 			Message+=strFiles;
 
 			//確認後ゴミ箱に移動
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}
@@ -573,7 +572,7 @@ bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CSt
 			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
 			Message+=strFiles;
 
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}

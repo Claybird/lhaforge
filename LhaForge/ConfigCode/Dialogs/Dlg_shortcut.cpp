@@ -173,7 +173,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 {
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
-	if(IDYES==MessageBox(CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+	if(IDYES== UtilMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
 		int Options=-1;
 		bool bSingleCompression=false;
 

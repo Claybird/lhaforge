@@ -22,38 +22,18 @@
 * SOFTWARE.
 */
 
-//LhaForge用
-
-//デバッグ用関数および便利な関数群
 #pragma once
-#include "StringUtil.h"
-//#pragma warning(disable:4786)
 
-#if defined(_DEBUG) || defined(DEBUG)
+//Show message box
+int ErrorMessage(const wchar_t* message);
+int UtilMessageBox(HWND hWnd, const wchar_t* lpText, UINT uType);
 
-void TraceLastError();
-
-#else
-// Releaseのとき
-#define TraceLastError()
-
-#endif	//_DEBUG
-
-//=============================================
-// 共通便利関数
-//=============================================
-
-//エラーメッセージを表示
-int ErrorMessage(LPCTSTR);
-//メッセージキャプションを取得
-LPCTSTR UtilGetMessageCaption();
-void UtilGetLastErrorMessage(CString &strMsg);
+std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), DWORD errorCode = GetLastError());
 
 #define BOOL2bool(x)	(FALSE!=x)
 
 //配列の中に指定された数字が有ればその位置を返す;見つからなければ-1を返す
 int UtilCheckNumberArray(const int *lpcArray,int size,int c);
-
 
 //レスポンスファイルを読み取る
 bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE,std::list<CString> &FileList);
