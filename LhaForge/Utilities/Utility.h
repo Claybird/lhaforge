@@ -38,9 +38,6 @@ std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, 
 //文字列を入力させる
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput);
 
-//与えられたファイル名がマルチボリューム書庫と見なせるなら検索文字列を作成し、trueを返す
-bool UtilIsMultiVolume(LPCTSTR lpszPath,CString &r_strFindParam);
-
 //標準の設定ファイルのパスを取得
 void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon);
 

@@ -379,6 +379,41 @@ void extractOneArchive(
 }
 
 
+//与えられたファイル名がマルチボリューム書庫と見なせるならtrueを返す
+//TODO
+bool IsMultiVolume(LPCTSTR lpszPath, CString &r_strFindParam)
+{
+	//初期化
+	r_strFindParam.Empty();
+
+	CPath strPath(lpszPath);
+	if (strPath.IsDirectory())return false;	//ディレクトリなら無条件に返る
+
+	strPath.StripPath();	//ファイル名のみに
+	int nExt = strPath.FindExtension();	//拡張子の.の位置
+	if (-1 == nExt)return false;	//拡張子は見つからず
+
+	CString strExt((LPCTSTR)strPath + nExt);
+	strExt.MakeLower();	//小文字に
+	if (strExt == _T(".rar")) {
+		//---RAR
+		if (strPath.MatchSpec(_T("*.part*.rar"))) {
+			//検索文字列の作成
+			CPath tempPath(lpszPath);
+			tempPath.RemoveExtension();	//.rarの削除
+			tempPath.RemoveExtension();	//.part??の削除
+			tempPath.AddExtension(_T(".part*.rar"));
+
+			r_strFindParam = (CString)tempPath;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	//TODO:使用頻度と実装の簡便さを考えてrarのみ対応とする
+	return false;
+}
+
 //TODO
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
 {
@@ -388,7 +423,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 	CString strFindParam;
 	bool bMultiVolume=false;
 	if(ConfExtract.DeleteMultiVolume){	//マルチボリュームでの削除が有効か？
-		bMultiVolume=UtilIsMultiVolume(lpszArcFile,strFindParam);
+		bMultiVolume=IsMultiVolume(lpszArcFile,strFindParam);
 	}
 
 	CString strFiles;	//ファイル一覧
