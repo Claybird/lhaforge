@@ -152,3 +152,13 @@ void UtilDumpFlatConfig(const FLATCONFIG &conf)
 		OutputDebugString(_T("\n"));
 	}
 }
+
+
+//INIに数字を文字列として書き込む
+BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, LONG nData, LPCTSTR lpFileName)
+{
+	TCHAR Buffer[32] = { 0 };
+	wsprintf(Buffer, _T("%ld"), nData);
+	return ::WritePrivateProfileString(lpAppName, lpKeyName, Buffer, lpFileName);
+}
+

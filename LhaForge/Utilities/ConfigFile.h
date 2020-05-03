@@ -50,3 +50,8 @@ bool UtilReadSectionedConfig(LPCTSTR,std::list<CONFIG_SECTION>&,CString &strErr)
 bool UtilWriteSectionedConfig(LPCTSTR,const std::list<CONFIG_SECTION>&,CString &strErr);
 
 void UtilDumpFlatConfig(const FLATCONFIG&);
+
+//INIに数字を文字列として書き込む
+[[deprecated("will be removed")]]
+BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, LONG nData, LPCTSTR lpFileName);
+

@@ -140,23 +140,6 @@ bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bD
 }
 
 
-//INIに数字を文字列として書き込む
-BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName)
-{
-	TCHAR Buffer[32]={0};
-	wsprintf(Buffer,_T("%ld"),nData);
-	return ::WritePrivateProfileString(lpAppName,lpKeyName,Buffer,lpFileName);
-}
-
-
-//INIに指定されたセクションがあるならtrueを返す
-bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName)
-{
-	TCHAR szBuffer[10];
-	DWORD dwRead=GetPrivateProfileSection(lpAppName,szBuffer,9,lpFileName);
-	return dwRead>0;
-}
-
 //文字列を入力させる
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
 {

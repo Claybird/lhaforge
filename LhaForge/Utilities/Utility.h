@@ -35,12 +35,6 @@ std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUB
 //read filelist from response file
 std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage);
 
-//INIに数字を文字列として書き込む
-BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName);
-
-//INIに指定されたセクションがあるならtrueを返す
-bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName);
-
 //文字列を入力させる
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput);
 
