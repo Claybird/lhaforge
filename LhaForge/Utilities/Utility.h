@@ -32,8 +32,8 @@ std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUB
 
 #define BOOL2bool(x)	(FALSE!=x)
 
-//レスポンスファイルを読み取る
-bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE,std::list<CString> &FileList);
+//read filelist from response file
+std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage);
 
 //INIに数字を文字列として書き込む
 BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName);

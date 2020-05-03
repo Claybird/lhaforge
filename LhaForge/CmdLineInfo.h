@@ -58,7 +58,7 @@ struct CMDLINEINFO{
 		DeleteAfterProcess(-1),
 		PriorityOverride(LFPRIOTITY_DEFAULT) {}
 
-	std::list<CString> FileList;	//ファイル名リスト
+	std::vector<std::wstring> FileList;	//ファイル名リスト
 	CString OutputDir;				//出力先フォルダ
 	CString OutputFileName;			//出力先ファイル名
 	LF_ARCHIVE_FORMAT CompressType;

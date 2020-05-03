@@ -172,13 +172,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 		DoExtract(ConfigManager,cli);
 		break;
 	case PROCESS_AUTOMATIC://お任せ判定
-		if(PathIsDirectory(*cli.FileList.begin())){
+		if(PathIsDirectory(cli.FileList.front().c_str())){
 			DoCompress(ConfigManager,cli);
 		}else{
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
-			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(CString(PathFindExtension(*cli.FileList.begin())).MakeLower()) == -1;
-			if(!isDenied && LF_isExtractable(*cli.FileList.begin())){	//解凍可能な形式かどうか
+			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(CString(PathFindExtension(cli.FileList.front().c_str())).MakeLower()) == -1;
+			if(!isDenied && LF_isExtractable(cli.FileList.front().c_str())){	//解凍可能な形式かどうか
 				DoExtract(ConfigManager,cli);
 			}else{
 				DoCompress(ConfigManager,cli);
@@ -263,12 +263,12 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		int count = 0;
 		for(const auto &filename: cli.FileList){
 			//プログレスバーを進める
-			if (dlg.IsWindow())dlg.SetProgress(filename, count, nFiles, L"*prepare*", 0, 0);
+			if (dlg.IsWindow())dlg.SetProgress(filename.c_str(), count, nFiles, L"*prepare*", 0, 0);
 			while(UtilDoMessageLoop())continue;
 
 			//圧縮作業
 			std::list<CString> TempList;
-			TempList.push_back(filename);
+			TempList.push_back(filename.c_str());
 
 #pragma message("FIXME!")
 			//bRet=bRet && Compress(TempList,cli.CompressType,ConfigManager,cli);
@@ -291,14 +291,24 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,true);
+
+	std::list<CString> tmp;
+	for (const auto& item : cli.FileList) {
+		tmp.push_back(item.c_str());
+	}
+
+	MakeListFilesOnly(tmp,ConfExtract.DenyExt,true);
+
+	cli.FileList.clear();
+	for (const auto& item : tmp) {
+		cli.FileList.push_back((const wchar_t*)item);
+	}
+
 	if(cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 		return false;
 	}
-	std::vector<std::wstring> archiveList;
-	archiveList.assign(cli.FileList.begin(), cli.FileList.end());	//TODO
-	return GUI_extract_multiple_files(archiveList, &cli);
+	return GUI_extract_multiple_files(cli.FileList, &cli);
 }
 
 bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
@@ -306,7 +316,19 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
 	bool bSpecified=!cli.FileList.empty();
-	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,true);
+
+	std::list<CString> tmp;
+	for (const auto& item : cli.FileList) {
+		tmp.push_back(item.c_str());
+	}
+
+	MakeListFilesOnly(tmp, ConfExtract.DenyExt, true);
+
+	cli.FileList.clear();
+	for (const auto& item : tmp) {
+		cli.FileList.push_back((const wchar_t*)item);
+	}
+
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(bSpecified && cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
@@ -323,10 +345,8 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	//ListWindow.AddArchiveFile(*cli.FileList.begin());
 	if(!cli.FileList.empty()){
 		bool bAllFailed=true;
-		std::list<CString>::iterator ite=cli.FileList.begin();
-		const std::list<CString>::iterator End=cli.FileList.end();
-		for(;ite!=cli.FileList.end();++ite){
-			HRESULT hr=ListWindow.OpenArchiveFile(*ite);
+		for(const auto& item: cli.FileList){
+			HRESULT hr = ListWindow.OpenArchiveFile(item.c_str());
 			if(SUCCEEDED(hr)){
 				if(hr!=S_FALSE)bAllFailed=false;
 			}else if(hr==E_ABORT){
@@ -348,7 +368,17 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
 	//全てのファイルを検査対象にする
-	MakeListFilesOnly(cli.FileList,ConfExtract.DenyExt,false);
+	std::list<CString> tmp;
+	for (const auto& item : cli.FileList) {
+		tmp.push_back(item.c_str());
+	}
+
+	MakeListFilesOnly(tmp, ConfExtract.DenyExt, false);
+
+	cli.FileList.clear();
+	for (const auto& item : tmp) {
+		cli.FileList.push_back((const wchar_t*)item);
+	}
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(cli.FileList.empty()){
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
@@ -356,7 +386,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 
 	//テスト
-	return TestArchive(cli.FileList,ConfigManager);
+	return TestArchive(tmp,ConfigManager);
 }
 
 //リストからフォルダを削除し、サブフォルダのファイルを追加

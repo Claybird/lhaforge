@@ -59,6 +59,39 @@ std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 	return out;
 }
 
+std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage)
+{
+	std::vector<BYTE> cReadBuffer;
+	if (!UtilReadFile(lpszRespFile, cReadBuffer)) {
+		RAISE_EXCEPTION(L"Failed to read file %s", lpszRespFile);
+	}
+
+	//adding \0 to end
+	cReadBuffer.push_back('\0');
+	cReadBuffer.push_back('\0');
+
+	//encoding
+	auto content = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), uSrcCodePage);
+
+	std::wstring line;
+	std::vector<std::wstring> files;
+	for (const auto& c: content) {
+		if (c == L'\n' || c == L'\r' || c == L'\0') {
+			if (!line.empty()) {
+				if (line.front() == L'"' && line[line.length() - 1] == L'"') {
+					//unquote
+					line = std::wstring(&line[1], &line[line.length() - 1]);
+				}
+				files.push_back(line);
+			}
+			line.clear();
+		} else {
+			line += c;
+		}
+	}
+	return files;
+}
+
 //ファイル名が指定したパターンに当てはまればtrue
 bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
 {
@@ -106,63 +139,6 @@ bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bD
 	return false;
 }
 
-//レスポンスファイルを読み取る
-bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,std::list<CString> &FileList)
-{
-	ASSERT(lpszRespFile);
-	if(!lpszRespFile)return false;
-	if(!PathFileExists(lpszRespFile))return false;
-
-	HANDLE hFile=CreateFile(lpszRespFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-	if(INVALID_HANDLE_VALUE==hFile)return false;
-
-	//4GB越えファイルは扱わない
-	const DWORD dwSize=GetFileSize(hFile,NULL);
-	std::vector<BYTE> cReadBuffer;
-	cReadBuffer.resize(dwSize+2);
-	DWORD dwRead;
-	//---読み込み
-	if(!ReadFile(hFile,&cReadBuffer[0],dwSize,&dwRead,NULL)||dwSize!=dwRead){
-		CloseHandle(hFile);
-		return false;
-	}
-	CloseHandle(hFile);
-
-	//---文字コード変換
-	//終端文字追加
-	switch(uSrcCodePage){
-	case UTIL_CODEPAGE::CP932:
-	case UTIL_CODEPAGE::UTF8:	//FALLTHROUGH
-		cReadBuffer[dwSize]='\0';
-		break;
-	case UTIL_CODEPAGE::UTF16:
-		*((LPWSTR)&cReadBuffer[dwSize])=L'\0';
-		break;
-	default:
-		ASSERT(!"This code canno be run");
-		return false;
-	}
-	//文字コード変換
-	CString strBuffer = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), uSrcCodePage).c_str();
-
-	LPCTSTR p=strBuffer;
-	const LPCTSTR end=p+strBuffer.GetLength()+1;
-	//解釈
-	CString strLine;
-	for(;p!=end;p++){
-		if(*p==_T('\n')||*p==_T('\r')||*p==_T('\0')){
-			if(!strLine.IsEmpty()){
-				CPath tmpPath(strLine);
-				tmpPath.UnquoteSpaces();	//""を外す
-				FileList.push_back(tmpPath);
-			}
-			strLine.Empty();
-		}
-		else 
-			strLine+=*p;
-	}
-	return true;
-}
 
 //INIに数字を文字列として書き込む
 BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName)

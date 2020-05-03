@@ -103,7 +103,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			if(0>=_tcslen(ParamsArray[iIndex])){	//引数がNULLなら無視
 				continue;
 			}
-			cli.FileList.push_back(ParamsArray[iIndex]);
+			cli.FileList.push_back((const wchar_t*)ParamsArray[iIndex]);
 		}else{
 			//------------------
 			// オプションの解析
@@ -276,22 +276,30 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}
 				TRACE(_T("OutputDir=%s\n"),cli.OutputDir);
 			}else if(0==_tcsncmp(_T("/@"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定
-				CString strFile;
-				if(PATHERROR_NONE!=UtilGetCompletePathName(strFile,(LPCTSTR)Parameter+2)||
-					!UtilReadFromResponceFile(strFile,uCodePage,cli.FileList)){
+				try{
+					CString strFile;
+					if (PATHERROR_NONE != UtilGetCompletePathName(strFile, (LPCTSTR)Parameter + 2)) {
+						RAISE_EXCEPTION(L"failed to get complete path name");
+					}
+					cli.FileList = UtilReadFromResponseFile(strFile, uCodePage);
+				}catch(LF_EXCEPTION){
 					//読み込み失敗
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
 			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定(読み取り後削除)
-				CString strFile;
-				if(PATHERROR_NONE!=UtilGetCompletePathName(strFile,(LPCTSTR)Parameter+2)||
-					!UtilReadFromResponceFile(strFile,uCodePage,cli.FileList)){
+				try {
+					CString strFile;
+					if (PATHERROR_NONE != UtilGetCompletePathName(strFile, (LPCTSTR)Parameter + 2)) {
+						RAISE_EXCEPTION(L"failed to get complete path name");
+					}
+					cli.FileList = UtilReadFromResponseFile(strFile, uCodePage);
+					DeleteFile(strFile);	//削除
+				} catch (LF_EXCEPTION) {
 					//読み込み失敗
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
-				else DeleteFile(strFile);	//削除
 			}else if(0==_tcsncmp(_T("/f"),Parameter,2)){//出力ファイル名指定
 				if(0==_tcsncmp(_T("/f:"),Parameter,3)){
 					//出力ファイル名の切り出し;この時点で""は外れている
@@ -376,12 +384,20 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		//return PROCESS_CONFIGURE;
 	}else{
 		//ワイルドカードの展開
-		UtilPathExpandWild(cli.FileList,cli.FileList);
+		std::list<CString> tmp;
+		for (const auto& item : cli.FileList) {
+			tmp.push_back(item.c_str());
+		}
+		UtilPathExpandWild(tmp, tmp);
+		cli.FileList.clear();
+		for (const auto& item : tmp) {
+			cli.FileList.push_back((const wchar_t*)item);
+		}
 	}
 	//---ファイル名のフルパスなどチェック
-	for(std::list<CString>::iterator ite=cli.FileList.begin();ite!=cli.FileList.end();ite++){
+	for(auto &item: cli.FileList){
 		CPath strAbsPath;
-		switch(UtilGetCompletePathName(strAbsPath,*ite)){
+		switch (UtilGetCompletePathName(strAbsPath, item.c_str())) {
 		case PATHERROR_NONE:
 			//成功
 			break;
@@ -397,7 +413,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			//ファイルもしくはフォルダが存在しない
 			{
 				CString msg;
-				msg.Format(IDS_ERROR_FILE_NOT_FOUND,*ite);
+				msg.Format(IDS_ERROR_FILE_NOT_FOUND, item.c_str());
 				ErrorMessage(msg);
 			}
 			return PROCESS_INVALID;
@@ -412,7 +428,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		TRACE(strAbsPath),TRACE(_T("\n"));
 
 		//値更新
-		*ite=(CString)strAbsPath;
+		item = (const wchar_t*)strAbsPath;
 	}
 	//出力フォルダが指定されていたら、それを絶対パスに変換
 	if(!cli.OutputDir.IsEmpty()){
