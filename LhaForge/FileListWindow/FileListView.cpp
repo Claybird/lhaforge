@@ -103,7 +103,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 //========================================
 //リストビューにカラムを追加するためのマクロ
 #define ADD_COLUMNITEM(x,width,pos) \
-{if(-1!=UtilCheckNumberArray(pColumnOrderArray,FILEINFO_ITEM_COUNT,FILEINFO_##x)){\
+{if(-1!=index_of(pColumnOrderArray,FILEINFO_ITEM_COUNT,FILEINFO_##x)){\
 	int nIndex=InsertColumn(FILEINFO_##x, CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_##x)), pos, width,-1);\
 	if(nIndex<0||nIndex>=FILEINFO_ITEM_COUNT)return false;\
 	m_ColumnIndexArray[nIndex]=FILEINFO_##x;\
@@ -148,7 +148,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 		TemporaryArray[i]=pColumnOrderArray[i];
 	}
 	for(int i=0;i<Count;i++){
-		int nIndex=UtilCheckNumberArray(m_ColumnIndexArray,FILEINFO_ITEM_COUNT,TemporaryArray[i]);
+		int nIndex=index_of(m_ColumnIndexArray,FILEINFO_ITEM_COUNT,TemporaryArray[i]);
 		ASSERT(-1!=nIndex);
 		if(-1!=nIndex){
 			TemporaryArray[i]=nIndex;
@@ -334,7 +334,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	};
 
 	for(size_t i=0;i<COUNTOF(menuTable);i++){
-		bool bEnabled=(-1!=UtilCheckNumberArray(columnOrderArray,COUNTOF(columnOrderArray),menuTable[i].idx));
+		bool bEnabled=(-1!=index_of(columnOrderArray,COUNTOF(columnOrderArray),menuTable[i].idx));
 		cSubMenu.CheckMenuItem(menuTable[i].nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 

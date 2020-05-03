@@ -210,7 +210,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 	for(int i=0;i<COUNTOF(AssocSettings);i++){
 		switch(wID){
 		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:	//標準の関連付け
-			if(-1==UtilCheckNumberArray(NO_DEFAULT_ASSOCS,COUNTOF(NO_DEFAULT_ASSOCS),i)){
+			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), i)){
 				AssocSettings[i].Button_SetIcon.EnableWindow(TRUE);
 				AssocSettings[i].Check_SetAssoc.SetCheck(TRUE);
 			}

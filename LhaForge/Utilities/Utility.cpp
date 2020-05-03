@@ -59,16 +59,6 @@ std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 	return out;
 }
 
-
-//配列の中に指定された数字が有ればその位置を返す
-int UtilCheckNumberArray(const int *lpcArray,int size,int c)
-{
-	for(int i=0;i<size;i++){
-		if(lpcArray[i]==c)return i;
-	}
-	return -1;
-}
-
 //ファイル名が指定したパターンに当てはまればtrue
 bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
 {

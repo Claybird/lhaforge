@@ -32,9 +32,6 @@ std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUB
 
 #define BOOL2bool(x)	(FALSE!=x)
 
-//配列の中に指定された数字が有ればその位置を返す;見つからなければ-1を返す
-int UtilCheckNumberArray(const int *lpcArray,int size,int c);
-
 //レスポンスファイルを読み取る
 bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE,std::list<CString> &FileList);
 
@@ -72,8 +69,18 @@ bool has_key(const mapclass &theMap,keyclass theKey){
 //指定された値が配列中にあればそのインデックスを探す;無ければ-1
 template <typename arrayclass,typename valueclass>
 int index_of(const arrayclass &theArray,valueclass theValue){
-	for(unsigned int i=0;i<theArray.size();++i){
+	for(size_t i=0;i<theArray.size();++i){
 		if(theArray[i]==theValue){
+			return (signed)i;
+		}
+	}
+	return -1;
+}
+
+template <typename T, typename valueclass>
+int index_of(const T* ptr, size_t count, valueclass theValue) {
+	for (size_t i = 0; i < count; ++i) {
+		if (ptr[i] == theValue) {
 			return (signed)i;
 		}
 	}
