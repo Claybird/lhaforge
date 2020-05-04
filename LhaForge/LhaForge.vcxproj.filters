@@ -134,28 +134,28 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\ConfigFile.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\FileOperation.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\OSUtil.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\shellmanager.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\StringUtil.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\TemporaryDirMgr.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Utility.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\variant.cpp">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="test\test_extract.cpp">
       <Filter>Source Files\test</Filter>
@@ -164,7 +164,10 @@
       <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\test\test_StringUtil.cpp">
-      <Filter>Util\test</Filter>
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Utility.cpp">
+      <Filter>Utilities\test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -201,13 +204,13 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{ad63b314-6e29-434f-9089-61d3aca1e0a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Util">
-      <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{3559a591-0f4f-4924-b151-8a73952c5604}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Util\test">
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities\test">
       <UniqueIdentifier>{4e1f840c-e4d7-48ff-b12a-722ae5cac635}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -372,37 +375,37 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\ConfigFile.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\EventDispatcher.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\FileOperation.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\OSUtil.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\PtrCollection.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Semaphore.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\shellmanager.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\StringUtil.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\TemporaryDirMgr.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Utility.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\variant.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

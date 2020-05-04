@@ -86,6 +86,7 @@
     <ClCompile Include="Utilities\StringUtil.cpp" />
     <ClCompile Include="Utilities\TemporaryDirMgr.cpp" />
     <ClCompile Include="Utilities\test\test_StringUtil.cpp" />
+    <ClCompile Include="Utilities\test\test_Utility.cpp" />
     <ClCompile Include="Utilities\Utility.cpp" />
     <ClCompile Include="Utilities\variant.cpp" />
   </ItemGroup>
