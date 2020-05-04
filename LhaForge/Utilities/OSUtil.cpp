@@ -96,22 +96,6 @@ HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 	return S_OK;
 }
 
-BOOL UtilIsWow64()
-{
-	typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-
-	BOOL bIsWow64 = FALSE;
-
-	LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(_T("kernel32")),"IsWow64Process");
-
-	if(fnIsWow64Process){
-		if(!fnIsWow64Process(GetCurrentProcess(),&bIsWow64)){
-			return FALSE;
-		}
-	}
-	return bIsWow64;
-}
-
 
 //コマンドライン引数を取得(個数を返す)
 int UtilGetCommandLineParams(std::vector<CString> &rParams)

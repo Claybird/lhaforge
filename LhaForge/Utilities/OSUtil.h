@@ -52,9 +52,6 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
 
-//WoW64(64bit OSでの32bitエミュレーション)で動いていればTRUEを返す関数
-BOOL UtilIsWow64();
-
 //コマンドライン引数を取得(個数を返す)
 int UtilGetCommandLineParams(std::vector<CString>&);
 

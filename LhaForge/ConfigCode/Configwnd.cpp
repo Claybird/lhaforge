@@ -160,7 +160,9 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 	//UAC回避のアシスタントが要請されている
 	if(m_nAssistRequireCount>0){
 		//64bitなら64bit専用処理を先に走らせる
-		if(UtilIsWow64()){
+		BOOL iswow64 = FALSE;
+		IsWow64Process(GetCurrentProcess(), &iswow64);
+		if(iswow64){
 			//先にLFAssist(64bit)に処理を渡す。ただしINI削除は行わない。
 			//---アシスタント(64bit)のパスを取得
 			CPath strExePath(UtilGetModuleDirectoryPath());
