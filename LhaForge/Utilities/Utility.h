@@ -35,14 +35,15 @@ std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUB
 //read filelist from response file
 std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage);
 
+//checks if path extension matches specific patterns
+//pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
+bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string);
+
 //文字列を入力させる
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput);
 
 //標準の設定ファイルのパスを取得
 void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon);
-
-//ファイル名が指定したパターンに当てはまればtrue
-bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern);
 
 //ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先;bDenyOnly=trueなら、Denyのチェックのみ行う
 bool UtilPathAcceptSpec(LPCTSTR,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly);

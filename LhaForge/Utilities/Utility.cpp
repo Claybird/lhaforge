@@ -92,35 +92,49 @@ std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, 
 	return files;
 }
 
-//ファイル名が指定したパターンに当てはまればtrue
-bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
+//checks if path extension matches specific patterns
+//pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
+bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string)
 {
-	const CString strBuf=lpPattern;
-	int Index=0,CopyFrom=0;
+	//characters to be escaped
+	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
+	auto patterns = UtilSplitString(pattern_string, L";");
 
-	while(true){
-		Index=strBuf.Find(_T(';'),Index);
-		CString strMatchSpec;
-		if(-1==Index){
-			strMatchSpec=strBuf.Mid(CopyFrom);
-		}else{
-			strMatchSpec=strBuf.Mid(CopyFrom,Index-CopyFrom);
+	std::wstring regex_string;
+	for (auto& pattern : patterns) {
+		if (pattern.empty())continue;
+		//compatibility
+		if (pattern.find(L"*.") == 0) {
+			pattern = pattern.substr(1);
 		}
-		if(!strMatchSpec.IsEmpty()){	//拡張子確認
-			if(strMatchSpec[0]!=L'.')strMatchSpec=L'.'+strMatchSpec;	//.から始まるように補う
-			strMatchSpec.Insert(0,_T("*"));	//.ext->*.ext
-			if(PathMatchSpec(lpszPath,strMatchSpec)){
-				return true;
+
+		std::wstring pstr;
+		if (pattern[0] != L'.') {
+			pstr += L"\\.";
+		}
+		for (const auto& p : pattern) {
+			if (isIn(escapeSubjects, p)) {
+				pstr += L"\\";
+				pstr += p;
+			} else if (p == L'*') {
+				pstr += L".*?";
+			} else if (p == L'?') {
+				pstr += L".";
+			} else {
+				pstr += p;
 			}
 		}
-		if(-1==Index){	//検索終了
-			break;
-		}else{
-			Index++;
-			CopyFrom=Index;
+
+		if (!regex_string.empty()) {
+			regex_string += L'|';
 		}
+		regex_string += L"(" + pstr + L"$)";
 	}
-	return false;
+
+	if (regex_string.empty())return false;
+
+	std::wregex re(toLower(regex_string));
+	return std::regex_search(toLower(path), re);
 }
 
 //ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
