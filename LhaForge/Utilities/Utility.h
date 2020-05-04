@@ -42,13 +42,12 @@ bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string);
 //Message loop utility
 bool UtilDoMessageLoop();
 
-//指定されたmapがキーを持っているかどうか
 template <typename mapclass,typename keyclass>
 bool has_key(const mapclass &theMap,keyclass theKey){
 	return theMap.find(theKey)!=theMap.end();
 }
 
-//指定された値が配列中にあればそのインデックスを探す;無ければ-1
+//return index where "theValue" exists in "theArray", if there is. otherwise, return -1
 template <typename arrayclass,typename valueclass>
 int index_of(const arrayclass &theArray,valueclass theValue){
 	for(size_t i=0;i<theArray.size();++i){

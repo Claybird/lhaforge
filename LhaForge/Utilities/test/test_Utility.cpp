@@ -74,6 +74,43 @@ namespace UnitTest
 			Assert::IsTrue(UtilExtMatchSpec(L"abc.gitignore", L".gitignore"));
 			Assert::IsFalse(UtilExtMatchSpec(L"test", L"test"));
 		}
+		TEST_METHOD(test_has_key) {
+			std::map<std::wstring, std::wstring> m;
+			m[L"abc"] = L"abc";
+			m[L"あいう"] = L"あいう";
+			Assert::IsTrue(has_key(m, L"abc"));
+			Assert::IsTrue(has_key(m, L"あいう"));
+			Assert::IsFalse(has_key(m, L"cde"));
+		}
+		TEST_METHOD(test_index_of) {
+			std::vector<int> a = { 2,4,6,8,10 };
+			Assert::AreEqual(1, index_of(a, 4));
+			Assert::AreEqual(4, index_of(a, 10));
+			Assert::AreEqual(-1, index_of(a, 1));
+			Assert::AreEqual(-1, index_of(a, 11));
+
+			Assert::AreEqual(1, index_of(&a[0], a.size(), 4));
+			Assert::AreEqual(4, index_of(&a[0], a.size(), 10));
+			Assert::AreEqual(-1, index_of(&a[0], a.size(), 1));
+			Assert::AreEqual(-1, index_of(&a[0], a.size(), 11));
+		}
+		TEST_METHOD(test_remove_item) {
+			std::vector<int> a = { 2,4,6,6,6,10 };
+			Assert::AreNotEqual(-1, index_of(a, 6));
+			remove_item(a, 6);
+			Assert::AreEqual(-1, index_of(a, 6));
+		}
+		TEST_METHOD(test_remove_item_if) {
+			std::vector<int> a = { 2,4,6,6,6,10 };
+			Assert::AreNotEqual(-1, index_of(a, 6));
+			remove_item_if(a, [](int value) {return value / 2 == 3; });
+			Assert::AreEqual(-1, index_of(a, 6));
+		}
+		TEST_METHOD(test_isIn) {
+			std::vector<int> a = { 2,4,6,8,10 };
+			Assert::IsTrue(isIn(a, 4));
+			Assert::IsFalse(isIn(a, 3));
+		}
 	};
 };
 
