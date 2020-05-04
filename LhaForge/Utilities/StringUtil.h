@@ -31,7 +31,6 @@ std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trim
 //builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
 std::wstring UtilMakeFilterString(const wchar_t* lpszIn);
 
-//文字コード
 enum class UTIL_CODEPAGE {
 	CP932 = 932,
 	UTF8 = CP_UTF8,
@@ -114,4 +113,13 @@ std::wstring replace(const std::wstring &_s, const T& target, const U& replaceme
 		pos += replacement_length;
 	}
 	return s;
+}
+
+inline std::wstring toLower(const std::wstring& input) {
+	std::wstring output;
+	std::transform(input.begin(), input.end(), std::back_inserter(output),
+		[](wchar_t c) {
+		return towlower(c);
+	});
+	return output;
 }

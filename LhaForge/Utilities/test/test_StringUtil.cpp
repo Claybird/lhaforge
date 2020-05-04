@@ -166,10 +166,19 @@ namespace UnitTest
 
 		TEST_METHOD(test_replace) {
 			Assert::AreEqual(std::wstring(L""), replace(L"", L"", L""));
+			Assert::AreEqual(std::wstring(L""), replace(L"", L"", L"aa"));
 			Assert::AreEqual(std::wstring(L"abcdeab"), replace(L"12cde12", L"12", L"ab"));
 			Assert::AreEqual(std::wstring(L"abcいde12"), replace(L"12cいde12", L"12", L"ab", true));
 
 			Assert::AreEqual(std::wstring(L"あいうcdeあいう"), replace(L"12cde12", L"12", L"あいう"));
+		}
+
+		TEST_METHOD(test_toLower) {
+			Assert::AreEqual(std::wstring(L""), toLower(L""));
+			Assert::AreEqual(std::wstring(L"abcde"), toLower(L"abcde"));
+			Assert::AreEqual(std::wstring(L"abcde"), toLower(L"aBcDe"));
+			Assert::AreEqual(std::wstring(L"あいうcde"), toLower(L"あいうCdE"));
+			Assert::AreEqual(std::wstring(L"👪"), toLower(L"👪"));	//emoji
 		}
 	};
 };
