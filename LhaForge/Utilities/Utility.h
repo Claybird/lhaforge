@@ -45,9 +45,6 @@ bool UtilInputText(LPCTSTR lpszMessage,CString &strInput);
 //標準の設定ファイルのパスを取得
 void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon);
 
-//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先;bDenyOnly=trueなら、Denyのチェックのみ行う
-bool UtilPathAcceptSpec(LPCTSTR,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly);
-
 //強制的にメッセージループを回す
 bool UtilDoMessageLoop();
 VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD);

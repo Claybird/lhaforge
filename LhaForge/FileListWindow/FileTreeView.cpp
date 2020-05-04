@@ -729,7 +729,7 @@ void CFileTreeView::OpenAssociation(const std::list<CString> &filesList)
 	for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
 		//拒否されたら上書きも追加解凍もしない;ディレクトリなら拒否のみチェック
 		bool bDenyOnly=BOOL2bool(::PathIsDirectory(*ite));//lpNode->bDir;
-		if(UtilPathAcceptSpec(*ite,mr_Model.GetOpenAssocExtDeny(),mr_Model.GetOpenAssocExtAccept(),bDenyOnly)){
+		if(mr_Model.IsPathAcceptableToOpenAssoc(*ite,bDenyOnly)){
 			::ShellExecute(GetDesktopWindow(),NULL,*ite,NULL,NULL,SW_SHOW);
 			TRACE(_T("%s\n"),(LPCTSTR)*ite);
 			//::ShellExecute(GetDesktopWindow(),_T("explore"),*ite,NULL,NULL,SW_SHOW);

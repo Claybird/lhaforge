@@ -137,4 +137,23 @@ public:
 	void TestArchive();
 
 	void ClearTempDir();
+
+	//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
+	bool IsPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const {
+		const auto lpDeny = GetOpenAssocExtDeny();
+		const auto lpAccept = GetOpenAssocExtAccept();
+		if (UtilExtMatchSpec(lpszPath, lpDeny)) {
+			return false;
+		}
+		if (bDenyOnly) {
+			return true;
+		} else {
+			if (UtilExtMatchSpec(lpszPath, lpAccept)) {
+				return true;
+			}
+		}
+		return false;
+	}
 };
+
+

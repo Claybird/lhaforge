@@ -137,22 +137,6 @@ bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string)
 	return std::regex_search(toLower(path), re);
 }
 
-//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
-bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly)
-{
-	if(UtilExtMatchSpec(lpszPath,lpDeny)){
-		return false;
-	}
-	if(bDenyOnly){
-		return true;
-	}else{
-		if(UtilExtMatchSpec(lpszPath,lpAccept)){
-			return true;
-		}
-	}
-	return false;
-}
-
 
 //文字列を入力させる
 bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
