@@ -27,144 +27,73 @@
 #include "Utility.h"
 #include "FileOperation.h"
 
-//=======================================================
-//From http://www.athomejp.com/goldfish/api/shortcut.asp
-//=======================================================
-HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription)
+HRESULT UtilCreateShortcut(
+	const wchar_t* lpszPathLink,
+	const wchar_t* lpszPathTarget,
+	const wchar_t* lpszArgs,
+	const wchar_t* lpszIconPath,
+	int iIcon,
+	LPCTSTR lpszDescription)
 {
-	HRESULT hRes;
-	IShellLink* psl =NULL;
+	CComPtr<IShellLinkW> pLink;
+	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
 
-	// IShellLink インターフェイスを取得
-	hRes = CoCreateInstance(
-		CLSID_ShellLink,NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IShellLink,
-		(LPVOID *)&psl);
-
-	if(FAILED(hRes)){
-		//失敗
-		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
-		return hRes;
+	// such as C:\Windows\notepad.exe
+	pLink->SetPath(lpszPathTarget);
+	pLink->SetArguments(lpszArgs);
+	pLink->SetIconLocation(lpszIconPath,iIcon);
+	pLink->SetDescription(lpszDescription);
+	//save to file
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if (pFile) {
+		return pFile->Save(lpszPathLink, TRUE);
+	} else {
+		return E_FAIL;
 	}
-
-	IPersistFile* ppf=NULL;
-	// Linkオブジェクトのパスを設定(たとえば、C:\Windows\notepad.exeなど)
-	psl->SetPath(lpszPathTarget);
-	//引数設定
-	psl->SetArguments(lpszArgs);
-	//アイコン設定
-	psl->SetIconLocation(lpszIconPath,iIcon);
-	//説明文設定
-	psl->SetDescription(lpszDescription);
-	// IPersistFileインターフェイスを取得後Linkパスファイル名を保存
-	hRes =psl->QueryInterface( IID_IPersistFile,(void**)&ppf);
-	if(FAILED(hRes)){
-		//ppfの取得に失敗
-		psl->Release();
-		return hRes;
-	}
-
-#if defined(_UNICODE)||defined(UNICODE)
-	hRes = ppf->Save(lpszPathLink, TRUE);
-#else
-	WCHAR wsz[_MAX_PATH+1];
-
-	MultiByteToWideChar(CP_ACP, 0,lpszPathLink, -1,wsz, _MAX_PATH);
-	// ディスクに保存する
-	hRes = ppf->Save(wsz, TRUE);
-#endif
-	ppf->Release();
-	psl->Release();
-	return hRes;
 }
 
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir)
+HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 {
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
+	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
 
-	if(SUCCEEDED(hr)){
-		pLink->SetPath(lpPath);
-		CComQIPtr<IPersistFile> pFile=pLink;
-		if(pFile){
-			hr=pFile->Load(lpPath,STGM_READ);
-			if(SUCCEEDED(hr)){
-				{
-					WCHAR szBuffer[_MAX_PATH+1];
-					hr=pLink->GetPath(szBuffer,COUNTOF(szBuffer),NULL,0);
-					if(FAILED(hr))return hr;
-					strTargetPath=szBuffer;
-				}
+	pLink->SetPath(lpPath);
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if(pFile){
+		hr = pFile->Load(lpPath, STGM_READ);
+		if (FAILED(hr))return hr;
+		info.title = std::filesystem::path(lpPath).stem().c_str();
 
-				{
-					WCHAR szArg[INFOTIPSIZE+1];
-					hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-					if(FAILED(hr))return hr;
-					strParam=szArg;
-				}
-
-				{
-					WCHAR szDir[_MAX_PATH+1];
-					hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-					if(FAILED(hr))return hr;
-					strWorkingDir=szDir;
-				}
-			}
+		{
+			wchar_t szTarget[_MAX_PATH + 1] = {};
+			hr = pLink->GetPath(szTarget, COUNTOF(szTarget), NULL, 0);
+			if (FAILED(hr))return hr;
+			info.cmd = szTarget;
 		}
-	}
-	return hr;
-}
 
-void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info)
-{
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
-	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
-
-	info.clear();
-	if(SUCCEEDED(hr)){
-		size_t size=files.size();
-		info.resize(size);
-		for(size_t i=0;i<size;i++){
-			pLink->SetPath(files[i]);
-			CComQIPtr<IPersistFile> pFile=pLink;
-			if(pFile){
-				hr=pFile->Load(files[i],STGM_READ);
-				if(FAILED(hr))continue;
-
-				WCHAR szTarget[_MAX_PATH+1];
-				hr=pLink->GetPath(szTarget,COUNTOF(szTarget),NULL,0);
-				if(FAILED(hr))continue;
-
-				WCHAR szArg[INFOTIPSIZE+1];
-				hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-				if(FAILED(hr))continue;
-
-				WCHAR szDir[_MAX_PATH+1];
-				hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-				if(FAILED(hr))continue;
-
-				//通常の情報
-				CPath title=files[i];
-				title.StripPath();
-				title.RemoveExtension();
-				info[i].strTitle=(LPCTSTR)title;
-				info[i].strCmd=szTarget;
-				info[i].strParam=szArg;
-				info[i].strWorkingDir=szDir;
-
-				//アイコン情報:アイコンを取得し、ビットマップに変換
-				SHFILEINFO sfi={0};
-				SHGetFileInfo(files[i],0,&sfi,sizeof(sfi),SHGFI_ICON | SHGFI_SMALLICON);
-				UtilMakeDIBFromIcon(info[i].cIconBmpSmall,sfi.hIcon);
-				DestroyIcon(sfi.hIcon);
-			}
+		{
+			wchar_t szArg[INFOTIPSIZE + 1] = {};
+			hr = pLink->GetArguments(szArg, COUNTOF(szArg));
+			if (FAILED(hr))return hr;
+			info.param = szArg;
 		}
+
+		{
+			wchar_t szDir[_MAX_PATH + 1] = {};
+			hr = pLink->GetWorkingDirectory(szDir, COUNTOF(szDir));
+			if (FAILED(hr))return hr;
+			info.workingDir = szDir;
+		}
+
+		//get icon and convert to bitmap
+		SHFILEINFO sfi={0};
+		SHGetFileInfo(lpPath, 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
+		UtilMakeDIBFromIcon(info.cIconBmpSmall, sfi.hIcon);
+		DestroyIcon(sfi.hIcon);
 	}
+	return S_OK;
 }
 
 

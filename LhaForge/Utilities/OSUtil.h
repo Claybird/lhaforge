@@ -24,6 +24,24 @@
 
 #pragma once
 
+HRESULT UtilCreateShortcut(
+	const wchar_t* lpszPathLink,
+	const wchar_t* lpszPathTarget,
+	const wchar_t* lpszArgs,
+	const wchar_t* lpszIconPath,
+	int iIcon,
+	LPCTSTR lpszDescription);
+
+struct UTIL_SHORTCUTINFO {
+	std::wstring title;
+	std::wstring cmd;
+	std::wstring param;
+	std::wstring workingDir;
+	CBitmap cIconBmpSmall;
+};
+
+HRESULT UtilGetShortcutInfo(LPCTSTR lpPath, UTIL_SHORTCUTINFO& info);
+
 enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_DEFAULT = 0,
 	LFPRIOTITY_LOW = 1,
@@ -34,20 +52,6 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
 
-struct SHORTCUTINFO{
-	CString strTitle;
-	CString strCmd;
-	CString strParam;
-	CString strWorkingDir;
-	CBitmap cIconBmpSmall;
-};
-
-//ショートカット作成
-HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription);
-
-//ショートカットの情報を取得
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir);
-void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info);
 
 //ウィンドウを確実にフォアグラウンドにする
 void UtilSetAbsoluteForegroundWindow(HWND);

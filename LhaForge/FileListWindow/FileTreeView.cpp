@@ -561,8 +561,8 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 	}
 
 	//引数置換
-	const std::vector<SHORTCUTINFO>& sendToCmd=MenuCommand_GetSendToCmdArray();
-	if(PathIsDirectory(sendToCmd[nID].strCmd)){
+	const auto& sendToCmd=MenuCommand_GetSendToCmdArray();
+	if(PathIsDirectory(sendToCmd[nID].cmd.c_str())){
 		//対象はディレクトリなので、コピー
 		CString strFiles;
 		for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
@@ -575,7 +575,7 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		//TRACE(strFiles);
 		auto filter = UtilMakeFilterString(strFiles);
 
-		CPath destDir=sendToCmd[nID].strCmd;
+		CPath destDir=sendToCmd[nID].cmd.c_str();
 		destDir.AddBackslash();
 		//Windows標準のコピー動作
 		SHFILEOPSTRUCT fileOp={0};
@@ -605,11 +605,11 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 			strFileList+=(LPCTSTR)path;
 			strFileList+=_T(" ");
 		}
-		CString strParam=sendToCmd[nID].strParam+_T(" ")+strFileList;
+		CString strParam=CString(sendToCmd[nID].param.c_str())+_T(" ")+strFileList;
 		//---実行
-		CPath cmd=sendToCmd[nID].strCmd;
+		CPath cmd=sendToCmd[nID].cmd.c_str();
 		cmd.QuoteSpaces();
-		CPath workDir=sendToCmd[nID].strWorkingDir;
+		CPath workDir=sendToCmd[nID].workingDir.c_str();
 		workDir.QuoteSpaces();
 		::ShellExecute(GetDesktopWindow(),NULL,cmd,strParam,workDir,SW_SHOW);
 	}

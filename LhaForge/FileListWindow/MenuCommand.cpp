@@ -32,7 +32,7 @@
 
 
 //---「送る」メニューのコマンド
-std::vector<SHORTCUTINFO> s_SendToCmd;
+std::vector<UTIL_SHORTCUTINFO> s_SendToCmd;
 //「プログラムで開く」のコマンド類
 std::vector<CMenuCommandItem> s_MenuCommandArray;
 
@@ -46,7 +46,7 @@ const std::vector<CMenuCommandItem>& MenuCommand_GetCmdArray()
 	return s_MenuCommandArray;
 }
 
-const std::vector<SHORTCUTINFO>& MenuCommand_GetSendToCmdArray()
+const std::vector<UTIL_SHORTCUTINFO>& MenuCommand_GetSendToCmdArray()
 {
 	return s_SendToCmd;
 }
@@ -95,7 +95,7 @@ void MenuCommand_MakeSendToMenu(HMENU hMenu)
 			mii.cbSize=sizeof(mii);
 			mii.fMask=MIIM_ID | MIIM_STRING | MIIM_FTYPE | (bIcon ? MIIM_BITMAP : 0);
 			mii.fType=MFT_STRING;
-			mii.dwTypeData=(LPTSTR)(LPCTSTR)s_SendToCmd[u].strTitle;
+			mii.dwTypeData=(LPTSTR)(LPCTSTR)s_SendToCmd[u].title.c_str();
 			mii.wID=ID_MENUITEM_USERAPP_END+u;
 			mii.hbmpItem=(HBITMAP)s_SendToCmd[u].cIconBmpSmall;
 			cSubMenu.InsertMenuItem(-1,MF_BYPOSITION|MF_STRING,&mii);
@@ -127,7 +127,10 @@ void MenuCommand_MakeSendToCommands()
 		}
 	}
 
-	UtilGetShortcutInfo(files,s_SendToCmd);
+	s_SendToCmd.resize(files.size());
+	for (size_t i = 0; i < files.size(); i++) {
+		UtilGetShortcutInfo(files[i], s_SendToCmd[i]);
+	}
 }
 
 
