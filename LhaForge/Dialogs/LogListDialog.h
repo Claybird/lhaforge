@@ -143,7 +143,7 @@ protected:
 		//---enable dialog resize
 		DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
 		//---activate window
-		UtilSetAbsoluteForegroundWindow(hWnd);
+		SetForegroundWindow(hWnd);
 
 		return TRUE;
 	}

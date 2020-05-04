@@ -40,7 +40,7 @@ struct UTIL_SHORTCUTINFO {
 	CBitmap cIconBmpSmall;
 };
 
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath, UTIL_SHORTCUTINFO& info);
+HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info);
 
 enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_DEFAULT = 0,
@@ -51,10 +51,6 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_HIGH = 5,
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
-
-
-//ウィンドウを確実にフォアグラウンドにする
-void UtilSetAbsoluteForegroundWindow(HWND);
 
 //WoW64(64bit OSでの32bitエミュレーション)で動いていればTRUEを返す関数
 BOOL UtilIsWow64();

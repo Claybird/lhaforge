@@ -225,7 +225,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //==============================
 // ウィンドウをアクティブにする
 //==============================
-	UtilSetAbsoluteForegroundWindow(m_hWnd);
+	SetForegroundWindow(m_hWnd);
 	UpdateLayout();
 
 	//DnDによるファイル閲覧を可能に
@@ -472,7 +472,7 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 {
 	m_TabClientWnd.SetCurrentTab((HANDLE)wParam);
 	ShowWindow(SW_RESTORE);
-	UtilSetAbsoluteForegroundWindow(m_hWnd);
+	SetForegroundWindow(m_hWnd);
 
 	//点滅
 	FLASHWINFO fi;
