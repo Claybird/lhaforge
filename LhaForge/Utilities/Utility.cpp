@@ -138,13 +138,11 @@ bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string)
 }
 
 
-
-//強制的にメッセージループを回す
 bool UtilDoMessageLoop()
 {
 	MSG msg;
-	if(PeekMessage (&msg,NULL,0,0,PM_NOREMOVE)){
-		if(!GetMessage (&msg,NULL,0,0)){
+	if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+		if (!GetMessage(&msg, NULL, 0, 0)) {
 			return false;
 		}
 
@@ -155,10 +153,6 @@ bool UtilDoMessageLoop()
 	return false;
 }
 
-VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD)
-{
-	while(UtilDoMessageLoop())continue;
-}
 
 
 

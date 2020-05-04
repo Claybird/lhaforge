@@ -39,9 +39,8 @@ std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, 
 //pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
 bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string);
 
-//強制的にメッセージループを回す
+//Message loop utility
 bool UtilDoMessageLoop();
-VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD);
 
 //指定されたmapがキーを持っているかどうか
 template <typename mapclass,typename keyclass>

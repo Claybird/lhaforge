@@ -252,8 +252,6 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	// 圧縮作業
 
 	if(cli.bSingleCompression){	//ファイルを一つずつ圧縮
-		//メッセージループを回すためのタイマー
-		int timer=SetTimer(NULL,NULL,1000,UtilMessageLoopTimerProc);
 		//プログレスバー
 		CProgressDialog dlg;
 		int nFiles=cli.FileList.size();
@@ -277,8 +275,6 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		//プログレスバーを閉じる
 		if(dlg.IsWindow())dlg.DestroyWindow();
 
-		//タイマーを閉じる
-		KillTimer(NULL,timer);
 		return bRet;
 	}else{	//通常圧縮
 #pragma message("FIXME!")
