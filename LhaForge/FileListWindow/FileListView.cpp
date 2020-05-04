@@ -28,6 +28,7 @@
 #include "Dialogs/LogListDialog.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../Utilities/StringUtil.h"
+#include "Dialogs/TextInputDlg.h"
 #include <sstream>
 
 CFileListView::CFileListView(CConfigManager& rConfig,CFileListModel& rModel):
@@ -1399,10 +1400,11 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	if(ID_MENUITEM_FINDITEM_END==nID){
 		mr_Model.EndFindItem();
 	}else{
-		CString strSpec;
-		if(UtilInputText(CString(MAKEINTRESOURCE(IDS_INPUT_FIND_PARAM)),strSpec)){
+		CTextInputDialog dlg(CString(MAKEINTRESOURCE(IDS_INPUT_FIND_PARAM)));
+
+		if(IDOK == dlg.DoModal()){
 			mr_Model.EndFindItem();
-			ARCHIVE_ENTRY_INFO_TREE* lpFound=mr_Model.FindItem(strSpec,mr_Model.GetCurrentNode());
+			ARCHIVE_ENTRY_INFO_TREE* lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.GetCurrentNode());
 			mr_Model.SetCurrentNode(lpFound);
 		}
 	}

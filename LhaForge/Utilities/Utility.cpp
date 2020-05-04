@@ -138,14 +138,6 @@ bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string)
 }
 
 
-//文字列を入力させる
-bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
-{
-	CInputDialog dlg(lpszMessage,strInput);
-	return IDOK==dlg.DoModal();
-}
-
-
 
 //強制的にメッセージループを回す
 bool UtilDoMessageLoop()
