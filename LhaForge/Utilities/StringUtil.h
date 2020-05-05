@@ -65,11 +65,12 @@ std::wstring Format(const wchar_t* fmt, Args && ...args)
 {
 	//snprintf_s will not return the required buffer size
 	std::wstring work;
+#pragma warning(push)
 #pragma warning(disable:4996)
 	auto size = _snwprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
 	work.resize(size + 1);
 	_snwprintf(&work[0], work.size(), fmt, std::forward<Args>(args)...);
-#pragma warning(default:4996)
+#pragma warning(pop)
 	return work.c_str();
 }
 
