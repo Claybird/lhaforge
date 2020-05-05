@@ -30,9 +30,6 @@ std::wstring UtilGetTemporaryFileName();
 bool UtilDeletePath(const wchar_t* PathName);
 bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
 
-int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);
-void UtilModifyPath(CString&);	//DTVを起こす可能性のあるパスを修正する
-
 BOOL UtilMoveFileToRecycleBin(LPCTSTR);	//ファイルをごみ箱に移動
 BOOL UtilMoveFileToRecycleBin(const std::list<CString>&);	//ファイルをごみ箱に移動
 

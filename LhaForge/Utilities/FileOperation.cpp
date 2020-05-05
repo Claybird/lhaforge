@@ -103,43 +103,6 @@ bool UtilDeleteDir(const wchar_t* Path,bool bDeleteParent)
 }
 
 
-//読み取り元ファイルを書き込み先ファイルのseekのある箇所から後にコピーして書き込む
-//戻り値はエラーなしなら0,読み取りエラーは1,書き込みエラーは-1
-int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom)
-{
-	//16KBずつコピー
-	DWORD dwRead=0,dwWrite=0;
-	std::vector<BYTE> Buffer(16*1024);
-	for(;;){
-		if(!ReadFile(hReadFrom,&Buffer.at(0),16*1024,&dwRead,NULL)){
-			return 1;
-		}
-		if(0==dwRead){
-			break;
-		}
-		if(!WriteFile(hWriteTo,&Buffer.at(0),dwRead,&dwWrite,NULL)){
-			return -1;
-		}
-		if(dwRead!=dwWrite){
-			return -1;
-		}
-	}
-	return 0;
-}
-
-void UtilModifyPath(CString &strPath)
-{
-	// パスの修正
-	strPath.Replace(_T("/"),_T("\\"));	//パス区切り文字
-
-	int Ret=0;
-	do{
-		Ret=strPath.Replace(_T("\\\\"),_T("\\"));	//\\を\に置き換えていく
-	}while(Ret!=0);
-	strPath.Replace(_T("..\\"),_T("__\\"));	//相対パス指定..は__に置き換える
-	strPath.Replace(_T(":"),_T("__"));	//ドライブ名も置き換える(C:からC__へ)
-}
-
 BOOL UtilMoveFileToRecycleBin(LPCTSTR lpFileName)
 {
 	ASSERT(lpFileName);

@@ -28,6 +28,19 @@
 #include "../Utilities/FileOperation.h"
 #include "../ArchiverCode/arc_interface.h"
 
+void UtilModifyPath(CString &strPath)
+{
+	// パスの修正
+	strPath.Replace(_T("/"), _T("\\"));	//パス区切り文字
+
+	int Ret = 0;
+	do {
+		Ret = strPath.Replace(_T("\\\\"), _T("\\"));	//\\を\に置き換えていく
+	} while (Ret != 0);
+	strPath.Replace(_T("..\\"), _T("__\\"));	//相対パス指定..は__に置き換える
+	strPath.Replace(_T(":"), _T("__"));	//ドライブ名も置き換える(C:からC__へ)
+}
+
 void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode, const ARCHIVE_ENTRY_INFO_TREE* lpBase, CString &strPath)
 {
 	//ここで面倒なことをしているのは、
