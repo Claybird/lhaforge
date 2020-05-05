@@ -71,20 +71,23 @@ PROCESS_MODE SelectOpenAction()
 
 //-----------
 
+std::vector<std::wstring> GetCommandLineArgs()
+{
+	std::vector<std::wstring> args;
+	int nArgc = 0;
+	LPWSTR *lplpArgs = CommandLineToArgvW(GetCommandLine(), &nArgc);
+	args.resize(nArgc);
+	for (int i = 1; i < nArgc; i++) {	//lplpArgs[0] is executable name
+		args[i] = lplpArgs[i];
+	}
+	LocalFree(lplpArgs);
+	return args;
+}
+
 //コマンドラインを解釈しファイルの処理方法を決定する
 PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
-	std::vector<CString> ParamsArray;
-	int nArgc=UtilGetCommandLineParams(ParamsArray);
-#if defined(_DEBUG)
-	//For Debug
-	TRACE(_T("---Command Parameter Dump---\n"));
-	for(int i=0;i<nArgc;i++)
-	{
-		TRACE(_T("ParamsArray[%d]=%s\n"),i,ParamsArray[i]);
-	}
-	TRACE(_T("---End Dump---\n\n"));
-#endif
+	std::vector<std::wstring> args = GetCommandLineArgs();
 
 	const bool bPressedShift=GetKeyState(VK_SHIFT)<0;	//SHIFTが押されているかどうか
 	const bool bPressedControl=GetKeyState(VK_CONTROL)<0;	//CONTROLが押されているかどうか
@@ -96,25 +99,22 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 	UTIL_CODEPAGE uCodePage= UTIL_CODEPAGE::CP932;	//レスポンスファイルのコードページ指定
 
-	for(int iIndex=1;iIndex<nArgc;iIndex++){
-		if(0!=_tcsncmp(_T("/"),ParamsArray[iIndex],1)){//オプションではない
+	for(const auto& arg: args){
+		if (arg.empty())continue;
+		if (L'/' != arg[0]) {//オプションではない
 			//ファイルとみなし、処理対象ファイルのリストに詰め込む
-			//以下はファイル名の処理
-			if(0>=_tcslen(ParamsArray[iIndex])){	//引数がNULLなら無視
-				continue;
-			}
-			cli.FileList.push_back((const wchar_t*)ParamsArray[iIndex]);
+			cli.FileList.push_back(arg);
 		}else{
 			//------------------
 			// オプションの解析
 			//------------------
-			CString Parameter(ParamsArray[iIndex]);
+			CString Parameter(arg.c_str());
 			//小文字に変換
 			Parameter.MakeLower();
 			if(0==_tcsncmp(_T("/cfg"),Parameter,4)){//設定ファイル名指定
 				if(0==_tcsncmp(_T("/cfg:"),Parameter,5)){
 					//出力ファイル名の切り出し;この時点で""は外れている
-					cli.ConfigPath=(LPCTSTR)ParamsArray[iIndex]+5;
+					cli.ConfigPath= arg.c_str() +5;
 
 					//---環境変数(LhaForge独自定義変数)展開
 					//パラメータ展開に必要な情報
@@ -132,7 +132,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.ConfigPath.Empty();
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -157,7 +157,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 						uCodePage= UTIL_CODEPAGE::CP932;
 					}else{
 						CString msg;
-						msg.Format(IDS_ERROR_INVALID_PARAMETER,(LPCTSTR)ParamsArray[iIndex]+4);
+						msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str() +4);
 						ErrorMessage(msg);
 						return PROCESS_INVALID;
 					}
@@ -165,7 +165,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					uCodePage= UTIL_CODEPAGE::CP932;	//デフォルトに戻す
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -178,7 +178,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.CompressType= LF_FMT_INVALID;
 				}else if(0!=_tcsncmp(_T("/c:"),Parameter,3)){
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}else{
@@ -270,7 +270,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.OutputToOverride=OUTPUT_TO_ALWAYS_ASK_WHERE;
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -308,7 +308,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.OutputFileName.Empty();
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -323,7 +323,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.CreateDirOverride=CREATE_OUTPUT_DIR_ALWAYS;
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -335,7 +335,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.IgnoreTopDirOverride=1;
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -349,7 +349,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.DeleteAfterProcess=1;
 				}else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
@@ -364,13 +364,13 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				else if(_T("high")==mode)	cli.PriorityOverride=LFPRIOTITY_HIGH;
 				else{
 					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 					ErrorMessage(msg);
 					return PROCESS_INVALID;
 				}
 			}else{	//未知のオプション
 				CString msg;
-				msg.Format(IDS_ERROR_INVALID_PARAMETER,ParamsArray[iIndex]);
+				msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
 				ErrorMessage(msg);
 				return PROCESS_INVALID;
 			}

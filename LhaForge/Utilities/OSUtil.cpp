@@ -97,28 +97,6 @@ HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 }
 
 
-//コマンドライン引数を取得(個数を返す)
-int UtilGetCommandLineParams(std::vector<CString> &rParams)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	int nArgc=0;
-	LPWSTR *lplpArgs=CommandLineToArgvW(GetCommandLine(), &nArgc);
-	rParams.resize(nArgc);
-	for(int i=0;i<nArgc;i++){
-		rParams[i]=lplpArgs[i];
-	}
-	LocalFree(lplpArgs);
-	return nArgc;
-#else//defined(_UNICODE)||defined(UNICODE)
-	rParams.resize(__argc);
-	for(int i=0;i<__argc;i++){
-		rParams[i]=__argv[i];
-	}
-	return __argc;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
-
 void UtilNavigateDirectory(LPCTSTR lpszDir)
 {
 	//Explorerで開く

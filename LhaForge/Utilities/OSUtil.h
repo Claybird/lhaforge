@@ -52,9 +52,6 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
 
-//コマンドライン引数を取得(個数を返す)
-int UtilGetCommandLineParams(std::vector<CString>&);
-
 //特定のフォルダをExplorerで開く
 void UtilNavigateDirectory(LPCTSTR lpszDir);
 
