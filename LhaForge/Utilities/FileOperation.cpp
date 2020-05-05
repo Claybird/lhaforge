@@ -38,8 +38,7 @@ LPCTSTR UtilGetTempPath()
 	static CPath s_tempPath;
 	if(_tcslen(s_tempPath)==0){		//初期設定
 		//環境変数取得
-		std::map<stdString,stdString> envs;
-		UtilGetEnvInfo(envs);
+		auto envs = UtilGetEnvInfo();
 		if(!has_key(envs,_T("TMP")) && !has_key(envs,_T("TEMP"))){
 			//%TMP%/%TEMP%が存在しなければ自前の一時フォルダを使う(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
 			TCHAR szPath[_MAX_PATH+1]={0};

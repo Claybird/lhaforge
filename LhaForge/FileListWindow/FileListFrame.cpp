@@ -918,8 +918,7 @@ void CFileListFrame::SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW
 	CFileListModel::SetOpenAssocExtAccept(ConfFLW.OpenAssoc.Accept);
 	if(ConfFLW.DenyPathExt){
 		//環境変数で構築
-		std::map<stdString,stdString> envs;
-		UtilGetEnvInfo(envs);
+		auto envs = UtilGetEnvInfo();
 		for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
 			CFileListModel::SetOpenAssocExtDeny((envs[_T("PATHEXT")]+_T(";")).c_str()+ConfFLW.OpenAssoc.Deny);
 		}

@@ -42,6 +42,18 @@ struct UTIL_SHORTCUTINFO {
 
 HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info);
 
+//Open a folder with explorer
+void UtilNavigateDirectory(const wchar_t* lpszDir);
+
+//retrieve environment variables as key=value pair
+std::map<std::wstring, std::wstring> UtilGetEnvInfo();
+
+//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
+void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo);
+
+//アイコンを透明度付きビットマップに変換する
+void UtilMakeDIBFromIcon(CBitmap&,HICON);
+
 enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_DEFAULT = 0,
 	LFPRIOTITY_LOW = 1,
@@ -51,18 +63,6 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_HIGH = 5,
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
-
-//特定のフォルダをExplorerで開く
-void UtilNavigateDirectory(LPCTSTR lpszDir);
-
-//環境変数を参照し、辞書形式で取得する
-void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo);
-
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo);
-
-//アイコンを透明度付きビットマップに変換する
-void UtilMakeDIBFromIcon(CBitmap&,HICON);
 
 //プロセス優先度の設定
 void UtilSetPriorityClass(DWORD dwPriorityClass);

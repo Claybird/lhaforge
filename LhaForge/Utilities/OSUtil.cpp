@@ -97,47 +97,59 @@ HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 }
 
 
-void UtilNavigateDirectory(LPCTSTR lpszDir)
+void UtilNavigateDirectory(const wchar_t* lpszDir)
 {
-	//Explorerで開く
-	TCHAR szExplorerPath[_MAX_PATH+1];
-	FILL_ZERO(szExplorerPath);
-	GetWindowsDirectory(szExplorerPath,_MAX_PATH);
-	PathAppend(szExplorerPath,_T("Explorer.exe"));
-	ShellExecute(NULL, _T("open"), szExplorerPath, lpszDir, NULL, SW_SHOWNORMAL);
+	wchar_t systemDir[_MAX_PATH + 1] = {};
+	GetWindowsDirectoryW(systemDir, _MAX_PATH);
+	auto explorerPath = std::filesystem::path(systemDir) / L"explorer.exe";
+	ShellExecuteW(NULL, L"open", explorerPath.c_str(), lpszDir, NULL, SW_SHOWNORMAL);
 }
 
-//環境変数を参照し、辞書形式で取得する
-void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo)
+//retrieve environment variables as key=value pair
+std::map<std::wstring, std::wstring> UtilGetEnvInfo()
 {
-	LPTSTR lpEnvStr = GetEnvironmentStrings();
-	LPCTSTR lpStr    = lpEnvStr;
+	/*
+	https://docs.microsoft.com/ja-jp/windows/win32/procthread/environment-variables
+	Var1=Value1\0
+	Var2=Value2\0
+	Var3=Value3\0
+	...
+	VarN=ValueN\0\0
 
-	for(;*lpStr!='\0';){
-		LPCTSTR lpSplit=lpStr+1;	//環境変数名の先頭が'='だった場合に備える
-		for(;*lpSplit!=L'\0' && *lpSplit != L'=';lpSplit++)continue;
+	The name of an environment variable cannot include an equal sign (=).
+	*/
 
-		//---環境変数名
-		stdString strKey(lpStr,lpSplit);
-		//大文字に正規化
-		std::transform(strKey.begin(), strKey.end(), strKey.begin(), std::toupper);
-		//---環境変数の値
-		CString strValue=lpSplit+1;
-		envInfo[strKey]=strValue;
-
-		for(lpStr=lpSplit;*lpStr!=L'\0';lpStr++)continue;
-		lpStr++;
+	std::map<std::wstring, std::wstring> envInfo;
+	wchar_t* lpRaw = GetEnvironmentStringsW();
+	const wchar_t* lpEnvStr = lpRaw;
+	if (!lpEnvStr) {
+		return envInfo;
 	}
 
-	FreeEnvironmentStrings(lpEnvStr);
+	for (; *lpEnvStr != L'\0'; ) {
+		std::wstring block = lpEnvStr;
+		//TRACE(L"%s\n", block.c_str());
+		lpEnvStr += block.length()+1;
+
+		auto pos = block.find_first_of(L'=');
+		if (pos == std::wstring::npos) continue;	//mis-formatted string
+		
+		auto key = block.substr(0, pos);
+		auto value = block.substr(pos+1);
+		if (!key.empty()) {
+			envInfo[toUpper(key)] = value;
+		}
+	}
+
+	FreeEnvironmentStringsW(lpRaw);
+	return envInfo;
 }
 
 //UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
 void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
 {
 	//環境変数で構築
-	std::map<stdString,stdString> envs;
-	UtilGetEnvInfo(envs);
+	auto envs = UtilGetEnvInfo();
 	for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
 		//%ENVIRONMENT%の形式に変換
 		envInfo[L'%'+(*ite).first+L'%']=(*ite).second.c_str();

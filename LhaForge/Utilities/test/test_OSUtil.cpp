@@ -2,6 +2,7 @@
 #ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/Utility.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -35,6 +36,17 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(args), info.param);
 			Assert::AreEqual(std::wstring(L""), info.workingDir);
 			std::filesystem::remove(link_file);
+		}
+		TEST_METHOD(test_UtilGetEnvInfo) {
+			auto envInfo = UtilGetEnvInfo();
+			Assert::IsTrue(has_key(envInfo, L"PATH"));
+			for (const auto& item : envInfo) {
+				wchar_t buf[_MAX_ENV] = {};
+				size_t s = 0;
+				_wgetenv_s(&s, buf, item.first.c_str());
+				std::wstring env = buf;
+				Assert::AreEqual(std::wstring(env), item.second);
+			}
 		}
 	};
 };
