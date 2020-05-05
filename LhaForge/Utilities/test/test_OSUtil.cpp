@@ -48,6 +48,20 @@ namespace UnitTest
 				Assert::AreEqual(std::wstring(env), item.second);
 			}
 		}
+		TEST_METHOD(test_CurrentDirManager) {
+			wchar_t prevPath[_MAX_PATH + 1];
+			_wgetcwd(prevPath, _MAX_PATH);
+			{
+				CCurrentDirManager cdm(std::filesystem::temp_directory_path().c_str());
+				wchar_t currentPath[_MAX_PATH + 1];
+				_wgetcwd(currentPath, _MAX_PATH);
+				Assert::AreEqual(std::filesystem::temp_directory_path().wstring(),
+					(std::filesystem::path(currentPath) / L"").wstring());
+			}
+			wchar_t currentPath[_MAX_PATH + 1];
+			_wgetcwd(currentPath, _MAX_PATH);
+			Assert::AreEqual(std::wstring(prevPath), std::wstring(currentPath));
+		}
 	};
 };
 

@@ -180,7 +180,7 @@ void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
 }
 
 
-//プロセス優先度の設定
+//Process priority
 void UtilSetPriorityClass(DWORD dwPriorityClass)
 {
 	HANDLE hProcess=GetCurrentProcess();
@@ -188,17 +188,17 @@ void UtilSetPriorityClass(DWORD dwPriorityClass)
 }
 
 
-//クリップボードにテキストを設定
-void UtilSetTextOnClipboard(LPCTSTR lpszText)
+//Copy text to clipboard
+void UtilSetTextOnClipboard(const wchar_t* lpszText)
 {
 	HGLOBAL hMem;
-	LPTSTR lpBuff;
+	wchar_t* lpBuff;
 
-	hMem = GlobalAlloc((GHND|GMEM_SHARE),(_tcslen(lpszText) + 1) * sizeof(TCHAR));
+	hMem = GlobalAlloc((GHND|GMEM_SHARE),(wcslen(lpszText) + 1) * sizeof(wchar_t));
 	if(hMem){
-		lpBuff = (LPTSTR)GlobalLock(hMem);
+		lpBuff = (wchar_t*)GlobalLock(hMem);
 		if (lpBuff){
-			_tcscpy_s(lpBuff, _tcslen(lpszText)+1, lpszText);
+			wcscpy_s(lpBuff, wcslen(lpszText)+1, lpszText);
 			GlobalUnlock( hMem );
 
 			if ( OpenClipboard(NULL) ){

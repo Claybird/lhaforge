@@ -48,7 +48,7 @@ void UtilNavigateDirectory(const wchar_t* lpszDir);
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 
-//アイコンを透明度付きビットマップに変換する
+//convert icon into bitmap with alpha information
 void UtilMakeDIBFromIcon(CBitmap&,HICON);
 
 enum LFPROCESS_PRIORITY {
@@ -61,24 +61,25 @@ enum LFPROCESS_PRIORITY {
 	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
 };
 
-//プロセス優先度の設定
+//Process priority
 void UtilSetPriorityClass(DWORD dwPriorityClass);
 
-//ディレクトリ制御
+//Copy text to clipboard
+void UtilSetTextOnClipboard(const wchar_t* lpszText);
+
+//moves to a directory, and comes back to the previous directory on destructor
 class CCurrentDirManager
 {
 	DISALLOW_COPY_AND_ASSIGN(CCurrentDirManager);
 protected:
-	TCHAR _prevDir[_MAX_PATH+1];
+	std::filesystem::path _prevDir;
 public:
-	CCurrentDirManager(LPCTSTR lpPath){
-		::GetCurrentDirectory(COUNTOF(_prevDir),_prevDir);
-		::SetCurrentDirectory(lpPath);
+	CCurrentDirManager(const wchar_t* chdirTo) {
+		_prevDir = std::filesystem::current_path();
+		std::filesystem::current_path(chdirTo);
 	}
-	virtual ~CCurrentDirManager(){
-		::SetCurrentDirectory(_prevDir);
+	virtual ~CCurrentDirManager() {
+		std::filesystem::current_path(_prevDir);
 	}
 };
 
-//クリップボードにテキストを設定
-void UtilSetTextOnClipboard(LPCTSTR lpszText);
