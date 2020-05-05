@@ -134,12 +134,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 		CString strPath=ConfGeneral.TempPath;
 		if(!strPath.IsEmpty()){
 			//パラメータ展開に必要な情報
-			std::map<stdString,CString> _envInfo;
-			UtilMakeExpandInformation(_envInfo);
-			std::map<std::wstring, std::wstring> envInfo;
-			for (auto& item : _envInfo) {
-				envInfo[item.first] = item.second;
-			}
+			auto envInfo = LF_make_expand_information(nullptr, nullptr);
 			//環境変数展開
 			strPath = UtilExpandTemplateString(strPath, envInfo).c_str();
 

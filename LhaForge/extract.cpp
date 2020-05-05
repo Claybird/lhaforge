@@ -596,12 +596,7 @@ bool GUI_extract_multiple_files(
 		if (args.extract.OpenDir) {
 			if (args.general.Filer.UseFiler) {
 				// expand environment
-				std::map<stdString, CString> _envInfo;
-				MakeExpandInformationEx(_envInfo, output_dir.c_str(), NULL);
-				std::map<std::wstring, std::wstring> envInfo;
-				for (auto& item : _envInfo) {
-					envInfo[item.first] = item.second;
-				}
+				auto envInfo = LF_make_expand_information(output_dir.c_str(), nullptr);
 
 				// expand command parameter
 				auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);

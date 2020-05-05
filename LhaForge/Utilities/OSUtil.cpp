@@ -145,30 +145,6 @@ std::map<std::wstring, std::wstring> UtilGetEnvInfo()
 	return envInfo;
 }
 
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
-{
-	//環境変数で構築
-	auto envs = UtilGetEnvInfo();
-	for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
-		//%ENVIRONMENT%の形式に変換
-		envInfo[L'%'+(*ite).first+L'%']=(*ite).second.c_str();
-	}
-
-	//---LhaForge本体の情報
-	envInfo[_T("ProgramPath")]=UtilGetModulePath();
-	envInfo[_T("ProgramFileName")]=PathFindFileName(UtilGetModulePath());
-
-	CPath dir=UtilGetModuleDirectoryPath();
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDir")]=(LPCTSTR)dir;
-
-	dir.StripToRoot();
-	//末尾のBackslashを取り除く;RemoveBackslashではドライブ名直後のBackslashが取り除けない
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDrive")]=(LPCTSTR)dir;
-}
-
 void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
 {
 	ICONINFO ii;

@@ -268,27 +268,33 @@ void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR On
 	}
 }
 
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void MakeExpandInformationEx(std::map<stdString,CString> &envInfo,LPCTSTR lpOpenDir,LPCTSTR lpOutputFile)
+//prepare envInfo map for UtilExpandTemplateString()
+std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDir, LPCTSTR lpOutputFile)
 {
-	//環境変数で構築
-	UtilMakeExpandInformation(envInfo);
+	std::map<std::wstring, std::wstring> templateParams;
 
-	//変数登録
-	if(lpOpenDir){
-		envInfo[_T("dir")]=lpOpenDir;
-		envInfo[_T("OutputDir")]=lpOpenDir;
-
-		//出力ドライブ名
-		TCHAR szBuffer[MAX_PATH+1];
-		_tcsncpy_s(szBuffer,lpOpenDir,COUNTOF(szBuffer)-1);
-		PathStripToRoot(szBuffer);
-		if(szBuffer[_tcslen(szBuffer)-1]==L'\\')szBuffer[_tcslen(szBuffer)-1]=L'\0';
-		envInfo[_T("OutputDrive")]=(LPCTSTR)szBuffer;
+	//environment variables
+	auto envs = UtilGetEnvInfo();
+	for (auto item : envs) {
+		//%ENVIRONMENT%=value
+		templateParams[L'%' + item.first + L'%'] = item.second;
 	}
 
-	if(lpOutputFile){
-		envInfo[_T("OutputFile")]=lpOutputFile;
-		envInfo[_T("OutputFileName")]=PathFindFileName(lpOutputFile);
+	//---about myself
+	templateParams[L"ProgramPath"] = UtilGetModulePath();
+	templateParams[L"ProgramFileName"] = std::filesystem::path(UtilGetModulePath()).filename();
+	templateParams[L"ProgramDir"] = std::filesystem::path(UtilGetModuleDirectoryPath()).parent_path();
+	templateParams[L"ProgramDrive"] = std::filesystem::path(UtilGetModuleDirectoryPath()).root_name();
+
+	if (lpOpenDir) {
+		templateParams[L"dir"] = lpOpenDir;
+		templateParams[L"OutputDir"] = lpOpenDir;
+		templateParams[L"OutputDrive"] = std::filesystem::path(lpOpenDir).root_name();
 	}
+
+	if (lpOutputFile) {
+		templateParams[L"OutputFile"] = lpOutputFile;
+		templateParams[L"OutputFileName"] = std::filesystem::path(lpOutputFile).filename();
+	}
+	return templateParams;
 }

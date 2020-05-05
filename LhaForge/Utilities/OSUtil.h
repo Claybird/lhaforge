@@ -48,9 +48,6 @@ void UtilNavigateDirectory(const wchar_t* lpszDir);
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo);
-
 //アイコンを透明度付きビットマップに変換する
 void UtilMakeDIBFromIcon(CBitmap&,HICON);
 

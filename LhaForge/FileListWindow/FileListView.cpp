@@ -29,6 +29,7 @@
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../Utilities/StringUtil.h"
 #include "Dialogs/TextInputDlg.h"
+#include "CommonUtil.h"
 #include <sstream>
 
 CFileListView::CFileListView(CConfigManager& rConfig,CFileListModel& rModel):
@@ -1224,12 +1225,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 	//---実行情報取得
 	//パラメータ展開に必要な情報
-	std::map<stdString,CString> _envInfo;
-	UtilMakeExpandInformation(_envInfo);
-	std::map<std::wstring, std::wstring> envInfo;
-	for (auto& item : _envInfo) {
-		envInfo[item.first] = item.second;
-	}
+	auto envInfo = LF_make_expand_information(nullptr, nullptr);
 
 	//コマンド・パラメータ展開
 	auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);	//コマンド

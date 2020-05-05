@@ -1,8 +1,9 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "CommonUtil.h"
 #include "ConfigCode/ConfigGeneral.h"
+#include "Utilities/FileOperation.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -34,6 +35,20 @@ namespace UnitTest
 			conf.WarnNetwork = false;
 			Assert::AreEqual(true, LF_confirm_output_dir_type(conf, L"C:/"));
 			Assert::AreEqual(true, LF_confirm_output_dir_type(conf, L"C:/temp"));
+		}
+		TEST_METHOD(test_LF_make_expand_information) {
+			const auto open_dir = LR"(C:\test\)";
+			const auto output_path = LR"(D:\test\output.ext)";
+			auto envInfo = LF_make_expand_information(open_dir, output_path);
+			Assert::IsTrue(has_key(envInfo, L"%PATH%"));
+			Assert::AreEqual(std::wstring(UtilGetModulePath()), envInfo[L"ProgramPath"]);
+
+			Assert::AreEqual(std::wstring(open_dir), envInfo[L"dir"]);
+			Assert::AreEqual(std::wstring(open_dir), envInfo[L"OutputDir"]);
+			Assert::AreEqual(std::wstring(L"C:"), envInfo[L"OutputDrive"]);
+
+			Assert::AreEqual(std::wstring(output_path), envInfo[L"OutputFile"]);
+			Assert::AreEqual(std::wstring(L"output.ext"), envInfo[L"OutputFileName"]);
 		}
 	};
 };

@@ -497,12 +497,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		pathOpenDir.AddBackslash();
 		if(ConfGeneral.Filer.UseFiler){
 			//パラメータ展開に必要な情報
-			std::map<stdString,CString> _envInfo;
-			MakeExpandInformationEx(_envInfo,pathOpenDir,pathArcFileName);
-			std::map<std::wstring, std::wstring> envInfo;
-			for (auto& item : _envInfo) {
-				envInfo[item.first] = item.second;
-			}
+			auto envInfo = LF_make_expand_information(pathOpenDir,pathArcFileName);
 
 			//コマンド・パラメータ展開
 			auto strCmd = UtilExpandTemplateString(ConfGeneral.Filer.FilerPath,envInfo);	//コマンド

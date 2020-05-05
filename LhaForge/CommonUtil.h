@@ -84,5 +84,5 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outpu
 void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR OnDirNotFound);
 
 
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void MakeExpandInformationEx(std::map<stdString,CString> &envInfo,LPCTSTR lpOpenDir,LPCTSTR lpOutputFile);
+//prepare envInfo map for UtilExpandTemplateString()
+std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDir,LPCTSTR lpOutputFile);
