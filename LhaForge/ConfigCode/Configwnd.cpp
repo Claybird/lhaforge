@@ -38,9 +38,7 @@ CConfigDialog::CConfigDialog(CConfigManager &cfg)
 	TRACE(_T("CConfigDialog()\n"));
 
 	//テンポラリINIファイル名取得
-	TCHAR szIniName[_MAX_PATH+1]={0};
-	UtilGetTemporaryFileName(szIniName,_T("lhf"));
-	m_strAssistINI=szIniName;
+	m_strAssistINI = UtilGetTemporaryFileName().c_str();
 
 	//設定読み込み
 	CString strErr;

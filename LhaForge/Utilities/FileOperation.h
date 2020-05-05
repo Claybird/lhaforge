@@ -24,8 +24,8 @@
 
 #pragma once
 
-LPCTSTR UtilGetTempPath();
-bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix);
+std::wstring UtilGetTempPath();
+std::wstring UtilGetTemporaryFileName();
 bool UtilDeletePath(LPCTSTR PathName);
 bool UtilDeleteDir(LPCTSTR Path,bool);
 int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);

@@ -28,42 +28,17 @@
 #include "StringUtil.h"
 #include "OSUtil.h"
 
-
-#if !defined(_UNICODE)&&!defined(UNICODE)
- #include <imagehlp.h> //MakeSureDirectoryPathExists()
-#endif
-
-LPCTSTR UtilGetTempPath()
+std::wstring UtilGetTempPath()
 {
-	static CPath s_tempPath;
-	if(_tcslen(s_tempPath)==0){		//初期設定
-		//環境変数取得
-		auto envs = UtilGetEnvInfo();
-		if(!has_key(envs,_T("TMP")) && !has_key(envs,_T("TEMP"))){
-			//%TMP%/%TEMP%が存在しなければ自前の一時フォルダを使う(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
-			TCHAR szPath[_MAX_PATH+1]={0};
-			SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szPath);
-			s_tempPath=szPath;
-			s_tempPath.Append(_T("lhaforge\\temp\\"));
-			UtilMakeSureDirectoryPathExists(s_tempPath);
-		}else{
-			//通常のパス
-			std::vector<TCHAR> buffer(GetTempPath(0,NULL)+1);
-			GetTempPath(buffer.size(),&buffer[0]);
-			buffer.back()=_T('\0');
-			s_tempPath=&buffer[0];
-			s_tempPath.AddBackslash();
-		}
-	}
-	return s_tempPath;
+	auto tempDir = std::filesystem::temp_directory_path();
+	return (tempDir / L"").c_str();
 }
 
-bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix)
+std::wstring UtilGetTemporaryFileName()
 {
-	if(!GetTempFileName(UtilGetTempPath(),prefix,0,fname)){
-		return false;
-	}
-	return true;
+	wchar_t buf[MAX_PATH] = {};
+	GetTempFileNameW(UtilGetTempPath().c_str(), L"lhf", 0, buf);
+	return buf;
 }
 
 bool UtilDeletePath(LPCTSTR PathName)

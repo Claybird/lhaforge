@@ -169,6 +169,15 @@
     <ClCompile Include="Utilities\test\test_Utility.cpp">
       <Filter>Utilities\test</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\test\test_FileOperation.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_OSUtil.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Semaphore.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">

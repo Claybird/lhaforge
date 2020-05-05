@@ -44,7 +44,7 @@ void CTemporaryDirectoryManager::Prepare()
 	//%TEMP%\%prefix%0000\filename...
 	int Count=0;
 	while(true){	//一時解凍先確保
-		CPath Buffer=UtilGetTempPath();
+		CPath Buffer=UtilGetTempPath().c_str();
 		CString Name;
 		Name.Format(_T("%s%d"),m_strPrefix,Count);
 		Count++;
@@ -103,7 +103,7 @@ LPCTSTR CTemporaryDirectoryManager::GetDirPath()
 bool CTemporaryDirectoryManager::DeleteAllTemporaryDir(LPCTSTR lpszPrefix)
 {
 	//%TEMP%\%prefix%0000\filename...
-	CPath TempPath=UtilGetTempPath();
+	CPath TempPath=UtilGetTempPath().c_str();
 	{
 		CString strTemp(lpszPrefix);
 		strTemp+=_T("*");
