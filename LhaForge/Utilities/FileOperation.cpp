@@ -41,59 +41,57 @@ std::wstring UtilGetTemporaryFileName()
 	return buf;
 }
 
-bool UtilDeletePath(LPCTSTR PathName)
+bool UtilDeletePath(const wchar_t* PathName)
 {
-	if( PathIsDirectory(PathName) ) {//ディレクトリ
-		//ファイルの属性を標準に戻す
+	if( PathIsDirectoryW(PathName) ) {
+		//directory
 		if( UtilDeleteDir(PathName, true) )return true;
-	} else if( PathFileExists(PathName) ) {//ファイル
-		//ファイルの属性を標準に戻す
-		SetFileAttributes(PathName, FILE_ATTRIBUTE_NORMAL);
-		if( DeleteFile(PathName) )return true;
+	} else if( PathFileExistsW(PathName) ) {
+		//file
+		//reset file attribute
+		SetFileAttributesW(PathName, FILE_ATTRIBUTE_NORMAL);
+		if( DeleteFileW(PathName) )return true;
 	}
 	return false;
 }
 
-//bDeleteParent=trueのとき、Path自身も削除する
-//bDeleteParent=falseのときは、Pathの中身だけ削除する
-bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
+//bDeleteParent=true: delete Path itself
+//bDeleteParent=false: delete only children of Path
+bool UtilDeleteDir(const wchar_t* Path,bool bDeleteParent)
 {
-	std::vector<WIN32_FIND_DATA> lps;
+	std::wstring FindParam = std::filesystem::path(Path) / L"*";
 
-	TCHAR FindParam[_MAX_PATH+1];
-	FILL_ZERO(FindParam);
-	_tcsncpy_s(FindParam,Path,_MAX_PATH);
-	PathAppend(FindParam, _T("*"));
-
+	std::vector<WIN32_FIND_DATAW> lps;
 	{
-		WIN32_FIND_DATA fd;
-		HANDLE h = FindFirstFile(FindParam, &fd);
+		WIN32_FIND_DATAW fd;
+		HANDLE h = FindFirstFileW(FindParam.c_str(), &fd);
 		do {
 			lps.push_back(fd);
-		} while( FindNextFile(h, &fd) );
+		} while( FindNextFileW(h, &fd) );
 		FindClose(h);
 	}
 
 	bool bRet=true;
 
-	for( std::vector<WIN32_FIND_DATA>::const_iterator ite = lps.begin(); ite != lps.end();++ite ) {
-		const WIN32_FIND_DATA& lp = *ite;
-		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) && 0 != _tcscmp(lp.cFileName, _T("..")) && 0 != _tcscmp(lp.cFileName, _T(".")) ) {
-			CString SubPath = Path;
-			SubPath += _T("\\");
-			SubPath += lp.cFileName;
+	for (const auto &lp : lps) {
+		if (lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			//directory
+			if (0 != wcscmp(lp.cFileName, L"..") &&
+				0 != wcscmp(lp.cFileName, L".")) {
 
-			bRet = bRet&&UtilDeleteDir(SubPath, true);
-		}
-		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != FILE_ATTRIBUTE_DIRECTORY ) {
-			// lp.cFileNameでファイル名が分かる
-			TCHAR FileName[_MAX_PATH + 1];
-			FILL_ZERO(FileName);
-			_tcsncpy_s(FileName, Path, _MAX_PATH);
-			PathAppend(FileName, lp.cFileName);
+				std::wstring SubPath = std::filesystem::path(Path) / lp.cFileName;
 
-			SetFileAttributes(FileName, FILE_ATTRIBUTE_NORMAL);
-			if( !DeleteFile(FileName) )bRet = false;
+				if (!UtilDeleteDir(SubPath.c_str(), true)) {
+					bRet = false;
+				}
+			}
+		}else{
+			//file
+			std::wstring FileName = std::filesystem::path(Path) / lp.cFileName;
+
+			//reset file attribute
+			SetFileAttributesW(FileName.c_str(), FILE_ATTRIBUTE_NORMAL);
+			if( !DeleteFileW(FileName.c_str()) )bRet = false;
 		}
 	}
 	if(bDeleteParent){

@@ -26,8 +26,10 @@
 
 std::wstring UtilGetTempPath();
 std::wstring UtilGetTemporaryFileName();
-bool UtilDeletePath(LPCTSTR PathName);
-bool UtilDeleteDir(LPCTSTR Path,bool);
+
+bool UtilDeletePath(const wchar_t* PathName);
+bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
+
 int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);
 void UtilModifyPath(CString&);	//DTVを起こす可能性のあるパスを修正する
 
