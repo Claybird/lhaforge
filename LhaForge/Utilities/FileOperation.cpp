@@ -95,50 +95,34 @@ bool UtilDeleteDir(const wchar_t* Path,bool bDeleteParent)
 		}
 	}
 	if(bDeleteParent){
-		//bRet=bRet&&UtilDeletePath(Path);
 		if(!RemoveDirectory(Path))bRet=false;
 	}
 
 	return bRet;
 }
 
-
-BOOL UtilMoveFileToRecycleBin(LPCTSTR lpFileName)
-{
-	ASSERT(lpFileName);
-	if(!lpFileName)return false;
-	const UINT len=_tcslen(lpFileName);
-	std::vector<TCHAR> Buffer(len+2);
-	_tcsncpy_s(&Buffer[0],len+1,lpFileName,len+1);
-	Buffer.back()=_T('\0');
-
-	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//削除
-	shfo.pFrom=&Buffer[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
-	shfo.fFlags=FOF_SILENT/*進捗状況を表示しない*/|FOF_ALLOWUNDO/*UNDO情報付加;ごみ箱へ*/|FOF_NOCONFIRMATION/*確認ダイアログを表示しない*/;
-	return SHFileOperation(&shfo);
-}
-
-BOOL UtilMoveFileToRecycleBin(const std::list<CString> &fileList)
+bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
 {
 	ASSERT(!fileList.empty());
 	if(fileList.empty())return false;
 
-	//引数作成
-	CString Param;
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		Param+=*ite;
-		Param+=_T('|');
+	std::wstring param;
+	for(const auto& item: fileList){
+		param += item;
+		param += L'|';
 	}
-	Param+=_T('|');
+	param += L'|';
 
-	auto filter = UtilMakeFilterString(Param);
+	auto filter = UtilMakeFilterString(param.c_str());
 
-	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//削除
-	shfo.pFrom=&filter[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
-	shfo.fFlags=FOF_SILENT/*進捗状況を表示しない*/|FOF_ALLOWUNDO/*UNDO情報付加;ごみ箱へ*/|FOF_NOCONFIRMATION/*確認ダイアログを表示しない*/;
-	return SHFileOperation(&shfo);
+	SHFILEOPSTRUCTW shfo={0};
+	shfo.wFunc = FO_DELETE;
+	shfo.pFrom = &filter[0];
+	shfo.fFlags =
+		FOF_SILENT |	//do not show progress
+		FOF_ALLOWUNDO |	//allow undo i.e., to recycle bin
+		FOF_NOCONFIRMATION;	//no confirm window
+	return 0 == SHFileOperationW(&shfo);
 }
 
 //フォルダ内ファイル(ディレクトリは除く)を再帰検索

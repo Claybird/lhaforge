@@ -38,7 +38,64 @@
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
-bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList);
+
+bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<std::wstring>& fileList)
+{
+	std::wstring strFiles;	//ファイル一覧
+	size_t idx = 0;
+	for (const auto &file : fileList) {
+		strFiles += L"\n";
+		strFiles += file;
+		idx++;
+		if (idx >= 10 && idx < fileList.size()) {
+			strFiles += L"\n";
+			CString tmp;
+			tmp.Format(IDS_NUM_EXTRA_FILES, fileList.size() - idx);
+			strFiles += (LPCWSTR)tmp;
+			break;
+		}
+	}
+
+	//削除する
+	if (ConfCompress.MoveToRecycleBin) {
+		//--------------
+		// ごみ箱に移動
+		//--------------
+		if (!ConfCompress.DeleteNoConfirm) {	//削除確認する場合
+			CString Message;
+			Message.Format(IDS_ASK_MOVE_ORIGINALFILE_TO_RECYCLE_BIN);
+			Message += strFiles.c_str();
+
+			//確認後ゴミ箱に移動
+			if (IDYES != UtilMessageBox(NULL, Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+				return false;
+			}
+		}
+
+		//削除実行
+		UtilMoveFileToRecycleBin(fileList);
+		return true;
+	} else {
+		//------
+		// 削除
+		//------
+		if (!ConfCompress.DeleteNoConfirm) {	//確認する場合
+			CString Message;
+			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
+			Message += strFiles.c_str();
+
+			if (IDYES != UtilMessageBox(NULL, Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+				return false;
+			}
+		}
+		//削除実行
+		for (const auto &file : fileList) {
+			UtilDeletePath(file.c_str());
+		}
+		return true;
+	}
+}
+
 
 HRESULT CheckArchiveName(LPCTSTR lpszArcFile, const std::list<CString> &rOrgFileList, bool bOverwrite, CString &strErr)
 {
@@ -514,7 +571,11 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		//カレントディレクトリは削除できないので別の場所へ移動
 		::SetCurrentDirectory(UtilGetModuleDirectoryPath());
 		//削除:オリジナルの指定で消す
-		DeleteOriginalFiles(ConfCompress,_sourcePathList);
+		std::vector<std::wstring> tmp;
+		for (const auto& item : _sourcePathList) {
+			tmp.push_back((LPCWSTR)item);	//TODO
+		}
+		DeleteOriginalFiles(ConfCompress,tmp);
 	}
 
 
@@ -522,62 +583,6 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	return bError ? E_FAIL : S_OK;
 }
 
-
-
-bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList)
-{
-	CString strFiles;	//ファイル一覧
-	size_t idx=0;
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		strFiles+=_T("\n");
-		strFiles+=*ite;
-		idx++;
-		if(idx>=10 && idx<fileList.size()){
-			strFiles+=_T("\n");
-			strFiles.AppendFormat(IDS_NUM_EXTRA_FILES,fileList.size()-idx);
-			break;
-		}
-	}
-
-	//削除する
-	if(ConfCompress.MoveToRecycleBin){
-		//--------------
-		// ごみ箱に移動
-		//--------------
-		if(!ConfCompress.DeleteNoConfirm){	//削除確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_MOVE_ORIGINALFILE_TO_RECYCLE_BIN);
-			Message+=strFiles;
-
-			//確認後ゴミ箱に移動
-			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
-		}
-
-		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
-		return true;
-	}else{
-		//------
-		// 削除
-		//------
-		if(!ConfCompress.DeleteNoConfirm){	//確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
-			Message+=strFiles;
-
-			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
-		}
-		//削除実行
-		for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			UtilDeletePath(*ite);
-		}
-		return true;
-	}
-}
 
 
 const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {

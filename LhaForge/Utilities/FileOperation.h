@@ -30,8 +30,7 @@ std::wstring UtilGetTemporaryFileName();
 bool UtilDeletePath(const wchar_t* PathName);
 bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
 
-BOOL UtilMoveFileToRecycleBin(LPCTSTR);	//ファイルをごみ箱に移動
-BOOL UtilMoveFileToRecycleBin(const std::list<CString>&);	//ファイルをごみ箱に移動
+bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 
 //フォルダ内ファイル(ディレクトリは除く)を再帰検索
 bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString>&);

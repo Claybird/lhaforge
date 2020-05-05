@@ -461,7 +461,11 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 		}
 
 		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
+		std::vector<std::wstring> tmp;
+		for (const auto& item : fileList) {
+			tmp.push_back((LPCWSTR)item);	//TODO
+		}
+		UtilMoveFileToRecycleBin(tmp);
 		return true;
 	}else{
 		//------

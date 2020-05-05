@@ -21,7 +21,9 @@ namespace UnitTest
 			Assert::IsTrue(std::filesystem::exists(UtilGetTempPath()));
 		}
 		TEST_METHOD(test_UtilGetTemporaryFileName) {
-			Assert::IsTrue(std::filesystem::exists(UtilGetTemporaryFileName()));
+			auto path = UtilGetTemporaryFileName();
+			Assert::IsTrue(std::filesystem::exists(path));
+			Assert::IsTrue(UtilDeletePath(path.c_str()));
 		}
 		TEST_METHOD(test_UtilDeletePath) {
 			//delete file
@@ -42,6 +44,20 @@ namespace UnitTest
 			for (int i = 0; i < 100; i++) {
 				touchFile(dir + Format(L"/testDir/b%03d.txt", i));
 			}
+			UtilDeletePath(dir.c_str());
+			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+		}
+		TEST_METHOD(test_UtilMoveFileToRecycleBin) {
+			std::vector<std::wstring> fileList;
+			//delete directory
+			auto dir = UtilGetTempPath() + L"lhaforge_test";
+			Assert::IsFalse(std::filesystem::exists(dir));
+			std::filesystem::create_directories(dir.c_str());
+			for (int i = 0; i < 3; i++) {
+				fileList.push_back(dir + Format(L"/a%03d.txt", i));
+				touchFile(dir + Format(L"/a%03d.txt", i));
+			}
+			Assert::IsTrue(UtilMoveFileToRecycleBin(fileList));
 			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
 		}
