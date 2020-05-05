@@ -123,3 +123,12 @@ inline std::wstring toLower(const std::wstring& input) {
 	});
 	return output;
 }
+
+inline std::wstring toUpper(const std::wstring& input) {
+	std::wstring output;
+	std::transform(input.begin(), input.end(), std::back_inserter(output),
+		[](wchar_t c) {
+		return towupper(c);
+	});
+	return output;
+}

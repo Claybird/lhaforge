@@ -180,6 +180,14 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(L"あいうcde"), toLower(L"あいうCdE"));
 			Assert::AreEqual(std::wstring(L"👪"), toLower(L"👪"));	//emoji
 		}
+
+		TEST_METHOD(test_toUpper) {
+			Assert::AreEqual(std::wstring(L""), toUpper(L""));
+			Assert::AreEqual(std::wstring(L"ABCDE"), toUpper(L"abcde"));
+			Assert::AreEqual(std::wstring(L"ABCDE"), toUpper(L"aBcDe"));
+			Assert::AreEqual(std::wstring(L"あいうCDE"), toUpper(L"あいうCdE"));
+			Assert::AreEqual(std::wstring(L"👪"), toUpper(L"👪"));	//emoji
+		}
 	};
 };
 #endif
