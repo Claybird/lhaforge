@@ -32,8 +32,8 @@ bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
 
 bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 
-//フォルダ内ファイル(ディレクトリは除く)を再帰検索
-bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString>&);
+//recursively enumerates files (no directories) in specified directory
+std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot);
 
 //フルパスかつ絶対パスの取得
 enum PATHERROR{

@@ -35,6 +35,7 @@ namespace UnitTest
 
 			//delete directory
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
+			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir));
 			std::filesystem::create_directories(dir.c_str());
 			for (int i = 0; i < 100; i++) {
@@ -51,6 +52,7 @@ namespace UnitTest
 			std::vector<std::wstring> fileList;
 			//delete directory
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
+			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir));
 			std::filesystem::create_directories(dir.c_str());
 			for (int i = 0; i < 3; i++) {
@@ -58,6 +60,36 @@ namespace UnitTest
 				touchFile(dir + Format(L"/a%03d.txt", i));
 			}
 			Assert::IsTrue(UtilMoveFileToRecycleBin(fileList));
+			UtilDeletePath(dir.c_str());
+			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+		}
+		TEST_METHOD(test_UtilRecursiveEnumFile) {
+			//prepare files
+			std::vector<std::wstring> fileList;
+			auto dir = UtilGetTempPath() + L"lhaforge_test";
+			UtilDeletePath(dir.c_str());
+			Assert::IsFalse(std::filesystem::exists(dir));
+			std::filesystem::create_directories(dir.c_str());
+			for (int i = 0; i < 3; i++) {
+				fileList.push_back(dir + Format(L"/a%03d.txt", i));
+				touchFile(dir + Format(L"/a%03d.txt", i));
+			}
+			std::filesystem::create_directories((dir + L"/b").c_str());
+			for (int i = 0; i < 3; i++) {
+				fileList.push_back(dir + Format(L"/b/a%03d.txt", i));
+				touchFile(dir + Format(L"/b/a%03d.txt", i));
+			}
+
+			//enumerate
+			auto enumerated = UtilRecursiveEnumFile(dir.c_str());
+			Assert::AreEqual(fileList.size(), enumerated.size());
+			for (size_t i = 0; i < fileList.size(); i++) {
+				Assert::AreEqual(
+					std::filesystem::path(fileList[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			}
+
+			//cleanup
 			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
 		}

@@ -386,15 +386,14 @@ void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArch
 	for(auto ite=FileList.begin();ite!=FileList.end();){
 		if(PathIsDirectory(*ite)){
 			//---解凍対象がフォルダなら再帰解凍する
-			std::list<CString> subFileList;
-			UtilRecursiveEnumFile(*ite,subFileList);
+			auto subFileList = UtilRecursiveEnumFile(*ite);
 
 			for(const auto& subFile: subFileList){
-				bool isDenied = CString(lpDenyExt).MakeLower().Find(CString(PathFindExtension(subFile)).MakeLower()) == -1;
+				bool isDenied = CString(lpDenyExt).MakeLower().Find(CString(PathFindExtension(subFile.c_str())).MakeLower()) == -1;
 
-				if(!bArchivesOnly|| (!isDenied && LF_isExtractable(subFile))){
+				if(!bArchivesOnly|| (!isDenied && LF_isExtractable(subFile.c_str()))){
 					//対応している形式のみ追加する必要がある時は、解凍可能な形式かどうか判定する
-					FileList.push_back(subFile);
+					FileList.push_back(subFile.c_str());	//TODO
 				}
 			}
 			//自分は削除

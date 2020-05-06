@@ -61,41 +61,28 @@ bool UtilDeleteDir(const wchar_t* Path,bool bDeleteParent)
 {
 	std::wstring FindParam = std::filesystem::path(Path) / L"*";
 
-	std::vector<WIN32_FIND_DATAW> lps;
-	{
-		WIN32_FIND_DATAW fd;
-		HANDLE h = FindFirstFileW(FindParam.c_str(), &fd);
-		do {
-			lps.push_back(fd);
-		} while( FindNextFileW(h, &fd) );
-		FindClose(h);
-	}
+	bool bRet = true;
 
-	bool bRet=true;
-
-	for (const auto &lp : lps) {
-		if (lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-			//directory
-			if (0 != wcscmp(lp.cFileName, L"..") &&
-				0 != wcscmp(lp.cFileName, L".")) {
-
-				std::wstring SubPath = std::filesystem::path(Path) / lp.cFileName;
-
-				if (!UtilDeleteDir(SubPath.c_str(), true)) {
+	CFindFile cFindFile;
+	BOOL bContinue = cFindFile.FindFile(FindParam.c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			if (cFindFile.IsDirectory()) {
+				//directory
+				if (!UtilDeleteDir(cFindFile.GetFilePath(), true)) {
 					bRet = false;
 				}
+			} else {
+				//reset file attribute
+				SetFileAttributesW(cFindFile.GetFilePath(), FILE_ATTRIBUTE_NORMAL);
+				if (!DeleteFileW(cFindFile.GetFilePath()))bRet = false;
 			}
-		}else{
-			//file
-			std::wstring FileName = std::filesystem::path(Path) / lp.cFileName;
-
-			//reset file attribute
-			SetFileAttributesW(FileName.c_str(), FILE_ATTRIBUTE_NORMAL);
-			if( !DeleteFileW(FileName.c_str()) )bRet = false;
 		}
+		bContinue = cFindFile.FindNextFile();
 	}
+
 	if(bDeleteParent){
-		if(!RemoveDirectory(Path))bRet=false;
+		if(!RemoveDirectoryW(Path))bRet=false;
 	}
 
 	return bRet;
@@ -125,27 +112,26 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
 	return 0 == SHFileOperationW(&shfo);
 }
 
-//フォルダ内ファイル(ディレクトリは除く)を再帰検索
-bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString> &rFileList)
+//recursively enumerates files (no directories) in specified directory
+std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot)
 {
 	CFindFile cFindFile;
-	TCHAR szPath[_MAX_PATH+1];
-	_tcsncpy_s(szPath,lpszRoot,_MAX_PATH);
-	PathAppend(szPath,_T("*"));
 
-	BOOL bContinue=cFindFile.FindFile(szPath);
+	std::vector<std::wstring> files;
+	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(lpszRoot) / L"*").c_str());
 	while(bContinue){
 		if(!cFindFile.IsDots()){
 			if(cFindFile.IsDirectory()){
-				UtilRecursiveEnumFile(cFindFile.GetFilePath(),rFileList);
+				auto subFiles = UtilRecursiveEnumFile(cFindFile.GetFilePath());
+				files.insert(files.end(), subFiles.begin(), subFiles.end());
 			}else{
-				rFileList.push_back(cFindFile.GetFilePath());
+				files.push_back((const wchar_t*)cFindFile.GetFilePath());
 			}
 		}
 		bContinue=cFindFile.FindNextFile();
 	}
 
-	return !rFileList.empty();
+	return files;
 }
 
 //フルパスかつ絶対パスの取得
