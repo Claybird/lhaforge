@@ -170,7 +170,9 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 			}
 			//FALLTHROUGH
 		case LOSTDIR_FORCE_CREATE:	//ディレクトリ作成
-			if(!UtilMakeSureDirectoryPathExists(lpszOutputDir)){
+			try {
+				std::filesystem::create_directories(lpszOutputDir);
+			} catch (std::filesystem::filesystem_error) {
 				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR,lpszOutputDir);
 				//ErrorMessage(strMsg);
 				return E_FAIL;

@@ -97,7 +97,11 @@ void GetDefaultFilePath(CString &strPath, LPCTSTR lpszDir, LPCTSTR lpszFile, boo
 	SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, szIniPath);
 	PathAppend(szIniPath, lpszDir);
 	PathAddBackslash(szIniPath);
-	UtilMakeSureDirectoryPathExists(szIniPath);
+	try {
+		std::filesystem::create_directories(szIniPath);
+	} catch (std::filesystem::filesystem_error) {
+		RAISE_EXCEPTION(L"Failed to create directory");
+	}
 	PathAppend(szIniPath, lpszFile);
 	bUserCommon = false;
 	strPath = szIniPath;

@@ -48,13 +48,6 @@ std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 std::wstring UtilGetModulePath();
 std::wstring UtilGetModuleDirectoryPath();
 
-//複数階層のディレクトリを一気に作成する
-[[deprecated("use std::filesystem::create_directories instead")]]
-BOOL UtilMakeSureDirectoryPathExists(LPCTSTR lpszPath);
-
-//TCHARファイル名をSJISファイル名に変換する。正しく変換できない場合には、falseを返す
-bool UtilPathT2A(CStringA&,LPCTSTR,bool bOnDisk);
-
 //パスに共通する部分を取り出し、基底パスを取り出す
 void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList);
 

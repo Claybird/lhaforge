@@ -55,9 +55,12 @@ void CTemporaryDirectoryManager::Prepare()
 		if(!PathFileExists(Buffer)){
 			Buffer.AddBackslash();
 			if(!PathIsDirectory(Buffer)){
-				if(UtilMakeSureDirectoryPathExists(Buffer)){
+				try {
+					std::filesystem::create_directories((LPCWSTR)Buffer);
 					m_strDirPath=(LPCTSTR)Buffer;
 					break;
+				} catch (std::filesystem::filesystem_error) {
+					RAISE_EXCEPTION(L"Failed to create directory");
 				}
 			}
 		}
@@ -87,7 +90,12 @@ bool CTemporaryDirectoryManager::ClearSubDir()
 	if(!UtilDeleteDir(m_strDirPath,false)){
 		if(!PathIsDirectory(m_strDirPath)){
 			//対象ディレクトリが存在していなければ、確保しておく
-			if(UtilMakeSureDirectoryPathExists(m_strDirPath))return true;
+			try {
+				std::filesystem::create_directories((LPCWSTR)m_strDirPath);
+				return true;
+			} catch (std::filesystem::filesystem_error) {
+				return false;
+			}
 		}
 		return false;
 	}
