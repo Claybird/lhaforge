@@ -575,7 +575,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	//正常に圧縮できたファイルを削除orごみ箱に移動
 	if(!bError && ConfCompress.DeleteAfterCompress){
 		//カレントディレクトリは削除できないので別の場所へ移動
-		::SetCurrentDirectory(UtilGetModuleDirectoryPath());
+		::SetCurrentDirectory(UtilGetModuleDirectoryPath().c_str());
 		//削除:オリジナルの指定で消す
 		std::vector<std::wstring> tmp;
 		for (const auto& item : _sourcePathList) {

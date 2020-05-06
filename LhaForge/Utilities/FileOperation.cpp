@@ -202,34 +202,26 @@ std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern)
 	return out;
 }
 
-//パスのディレクトリ部分だけを取り出す
-void UtilPathGetDirectoryPart(CString &str)
+//executable name
+std::wstring UtilGetModulePath()
 {
-	LPTSTR lpszBuf=str.GetBuffer(_MAX_PATH+1);
-	PathRemoveFileSpec(lpszBuf);
-	PathAddBackslash(lpszBuf);
-	str.ReleaseBuffer();
+	std::wstring name;
+	name.resize(_MAX_PATH);
+	for (;;) {
+		DWORD bufsize = (DWORD)name.size();
+		auto nCopied = GetModuleFileNameW(GetModuleHandleW(nullptr), &name[0], bufsize);
+		if (nCopied < bufsize) {
+			break;
+		} else {
+			name.resize(name.size() * 2);
+		}
+	}
+	return name.c_str();
 }
 
-//自分のプログラムのファイル名を返す
-LPCTSTR UtilGetModulePath()
+std::wstring UtilGetModuleDirectoryPath()
 {
-	static TCHAR s_szExePath[_MAX_PATH+1]={0};
-	if(s_szExePath[0]!=_T('\0'))return s_szExePath;
-
-	GetModuleFileName(GetModuleHandle(NULL), s_szExePath, _MAX_PATH);	//本体のパス取得
-	return s_szExePath;
-}
-
-//自分のプログラムのおいてあるディレクトリのパス名を返す
-LPCTSTR UtilGetModuleDirectoryPath()
-{
-	static TCHAR s_szDirPath[_MAX_PATH+1]={0};
-	if(s_szDirPath[0]!=_T('\0'))return s_szDirPath;
-
-	GetModuleFileName(GetModuleHandle(NULL), s_szDirPath, _MAX_PATH);	//本体のパス取得
-	PathRemoveFileSpec(s_szDirPath);
-	return s_szDirPath;
+	return std::filesystem::path(UtilGetModulePath()).parent_path();
 }
 
 //複数階層のディレクトリを一気に作成する

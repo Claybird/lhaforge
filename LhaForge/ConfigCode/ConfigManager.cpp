@@ -39,7 +39,8 @@ void GetDefaultFilePath(CString &strPath, LPCTSTR lpszDir, LPCTSTR lpszFile, boo
 	//LhaForgeフォルダと同じ場所にINIがあれば使用する
 	{
 		TCHAR szCommonIniPath[_MAX_PATH + 1] = { 0 };
-		_tcsncpy_s(szCommonIniPath, UtilGetModuleDirectoryPath(), _MAX_PATH);
+		//TODO: pathname might exceed _MAX_PATH
+		_tcsncpy_s(szCommonIniPath, UtilGetModuleDirectoryPath().c_str(), _MAX_PATH);
 		PathAppend(szCommonIniPath, lpszFile);
 		if (PathFileExists(szCommonIniPath)) {
 			//共通設定
@@ -75,7 +76,8 @@ void GetDefaultFilePath(CString &strPath, LPCTSTR lpszDir, LPCTSTR lpszFile, boo
 		GetUserName(UserName, &Length);
 
 		TCHAR szIniPath[_MAX_PATH + 1];
-		_tcsncpy_s(szIniPath, UtilGetModuleDirectoryPath(), _MAX_PATH);
+		//TODO: pathname might exceed _MAX_PATH
+		_tcsncpy_s(szIniPath, UtilGetModuleDirectoryPath().c_str(), _MAX_PATH);
 		PathAppend(szIniPath, UserName);
 		PathAddBackslash(szIniPath);
 		//MakeSureDirectoryPathExists(szIniPath);

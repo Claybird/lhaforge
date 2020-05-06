@@ -283,7 +283,7 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDi
 	//---about myself
 	templateParams[L"ProgramPath"] = UtilGetModulePath();
 	templateParams[L"ProgramFileName"] = std::filesystem::path(UtilGetModulePath()).filename();
-	templateParams[L"ProgramDir"] = std::filesystem::path(UtilGetModuleDirectoryPath()).parent_path();
+	templateParams[L"ProgramDir"] = UtilGetModuleDirectoryPath();
 	templateParams[L"ProgramDrive"] = std::filesystem::path(UtilGetModuleDirectoryPath()).root_name();
 
 	if (lpOpenDir) {

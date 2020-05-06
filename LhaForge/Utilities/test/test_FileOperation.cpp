@@ -154,6 +154,11 @@ namespace UnitTest
 				Assert::AreEqual(expected, actual);
 			}
 		}
+		TEST_METHOD(test_UtilGetModulePath_UtilGetModuleDirectoryPath) {
+			//TODO: is there any better test?
+			Assert::IsTrue(std::filesystem::exists(UtilGetModulePath()));
+			Assert::IsTrue(std::filesystem::exists(UtilGetModuleDirectoryPath()));
+		}
 	};
 };
 

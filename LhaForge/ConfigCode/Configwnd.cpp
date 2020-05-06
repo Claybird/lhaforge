@@ -163,7 +163,7 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 		if(iswow64){
 			//先にLFAssist(64bit)に処理を渡す。ただしINI削除は行わない。
 			//---アシスタント(64bit)のパスを取得
-			CPath strExePath(UtilGetModuleDirectoryPath());
+			CPath strExePath(UtilGetModuleDirectoryPath().c_str());
 			strExePath+=_T("LFAssist64.exe");
 			if(strExePath.FileExists()){	//ファイルが存在するときのみ
 				strExePath.QuoteSpaces();
@@ -192,7 +192,7 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 		//変更を実行
 		//---アシスタントのパスを取得
-		CPath strExePath(UtilGetModuleDirectoryPath());
+		CPath strExePath(UtilGetModuleDirectoryPath().c_str());
 		strExePath+=_T("LFAssist.exe");
 		strExePath.QuoteSpaces();
 

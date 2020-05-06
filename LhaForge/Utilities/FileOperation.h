@@ -44,14 +44,9 @@ std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName);
 //returns filenames that matches to the given pattern
 std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 
-//パスのディレクトリ部分だけを取り出す
-void UtilPathGetDirectoryPart(CString&);
-
-//自分のプログラムのファイル名を返す
-LPCTSTR UtilGetModulePath();
-
-//自分のプログラムのおいてあるディレクトリのパス名を返す
-LPCTSTR UtilGetModuleDirectoryPath();
+//executable name
+std::wstring UtilGetModulePath();
+std::wstring UtilGetModuleDirectoryPath();
 
 //複数階層のディレクトリを一気に作成する
 [[deprecated("use std::filesystem::create_directories instead")]]

@@ -140,7 +140,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 
 			//絶対パスに変換
 			if(PathIsRelative(strPath)){
-				CPath tmp=UtilGetModuleDirectoryPath();
+				CPath tmp=UtilGetModuleDirectoryPath().c_str();
 				tmp.AddBackslash();
 				tmp+=strPath;
 				strPath=(LPCTSTR)tmp;

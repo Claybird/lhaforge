@@ -299,7 +299,7 @@ CIconSelectDialog::CIconSelectDialog(ASSOCINFO &ai)
 	AssocInfo=&ai;
 	if(AssocInfo->IconFile.IsEmpty()){
 		//EXEのパスを元にDLLのファイル名を組み立てる
-		CPath strResourcePath(UtilGetModuleDirectoryPath());
+		CPath strResourcePath(UtilGetModuleDirectoryPath().c_str());
 		strResourcePath+=CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT));
 		IconPath=(CString)strResourcePath;
 		TRACE(_T("Set Default Icon Path\n"));

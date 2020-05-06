@@ -41,7 +41,8 @@ namespace UnitTest
 			const auto output_path = LR"(D:\test\output.ext)";
 			auto envInfo = LF_make_expand_information(open_dir, output_path);
 			Assert::IsTrue(has_key(envInfo, L"%PATH%"));
-			Assert::AreEqual(std::wstring(UtilGetModulePath()), envInfo[L"ProgramPath"]);
+			Assert::AreEqual(UtilGetModulePath(), envInfo[L"ProgramPath"]);
+			Assert::AreEqual(std::filesystem::path(UtilGetModulePath()).parent_path().wstring(), envInfo[L"ProgramDir"]);
 
 			Assert::AreEqual(std::wstring(open_dir), envInfo[L"dir"]);
 			Assert::AreEqual(std::wstring(open_dir), envInfo[L"OutputDir"]);

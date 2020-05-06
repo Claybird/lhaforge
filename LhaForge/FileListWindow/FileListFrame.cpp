@@ -330,7 +330,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 		CPath filePath=fname;
 		filePath.QuoteSpaces();
 		strParam+=(LPCTSTR)filePath;
-		int ret=(int)ShellExecute(NULL,NULL,UtilGetModulePath(),strParam,NULL,SW_RESTORE);
+		int ret=(int)ShellExecute(NULL,NULL,UtilGetModulePath().c_str(),strParam,NULL,SW_RESTORE);
 		if(ret<=32){
 			return E_FAIL;
 		}else return S_OK;
