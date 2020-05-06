@@ -134,73 +134,51 @@ std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot)
 	return files;
 }
 
-//フルパスかつ絶対パスの取得
-PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName)
+bool UtilPathIsRoot(const wchar_t* path)
 {
-	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
-	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ファイル名が指定されていない\n"));
-		return PATHERROR_INVALID;
-	}
-
-	//---絶対パス取得
-	TCHAR szAbsPath[_MAX_PATH+1]={0};
-	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ルートかどうかのチェックを行う
-		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
-		PathAddBackslash(Buffer);
-		if(PathIsRoot(Buffer)){
-			//ドライブ名だけが指定されている場合、
-			//_tfullpathはそのドライブのカレントディレクトリを取得してしまう
-			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
-		}
-		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("絶対パス取得失敗\n"));
-			return PATHERROR_ABSPATH;
-		}
-	}
-
-	if(!PathFileExists(szAbsPath)&&!PathIsDirectory(szAbsPath)){
-		//パスがファイルもしくはディレクトリとして存在しないなら、エラーとする
-		TRACE(_T("ファイルが存在しない\n"));
-		return PATHERROR_NOTFOUND;
-	}
-	if(!GetLongPathName(szAbsPath,szAbsPath,_MAX_PATH)){
-		TRACE(_T("ロングファイル名取得失敗\n"));
-		return PATHERROR_LONGNAME;
-	}
-	_FullPath=szAbsPath;
-	return PATHERROR_NONE;
+	auto p = std::filesystem::path(path);
+	p.make_preferred();
+	if (p == p.root_path() || p == p.root_name())return true;
+	return false;
 }
 
-//絶対パスの取得
-bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName)
+std::wstring UtilPathAddLastSeparator(const wchar_t* path)
 {
-	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
-	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ファイル名が指定されていない\n"));
-		return false;
+	std::wstring p = path;
+	if (p.empty() || (p.back() != L'/' && p.back() != L'\\')) {
+		p += std::filesystem::path::preferred_separator;
+	}
+	return p;
+}
+
+//get full & absolute path
+std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName)
+{
+	if(!lpszFileName||wcslen(lpszFileName)<=0){
+		RAISE_EXCEPTION(L"empty pathname");
 	}
 
-	//---絶対パス取得
-	TCHAR szAbsPath[_MAX_PATH+1]={0};
-	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ルートかどうかのチェックを行う
-		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
-		PathAddBackslash(Buffer);
-		if(PathIsRoot(Buffer)){
-			//ドライブ名だけが指定されている場合、
-			//_tfullpathはそのドライブのカレントディレクトリを取得してしまう
-			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
+	std::filesystem::path abs_path = lpszFileName;
+	if(!UtilPathIsRoot(abs_path.c_str())){
+		//when only drive letter is given, _wfullpath returns current directory on that drive
+		wchar_t* buf = _wfullpath(nullptr, lpszFileName, 0);
+		if (!buf) {
+			RAISE_EXCEPTION(L"failed to get fullpath");
 		}
-		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("絶対パス取得失敗\n"));
-			return false;
-		}
+		abs_path = buf;
+		free(buf);
 	}
 
-	_FullPath=szAbsPath;
-	return true;
+	if (std::filesystem::exists(abs_path)) {
+		DWORD bufSize = GetLongPathNameW(abs_path.c_str(), nullptr, 0);
+		std::wstring buf;
+		buf.resize(bufSize);
+		if (!GetLongPathNameW(abs_path.c_str(), &buf[0], bufSize)) {
+			RAISE_EXCEPTION(L"failed to get long filename");
+		}
+		abs_path = buf.c_str();
+	}
+	return abs_path.make_preferred().wstring();
 }
 
 //ワイルドカードの展開

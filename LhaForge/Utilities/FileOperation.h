@@ -35,17 +35,11 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 //recursively enumerates files (no directories) in specified directory
 std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot);
 
-//フルパスかつ絶対パスの取得
-enum PATHERROR{
-	PATHERROR_NONE,		//成功
-	PATHERROR_INVALID,	//パラメータ指定が不正
-	PATHERROR_ABSPATH,	//絶対パスの取得に失敗
-	PATHERROR_NOTFOUND,	//ファイルもしくはフォルダが見つからない
-	PATHERROR_LONGNAME,	//ロングファイル名取得失敗
-};
-PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName);
-//絶対パスの取得
-bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName);
+bool UtilPathIsRoot(const wchar_t* path);
+std::wstring UtilPathAddLastSeparator(const wchar_t* path);
+
+//get full & absolute path
+std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName);
 
 //ワイルドカードの展開
 bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList);

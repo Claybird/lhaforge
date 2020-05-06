@@ -2,6 +2,7 @@
 #ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/OSUtil.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -92,6 +93,46 @@ namespace UnitTest
 			//cleanup
 			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+		}
+		TEST_METHOD(test_UtilPathIsRoot) {
+			Assert::IsTrue(UtilPathIsRoot(L"c:/"));
+			Assert::IsTrue(UtilPathIsRoot(L"c:\\"));
+			Assert::IsTrue(UtilPathIsRoot(L"c:"));
+			Assert::IsFalse(UtilPathIsRoot(L"c:/windows/"));
+			Assert::IsFalse(UtilPathIsRoot(L"c:\\windows\\"));
+		}
+		TEST_METHOD(test_UtilPathAddLastSeparator) {
+			std::wstring sep;
+			sep = std::filesystem::path::preferred_separator;
+			Assert::AreEqual(std::wstring(sep), UtilPathAddLastSeparator(L""));
+			Assert::AreEqual(L"C:" + sep, UtilPathAddLastSeparator(L"C:"));
+			Assert::AreEqual(std::wstring(L"C:\\"), UtilPathAddLastSeparator(L"C:\\"));
+			Assert::AreEqual(std::wstring(L"C:/"), UtilPathAddLastSeparator(L"C:/"));
+			Assert::AreEqual(L"/tmp" + sep, UtilPathAddLastSeparator(L"/tmp"));
+			Assert::AreEqual(std::wstring(L"/tmp\\"), UtilPathAddLastSeparator(L"/tmp\\"));
+			Assert::AreEqual(std::wstring(L"/tmp/"), UtilPathAddLastSeparator(L"/tmp/"));
+		}
+		TEST_METHOD(test_UtilGetCompletePathName) {
+			Assert::ExpectException<LF_EXCEPTION>([]() {
+				UtilGetCompletePathName(nullptr);
+			});
+			Assert::ExpectException<LF_EXCEPTION>([]() {
+				UtilGetCompletePathName(L"");
+			});
+			Assert::IsTrue(UtilPathIsRoot(L"C:\\"));
+			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:").c_str()));
+			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\").c_str()));
+			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\Windows").c_str()));
+			auto tempDir = std::filesystem::temp_directory_path();
+			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(tempDir.c_str()).c_str()));
+			{
+				CCurrentDirManager mngr(tempDir.c_str());
+				auto dest = L"C:\\Windows";
+				auto relpath = std::filesystem::relative(dest);
+				auto expected = toLower(std::filesystem::path(dest).make_preferred());
+				auto actual = toLower(std::filesystem::path(UtilGetCompletePathName(relpath.c_str())));
+				Assert::AreEqual(expected, actual);
+			}
 		}
 	};
 };

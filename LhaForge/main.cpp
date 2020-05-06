@@ -145,7 +145,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 				tmp+=strPath;
 				strPath=(LPCTSTR)tmp;
 			}
-			UtilGetCompletePathName(strPath,strPath);
+			try {
+				auto buf = UtilGetCompletePathName(strPath);
+				strPath = buf.c_str();
+			} catch (LF_EXCEPTION) {
+				//do nothing
+			}
 
 			//環境変数設定
 			SetEnvironmentVariable(L"TEMP",strPath);

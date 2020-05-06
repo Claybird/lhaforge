@@ -71,7 +71,11 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 		TCHAR szModule[_MAX_PATH+1];
 		GetModuleFileName(GetModuleHandle(NULL), szModule, _MAX_PATH);	//本体のパス取得
 		CPath fullPath;
-		UtilGetCompletePathName(fullPath,szModule);	//パスを正規化
+		try {
+			fullPath = UtilGetCompletePathName(szModule).c_str();	//パスを正規化
+		} catch (LF_EXCEPTION) {
+			fullPath = szModule;
+		}
 		fullPath.QuoteSpaces();
 		m_strAssocDesired=(LPCTSTR)fullPath;
 		//m_strAssocDesired.MakeLower();	//小文字に正規化

@@ -34,10 +34,14 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
 	//出力先のパス
 	CString Buffer=Config.Data[_T("OutputDir")];
-	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
-	}else{
-		OutputDir=_T("");
+	try {
+		if (!Buffer.IsEmpty()) {
+			OutputDir = UtilGetCompletePathName(Buffer).c_str();
+		} else {
+			OutputDir = _T("");
+		}
+	} catch (LF_EXCEPTION) {
+		OutputDir = _T("");
 	}
 	//圧縮後フォルダを開くかどうか
 	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);

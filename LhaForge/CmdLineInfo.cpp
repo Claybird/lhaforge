@@ -271,11 +271,8 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				TRACE(_T("OutputDir=%s\n"),cli.OutputDir);
 			}else if(0==_tcsncmp(_T("/@"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定
 				try{
-					CString strFile;
-					if (PATHERROR_NONE != UtilGetCompletePathName(strFile, (LPCTSTR)Parameter + 2)) {
-						RAISE_EXCEPTION(L"failed to get complete path name");
-					}
-					cli.FileList = UtilReadFromResponseFile(strFile, uCodePage);
+					auto strFile = UtilGetCompletePathName((LPCTSTR)Parameter + 2);
+					cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
 				}catch(LF_EXCEPTION){
 					//読み込み失敗
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
@@ -283,12 +280,9 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}
 			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定(読み取り後削除)
 				try {
-					CString strFile;
-					if (PATHERROR_NONE != UtilGetCompletePathName(strFile, (LPCTSTR)Parameter + 2)) {
-						RAISE_EXCEPTION(L"failed to get complete path name");
-					}
-					cli.FileList = UtilReadFromResponseFile(strFile, uCodePage);
-					DeleteFile(strFile);	//削除
+					auto strFile = UtilGetCompletePathName((LPCTSTR)Parameter + 2);
+					cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
+					DeleteFileW(strFile.c_str());	//削除
 				} catch (LF_EXCEPTION) {
 					//読み込み失敗
 					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
@@ -391,29 +385,11 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	//---ファイル名のフルパスなどチェック
 	for(auto &item: cli.FileList){
 		CPath strAbsPath;
-		switch (UtilGetCompletePathName(strAbsPath, item.c_str())) {
-		case PATHERROR_NONE:
-			//成功
-			break;
-		case PATHERROR_INVALID:
-			//パラメータ指定が不正
-			ASSERT(!"パラメータ指定が不正");
-			return PROCESS_INVALID;
-		case PATHERROR_ABSPATH:
+		try {
+			strAbsPath = UtilGetCompletePathName(item.c_str()).c_str();
+		} catch (LF_EXCEPTION) {
 			//絶対パスの取得に失敗
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
-			return PROCESS_INVALID;
-		case PATHERROR_NOTFOUND:
-			//ファイルもしくはフォルダが存在しない
-			{
-				CString msg;
-				msg.Format(IDS_ERROR_FILE_NOT_FOUND, item.c_str());
-				ErrorMessage(msg);
-			}
-			return PROCESS_INVALID;
-		case PATHERROR_LONGNAME:
-			//ロングファイル名取得失敗
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_LONGNAME)));
 			return PROCESS_INVALID;
 		}
 
@@ -426,7 +402,9 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 	//出力フォルダが指定されていたら、それを絶対パスに変換
 	if(!cli.OutputDir.IsEmpty()){
-		if(!UtilGetAbsPathName(cli.OutputDir,cli.OutputDir)){
+		try{
+			cli.OutputDir = UtilGetCompletePathName(cli.OutputDir).c_str();
+		} catch (LF_EXCEPTION) {
 			//絶対パスの取得に失敗
 			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
 			return PROCESS_INVALID;

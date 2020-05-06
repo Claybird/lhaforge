@@ -126,7 +126,11 @@ void CConfigManager::SetConfigFile(LPCTSTR lpszFile)
 		return;
 	}
 	m_bUserCommon=false;
-	UtilGetAbsPathName(m_strIniPath,lpszFile);
+	try {
+		m_strIniPath = UtilGetCompletePathName(lpszFile).c_str();
+	} catch (LF_EXCEPTION) {
+		m_strIniPath = lpszFile;
+	}
 	TRACE(_T("Custom Config Path=%s\n"),m_strIniPath);
 }
 
