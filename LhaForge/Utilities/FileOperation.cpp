@@ -181,50 +181,25 @@ std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName)
 	return abs_path.make_preferred().wstring();
 }
 
-//ワイルドカードの展開
-bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList)
+//returns filenames that matches to the given pattern
+std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern)
 {
-	std::list<CString> tempList;
-	std::list<CString>::const_iterator ite=r_inList.begin();
-	const std::list<CString>::const_iterator end=r_inList.end();
-	for(;ite!=end;++ite){
-		if(-1==(*ite).FindOneOf(_T("*?"))){	//ワイルド展開可能な文字はない
-			tempList.push_back(*ite);
-		}else{
-			//ワイルド展開
-			CFindFile cFindFile;
-			BOOL bContinue=cFindFile.FindFile(*ite);
-			while(bContinue){
-				if(!cFindFile.IsDots()){
-					tempList.push_back(cFindFile.GetFilePath());
-				}
-				bContinue=cFindFile.FindNextFile();
-			}
-		}
-	}
-	r_outList=tempList;
-	return true;
-}
-
-
-bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam)
-{
-	std::list<CString> tempList;
-	if(-1==r_inParam.FindOneOf(_T("*?"))){	//ワイルド展開可能な文字はない
-		tempList.push_back(r_inParam);
+	std::vector<std::wstring> out;
+	std::wstring p = pattern;
+	if(std::wstring::npos == p.find_first_of(L"*?")){	//no characters to expand
+		out.push_back(pattern);
 	}else{
-		//ワイルド展開
+		//expand wild
 		CFindFile cFindFile;
-		BOOL bContinue=cFindFile.FindFile(r_inParam);
+		BOOL bContinue=cFindFile.FindFile(pattern);
 		while(bContinue){
 			if(!cFindFile.IsDots()){
-				tempList.push_back(cFindFile.GetFilePath());
+				out.push_back((const wchar_t*)cFindFile.GetFilePath());
 			}
 			bContinue=cFindFile.FindNextFile();
 		}
 	}
-	r_outList=tempList;
-	return true;
+	return out;
 }
 
 //パスのディレクトリ部分だけを取り出す

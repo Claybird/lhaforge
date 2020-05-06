@@ -417,8 +417,6 @@ bool IsMultiVolume(LPCTSTR lpszPath, CString &r_strFindParam)
 //TODO
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
 {
-	std::list<CString> fileList;	//削除対象のファイル一覧
-
 	//---マルチボリュームならまとめて削除
 	CString strFindParam;
 	bool bMultiVolume=false;
@@ -427,12 +425,12 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 	}
 
 	CString strFiles;	//ファイル一覧
-
+	std::vector<std::wstring> fileList;	//削除対象のファイル一覧
 	if(bMultiVolume){
-		UtilPathExpandWild(fileList,strFindParam);
-		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			strFiles+=_T("\n");
-			strFiles+=*ite;
+		fileList = UtilPathExpandWild(strFindParam);
+		for (const auto &item : fileList) {
+			strFiles += L"\n";
+			strFiles += item.c_str();
 		}
 	}else{
 		fileList.push_back(lpszArcFile);
@@ -461,11 +459,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 		}
 
 		//削除実行
-		std::vector<std::wstring> tmp;
-		for (const auto& item : fileList) {
-			tmp.push_back((LPCWSTR)item);	//TODO
-		}
-		UtilMoveFileToRecycleBin(tmp);
+		UtilMoveFileToRecycleBin(fileList);
 		return true;
 	}else{
 		//------
@@ -486,8 +480,8 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 			}
 		}
 		//削除実行
-		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			DeleteFile(*ite);
+		for(const auto &item: fileList){
+			DeleteFileW(item.c_str());
 		}
 		return true;
 	}

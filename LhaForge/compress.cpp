@@ -408,10 +408,16 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 			path.AddBackslash();
 			if(path.IsDirectory()){
 				//単体のディレクトリを圧縮
-				UtilPathExpandWild(sourcePathList, path+L"*");
+				auto tmp = UtilPathExpandWild(path+L"*");
+				sourcePathList.clear();
+				for (auto& item : tmp) {
+					//TODO
+					sourcePathList.push_back(item.c_str());
+				}
 			}
 			if(sourcePathList.empty()){
-				sourcePathList = sourcePathList;
+				//TODO: this should be error
+				sourcePathList = _sourcePathList;
 			}
 		}
 	}

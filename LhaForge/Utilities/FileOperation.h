@@ -41,9 +41,8 @@ std::wstring UtilPathAddLastSeparator(const wchar_t* path);
 //get full & absolute path
 std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName);
 
-//ワイルドカードの展開
-bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList);
-bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam);
+//returns filenames that matches to the given pattern
+std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 
 //パスのディレクトリ部分だけを取り出す
 void UtilPathGetDirectoryPart(CString&);

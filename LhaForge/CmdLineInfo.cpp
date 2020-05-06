@@ -371,16 +371,13 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		// ここでファイルリストが空であればファイルが指定されていないと判断できる。
 		//return PROCESS_CONFIGURE;
 	}else{
-		//ワイルドカードの展開
-		std::list<CString> tmp;
+		//expand filename pattern
+		std::vector<std::wstring> tmp;
 		for (const auto& item : cli.FileList) {
-			tmp.push_back(item.c_str());
+			auto out = UtilPathExpandWild(item.c_str());
+			tmp.insert(tmp.end(), out.begin(), out.end());
 		}
-		UtilPathExpandWild(tmp, tmp);
-		cli.FileList.clear();
-		for (const auto& item : tmp) {
-			cli.FileList.push_back((const wchar_t*)item);
-		}
+		cli.FileList = tmp;
 	}
 	//---ファイル名のフルパスなどチェック
 	for(auto &item: cli.FileList){

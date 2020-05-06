@@ -3,6 +3,7 @@
 #include "CppUnitTest.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/Utility.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -64,7 +65,7 @@ namespace UnitTest
 			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
 		}
-		TEST_METHOD(test_UtilRecursiveEnumFile) {
+		TEST_METHOD(test_UtilRecursiveEnumFile_UtilPathExpandWild) {
 			//prepare files
 			std::vector<std::wstring> fileList;
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
@@ -82,12 +83,31 @@ namespace UnitTest
 			}
 
 			//enumerate
-			auto enumerated = UtilRecursiveEnumFile(dir.c_str());
-			Assert::AreEqual(fileList.size(), enumerated.size());
-			for (size_t i = 0; i < fileList.size(); i++) {
-				Assert::AreEqual(
-					std::filesystem::path(fileList[i]).make_preferred().wstring(),
-					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			{
+				auto enumerated = UtilRecursiveEnumFile(dir.c_str());
+				Assert::AreEqual(fileList.size(), enumerated.size());
+				for (size_t i = 0; i < fileList.size(); i++) {
+					Assert::AreEqual(
+						std::filesystem::path(fileList[i]).make_preferred().wstring(),
+						std::filesystem::path(enumerated[i]).make_preferred().wstring());
+				}
+			}
+
+			//expand wild
+			{
+				auto enumerated = UtilPathExpandWild(dir.c_str());
+				Assert::AreEqual(size_t(1), enumerated.size());
+				Assert::AreEqual(enumerated[0], dir);
+
+				auto pdir = std::filesystem::path(dir);
+				enumerated = UtilPathExpandWild((pdir / L"*.txt").c_str());
+				Assert::AreEqual(size_t(3), enumerated.size());
+				Assert::IsTrue(isIn(enumerated, pdir / L"a000.txt"));
+				Assert::IsTrue(isIn(enumerated, pdir / L"a001.txt"));
+				Assert::IsTrue(isIn(enumerated, pdir / L"a002.txt"));
+
+				enumerated = UtilPathExpandWild((pdir / L"*.exe").c_str());
+				Assert::IsTrue(enumerated.empty());
 			}
 
 			//cleanup
