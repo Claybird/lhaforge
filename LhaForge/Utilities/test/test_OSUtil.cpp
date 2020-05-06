@@ -3,6 +3,7 @@
 #include "CppUnitTest.h"
 #include "Utilities/OSUtil.h"
 #include "Utilities/Utility.h"
+#include "Utilities/FileOperation.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -49,18 +50,15 @@ namespace UnitTest
 			}
 		}
 		TEST_METHOD(test_CurrentDirManager) {
-			wchar_t prevPath[_MAX_PATH + 1];
-			_wgetcwd(prevPath, _MAX_PATH);
+			auto prevPath = std::filesystem::current_path();
 			{
 				CCurrentDirManager cdm(std::filesystem::temp_directory_path().c_str());
-				wchar_t currentPath[_MAX_PATH + 1];
-				_wgetcwd(currentPath, _MAX_PATH);
-				Assert::AreEqual(std::filesystem::temp_directory_path().wstring(),
-					(std::filesystem::path(currentPath) / L"").wstring());
+				auto currentPath = UtilPathAddLastSeparator(std::filesystem::current_path().c_str());
+				Assert::AreEqual(UtilPathAddLastSeparator(std::filesystem::temp_directory_path().c_str()),
+					currentPath);
 			}
-			wchar_t currentPath[_MAX_PATH + 1];
-			_wgetcwd(currentPath, _MAX_PATH);
-			Assert::AreEqual(std::wstring(prevPath), std::wstring(currentPath));
+			auto currentPath= std::filesystem::current_path();
+			Assert::AreEqual(prevPath.wstring(), currentPath.wstring());
 		}
 	};
 };

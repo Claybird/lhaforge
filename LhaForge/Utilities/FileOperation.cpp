@@ -31,7 +31,7 @@
 std::wstring UtilGetTempPath()
 {
 	auto tempDir = std::filesystem::temp_directory_path();
-	return (tempDir / L"").c_str();
+	return UtilPathAddLastSeparator(tempDir.c_str());
 }
 
 std::wstring UtilGetTemporaryFileName()
