@@ -156,6 +156,7 @@ namespace UnitTest
 		}
 		TEST_METHOD(test_UtilGetModulePath_UtilGetModuleDirectoryPath) {
 			//TODO: is there any better test?
+			Assert::IsFalse(UtilGetModulePath().empty());
 			Assert::IsTrue(std::filesystem::exists(UtilGetModulePath()));
 			Assert::IsTrue(std::filesystem::exists(UtilGetModuleDirectoryPath()));
 		}
