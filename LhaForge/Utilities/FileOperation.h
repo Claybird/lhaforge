@@ -48,9 +48,6 @@ std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 std::wstring UtilGetModulePath();
 std::wstring UtilGetModuleDirectoryPath();
 
-//パスに共通する部分を取り出し、基底パスを取り出す
-void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList);
-
 //ファイル名に使えない文字列を置き換える
 void UtilFixFileName(CString &,LPCTSTR lpszOrg,TCHAR replace);
 
