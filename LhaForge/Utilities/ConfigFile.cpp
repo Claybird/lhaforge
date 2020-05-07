@@ -28,6 +28,53 @@
 #include "Utility.h"
 #include "StringUtil.h"
 
+struct FILELINECONTAINER {
+	virtual ~FILELINECONTAINER() {}
+	std::vector<WCHAR> data;
+	std::vector<LPCWSTR> lines;
+};
+[[deprecated("will be removed")]]
+bool UtilReadFileSplitted(LPCTSTR lpFile, FILELINECONTAINER &container)
+{
+	//行バッファをクリア
+	container.data.clear();
+	container.lines.clear();
+
+	//---読み込み
+	std::vector<BYTE> cReadBuffer;
+	if (!UtilReadFile(lpFile, cReadBuffer))return false;
+	//終端の0追加
+	cReadBuffer.resize(cReadBuffer.size() + 2);
+	cReadBuffer[cReadBuffer.size() - 1] = 0;
+	cReadBuffer[cReadBuffer.size() - 2] = 0;
+
+	{
+		auto cp = UtilGuessCodepage((const char*)&cReadBuffer[0], cReadBuffer.size());
+		CStringW strData = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), cp).c_str();
+		container.data.assign((LPCWSTR)strData, (LPCWSTR)strData + strData.GetLength());
+		container.data.push_back(L'\0');
+	}
+
+
+	LPWSTR p = &container.data[0];
+	const LPCWSTR end = p + container.data.size();
+	LPCWSTR lastHead = p;
+
+	//解釈
+	for (; p != end && *p != L'\0'; p++) {
+		if (*p == _T('\n') || *p == _T('\r')) {
+			if (lastHead < p) {	//空行は飛ばす
+				container.lines.push_back(lastHead);
+			}
+			lastHead = p + 1;
+			*p = L'\0';
+		}
+	}
+	return true;
+}
+
+
+
 //マップファイルなど設定ファイルの読み込み:Pythonのように辞書のリストでデータを返す
 bool UtilReadSectionedConfig(LPCTSTR lpFile,std::list<CONFIG_SECTION> &r_Sections,CString &strErr)
 {

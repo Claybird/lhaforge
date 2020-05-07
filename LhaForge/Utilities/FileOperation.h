@@ -51,13 +51,6 @@ std::wstring UtilGetModuleDirectoryPath();
 //ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
 bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit=-1);
 
-struct FILELINECONTAINER{
-	virtual ~FILELINECONTAINER(){}
-	std::vector<WCHAR> data;
-	std::vector<LPCWSTR> lines;
-};
-bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER&);
-
 
 class CAutoFile {
 protected:
