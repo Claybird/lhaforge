@@ -28,6 +28,88 @@
 #include "../Utilities/FileOperation.h"
 #include "../ArchiverCode/arc_interface.h"
 
+[[deprecated("will be removed")]]
+LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr)
+{
+	for (; *lpStr != _T('\0'); lpStr++) {
+		if (*lpStr == _T('/') || *lpStr == _T('\\')) {
+			break;
+		}
+	}
+	//終端
+	return lpStr;
+}
+
+[[deprecated("will be removed")]]
+bool UtilPathNextSection(LPCTSTR lpStart, LPCTSTR& r_lpStart, LPCTSTR& r_lpEnd, bool bSkipMeaningless)
+{
+	LPCTSTR lpEnd = UtilPathNextSeparator(lpStart);
+	if (bSkipMeaningless) {
+		while (true) {
+			//---無効なパスかどうかチェック
+			//2文字以上のパスは有効であると見なす
+
+			int length = lpEnd - lpStart;
+			if (length == 1) {
+				if (_T('.') == *lpStart || _T('\\') == *lpStart || _T('/') == *lpStart) {
+					//無効なパス
+					//次の要素を取ってくる
+					lpStart = lpEnd;
+					lpEnd = UtilPathNextSeparator(lpStart);
+				} else {
+					break;
+				}
+			} else if (length == 0) {
+				if (_T('\0') == *lpEnd) {	//もうパスの要素がなくなったので返る
+					return false;
+				} else {
+					lpEnd++;
+					//次の要素を取ってくる
+					lpStart = lpEnd;
+					lpEnd = UtilPathNextSeparator(lpStart);
+				}
+			} else {
+				break;
+			}
+		}
+	}
+	r_lpStart = lpStart;
+	r_lpEnd = lpEnd;
+	return true;
+}
+
+
+//Pathが'/'もしくは'\\'で終わっているならtrue
+[[deprecated("will be removed")]]
+bool UtilPathEndWithSeparator(LPCTSTR lpPath)
+{
+	UINT length = _tcslen(lpPath);
+	TCHAR c = lpPath[length - 1];
+	return (_T('/') == c || _T('\\') == c);
+}
+
+//パス名の最後の部分を取り出す
+[[deprecated("will be removed")]]
+void UtilPathGetLastSection(CString &strSection, LPCTSTR lpPath)
+{
+	CString strPath = lpPath;
+	strPath.Replace(_T('\\'), _T('/'));
+	while (true) {
+		int idx = strPath.ReverseFind(_T('/'));
+		if (-1 == idx) {	//そのまま
+			strSection = lpPath;
+			return;
+		} else if (idx < strPath.GetLength() - 1) {
+			//末尾がSeparatorではない
+			strSection = lpPath + idx + 1;
+			return;
+		} else {	//末尾がSeparator
+			//末尾を削る->削った後はループで再度処理;strSectionにはSeparator付きの文字が格納される
+			strPath.Delete(idx, strPath.GetLength());
+		}
+	}
+}
+
 void UtilModifyPath(CString &strPath)
 {
 	// パスの修正
@@ -160,6 +242,7 @@ HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager 
 		return E_FAIL;
 	}
 }
+
 
 
 HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)

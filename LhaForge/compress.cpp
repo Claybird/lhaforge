@@ -114,6 +114,19 @@ void GetBaseDirectory(CString &BasePath, const std::list<CString> &PathList)
 	TRACE(_T("BasePath=%s\n"), BasePath);
 }
 
+
+
+//ファイル名に使えない文字列を置き換える
+void FixFileName(CString &rStr, LPCTSTR lpszOrg, TCHAR replace)
+{
+	const LPCTSTR c_InvalidPathChar = _T("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\"<>|:*?\\/\b\t");
+	rStr = lpszOrg;
+	int length = _tcslen(c_InvalidPathChar);
+	for (int i = 0; i < length; i++) {
+		rStr.Replace(c_InvalidPathChar[i], replace);
+	}
+}
+
 bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<std::wstring>& fileList)
 {
 	std::wstring strFiles;	//ファイル一覧
@@ -346,7 +359,7 @@ HRESULT GetArchiveName(
 			TCHAR szVolume[MAX_PATH];
 			GetVolumeInformation(pathRoot, szVolume, MAX_PATH, NULL, NULL, NULL, NULL, 0);
 			//ドライブを丸ごと圧縮する場合には、ボリューム名をファイル名とする
-			UtilFixFileName(pathOrgFileName, szVolume, _T('_'));
+			FixFileName(pathOrgFileName, szVolume, _T('_'));
 		}
 	}
 

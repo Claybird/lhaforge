@@ -48,15 +48,6 @@ std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 std::wstring UtilGetModulePath();
 std::wstring UtilGetModuleDirectoryPath();
 
-//ファイル名に使えない文字列を置き換える
-void UtilFixFileName(CString &,LPCTSTR lpszOrg,TCHAR replace);
-
-LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr);
-bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,bool bSkipMeaningless);
-//Pathが'/'もしくは'\\'で終わっているならtrue
-bool UtilPathEndWithSeparator(LPCTSTR lpPath);
-void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath);
-
 //ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
 bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit=-1);
 
