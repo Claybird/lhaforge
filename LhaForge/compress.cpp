@@ -38,6 +38,39 @@
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
+
+struct FILE_READER {
+	FILE* fp;
+	LF_BUFFER_INFO ibi;
+	std::vector<unsigned char> buffer;
+	FILE_READER() : fp(NULL) {
+		ibi.make_eof();
+		buffer.resize(1024 * 1024);
+	}
+	virtual ~FILE_READER() {
+		close();
+	}
+	const LF_BUFFER_INFO& operator()() {
+		if (!fp || feof(fp)) {
+			ibi.make_eof();
+		} else {
+			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
+			ibi.buffer = &buffer[0];
+			ibi.offset = _ftelli64(fp);
+		}
+		return ibi;
+	}
+	void open(const wchar_t* path) {
+		close();
+		_wfopen_s(&fp, path, L"rb");
+	}
+	void close() {
+		if (fp)fclose(fp);
+		fp = NULL;
+	}
+};
+
+
 //パスに共通する部分を取り出し、基底パスを取り出す
 void GetBaseDirectory(CString &BasePath, const std::list<CString> &PathList)
 {

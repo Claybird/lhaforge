@@ -278,6 +278,20 @@ struct LF_ARCHIVE_ENTRY {
 	}
 };
 
+
+struct LF_BUFFER_INFO {
+	//contains buffer and its size in libarchive's internal memory
+	size_t size;	//0 if it reaches EOF
+	int64_t offset;
+	const void* buffer;
+	bool is_eof()const { return NULL == buffer; }
+	void make_eof() {
+		size = 0;
+		offset = 0;
+		buffer = NULL;
+	}
+};
+
 struct ARCHIVE_FILE_TO_READ
 {
 	struct archive *_arc;
