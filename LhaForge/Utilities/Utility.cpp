@@ -61,10 +61,7 @@ std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 
 std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage)
 {
-	std::vector<BYTE> cReadBuffer;
-	if (!UtilReadFile(lpszRespFile, cReadBuffer)) {
-		RAISE_EXCEPTION(L"Failed to read file %s", lpszRespFile);
-	}
+	std::vector<BYTE> cReadBuffer = UtilReadFile(lpszRespFile);
 
 	//adding \0 to end
 	cReadBuffer.push_back('\0');

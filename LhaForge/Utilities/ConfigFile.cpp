@@ -42,7 +42,11 @@ bool UtilReadFileSplitted(LPCTSTR lpFile, FILELINECONTAINER &container)
 
 	//---読み込み
 	std::vector<BYTE> cReadBuffer;
-	if (!UtilReadFile(lpFile, cReadBuffer))return false;
+	try {
+		cReadBuffer = UtilReadFile(lpFile);
+	} catch (LF_EXCEPTION) {
+		return false;
+	}
 	//終端の0追加
 	cReadBuffer.resize(cReadBuffer.size() + 2);
 	cReadBuffer[cReadBuffer.size() - 1] = 0;

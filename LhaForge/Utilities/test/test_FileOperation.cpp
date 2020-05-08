@@ -160,6 +160,21 @@ namespace UnitTest
 			Assert::IsTrue(std::filesystem::exists(UtilGetModulePath()));
 			Assert::IsTrue(std::filesystem::exists(UtilGetModuleDirectoryPath()));
 		}
+		TEST_METHOD(test_UtilReadFile) {
+			//prepare
+			auto fname = UtilGetTempPath() + L"lhaforge_test_file.tmp";
+			{
+				CAutoFile fp;
+				fp.open(fname.c_str(), L"w");
+				fprintf(fp, "test file content");
+			}
+			{
+				auto read = UtilReadFile(fname.c_str());
+				Assert::AreEqual(size_t(17), read.size());
+				read.push_back('\0');
+				Assert::AreEqual(std::string("test file content"), std::string((const char*)&read[0]));
+			}
+		}
 	};
 };
 

@@ -224,50 +224,27 @@ std::wstring UtilGetModuleDirectoryPath()
 	return std::filesystem::path(UtilGetModulePath()).parent_path();
 }
 
-
-
-
-//ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
-bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
+//read whole file
+std::vector<BYTE> UtilReadFile(const wchar_t* lpFile)
 {
-	ASSERT(lpFile);
-	if(!lpFile)return false;
-	if(!PathFileExists(lpFile))return false;
+	if (!lpFile)RAISE_EXCEPTION(L"Invalid Argument");
+	if(!std::filesystem::exists(lpFile))RAISE_EXCEPTION(L"File not found");
 
-	//Open
-	HANDLE hFile=CreateFile(lpFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-	if(INVALID_HANDLE_VALUE==hFile)return false;
+	struct _stat64 stat = {};
+	if (0 != _wstat64(lpFile, &stat))RAISE_EXCEPTION(L"Failed to get filesize");
+	auto file_size = (size_t)stat.st_size;
 
-	//4GB越えファイルは扱わないのでファイルサイズ取得はこれでよい
-	DWORD dwSize=GetFileSize(hFile,NULL);
+	CAutoFile fp;
+	fp.open(lpFile, L"rb");
+	if (!fp.is_opened())RAISE_EXCEPTION(L"Failed to open for read");
 
-	//読み込み範囲
-	if(-1!=dwLimit){	//範囲制限されている
-		dwSize=min(dwSize,dwLimit);
+	std::vector<BYTE> cReadBuffer;
+	cReadBuffer.resize(file_size);
+	auto ret = fread(&cReadBuffer[0], 1, cReadBuffer.size(), fp);
+	if (ret != cReadBuffer.size()) {
+		RAISE_EXCEPTION(L"Failed to read from file");
 	}
 
-	cReadBuffer.resize(dwSize);
-	DWORD dwRead,dwIndex=0;
-	//---読み込み
-	while(true){
-		const DWORD BLOCKSIZE=1024*10;	//10KBごとに読み込み
-		DWORD readsize=BLOCKSIZE;
-		if(dwIndex+readsize>dwSize){
-			readsize=dwSize-dwIndex;
-		}
-		if(!ReadFile(hFile,&cReadBuffer[dwIndex],readsize,&dwRead,NULL)){
-			CloseHandle(hFile);
-			return false;
-		}
-		dwIndex+=dwRead;
-		if(readsize<BLOCKSIZE)break;	//読み切った
-	}
-	CloseHandle(hFile);
-
-	if(dwSize!=dwIndex){
-		return false;
-	}
-
-	return true;
+	return cReadBuffer;
 }
 

@@ -48,8 +48,8 @@ std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
 std::wstring UtilGetModulePath();
 std::wstring UtilGetModuleDirectoryPath();
 
-//ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
-bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit=-1);
+//read whole file
+std::vector<BYTE> UtilReadFile(const wchar_t* lpFile);
 
 
 class CAutoFile {
@@ -73,6 +73,10 @@ public:
 	void open(const wchar_t* fname, const wchar_t* mode = L"r") {
 		close();
 		_wfopen_s(&_fp, fname, mode);
+		if (_fp) {
+			//set buffer size
+			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024);
+		}
 	}
 };
 
