@@ -35,7 +35,7 @@ class CFileListTabClient:public CTabView,public CEventDispatcher
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 protected:
-	CSmartPtrCollection<CFileListTabItem> m_GC;
+	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
 	CConfigManager&		m_rConfig;

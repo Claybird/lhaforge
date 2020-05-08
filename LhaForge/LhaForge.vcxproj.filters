@@ -395,9 +395,6 @@
     <ClInclude Include="Utilities\OSUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\PtrCollection.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\Semaphore.h">
       <Filter>Utilities</Filter>
     </ClInclude>

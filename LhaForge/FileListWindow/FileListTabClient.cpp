@@ -163,12 +163,12 @@ void CFileListTabClient::FitClient()
 int CFileListTabClient::CreateNewTab(const CConfigFileListWindow& ConfFLW)
 {
 	//--インスタンス確保
-	CFileListTabItem* pItem=new CFileListTabItem(m_rConfig);
-	m_GC.Add(pItem);
+	auto p = std::make_shared<CFileListTabItem>(m_rConfig);
+	auto pItem = p.get();
 	if(!pItem->CreateTabItem(m_hWnd,m_rFrameWnd,ConfFLW)){
-		m_GC.Delete(pItem);
 		return -1;
 	}
+	m_GC.push_back(p);
 	int idx=GetPageCount();
 
 	//--現状保存
@@ -198,7 +198,7 @@ void CFileListTabClient::RemoveTab(int idx)
 	m_lpPrevTab=NULL;
 
 	RemovePage(idx);
-	m_GC.Delete(pItem);
+	remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
 
 	if(GetPageCount()>0){
 		OnActivateTab(GetActivePage());
@@ -217,13 +217,13 @@ void CFileListTabClient::RemoveTabExcept(int idx)
 	for(int i=size-1;i>idx;i--){
 		CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(i);
 		RemovePage(i);
-		m_GC.Delete(pItem);
+		remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
 	}
 
 	for(int i=0;i<idx;i++){
 		CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(i);
 		RemovePage(i);
-		m_GC.Delete(pItem);
+		remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
 	}
 
 	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
@@ -294,7 +294,7 @@ void CFileListTabClient::ClearAllTabs()
 {
 	m_lpPrevTab=NULL;
 	if(IsWindow())RemoveAllPages();
-	m_GC.DeleteAll();
+	m_GC.clear();
 }
 
 void CFileListTabClient::OnSize(UINT uType, CSize &size)

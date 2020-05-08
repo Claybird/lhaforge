@@ -151,7 +151,6 @@
     <ClInclude Include="Utilities\EventDispatcher.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
-    <ClInclude Include="Utilities\PtrCollection.h" />
     <ClInclude Include="Utilities\Semaphore.h" />
     <ClInclude Include="Utilities\shellmanager.h" />
     <ClInclude Include="Utilities\StringUtil.h" />

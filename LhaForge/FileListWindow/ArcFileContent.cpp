@@ -169,7 +169,7 @@ void CArchiveFileContent::Clear()
 	m_Root.lpParent=NULL;
 
 	m_bReadOnly=false;
-	m_GC.DeleteAll();
+	m_GC.clear();
 
 	m_pathArcFileName.Empty();
 	m_bExtractEachSupported=false;
@@ -180,8 +180,9 @@ ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_
 	ASSERT(lpParent);
 	ARCHIVE_ENTRY_INFO_TREE::DICT::iterator ite=lpParent->childrenDict.find(lpName);
 	if(lpParent->childrenDict.end()==ite){
-		ARCHIVE_ENTRY_INFO_TREE* lpTree=new ARCHIVE_ENTRY_INFO_TREE;
-		m_GC.Add(lpTree);
+		auto p = std::make_shared<ARCHIVE_ENTRY_INFO_TREE>();
+		m_GC.push_back(p);
+		ARCHIVE_ENTRY_INFO_TREE* lpTree = p.get();
 		lpTree->Clear();
 
 		lpTree->lpParent=lpParent;
@@ -268,9 +269,10 @@ HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMa
 	size_t numEntries=entries.size();
 	for(size_t i=0;i<numEntries;i++){
 		if(bFilesOnly && entries[i].nAttribute & S_IFDIR)continue;	//ファイルのみの場合はディレクトリは無視
+		auto p = std::make_shared<ARCHIVE_ENTRY_INFO_TREE>();
+		m_GC.push_back(p);
 
-		ARCHIVE_ENTRY_INFO_TREE* lpEntry=new ARCHIVE_ENTRY_INFO_TREE;
-		m_GC.Add(lpEntry);
+		auto lpEntry = p.get();
 		lpEntry->Clear();
 
 		//エントリ設定

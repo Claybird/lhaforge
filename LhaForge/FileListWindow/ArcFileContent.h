@@ -24,7 +24,6 @@
 
 #pragma once
 #include "../ConfigCode/ConfigManager.h"
-#include "../Utilities/PtrCollection.h"
 
 #pragma message("FIXME: move this file to more generic position")
 
@@ -114,7 +113,7 @@ protected:
 	ARCHIVE_ENTRY_INFO_TREE m_Root;
 
 	//Semi-Auto Garbage Collector
-	CSmartPtrCollection<ARCHIVE_ENTRY_INFO> m_GC;
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > m_GC;
 
 	CString			m_pathArcFileName;
 	bool			m_bExtractEachSupported;
