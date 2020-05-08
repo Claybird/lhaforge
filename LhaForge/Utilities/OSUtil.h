@@ -76,10 +76,18 @@ protected:
 public:
 	CCurrentDirManager(const wchar_t* chdirTo) {
 		_prevDir = std::filesystem::current_path();
-		std::filesystem::current_path(chdirTo);
+		try {
+			std::filesystem::current_path(chdirTo);
+		} catch (std::filesystem::filesystem_error) {
+			RAISE_EXCEPTION(L"Failed to chdir to %s", chdirTo);
+		}
 	}
-	virtual ~CCurrentDirManager() {
-		std::filesystem::current_path(_prevDir);
+	virtual ~CCurrentDirManager() noexcept(false) {
+		try {
+			std::filesystem::current_path(_prevDir);
+		} catch (std::filesystem::filesystem_error) {
+			RAISE_EXCEPTION(L"Failed to chdir to %s", _prevDir.c_str());
+		}
 	}
 };
 

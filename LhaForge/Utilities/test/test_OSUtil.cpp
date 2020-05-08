@@ -59,6 +59,18 @@ namespace UnitTest
 			}
 			auto currentPath= std::filesystem::current_path();
 			Assert::AreEqual(prevPath.wstring(), currentPath.wstring());
+
+			auto path = std::filesystem::temp_directory_path() / L"lf_path_test";
+			{
+				std::filesystem::create_directories(path);
+				CCurrentDirManager cdm(path.c_str());
+				//what if previous directory does not exist?
+				Assert::ExpectException<LF_EXCEPTION>([&](){
+					CCurrentDirManager cdm2(prevPath.c_str());
+					std::filesystem::remove(path);
+					Assert::IsFalse(std::filesystem::exists(path));
+				});
+			}
 		}
 	};
 };
