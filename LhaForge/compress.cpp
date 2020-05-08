@@ -40,10 +40,10 @@
 
 
 struct FILE_READER {
-	FILE* fp;
+	CAutoFile fp;
 	LF_BUFFER_INFO ibi;
 	std::vector<unsigned char> buffer;
-	FILE_READER() : fp(NULL) {
+	FILE_READER() {
 		ibi.make_eof();
 		buffer.resize(1024 * 1024);
 	}
@@ -62,11 +62,10 @@ struct FILE_READER {
 	}
 	void open(const wchar_t* path) {
 		close();
-		_wfopen_s(&fp, path, L"rb");
+		fp.open(path, L"rb");
 	}
 	void close() {
-		if (fp)fclose(fp);
-		fp = NULL;
+		fp.close();
 	}
 };
 
