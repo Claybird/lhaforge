@@ -36,6 +36,15 @@ namespace UnitTest
 			Assert::AreEqual(true, LF_confirm_output_dir_type(conf, L"C:/"));
 			Assert::AreEqual(true, LF_confirm_output_dir_type(conf, L"C:/temp"));
 		}
+		TEST_METHOD(test_LF_ask_and_make_sure_output_dir_exists) {
+			auto target = UtilGetTempPath() + L"make_sure_test";
+			Assert::IsFalse(std::filesystem::exists(target));
+			Assert::ExpectException<LF_EXCEPTION>([&]() {LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_ERROR); });
+			Assert::IsFalse(std::filesystem::exists(target));
+			LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_FORCE_CREATE);
+			Assert::IsTrue(std::filesystem::exists(target));
+			UtilDeleteDir(target.c_str(), true);
+		}
 		TEST_METHOD(test_LF_make_expand_information) {
 			const auto open_dir = LR"(C:\test\)";
 			const auto output_path = LR"(D:\test\output.ext)";
