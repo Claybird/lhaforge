@@ -254,7 +254,7 @@ void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR On
 		case LOSTDIR_FORCE_CREATE:
 			try {
 				std::filesystem::create_directories(outputDir);
-			} catch (const std::filesystem::filesystem_error &e) {
+			} catch (const std::filesystem::filesystem_error) {
 				CString strErr;
 				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir);
 				RAISE_EXCEPTION((const wchar_t*)strErr);
