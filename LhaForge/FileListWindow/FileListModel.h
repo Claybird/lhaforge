@@ -25,8 +25,8 @@
 #pragma once
 //ファイル一覧構造を保持する
 #include "ArcFileContent.h"
-#include "../Utilities/EventDispatcher.h"
-#include "../Utilities/TemporaryDirMgr.h"
+#include "Utilities/EventDispatcher.h"
+#include "Utilities/FileOperation.h"
 
 enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
 	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示

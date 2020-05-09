@@ -40,8 +40,7 @@ CFileListView::CFileListView(CConfigManager& rConfig,CFileListModel& rModel):
 	//m_DnDSource(m_TempDirManager),
 	m_DropTarget(this),
 	m_nDropHilight(-1),
-	m_hFrameWnd(NULL),
-	m_TempDirMgr(_T("lhaf"))
+	m_hFrameWnd(NULL)
 {
 }
 
@@ -967,7 +966,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 		return 0;
 	}
 
-	if(!m_TempDirMgr.ClearSubDir()){
+	if(!UtilDeleteDir(m_TempDirMgr.path(), false)){
 		//テンポラリディレクトリを空に出来ない
 		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CANT_CLEAR_TEMPDIR)));
 		return 0;
@@ -976,7 +975,12 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 
 		//ドラッグ&ドロップで解凍
 		CString strLog;
-		HRESULT hr=m_DnDSource.DragDrop(mr_Model,items,mr_Model.GetCurrentNode(),m_TempDirMgr.GetDirPath(),strLog);
+		HRESULT hr=m_DnDSource.DragDrop(
+			mr_Model,
+			items,
+			mr_Model.GetCurrentNode(),
+			m_TempDirMgr.path(),
+			strLog);
 		if(FAILED(hr)){
 			if(hr==E_ABORT){
 				//TODO

@@ -28,16 +28,18 @@
 #include "StringUtil.h"
 #include "OSUtil.h"
 
+//returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath()
 {
-	auto tempDir = std::filesystem::temp_directory_path();
+	auto tempDir = std::filesystem::temp_directory_path() / L"lhaforge";
 	return UtilPathAddLastSeparator(tempDir.c_str());
 }
 
 std::wstring UtilGetTemporaryFileName()
 {
+	//etTempFileNameW: The string cannot be longer than MAX_PATH–14 characters or GetTempFileName will fail
 	wchar_t buf[MAX_PATH] = {};
-	GetTempFileNameW(UtilGetTempPath().c_str(), L"lhf", 0, buf);
+	GetTempFileNameW(UtilGetTempPath().c_str(), L"tmp", 0, buf);
 	return buf;
 }
 
@@ -57,7 +59,7 @@ bool UtilDeletePath(const wchar_t* PathName)
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
-bool UtilDeleteDir(const wchar_t* Path,bool bDeleteParent)
+bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent)
 {
 	std::wstring FindParam = std::filesystem::path(Path) / L"*";
 

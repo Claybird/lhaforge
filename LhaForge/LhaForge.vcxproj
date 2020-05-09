@@ -84,7 +84,6 @@
     <ClCompile Include="Utilities\OSUtil.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
-    <ClCompile Include="Utilities\TemporaryDirMgr.cpp" />
     <ClCompile Include="Utilities\test\test_FileOperation.cpp" />
     <ClCompile Include="Utilities\test\test_OSUtil.cpp" />
     <ClCompile Include="Utilities\test\test_Semaphore.cpp" />
@@ -154,7 +153,6 @@
     <ClInclude Include="Utilities\Semaphore.h" />
     <ClInclude Include="Utilities\shellmanager.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
-    <ClInclude Include="Utilities\TemporaryDirMgr.h" />
     <ClInclude Include="Utilities\Utility.h" />
     <ClInclude Include="Utilities\variant.h" />
   </ItemGroup>

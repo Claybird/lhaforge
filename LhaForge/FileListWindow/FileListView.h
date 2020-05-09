@@ -27,7 +27,6 @@
 #include "ShellDataManager.h"
 #include "OLE/DnDSource.h"
 #include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "../Utilities/TemporaryDirMgr.h"
 #include "../resource.h"
 #include "FileListMessages.h"
 #include "../Utilities/OSUtil.h"

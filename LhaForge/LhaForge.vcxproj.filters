@@ -148,9 +148,6 @@
     <ClCompile Include="Utilities\StringUtil.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\TemporaryDirMgr.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\Utility.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -402,9 +399,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\StringUtil.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\TemporaryDirMgr.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Utility.h">

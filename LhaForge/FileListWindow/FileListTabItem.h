@@ -26,7 +26,6 @@
 #include "FileListModel.h"
 #include "FileListView.h"
 #include "FileTreeView.h"
-#include "../Utilities/TemporaryDirMgr.h"
 
 struct CConfigFileListWindow;
 struct CFileListTabItem{

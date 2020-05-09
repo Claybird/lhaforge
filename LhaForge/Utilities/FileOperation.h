@@ -24,11 +24,49 @@
 
 #pragma once
 
+//returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath();
 std::wstring UtilGetTemporaryFileName();
-
 bool UtilDeletePath(const wchar_t* PathName);
+
+//bDeleteParent=true: delete Path itself
+//bDeleteParent=false: delete only children of Path
 bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
+
+
+//delete temporary directory automatically
+class CTemporaryDirectoryManager
+{
+	enum { NUM_DIR_LIMIT = 10000 };
+protected:
+	std::wstring m_path;
+public:
+	CTemporaryDirectoryManager(){
+		//%TEMP%/tmp%05d/filename...
+		std::filesystem::path base = UtilGetTempPath();
+		for (int count = 0; count < NUM_DIR_LIMIT; count++) {
+			auto name = Format(L"tmp%05d", count);
+			if(!std::filesystem::exists(base / name)){
+				try {
+					std::filesystem::create_directories(base / name);
+					m_path = base / name;
+					return;
+				} catch (std::filesystem::filesystem_error) {
+					RAISE_EXCEPTION(L"Failed to create directory");
+				}
+			}
+		}
+		RAISE_EXCEPTION(L"Failed to create directory");
+	}
+	virtual ~CTemporaryDirectoryManager() {
+		UtilDeleteDir(m_path.c_str(), true);
+	}
+
+	const wchar_t* path()const {
+		return m_path.c_str();
+	}
+};
+
 
 bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 

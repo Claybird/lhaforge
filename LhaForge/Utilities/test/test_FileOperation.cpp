@@ -50,6 +50,26 @@ namespace UnitTest
 			UtilDeletePath(dir.c_str());
 			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
 		}
+		TEST_METHOD(test_UtilDeleteDir) {
+			//delete file
+			auto path = UtilGetTempPath() + L"test_UtilDeleteDir";
+			Assert::IsFalse(std::filesystem::exists(path));
+			std::filesystem::create_directories(path);
+			Assert::IsTrue(std::filesystem::exists(path));
+
+			touchFile(path + L"/test.txt");
+			Assert::IsTrue(UtilDeleteDir(path.c_str(), true));
+			Assert::IsFalse(std::filesystem::exists(path));
+		}
+		TEST_METHOD(test_CTemporaryDirectoryManager) {
+			std::wstring path;
+			{
+				CTemporaryDirectoryManager tmpMngr;
+				path = tmpMngr.path();
+				Assert::IsTrue(std::filesystem::exists(path));
+			}
+			Assert::IsFalse(std::filesystem::exists(path));
+		}
 		TEST_METHOD(test_UtilMoveFileToRecycleBin) {
 			std::vector<std::wstring> fileList;
 			//delete directory

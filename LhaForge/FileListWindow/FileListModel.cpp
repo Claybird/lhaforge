@@ -42,7 +42,6 @@ CFileListModel::CFileListModel(CConfigManager &conf):
 	m_lpCurrentNode(NULL),
 	m_bSortDescending(true),
 	m_nSortKeyType(FILEINFO_INVALID),
-	m_TempDirManager(_T("lhaf")),
 	m_Mode(FILELIST_TREE)
 {
 }
@@ -401,7 +400,7 @@ bool CFileListModel::MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_EN
 	if(lpOutputDir){
 		return m_Content.MakeSureItemsExtracted(mr_Config,lpOutputDir,lpBase,items,r_filesList,bOverwrite,strLog);
 	}else{
-		return m_Content.MakeSureItemsExtracted(mr_Config,m_TempDirManager.GetDirPath(),lpBase,items,r_filesList,bOverwrite,strLog);
+		return m_Content.MakeSureItemsExtracted(mr_Config,m_TempDirManager.path(),lpBase,items,r_filesList,bOverwrite,strLog);
 	}
 }
 
@@ -433,5 +432,5 @@ void CFileListModel::TestArchive()
 
 void CFileListModel::ClearTempDir()
 {
-	m_TempDirManager.ClearSubDir();
+	UtilDeleteDir(m_TempDirManager.path(), false);
 }

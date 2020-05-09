@@ -24,8 +24,8 @@
 
 #include "stdafx.h"
 #include "Dlg_filelistwindow.h"
-#include "../../Utilities/TemporaryDirMgr.h"
-#include "../../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
 
 //================================
 // ファイル一覧ウィンドウ設定画面
@@ -104,7 +104,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 void CConfigDlgFileListWindow::OnClearTemporary(UINT,int,HWND)
 {
 	//残ってしまったテンポラリディレクトリを削除
-	if(!CTemporaryDirectoryManager::DeleteAllTemporaryDir(_T("lhaf")))MessageBeep(MB_ICONHAND);
+	if(!UtilDeleteDir(UtilGetTempPath().c_str(), false))MessageBeep(MB_ICONHAND);
 }
 
 void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
