@@ -66,7 +66,7 @@ public:
 	std::wstring assembleLogMessage(const ARCLOG& log)const {
 		std::wstring message;
 		for (const auto &e : log.logs) {
-			message += e.entryPath + L" -> " + e.message + L"\n";
+			message += e.entryPath + L" -> " + e.message + L"\r\n";
 		}
 		return message;
 	}
