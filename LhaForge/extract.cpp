@@ -79,41 +79,6 @@ std::wstring LF_sanitize_pathname(const std::wstring rawPath)
 	return buf;
 }
 
-struct PRE_EXTRACT_CHECK {
-	bool allInOneDir;	//true if all the contents are under one root directory
-	std::wstring baseDirName;	//valid if allInOneDir is true
-
-	PRE_EXTRACT_CHECK() :allInOneDir(false) {}
-	void check(ARCHIVE_FILE_TO_READ &arc) {
-		bool bFirst = true;
-
-		for (auto entry = arc.begin(); entry != NULL; entry = arc.next()) {
-			std::wstring fname = entry->get_pathname();
-			fname = LF_sanitize_pathname(fname);
-			TRACE(L"%s\n", fname.c_str());
-
-			auto path_components = UtilSplitString(fname, L"/");
-			//to remove trailing '/'
-			remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
-
-			if (path_components.empty())continue;
-
-			if (bFirst) {
-				this->baseDirName = path_components.front();
-				this->allInOneDir = true;
-				bFirst = false;
-			} else {
-				if (0 != _wcsicmp(this->baseDirName.c_str(), path_components.front().c_str())) {
-					//another root entry found
-					this->allInOneDir = false;
-					return;
-				}
-			}
-		}
-	}
-};
-
-
 std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path)
 {
 	//Symbols to be deleted
@@ -173,6 +138,40 @@ std::wstring determineExtractBaseDir(
 	return outputDir;
 }
 
+struct PRE_EXTRACT_CHECK {
+	bool allInOneDir;	//true if all the contents are under one root directory
+	std::wstring baseDirName;	//valid if allInOneDir is true
+
+	PRE_EXTRACT_CHECK() :allInOneDir(false) {}
+	void check(ARCHIVE_FILE_TO_READ &arc) {
+		bool bFirst = true;
+
+		for (auto entry = arc.begin(); entry != NULL; entry = arc.next()) {
+			std::wstring fname = entry->get_pathname();
+			fname = LF_sanitize_pathname(fname);
+			TRACE(L"%s\n", fname.c_str());
+
+			auto path_components = UtilSplitString(fname, L"/");
+			//to remove trailing '/'
+			remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
+
+			if (path_components.empty())continue;
+
+			if (bFirst) {
+				this->baseDirName = path_components.front();
+				this->allInOneDir = true;
+				bFirst = false;
+			} else {
+				if (0 != _wcsicmp(this->baseDirName.c_str(), path_components.front().c_str())) {
+					//another root entry found
+					this->allInOneDir = false;
+					return;
+				}
+			}
+		}
+	}
+};
+
 std::wstring determineExtractDir(
 	const wchar_t* archive_path,
 	const wchar_t* output_base_dir,
@@ -210,8 +209,6 @@ std::wstring determineExtractDir(
 		return output_base_dir;
 	}
 }
-
-
 
 
 //load configuration from file, then overwrites with command line arguments.
@@ -348,7 +345,7 @@ void extractOneArchive(
 			//go
 			CAutoFile fp;
 			fp.open(outputPath.c_str(), L"wb");
-			if (fp.is_opened()) {
+			if (!fp.is_opened()) {
 				arcLog(originalPath.c_str(), L"failed to open for write");
 				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
 			}
