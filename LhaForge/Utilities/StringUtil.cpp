@@ -262,3 +262,19 @@ std::wstring UtilFormatTime(__time64_t timer)
 		if (0 != ret)return buf.c_str();
 	}
 }
+
+//loads string from resource
+std::wstring UtilLoadString(UINT uID)
+{
+	wchar_t buf[256];
+	LoadStringW(GetModuleHandleW(nullptr), uID, buf, 256);
+	return buf;
+/*	const wchar_t* ptr = nullptr;
+	int length = LoadStringW(GetModuleHandleW(nullptr), uID, (LPWSTR)&ptr, 0);
+	std::wstring buf;
+	ASSERT(ptr);
+	if (ptr) {
+		buf.assign(ptr, ptr + length + 1);
+	}
+	return buf;*/
+}

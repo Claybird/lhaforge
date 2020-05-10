@@ -2,7 +2,7 @@
 #ifdef UNIT_TEST
 #include "CppUnitTest.h"
 #include "Utilities/StringUtil.h"
-
+#include "resource.h"
 
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
@@ -187,6 +187,10 @@ namespace UnitTest
 			Assert::AreEqual(std::wstring(L"ABCDE"), toUpper(L"aBcDe"));
 			Assert::AreEqual(std::wstring(L"あいうCDE"), toUpper(L"あいうCdE"));
 			Assert::AreEqual(std::wstring(L"👪"), toUpper(L"👪"));	//emoji
+		}
+
+		TEST_METHOD(test_UtilLoadString) {
+			Assert::AreEqual(std::wstring(L"LhaForge"), UtilLoadString(IDS_MESSAGE_CAPTION));
 		}
 	};
 };

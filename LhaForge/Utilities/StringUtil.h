@@ -133,3 +133,6 @@ inline std::wstring toUpper(const std::wstring& input) {
 	});
 	return output;
 }
+
+//loads string from resource
+std::wstring UtilLoadString(UINT uID);
