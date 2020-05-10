@@ -45,6 +45,11 @@ public:
 
 	BEGIN_MSG_MAP_EX(CConfirmOverwriteDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_EXTRACT_OVERWRITE, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_EXTRACT_OVERWRITE_ALL, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_EXTRACT_SKIP, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_EXTRACT_SKIP_ALL, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_EXTRACT_ABORT, OnButton)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
@@ -52,6 +57,9 @@ public:
 		//apply data to dialog control
 		DoDataExchange(FALSE);
 		return TRUE;
+	}
+	void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		EndDialog(nID);
 	}
 
 	void SetFileInfo(
@@ -64,12 +72,12 @@ public:
 	) {
 		_extracting_filename = extracting_file_path;
 		_extracting_filesize = (
-			UtilFormatSize(extracting_file_size) + Format(L" (%'d Bytes)", extracting_file_size)
+			UtilFormatSize(extracting_file_size) + Format(L" (%d Bytes)", extracting_file_size)
 			).c_str();
 		_extracting_filetime = UtilFormatTime(extracting_file_mtime).c_str();
 		_existing_filename = existing_file_path;
 		_existing_filesize =(
-			UtilFormatSize(existing_file_size) + Format(L" (%'d Bytes)", existing_file_size)
+			UtilFormatSize(existing_file_size) + Format(L" (%d Bytes)", existing_file_size)
 			).c_str();
 		_existing_filetime = UtilFormatTime(existing_file_mtime).c_str();
 	}
