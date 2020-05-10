@@ -37,7 +37,7 @@ struct less_ignorecase {
 //---セクション構造のない設定;データは「Key=Value」
 typedef std::map<stdString,CVariant,less_ignorecase> FLATCONFIG;
 //---セクションごとに分かれたデータ
-struct CONFIG_SECTION{	//設定ファイルのセクションのデータ
+struct[[deprecated("will be replaced")]] CONFIG_SECTION{	//設定ファイルのセクションのデータ
 	virtual ~CONFIG_SECTION(){}
 	stdString SectionName;	//セクションの名前
 	FLATCONFIG Data;
