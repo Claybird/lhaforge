@@ -32,7 +32,7 @@ namespace UnitTest
 			Assert::IsTrue(std::filesystem::exists(link_file));
 
 			UTIL_SHORTCUTINFO info;
-			Assert::AreEqual(S_OK, UtilGetShortcutInfo(link_file.c_str(), info));
+			Assert::AreEqual(S_OK, UtilGetShortcutInfo(link_file, info));
 			Assert::AreEqual(toLower(target), toLower(info.cmd));
 			Assert::AreEqual(std::wstring(args), info.param);
 			Assert::AreEqual(std::wstring(L""), info.workingDir);
@@ -53,8 +53,8 @@ namespace UnitTest
 			auto prevPath = std::filesystem::current_path();
 			{
 				CCurrentDirManager cdm(std::filesystem::temp_directory_path().c_str());
-				auto currentPath = UtilPathAddLastSeparator(std::filesystem::current_path().c_str());
-				Assert::AreEqual(UtilPathAddLastSeparator(std::filesystem::temp_directory_path().c_str()),
+				auto currentPath = UtilPathAddLastSeparator(std::filesystem::current_path());
+				Assert::AreEqual(UtilPathAddLastSeparator(std::filesystem::temp_directory_path()),
 					currentPath);
 			}
 			auto currentPath= std::filesystem::current_path();

@@ -304,7 +304,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	if(bSave){
 		CString strErr;
 		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 	}
 
@@ -384,7 +384,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 		//SetForegroundWindow(m_hWnd);
 
 		if(FAILED(hr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 			//EnableAll(false);
 		}
 		return hr;
@@ -533,7 +533,7 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	CConfigDialog confdlg(mr_Config);
 	if(IDOK==confdlg.DoModal()){
 		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
@@ -553,7 +553,7 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	}else{
 		//念のため再読み込み
 		if(!mr_Config.LoadConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 	}
 
@@ -859,7 +859,7 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//「全てのファイル」のフィルタ文字を作る
 	CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-	auto filter = UtilMakeFilterString(strAnyFile);
+	auto filter = UtilMakeFilterString((const wchar_t*)strAnyFile);
 	//CFileDialog dlg(TRUE, NULL, NULL, OFN_NOCHANGEDIR|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,&filter[0]);
 	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_ALLOWMULTISELECT, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル

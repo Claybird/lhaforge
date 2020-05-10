@@ -36,7 +36,7 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	CString Buffer=Config.Data[_T("OutputDir")];
 	try {
 		if (!Buffer.IsEmpty()) {
-			OutputDir = UtilGetCompletePathName(Buffer).c_str();
+			OutputDir = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
 		} else {
 			OutputDir = _T("");
 		}

@@ -29,7 +29,7 @@
 std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets);
 
 //builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
-std::wstring UtilMakeFilterString(const wchar_t* lpszIn);
+std::wstring UtilMakeFilterString(const std::wstring& filterIn);
 
 enum class UTIL_CODEPAGE {
 	CP932 = 932,
@@ -49,11 +49,11 @@ bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE u
 
 
 //expand variables placed in braces, such as "{foo}"
-std::wstring UtilExpandTemplateString(const wchar_t* format,const std::map<std::wstring, std::wstring> &envVars);
+std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars);
 
 std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std::wstring& separator);
 //split string into number array
-std::vector<int> UtilStringToIntArray(const wchar_t*);
+std::vector<int> UtilStringToIntArray(const std::wstring&);
 
 // (size in bytes) to (size in suitable unit)
 std::wstring UtilFormatSize(UINT64 size);
@@ -61,15 +61,15 @@ std::wstring UtilFormatSize(UINT64 size);
 std::wstring UtilFormatTime(__time64_t timer);
 
 template <typename ...Args>
-std::wstring Format(const wchar_t* fmt, Args && ...args)
+std::wstring Format(const std::wstring& fmt, Args && ...args)
 {
 	//snprintf_s will not return the required buffer size
 	std::wstring work;
 #pragma warning(push)
 #pragma warning(disable:4996)
-	auto size = _snwprintf(nullptr, 0, fmt, std::forward<Args>(args)...);
+	auto size = _snwprintf(nullptr, 0, fmt.c_str(), std::forward<Args>(args)...);
 	work.resize(size + 1);
-	_snwprintf(&work[0], work.size(), fmt, std::forward<Args>(args)...);
+	_snwprintf(&work[0], work.size(), fmt.c_str(), std::forward<Args>(args)...);
 #pragma warning(pop)
 	return work.c_str();
 }

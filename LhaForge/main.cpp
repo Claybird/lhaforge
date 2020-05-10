@@ -136,7 +136,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 			//パラメータ展開に必要な情報
 			auto envInfo = LF_make_expand_information(nullptr, nullptr);
 			//環境変数展開
-			strPath = UtilExpandTemplateString(strPath, envInfo).c_str();
+			strPath = UtilExpandTemplateString((const wchar_t*)strPath, envInfo).c_str();
 
 			//絶対パスに変換
 			if(PathIsRelative(strPath)){
@@ -146,15 +146,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 				strPath=(LPCTSTR)tmp;
 			}
 			try {
-				auto buf = UtilGetCompletePathName(strPath);
+				auto buf = UtilGetCompletePathName((const wchar_t*)strPath);
 				strPath = buf.c_str();
 			} catch (LF_EXCEPTION) {
 				//do nothing
 			}
 
 			//環境変数設定
-			SetEnvironmentVariable(L"TEMP",strPath);
-			SetEnvironmentVariable(L"TMP",strPath);
+			SetEnvironmentVariableW(L"TEMP",strPath);
+			SetEnvironmentVariableW(L"TMP",strPath);
 		}
 	}
 
@@ -197,7 +197,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 			CConfigDialog confdlg(ConfigManager);
 			if(IDOK==confdlg.DoModal()){
 				if(!ConfigManager.SaveConfig(strErr)){
-					ErrorMessage(strErr);
+					ErrorMessage((const wchar_t*)strErr);
 				}
 			}
 		}
@@ -301,7 +301,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 
 	if(cli.FileList.empty()){
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 		return false;
 	}
 	return GUI_extract_multiple_files(cli.FileList, &cli);
@@ -327,7 +327,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(bSpecified && cli.FileList.empty()){
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 	//	return false;
 	}
 
@@ -377,7 +377,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 	//ファイルリストに何も残らなかったらエラーメッセージ表示
 	if(cli.FileList.empty()){
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 		return false;
 	}
 
@@ -391,7 +391,7 @@ void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArch
 	for(auto ite=FileList.begin();ite!=FileList.end();){
 		if(PathIsDirectory(*ite)){
 			//---解凍対象がフォルダなら再帰解凍する
-			auto subFileList = UtilRecursiveEnumFile(*ite);
+			auto subFileList = UtilRecursiveEnumFile((const wchar_t*)*ite);
 
 			for(const auto& subFile: subFileList){
 				bool isDenied = CString(lpDenyExt).MakeLower().Find(CString(PathFindExtension(subFile.c_str())).MakeLower()) == -1;

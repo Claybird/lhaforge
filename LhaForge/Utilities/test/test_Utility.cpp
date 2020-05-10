@@ -20,7 +20,7 @@ namespace UnitTest
 		}
 		TEST_METHOD(test_UtilReadFromResponseFile) {
 			auto file = std::filesystem::path(__FILEW__).parent_path() / L"test_utility_response1.txt";
-			auto files = UtilReadFromResponseFile(file.c_str(), UTIL_CODEPAGE::UTF8);
+			auto files = UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8);
 			Assert::AreEqual(size_t(4), files.size());
 			Assert::AreEqual(std::wstring(L"ファイル1.txt"), files[0]);
 			Assert::AreEqual(std::wstring(L"C:\\program files\\b.txt"), files[1]);
@@ -29,7 +29,7 @@ namespace UnitTest
 
 			file = std::filesystem::path(__FILEW__).parent_path() / L"path_that_does_not_exist.txt";
 			Assert::ExpectException<LF_EXCEPTION>([&]{
-				UtilReadFromResponseFile(file.c_str(), UTIL_CODEPAGE::UTF8);
+				UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8);
 			});
 		}
 		TEST_METHOD(test_UtilExtMatchSpec) {

@@ -34,9 +34,9 @@ std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trim
 }
 
 //builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
-std::wstring UtilMakeFilterString(const wchar_t* lpszIn)
+std::wstring UtilMakeFilterString(const std::wstring& filterIn)
 {
-	std::wstring out = lpszIn;
+	std::wstring out = filterIn;
 	out += L"||";
 
 	for(auto& c:out){
@@ -180,9 +180,9 @@ std::basic_string<CharT> util_regex_replace(BidirIt first, BidirIt last,
 }
 
 //expand variables, "{foo}" for process specific variables, and "%bar" for OS environment variables
-std::wstring UtilExpandTemplateString(const wchar_t* format, const std::map<std::wstring, std::wstring> &envVars)
+std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars)
 {
-	auto fmt = std::wstring(format);
+	auto fmt = format;
 	return util_regex_replace(fmt.cbegin(), fmt.cend(), std::wregex(L"\\{([^;]*?)\\}|%([^;]*?)%"),
 		[&](const std::wsmatch& m) {
 		auto key = m.str(0);
@@ -218,7 +218,7 @@ std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std:
 }
 
 //split string into number array
-std::vector<int> UtilStringToIntArray(const wchar_t* str)
+std::vector<int> UtilStringToIntArray(const std::wstring& str)
 {
 	std::vector<int> numArr;
 	for(const auto& sub: UtilSplitString(str, L",")){

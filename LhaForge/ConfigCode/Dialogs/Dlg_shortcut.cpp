@@ -84,7 +84,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP:
 			// デスクトップに作成
 			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_DESKTOPDIRECTORY,FALSE)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
+				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
 				return 0;
 			}
 			break;
@@ -95,7 +95,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
 			// 「送る」フォルダに作成
 			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_SENDTO,FALSE)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_GET_SENDTO)));
+				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_SENDTO)));
 				return 0;
 			}
 			break;
@@ -158,8 +158,8 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		//拡張子
 		_tcsncat_s(ShortcutFileName,_T(".lnk"),_MAX_PATH);
 
-		if(FAILED(UtilCreateShortcut(ShortcutFileName,ExePath,Param,ExePath,IconIndex,CString(MAKEINTRESOURCE(DescriptionID))))){
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
+		if(FAILED(UtilCreateShortcut((const wchar_t*)ShortcutFileName, (const wchar_t*)ExePath, (const wchar_t*)Param, (const wchar_t*)ExePath,IconIndex, (const wchar_t*)CString(MAKEINTRESOURCE(DescriptionID))))){
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
 		}else{
 			//作成成功で音を鳴らす
 			MessageBeep(MB_ICONASTERISK);
@@ -173,7 +173,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 {
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
-	if(IDYES== UtilMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
+	if(IDYES== UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
 		int Options=-1;
 		bool bSingleCompression=false;
 
@@ -203,7 +203,7 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 		} catch (const ARCHIVE_EXCEPTION&) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 			return false;
 		}
 	}

@@ -28,10 +28,10 @@
 #include "FileOperation.h"
 
 HRESULT UtilCreateShortcut(
-	const wchar_t* lpszPathLink,
-	const wchar_t* lpszPathTarget,
-	const wchar_t* lpszArgs,
-	const wchar_t* lpszIconPath,
+	const std::wstring& pathLink,
+	const std::wstring& pathTarget,
+	const std::wstring& args,
+	const std::wstring& iconPath,
 	int iIcon,
 	LPCTSTR lpszDescription)
 {
@@ -40,31 +40,31 @@ HRESULT UtilCreateShortcut(
 	if (FAILED(hr))return hr;
 
 	// such as C:\Windows\notepad.exe
-	pLink->SetPath(lpszPathTarget);
-	pLink->SetArguments(lpszArgs);
-	pLink->SetIconLocation(lpszIconPath,iIcon);
+	pLink->SetPath(pathTarget.c_str());
+	pLink->SetArguments(args.c_str());
+	pLink->SetIconLocation(iconPath.c_str(),iIcon);
 	pLink->SetDescription(lpszDescription);
 	//save to file
 	CComQIPtr<IPersistFile> pFile = pLink;
 	if (pFile) {
-		return pFile->Save(lpszPathLink, TRUE);
+		return pFile->Save(pathLink.c_str(), TRUE);
 	} else {
 		return E_FAIL;
 	}
 }
 
-HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
+HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 {
 	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
 	if (FAILED(hr))return hr;
 
-	pLink->SetPath(lpPath);
+	pLink->SetPath(path.c_str());
 	CComQIPtr<IPersistFile> pFile = pLink;
 	if(pFile){
-		hr = pFile->Load(lpPath, STGM_READ);
+		hr = pFile->Load(path.c_str(), STGM_READ);
 		if (FAILED(hr))return hr;
-		info.title = std::filesystem::path(lpPath).stem().c_str();
+		info.title = std::filesystem::path(path).stem().c_str();
 
 		{
 			wchar_t szTarget[_MAX_PATH + 1] = {};
@@ -89,7 +89,7 @@ HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 
 		//get icon and convert to bitmap
 		SHFILEINFO sfi={0};
-		SHGetFileInfo(lpPath, 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
+		SHGetFileInfoW(path.c_str(), 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
 		UtilMakeDIBFromIcon(info.cIconBmpSmall, sfi.hIcon);
 		DestroyIcon(sfi.hIcon);
 	}
@@ -97,12 +97,13 @@ HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info)
 }
 
 
-void UtilNavigateDirectory(const wchar_t* lpszDir)
+void UtilNavigateDirectory(const std::wstring& dir)
 {
+	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs. This value should be set to MAX_PATH.
 	wchar_t systemDir[_MAX_PATH + 1] = {};
 	GetWindowsDirectoryW(systemDir, _MAX_PATH);
 	auto explorerPath = std::filesystem::path(systemDir) / L"explorer.exe";
-	ShellExecuteW(NULL, L"open", explorerPath.c_str(), lpszDir, NULL, SW_SHOWNORMAL);
+	ShellExecuteW(NULL, L"open", explorerPath.c_str(), dir.c_str(), NULL, SW_SHOWNORMAL);
 }
 
 //retrieve environment variables as key=value pair
@@ -189,16 +190,16 @@ void UtilSetPriorityClass(DWORD dwPriorityClass)
 
 
 //Copy text to clipboard
-void UtilSetTextOnClipboard(const wchar_t* lpszText)
+void UtilSetTextOnClipboard(const std::wstring& text)
 {
 	HGLOBAL hMem;
 	wchar_t* lpBuff;
 
-	hMem = GlobalAlloc((GHND|GMEM_SHARE),(wcslen(lpszText) + 1) * sizeof(wchar_t));
+	hMem = GlobalAlloc((GHND|GMEM_SHARE),(text.length() + 1) * sizeof(wchar_t));
 	if(hMem){
 		lpBuff = (wchar_t*)GlobalLock(hMem);
 		if (lpBuff){
-			wcscpy_s(lpBuff, wcslen(lpszText)+1, lpszText);
+			wcscpy_s(lpBuff, text.length() + 1, text.c_str());
 			GlobalUnlock( hMem );
 
 			if ( OpenClipboard(NULL) ){

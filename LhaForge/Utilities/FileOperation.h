@@ -27,11 +27,11 @@
 //returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath();
 std::wstring UtilGetTemporaryFileName();
-bool UtilDeletePath(const wchar_t* PathName);
+bool UtilDeletePath(const std::wstring& path);
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
-bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent);
+bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent);
 
 
 //delete temporary directory automatically
@@ -59,7 +59,7 @@ public:
 		RAISE_EXCEPTION(L"Failed to create directory");
 	}
 	virtual ~CTemporaryDirectoryManager() {
-		UtilDeleteDir(m_path.c_str(), true);
+		UtilDeleteDir(m_path, true);
 	}
 
 	const wchar_t* path()const {
@@ -71,23 +71,23 @@ public:
 bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 
 //recursively enumerates files (no directories) in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot);
+std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root);
 
-bool UtilPathIsRoot(const wchar_t* path);
-std::wstring UtilPathAddLastSeparator(const wchar_t* path);
+bool UtilPathIsRoot(const std::wstring& path);
+std::wstring UtilPathAddLastSeparator(const std::wstring& path);
 
 //get full & absolute path
-std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName);
+std::wstring UtilGetCompletePathName(const std::wstring& filePath);
 
 //returns filenames that matches to the given pattern
-std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern);
+std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern);
 
 //executable name
 std::wstring UtilGetModulePath();
 std::wstring UtilGetModuleDirectoryPath();
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const wchar_t* lpFile);
+std::vector<BYTE> UtilReadFile(const std::wstring& filePath);
 
 
 class CAutoFile {
@@ -108,9 +108,9 @@ public:
 			_fp = NULL;
 		}
 	}
-	void open(const wchar_t* fname, const wchar_t* mode = L"r") {
+	void open(const std::wstring& fname, const wchar_t* mode = L"r") {
 		close();
-		_wfopen_s(&_fp, fname, mode);
+		_wfopen_s(&_fp, fname.c_str(), mode);
 		if (_fp) {
 			//set buffer size
 			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024);

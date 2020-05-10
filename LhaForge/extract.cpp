@@ -427,7 +427,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 	CString strFiles;	//ファイル一覧
 	std::vector<std::wstring> fileList;	//削除対象のファイル一覧
 	if(bMultiVolume){
-		fileList = UtilPathExpandWild(strFindParam);
+		fileList = UtilPathExpandWild((const wchar_t*)strFindParam);
 		for (const auto &item : fileList) {
 			strFiles += L"\n";
 			strFiles += item.c_str();
@@ -453,7 +453,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 			}
 
 			//確認後ゴミ箱に移動
-			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL, (const wchar_t*)Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}
@@ -475,7 +475,7 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 				//単一ファイル
 				Message.Format(IDS_ASK_DELETE_ARCHIVE,lpszArcFile);
 			}
-			if(IDYES!= UtilMessageBox(NULL,Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
+			if(IDYES!= UtilMessageBox(NULL, (const wchar_t*)Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
 				return false;
 			}
 		}
@@ -502,7 +502,7 @@ bool GUI_extract_multiple_files(
 	try {
 		CString strErr;	//TODO: remove this
 		if (!mngr.LoadConfig(strErr)) {
-			RAISE_EXCEPTION(strErr);
+			RAISE_EXCEPTION((const wchar_t*)strErr);
 		}
 		// load configuration, then override them with command line args
 		parseExtractOption(args, mngr, lpCmdLineInfo);
@@ -597,8 +597,8 @@ bool GUI_extract_multiple_files(
 				auto envInfo = LF_make_expand_information(output_dir.c_str(), nullptr);
 
 				// expand command parameter
-				auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
-				auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
+				auto strCmd = UtilExpandTemplateString((const wchar_t*)args.general.Filer.FilerPath, envInfo);
+				auto strParam = UtilExpandTemplateString((const wchar_t*)args.general.Filer.Param, envInfo);
 				ShellExecuteW(NULL, L"open", strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 			} else {
 				//open with explorer

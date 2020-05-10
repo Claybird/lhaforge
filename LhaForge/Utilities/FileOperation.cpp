@@ -32,7 +32,7 @@
 std::wstring UtilGetTempPath()
 {
 	auto tempDir = std::filesystem::temp_directory_path() / L"lhaforge";
-	return UtilPathAddLastSeparator(tempDir.c_str());
+	return UtilPathAddLastSeparator(tempDir);
 }
 
 std::wstring UtilGetTemporaryFileName()
@@ -43,25 +43,25 @@ std::wstring UtilGetTemporaryFileName()
 	return buf;
 }
 
-bool UtilDeletePath(const wchar_t* PathName)
+bool UtilDeletePath(const std::wstring& path)
 {
-	if( PathIsDirectoryW(PathName) ) {
+	if( std::filesystem::is_directory(path) ) {
 		//directory
-		if( UtilDeleteDir(PathName, true) )return true;
-	} else if( PathFileExistsW(PathName) ) {
+		if( UtilDeleteDir(path, true) )return true;
+	} else if( std::filesystem::exists(path) ) {
 		//file
 		//reset file attribute
-		SetFileAttributesW(PathName, FILE_ATTRIBUTE_NORMAL);
-		if( DeleteFileW(PathName) )return true;
+		SetFileAttributesW(path.c_str(), FILE_ATTRIBUTE_NORMAL);
+		if( DeleteFileW(path.c_str()) )return true;
 	}
 	return false;
 }
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
-bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent)
+bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent)
 {
-	std::wstring FindParam = std::filesystem::path(Path) / L"*";
+	std::wstring FindParam = std::filesystem::path(path) / L"*";
 
 	bool bRet = true;
 
@@ -71,7 +71,7 @@ bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent)
 		if (!cFindFile.IsDots()) {
 			if (cFindFile.IsDirectory()) {
 				//directory
-				if (!UtilDeleteDir(cFindFile.GetFilePath(), true)) {
+				if (!UtilDeleteDir((const wchar_t*)cFindFile.GetFilePath(), true)) {
 					bRet = false;
 				}
 			} else {
@@ -84,7 +84,7 @@ bool UtilDeleteDir(const wchar_t* Path, bool bDeleteParent)
 	}
 
 	if(bDeleteParent){
-		if(!RemoveDirectoryW(Path))bRet=false;
+		if(!RemoveDirectoryW(path.c_str()))bRet=false;
 	}
 
 	return bRet;
@@ -102,7 +102,7 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
 	}
 	param += L'|';
 
-	auto filter = UtilMakeFilterString(param.c_str());
+	auto filter = UtilMakeFilterString(param);
 
 	SHFILEOPSTRUCTW shfo={0};
 	shfo.wFunc = FO_DELETE;
@@ -115,16 +115,16 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
 }
 
 //recursively enumerates files (no directories) in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot)
+std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root)
 {
 	CFindFile cFindFile;
 
 	std::vector<std::wstring> files;
-	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(lpszRoot) / L"*").c_str());
+	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
 	while(bContinue){
 		if(!cFindFile.IsDots()){
 			if(cFindFile.IsDirectory()){
-				auto subFiles = UtilRecursiveEnumFile(cFindFile.GetFilePath());
+				auto subFiles = UtilRecursiveEnumFile((const wchar_t*)cFindFile.GetFilePath());
 				files.insert(files.end(), subFiles.begin(), subFiles.end());
 			}else{
 				files.push_back((const wchar_t*)cFindFile.GetFilePath());
@@ -136,7 +136,7 @@ std::vector<std::wstring> UtilRecursiveEnumFile(const wchar_t* lpszRoot)
 	return files;
 }
 
-bool UtilPathIsRoot(const wchar_t* path)
+bool UtilPathIsRoot(const std::wstring& path)
 {
 	auto p = std::filesystem::path(path);
 	p.make_preferred();
@@ -144,7 +144,7 @@ bool UtilPathIsRoot(const wchar_t* path)
 	return false;
 }
 
-std::wstring UtilPathAddLastSeparator(const wchar_t* path)
+std::wstring UtilPathAddLastSeparator(const std::wstring& path)
 {
 	std::wstring p = path;
 	if (p.empty() || (p.back() != L'/' && p.back() != L'\\')) {
@@ -154,16 +154,16 @@ std::wstring UtilPathAddLastSeparator(const wchar_t* path)
 }
 
 //get full & absolute path
-std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName)
+std::wstring UtilGetCompletePathName(const std::wstring& filePath)
 {
-	if(!lpszFileName||wcslen(lpszFileName)<=0){
+	if(filePath.length()==0){
 		RAISE_EXCEPTION(L"empty pathname");
 	}
 
-	std::filesystem::path abs_path = lpszFileName;
-	if(!UtilPathIsRoot(abs_path.c_str())){
+	std::filesystem::path abs_path = filePath;
+	if(!UtilPathIsRoot(abs_path)){
 		//when only drive letter is given, _wfullpath returns current directory on that drive
-		wchar_t* buf = _wfullpath(nullptr, lpszFileName, 0);
+		wchar_t* buf = _wfullpath(nullptr, filePath.c_str(), 0);
 		if (!buf) {
 			RAISE_EXCEPTION(L"failed to get fullpath");
 		}
@@ -184,16 +184,15 @@ std::wstring UtilGetCompletePathName(const wchar_t* lpszFileName)
 }
 
 //returns filenames that matches to the given pattern
-std::vector<std::wstring> UtilPathExpandWild(const wchar_t* pattern)
+std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern)
 {
 	std::vector<std::wstring> out;
-	std::wstring p = pattern;
-	if(std::wstring::npos == p.find_first_of(L"*?")){	//no characters to expand
+	if(std::wstring::npos == pattern.find_first_of(L"*?")){	//no characters to expand
 		out.push_back(pattern);
 	}else{
 		//expand wild
 		CFindFile cFindFile;
-		BOOL bContinue=cFindFile.FindFile(pattern);
+		BOOL bContinue=cFindFile.FindFile(pattern.c_str());
 		while(bContinue){
 			if(!cFindFile.IsDots()){
 				out.push_back((const wchar_t*)cFindFile.GetFilePath());
@@ -227,17 +226,17 @@ std::wstring UtilGetModuleDirectoryPath()
 }
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const wchar_t* lpFile)
+std::vector<BYTE> UtilReadFile(const std::wstring& filePath)
 {
-	if (!lpFile)RAISE_EXCEPTION(L"Invalid Argument");
-	if(!std::filesystem::exists(lpFile))RAISE_EXCEPTION(L"File not found");
+	if (filePath.length()==0)RAISE_EXCEPTION(L"Invalid Argument");
+	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(L"File not found");
 
 	struct _stat64 stat = {};
-	if (0 != _wstat64(lpFile, &stat))RAISE_EXCEPTION(L"Failed to get filesize");
+	if (0 != _wstat64(filePath.c_str(), &stat))RAISE_EXCEPTION(L"Failed to get filesize");
 	auto file_size = (size_t)stat.st_size;
 
 	CAutoFile fp;
-	fp.open(lpFile, L"rb");
+	fp.open(filePath, L"rb");
 	if (!fp.is_opened())RAISE_EXCEPTION(L"Failed to open for read");
 
 	std::vector<BYTE> cReadBuffer;

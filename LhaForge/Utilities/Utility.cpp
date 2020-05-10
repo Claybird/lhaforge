@@ -29,18 +29,18 @@
 #include "Utilities/FileOperation.h"
 #include "Dialogs/TextInputDlg.h"
 
-int ErrorMessage(const wchar_t* message)
+int ErrorMessage(const std::wstring& message)
 {
-	TRACE(L"ErrorMessage:%s\n", message);
+	TRACE(L"ErrorMessage:%s\n", message.c_str());
 	return UtilMessageBox(NULL, message, MB_OK | MB_ICONSTOP);
 }
 
-int UtilMessageBox(HWND hWnd, const wchar_t* lpText, UINT uType)
+int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType)
 {
 	const CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
 	return MessageBoxW(
 		hWnd,
-		lpText,
+		message.c_str(),
 		strCaption,
 		uType);
 }
@@ -59,9 +59,9 @@ std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 	return out;
 }
 
-std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage)
+std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage)
 {
-	std::vector<BYTE> cReadBuffer = UtilReadFile(lpszRespFile);
+	std::vector<BYTE> cReadBuffer = UtilReadFile(respFile);
 
 	//adding \0 to end
 	cReadBuffer.push_back('\0');
@@ -91,7 +91,7 @@ std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, 
 
 //checks if path extension matches specific patterns
 //pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
-bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string)
+bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string)
 {
 	//characters to be escaped
 	const std::wstring escapeSubjects = L".(){}[]\\+^$|";

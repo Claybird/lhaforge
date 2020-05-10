@@ -708,14 +708,14 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 {
 	if(!mr_Model.IsExtractEachSupported()){
 		//選択ファイルの解凍はサポートされていない
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		return false;
 	}
 
 	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
 		CString msg;
 		msg.Format(IDS_ERROR_FILE_NOT_FOUND,mr_Model.GetArchiveFileName());
-		ErrorMessage(msg);
+		ErrorMessage((const wchar_t*)msg);
 		return false;
 	}
 
@@ -775,10 +775,10 @@ HRESULT CFileListView::AddItems(const std::list<CString> &fileList,LPCTSTR strDe
 		switch(hr){
 		case E_LF_SAME_INPUT_AND_OUTPUT:	//アーカイブ自身を追加しようとした
 			msg.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT,mr_Model.GetArchiveFileName());
-			ErrorMessage(msg);
+			ErrorMessage((const wchar_t*)msg);
 			break;
 		case E_LF_UNICODE_NOT_SUPPORTED:	//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
 			break;
 		case S_FALSE:	//追加処理に問題
 			{
@@ -816,7 +816,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
 		//「全てのファイル」のフィルタ文字を作る
 		CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-		auto filter = UtilMakeFilterString(strAnyFile);
+		auto filter = UtilMakeFilterString((const wchar_t*)strAnyFile);
 
 		CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter.c_str());
 		if(IDOK==dlg.DoModal()){
@@ -968,7 +968,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 
 	if(!UtilDeleteDir(m_TempDirMgr.path(), false)){
 		//テンポラリディレクトリを空に出来ない
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CANT_CLEAR_TEMPDIR)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_CANT_CLEAR_TEMPDIR)));
 		return 0;
 	}else{
 		::EnableWindow(m_hFrameWnd,FALSE);
@@ -993,7 +993,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 				LogDlg.SetLogArray(logs);
 				LogDlg.DoModal(m_hFrameWnd);
 			}else{
-				ErrorMessage(strLog);
+				ErrorMessage((const wchar_t*)strLog);
 			}
 		}
 
@@ -1017,7 +1017,7 @@ void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		if(1==uNotifyCode){	//アクセラレータから操作
 			MessageBeep(MB_OK);
 		}else{
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_DELETE_SELECTED_NOT_SUPPORTED)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_DELETE_SELECTED_NOT_SUPPORTED)));
 		}
 		return;// false;
 	}
@@ -1033,7 +1033,7 @@ void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	//消去確認
-	if(IDYES!= UtilMessageBox(m_hWnd, CString(MAKEINTRESOURCE(IDS_ASK_FILELIST_DELETE_SELECTED)),MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION)){
+	if(IDYES!= UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_FILELIST_DELETE_SELECTED)),MB_YESNO|MB_DEFBUTTON2|MB_ICONEXCLAMATION)){
 		return;
 	}
 
@@ -1183,7 +1183,7 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		ASSERT(!"Unknown command");
 	}
 	//MessageBox(info);
-	UtilSetTextOnClipboard(info);
+	UtilSetTextOnClipboard((const wchar_t*)info);
 }
 
 void CFileListView::OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl)
@@ -1232,9 +1232,9 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	auto envInfo = LF_make_expand_information(nullptr, nullptr);
 
 	//コマンド・パラメータ展開
-	auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);	//コマンド
-	auto strParam = UtilExpandTemplateString(menuCommandArray[nID].Param,envInfo);	//パラメータ
-	auto strDir = UtilExpandTemplateString(menuCommandArray[nID].Dir,  envInfo);	//ディレクトリ
+	auto strCmd = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Path, envInfo);	//コマンド
+	auto strParam = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Param,envInfo);	//パラメータ
+	auto strDir = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Dir,  envInfo);	//ディレクトリ
 
 	//引数置換
 	if(std::wstring::npos!=strParam.find(L"%F")){
@@ -1309,7 +1309,7 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		}
 		strFiles+=_T('|');
 		//TRACE(strFiles);
-		auto srcBuf = UtilMakeFilterString(strFiles);
+		auto srcBuf = UtilMakeFilterString((const wchar_t*)strFiles);
 
 		CPath destDir=sendToCmd[nID].cmd.c_str();
 		destDir.AddBackslash();
@@ -1323,11 +1323,11 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		//コピー実行
 		if(::SHFileOperation(&fileOp)){
 			//エラー
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY)));
 			return false;
 		}else if(fileOp.fAnyOperationsAborted){
 			//キャンセル
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL)));
 			return false;
 		}
 		return true;
@@ -1363,7 +1363,7 @@ void CFileListView::OnExtractItem(UINT,int nID,HWND)
 	}
 	if(!mr_Model.IsExtractEachSupported()){
 		//選択ファイルの解凍はサポートされていない
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		return;// false;
 	}
 
@@ -1372,7 +1372,7 @@ void CFileListView::OnExtractItem(UINT,int nID,HWND)
 	GetSelectedItems(items);
 	if(items.empty()){
 		//選択されたファイルがない
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
+		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
 		return;// false;
 	}
 

@@ -42,7 +42,7 @@ CConfigDialog::CConfigDialog(CConfigManager &cfg)
 
 	//設定読み込み
 	CString strErr;
-	if(!mr_Config.LoadConfig(strErr))ErrorMessage(strErr);
+	if(!mr_Config.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
 }
 
 CConfigDialog::~CConfigDialog()
@@ -182,7 +182,7 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 					CString msg;
 					msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 				}
 			}
 		}
@@ -210,7 +210,7 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 			CString msg;
 			msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
-			ErrorMessage(msg);
+			ErrorMessage((const wchar_t*)msg);
 		}else{
 			Sleep(100);
 			::SHChangeNotify(SHCNE_ASSOCCHANGED,SHCNF_FLUSH,NULL,NULL);	//関連付けの変更をシェルに通知(変更されていないかもしれないが簡便のため)

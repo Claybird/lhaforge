@@ -35,7 +35,7 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 	CString Buffer=Config.Data[_T("OutputDir")];
 	try{
 		if(!Buffer.IsEmpty()){
-			OutputDirUserSpecified = UtilGetCompletePathName(Buffer).c_str();
+			OutputDirUserSpecified = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
 		}else{
 			OutputDirUserSpecified = L"";
 		}

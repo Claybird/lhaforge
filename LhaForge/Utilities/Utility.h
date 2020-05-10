@@ -25,19 +25,19 @@
 #pragma once
 
 //Show message box
-int ErrorMessage(const wchar_t* message);
-int UtilMessageBox(HWND hWnd, const wchar_t* lpText, UINT uType);
+int ErrorMessage(const std::wstring& message);
+int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType);
 
 std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), DWORD errorCode = GetLastError());
 
 #define BOOL2bool(x)	(FALSE!=x)
 
 //read filelist from response file
-std::vector<std::wstring> UtilReadFromResponseFile(const wchar_t* lpszRespFile, UTIL_CODEPAGE uSrcCodePage);
+std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage);
 
 //checks if path extension matches specific patterns
 //pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
-bool UtilExtMatchSpec(const wchar_t* path, const wchar_t* pattern_string);
+bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string);
 
 //Message loop utility
 bool UtilDoMessageLoop();

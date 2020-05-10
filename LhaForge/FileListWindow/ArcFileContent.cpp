@@ -501,9 +501,9 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 		if(bOverwrite){
 			// 上書き解凍するので、存在するファイルは削除
 			if(lpNode->isDirectory()){
-				if(::PathIsDirectory(path))UtilDeleteDir(path,true);
+				if(::PathIsDirectory(path))UtilDeleteDir((const wchar_t*)path,true);
 			}else{
-				if(::PathFileExists(path))UtilDeletePath(path);
+				if(::PathFileExists(path))UtilDeletePath((const wchar_t*)path);
 			}
 			//解凍要請リストに加える
 			toExtractList[lpBase].push_back(lpNode);
@@ -537,7 +537,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 				CString strItem;
 				ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
 				path.Append(strItem);
-				UtilDeletePath(path);
+				UtilDeletePath((const wchar_t*)path);
 			}
 			return false;
 		}

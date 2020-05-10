@@ -25,10 +25,10 @@
 #pragma once
 
 HRESULT UtilCreateShortcut(
-	const wchar_t* lpszPathLink,
-	const wchar_t* lpszPathTarget,
-	const wchar_t* lpszArgs,
-	const wchar_t* lpszIconPath,
+	const std::wstring& pathLink,
+	const std::wstring& pathTarget,
+	const std::wstring& args,
+	const std::wstring& iconPath,
 	int iIcon,
 	LPCTSTR lpszDescription);
 
@@ -40,10 +40,10 @@ struct UTIL_SHORTCUTINFO {
 	CBitmap cIconBmpSmall;
 };
 
-HRESULT UtilGetShortcutInfo(const wchar_t* lpPath, UTIL_SHORTCUTINFO& info);
+HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info);
 
 //Open a folder with explorer
-void UtilNavigateDirectory(const wchar_t* lpszDir);
+void UtilNavigateDirectory(const std::wstring& dir);
 
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
@@ -65,7 +65,7 @@ enum LFPROCESS_PRIORITY {
 void UtilSetPriorityClass(DWORD dwPriorityClass);
 
 //Copy text to clipboard
-void UtilSetTextOnClipboard(const wchar_t* lpszText);
+void UtilSetTextOnClipboard(const std::wstring& text);
 
 //moves to a directory, and comes back to the previous directory on destructor
 class CCurrentDirManager
@@ -74,7 +74,7 @@ class CCurrentDirManager
 protected:
 	std::filesystem::path _prevDir;
 public:
-	CCurrentDirManager(const wchar_t* chdirTo) {
+	CCurrentDirManager(const std::wstring& chdirTo) {
 		_prevDir = std::filesystem::current_path();
 		try {
 			std::filesystem::current_path(chdirTo);

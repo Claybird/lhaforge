@@ -205,7 +205,7 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 		} catch (const ARCHIVE_EXCEPTION& ) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 			return 1;
 		}
 		//設定を保存

@@ -25,30 +25,30 @@ namespace UnitTest
 		TEST_METHOD(test_UtilGetTemporaryFileName) {
 			auto path = UtilGetTemporaryFileName();
 			Assert::IsTrue(std::filesystem::exists(path));
-			Assert::IsTrue(UtilDeletePath(path.c_str()));
+			Assert::IsTrue(UtilDeletePath(path));
 		}
 		TEST_METHOD(test_UtilDeletePath) {
 			//delete file
 			auto path = UtilGetTemporaryFileName();
 			Assert::IsTrue(std::filesystem::exists(path));
-			Assert::IsTrue(UtilDeletePath(path.c_str()));
+			Assert::IsTrue(UtilDeletePath(path));
 			Assert::IsFalse(std::filesystem::exists(path));
-			Assert::IsFalse(UtilDeletePath(path.c_str()));
+			Assert::IsFalse(UtilDeletePath(path));
 
 			//delete directory
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
-			UtilDeletePath(dir.c_str());
+			UtilDeletePath(dir);
 			Assert::IsFalse(std::filesystem::exists(dir));
-			std::filesystem::create_directories(dir.c_str());
+			std::filesystem::create_directories(dir);
 			for (int i = 0; i < 100; i++) {
 				touchFile(dir + Format(L"/a%03d.txt", i));
 			}
-			std::filesystem::create_directories((dir+L"/testDir").c_str());
+			std::filesystem::create_directories(dir+L"/testDir");
 			for (int i = 0; i < 100; i++) {
 				touchFile(dir + Format(L"/testDir/b%03d.txt", i));
 			}
-			UtilDeletePath(dir.c_str());
-			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+			UtilDeletePath(dir);
+			Assert::IsFalse(std::filesystem::exists(dir));
 		}
 		TEST_METHOD(test_UtilDeleteDir) {
 			//delete file
@@ -58,7 +58,7 @@ namespace UnitTest
 			Assert::IsTrue(std::filesystem::exists(path));
 
 			touchFile(path + L"/test.txt");
-			Assert::IsTrue(UtilDeleteDir(path.c_str(), true));
+			Assert::IsTrue(UtilDeleteDir(path, true));
 			Assert::IsFalse(std::filesystem::exists(path));
 		}
 		TEST_METHOD(test_CTemporaryDirectoryManager) {
@@ -74,29 +74,29 @@ namespace UnitTest
 			std::vector<std::wstring> fileList;
 			//delete directory
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
-			UtilDeletePath(dir.c_str());
+			UtilDeletePath(dir);
 			Assert::IsFalse(std::filesystem::exists(dir));
-			std::filesystem::create_directories(dir.c_str());
+			std::filesystem::create_directories(dir);
 			for (int i = 0; i < 3; i++) {
 				fileList.push_back(dir + Format(L"/a%03d.txt", i));
 				touchFile(dir + Format(L"/a%03d.txt", i));
 			}
 			Assert::IsTrue(UtilMoveFileToRecycleBin(fileList));
-			UtilDeletePath(dir.c_str());
-			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+			UtilDeletePath(dir);
+			Assert::IsFalse(std::filesystem::exists(dir));
 		}
 		TEST_METHOD(test_UtilRecursiveEnumFile_UtilPathExpandWild) {
 			//prepare files
 			std::vector<std::wstring> fileList;
 			auto dir = UtilGetTempPath() + L"lhaforge_test";
-			UtilDeletePath(dir.c_str());
+			UtilDeletePath(dir);
 			Assert::IsFalse(std::filesystem::exists(dir));
-			std::filesystem::create_directories(dir.c_str());
+			std::filesystem::create_directories(dir);
 			for (int i = 0; i < 3; i++) {
 				fileList.push_back(dir + Format(L"/a%03d.txt", i));
 				touchFile(dir + Format(L"/a%03d.txt", i));
 			}
-			std::filesystem::create_directories((dir + L"/b").c_str());
+			std::filesystem::create_directories(dir + L"/b");
 			for (int i = 0; i < 3; i++) {
 				fileList.push_back(dir + Format(L"/b/a%03d.txt", i));
 				touchFile(dir + Format(L"/b/a%03d.txt", i));
@@ -104,7 +104,7 @@ namespace UnitTest
 
 			//enumerate
 			{
-				auto enumerated = UtilRecursiveEnumFile(dir.c_str());
+				auto enumerated = UtilRecursiveEnumFile(dir);
 				Assert::AreEqual(fileList.size(), enumerated.size());
 				for (size_t i = 0; i < fileList.size(); i++) {
 					Assert::AreEqual(
@@ -115,24 +115,24 @@ namespace UnitTest
 
 			//expand wild
 			{
-				auto enumerated = UtilPathExpandWild(dir.c_str());
+				auto enumerated = UtilPathExpandWild(dir);
 				Assert::AreEqual(size_t(1), enumerated.size());
 				Assert::AreEqual(enumerated[0], dir);
 
 				auto pdir = std::filesystem::path(dir);
-				enumerated = UtilPathExpandWild((pdir / L"*.txt").c_str());
+				enumerated = UtilPathExpandWild(pdir / L"*.txt");
 				Assert::AreEqual(size_t(3), enumerated.size());
 				Assert::IsTrue(isIn(enumerated, pdir / L"a000.txt"));
 				Assert::IsTrue(isIn(enumerated, pdir / L"a001.txt"));
 				Assert::IsTrue(isIn(enumerated, pdir / L"a002.txt"));
 
-				enumerated = UtilPathExpandWild((pdir / L"*.exe").c_str());
+				enumerated = UtilPathExpandWild(pdir / L"*.exe");
 				Assert::IsTrue(enumerated.empty());
 			}
 
 			//cleanup
-			UtilDeletePath(dir.c_str());
-			Assert::IsFalse(std::filesystem::exists(dir.c_str()));
+			UtilDeletePath(dir);
+			Assert::IsFalse(std::filesystem::exists(dir));
 		}
 		TEST_METHOD(test_UtilPathIsRoot) {
 			Assert::IsTrue(UtilPathIsRoot(L"c:/"));
@@ -154,23 +154,20 @@ namespace UnitTest
 		}
 		TEST_METHOD(test_UtilGetCompletePathName) {
 			Assert::ExpectException<LF_EXCEPTION>([]() {
-				UtilGetCompletePathName(nullptr);
-			});
-			Assert::ExpectException<LF_EXCEPTION>([]() {
 				UtilGetCompletePathName(L"");
 			});
 			Assert::IsTrue(UtilPathIsRoot(L"C:\\"));
-			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:").c_str()));
-			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\").c_str()));
-			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\Windows").c_str()));
+			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:")));
+			Assert::IsTrue(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\")));
+			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\Windows")));
 			auto tempDir = std::filesystem::temp_directory_path();
-			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(tempDir.c_str()).c_str()));
+			Assert::IsFalse(UtilPathIsRoot(UtilGetCompletePathName(tempDir)));
 			{
-				CCurrentDirManager mngr(tempDir.c_str());
+				CCurrentDirManager mngr(tempDir);
 				auto dest = L"C:\\Windows";
 				auto relpath = std::filesystem::relative(dest);
 				auto expected = toLower(std::filesystem::path(dest).make_preferred());
-				auto actual = toLower(std::filesystem::path(UtilGetCompletePathName(relpath.c_str())));
+				auto actual = toLower(std::filesystem::path(UtilGetCompletePathName(relpath)));
 				Assert::AreEqual(expected, actual);
 			}
 		}
@@ -185,11 +182,11 @@ namespace UnitTest
 			auto fname = UtilGetTempPath() + L"lhaforge_test_file.tmp";
 			{
 				CAutoFile fp;
-				fp.open(fname.c_str(), L"w");
+				fp.open(fname, L"w");
 				fprintf(fp, "test file content");
 			}
 			{
-				auto read = UtilReadFile(fname.c_str());
+				auto read = UtilReadFile(fname);
 				Assert::AreEqual(size_t(17), read.size());
 				read.push_back('\0');
 				Assert::AreEqual(std::string("test file content"), std::string((const char*)&read[0]));

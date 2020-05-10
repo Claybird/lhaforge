@@ -43,7 +43,7 @@ namespace UnitTest
 			Assert::IsFalse(std::filesystem::exists(target));
 			LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_FORCE_CREATE);
 			Assert::IsTrue(std::filesystem::exists(target));
-			UtilDeleteDir(target.c_str(), true);
+			UtilDeleteDir(target, true);
 		}
 		TEST_METHOD(test_LF_make_expand_information) {
 			const auto open_dir = LR"(C:\test\)";

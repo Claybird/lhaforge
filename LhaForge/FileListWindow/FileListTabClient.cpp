@@ -366,7 +366,7 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		m_rFrameWnd.EnableWindow(TRUE);
 		WaitDialog.DestroyWindow();
 		if(FAILED(hr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 			return hr;
 		}
 		pItem->Model.SetDirStack(dirStack);

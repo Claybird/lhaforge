@@ -95,7 +95,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 	//デフォルト値読み込み
 	CString strErr;
-	if(!ConfigManager.LoadConfig(strErr))ErrorMessage(strErr);
+	if(!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
 
 	UTIL_CODEPAGE uCodePage= UTIL_CODEPAGE::CP932;	//レスポンスファイルのコードページ指定
 
@@ -121,13 +121,13 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					auto envInfo = LF_make_expand_information(nullptr, nullptr);
 
 					//コマンド・パラメータ展開
-					cli.ConfigPath = UtilExpandTemplateString(cli.ConfigPath, envInfo).c_str();
+					cli.ConfigPath = UtilExpandTemplateString((const wchar_t*)cli.ConfigPath, envInfo).c_str();
 				}else if(_T("/cfg")==Parameter){
 					cli.ConfigPath.Empty();
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 				//設定ファイルの指定が有ればセットする;無ければデフォルトに戻す
@@ -137,7 +137,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					ConfigManager.SetConfigFile(cli.ConfigPath);
 				}
 				//変更後の値読み込み
-				if(!ConfigManager.LoadConfig(strErr))ErrorMessage(strErr);
+				if(!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
 				TRACE(_T("ConfigPath=%s\n"),cli.ConfigPath);
 			}else if(0==_tcsncmp(_T("/cp"),Parameter,3)){//レスポンスファイルのコードページ指定
 				if(0==_tcsncmp(_T("/cp:"),Parameter,4)){
@@ -152,7 +152,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					}else{
 						CString msg;
 						msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str() +4);
-						ErrorMessage(msg);
+						ErrorMessage((const wchar_t*)msg);
 						return PROCESS_INVALID;
 					}
 				}else if(_T("/cp")==Parameter){
@@ -160,7 +160,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 			}else if(0==_tcsncmp(_T("/c"),Parameter,2)){//圧縮を指示されている
@@ -173,7 +173,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else if(0!=_tcsncmp(_T("/c:"),Parameter,3)){
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}else{
 					cli.CompressType= LF_FMT_INVALID;
@@ -188,7 +188,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					if(-1 ==cli.CompressType){
 						CString msg;
 						msg.Format(IDS_ERROR_INVALID_COMPRESS_PARAMETER,Parameter);
-						ErrorMessage(msg);
+						ErrorMessage((const wchar_t*)msg);
 						return PROCESS_INVALID;
 					}
 
@@ -265,7 +265,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 				TRACE(_T("OutputDir=%s\n"),cli.OutputDir);
@@ -275,7 +275,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
 				}catch(LF_EXCEPTION){
 					//読み込み失敗
-					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
+					ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
 			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定(読み取り後削除)
@@ -285,7 +285,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 					DeleteFileW(strFile.c_str());	//削除
 				} catch (LF_EXCEPTION) {
 					//読み込み失敗
-					ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
+					ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
 					return PROCESS_INVALID;
 				}
 			}else if(0==_tcsncmp(_T("/f"),Parameter,2)){//出力ファイル名指定
@@ -297,7 +297,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 				TRACE(_T("OutputFileName=%s\n"),cli.OutputFileName);
@@ -312,7 +312,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 			}else if(0==_tcsncmp(_T("/popdir:"),Parameter,8)){//解凍時の出力ディレクトリ制御
@@ -324,7 +324,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 			}else if(_T("/popdir")==Parameter){//解凍時の出力ディレクトリ制御
@@ -338,7 +338,7 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				}else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 			}else if(_T("/delete")==Parameter){//処理後に削除
@@ -353,13 +353,13 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 				else{
 					CString msg;
 					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 					return PROCESS_INVALID;
 				}
 			}else{	//未知のオプション
 				CString msg;
 				msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-				ErrorMessage(msg);
+				ErrorMessage((const wchar_t*)msg);
 				return PROCESS_INVALID;
 			}
 		}
@@ -386,13 +386,13 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			strAbsPath = UtilGetCompletePathName(item.c_str()).c_str();
 		} catch (LF_EXCEPTION) {
 			//絶対パスの取得に失敗
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
 			return PROCESS_INVALID;
 		}
 
 		//パス名の最後が\で終わっていたら\を取り除く
 		strAbsPath.RemoveBackslash();
-		TRACE(strAbsPath),TRACE(_T("\n"));
+		TRACE(L"%s\n", (const wchar_t*)strAbsPath);
 
 		//値更新
 		item = (const wchar_t*)strAbsPath;
@@ -400,10 +400,10 @@ PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	//出力フォルダが指定されていたら、それを絶対パスに変換
 	if(!cli.OutputDir.IsEmpty()){
 		try{
-			cli.OutputDir = UtilGetCompletePathName(cli.OutputDir).c_str();
+			cli.OutputDir = UtilGetCompletePathName((const wchar_t*)cli.OutputDir).c_str();
 		} catch (LF_EXCEPTION) {
 			//絶対パスの取得に失敗
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
 			return PROCESS_INVALID;
 		}
 	}

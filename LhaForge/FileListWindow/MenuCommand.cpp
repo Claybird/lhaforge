@@ -129,7 +129,7 @@ void MenuCommand_MakeSendToCommands()
 
 	s_SendToCmd.resize(files.size());
 	for (size_t i = 0; i < files.size(); i++) {
-		UtilGetShortcutInfo(files[i], s_SendToCmd[i]);
+		UtilGetShortcutInfo((const wchar_t*)files[i], s_SendToCmd[i]);
 	}
 }
 

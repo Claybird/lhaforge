@@ -33,9 +33,9 @@ public:
 	virtual ~CSemaphoreLocker(){
 		Release();
 	}
-	virtual bool Lock(const wchar_t* lpName, LONG MaxCount){
+	virtual bool Lock(const std::wstring& name, LONG MaxCount){
 		Release();
-		hSemaphore=CreateSemaphore(NULL,MaxCount,MaxCount,lpName);
+		hSemaphore = CreateSemaphoreW(NULL, MaxCount, MaxCount, name.c_str());
 		if(ERROR_INVALID_HANDLE==GetLastError()){	//failed to get
 			hSemaphore=NULL;
 			return false;

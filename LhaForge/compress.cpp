@@ -187,7 +187,7 @@ bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<
 			Message += strFiles.c_str();
 
 			//確認後ゴミ箱に移動
-			if (IDYES != UtilMessageBox(NULL, Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+			if (IDYES != UtilMessageBox(NULL, (const wchar_t*)Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
 				return false;
 			}
 		}
@@ -204,7 +204,7 @@ bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<
 			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
 			Message += strFiles.c_str();
 
-			if (IDYES != UtilMessageBox(NULL, Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+			if (IDYES != UtilMessageBox(NULL, (const wchar_t*)Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
 				return false;
 			}
 		}
@@ -264,7 +264,7 @@ HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rO
 			CString strLocalErr;
 			hStatus = CheckArchiveName(r_pathArcFileName, rOrgFileNameList, bForceOverwrite, strLocalErr);
 			if (FAILED(hStatus)) {
-				ErrorMessage(strLocalErr);
+				ErrorMessage((const wchar_t*)strLocalErr);
 			}
 			if (S_OK == hStatus) {
 				break;	//完了
@@ -290,7 +290,7 @@ HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rO
 		//フィルタ文字列生成
 		CString strFilter(MAKEINTRESOURCE(IDS_COMPRESS_FILE));
 		strFilter.AppendFormat(_T(" (*%s)|*%s"), lpExt, lpExt);
-		auto filter = UtilMakeFilterString(strFilter);
+		auto filter = UtilMakeFilterString((const wchar_t*)strFilter);
 
 		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
 		if (IDCANCEL == dlg.DoModal()) {	//キャンセル
@@ -528,7 +528,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 			path.AddBackslash();
 			if(path.IsDirectory()){
 				//単体のディレクトリを圧縮
-				auto tmp = UtilPathExpandWild(path+L"*");
+				auto tmp = UtilPathExpandWild((const wchar_t*)(path+L"*"));
 				sourcePathList.clear();
 				for (auto& item : tmp) {
 					//TODO
@@ -549,12 +549,12 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		for(const auto &path: sourcePathList){
 			nFileCount += CheckIfMultipleFilesToCompress(path, pathFileName);
 			if(nFileCount>=2){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_SINGLE_FILE_ONLY)));
+				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_SINGLE_FILE_ONLY)));
 				return false;
 			}
 		}
 		if(0==nFileCount){
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
 			return false;
 		}
 		sourcePathList.clear();
@@ -575,7 +575,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	HRESULT hr=GetArchiveName(pathArcFileName, sourcePathList, format, Options,ConfCompress,ConfGeneral,CmdLineInfo,strErr);
 	if(FAILED(hr)){
 		if(hr!=E_ABORT){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 		return false;
 	}
@@ -588,7 +588,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 				CString msg;
 				msg.Format(IDS_ERROR_FILE_REPLACE,strLastError.c_str());
 
-				ErrorMessage(msg);
+				ErrorMessage((const wchar_t*)msg);
 				return false;
 			}
 		}
@@ -683,12 +683,12 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 			auto envInfo = LF_make_expand_information(pathOpenDir,pathArcFileName);
 
 			//コマンド・パラメータ展開
-			auto strCmd = UtilExpandTemplateString(ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
-			auto strParam = UtilExpandTemplateString(ConfGeneral.Filer.Param,envInfo);	//パラメータ
+			auto strCmd = UtilExpandTemplateString((const wchar_t*)ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
+			auto strParam = UtilExpandTemplateString((const wchar_t*)ConfGeneral.Filer.Param,envInfo);	//パラメータ
 			ShellExecute(NULL, _T("open"), strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 		}else{
 			//Explorerで開く
-			UtilNavigateDirectory(pathOpenDir);
+			UtilNavigateDirectory((const wchar_t*)pathOpenDir);
 		}
 	}
 
