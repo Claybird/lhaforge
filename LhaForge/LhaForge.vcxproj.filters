@@ -204,9 +204,6 @@
     <Filter Include="FileListWindow\OLE">
       <UniqueIdentifier>{bdac2e86-f9b0-455c-b380-48edc9b5605e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{8fb5dad6-b868-4e3c-899d-6751b3d71315}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{ad63b314-6e29-434f-9089-61d3aca1e0a1}</UniqueIdentifier>
     </Filter>
@@ -356,30 +353,6 @@
     <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h">
       <Filter>FileListWindow\OLE</Filter>
     </ClInclude>
-    <ClInclude Include="Association.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CmdLineInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="compress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extract.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TestArchive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\ConfigFile.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -406,6 +379,30 @@
     </ClInclude>
     <ClInclude Include="Utilities\variant.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="TestArchive.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Association.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CmdLineInfo.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonUtil.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="compress.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extract.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
