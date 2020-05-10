@@ -409,3 +409,12 @@ void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArch
 		}
 	}
 }
+
+
+#ifdef UNIT_TEST
+#include <gtest/gtest.h>
+int wmain(int argc, wchar_t *argv[], wchar_t *envp[]){
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}
+#endif
