@@ -356,9 +356,6 @@
     <ClInclude Include="Utilities\ConfigFile.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\EventDispatcher.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\FileOperation.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -403,6 +400,9 @@
     </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListWindow\EventDispatcher.h">
+      <Filter>FileListWindow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

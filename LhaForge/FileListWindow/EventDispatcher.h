@@ -30,9 +30,8 @@ protected:
 	std::set<HWND> m_EventListener;
 
 	virtual void dispatchEvent(UINT msg,WPARAM wParam=0,LPARAM lParam=0){
-		for(std::set<HWND>::iterator ite=m_EventListener.begin();ite!=m_EventListener.end();++ite){
-			::PostMessage(*ite,msg,wParam,lParam);
-			//::SendMessage(*ite,msg,wParam,lParam);
+		for(const auto &hWnd: m_EventListener){
+			::PostMessage(hWnd, msg, wParam, lParam);
 		}
 	}
 public:

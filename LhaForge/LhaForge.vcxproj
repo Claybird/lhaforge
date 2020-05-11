@@ -127,6 +127,7 @@
     <ClInclude Include="extract.h" />
     <ClInclude Include="FileListWindow\AnimationUpdater.h" />
     <ClInclude Include="FileListWindow\ArcFileContent.h" />
+    <ClInclude Include="FileListWindow\EventDispatcher.h" />
     <ClInclude Include="FileListWindow\FileListFrame.h" />
     <ClInclude Include="FileListWindow\FileListMessages.h" />
     <ClInclude Include="FileListWindow\FileListModel.h" />
@@ -147,7 +148,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TestArchive.h" />
     <ClInclude Include="Utilities\ConfigFile.h" />
-    <ClInclude Include="Utilities\EventDispatcher.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
     <ClInclude Include="Utilities\Semaphore.h" />
