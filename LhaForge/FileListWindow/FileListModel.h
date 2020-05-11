@@ -114,7 +114,6 @@ public:
 	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return m_Content.GetRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
-	[[deprecated("just a placeholder")]] bool IsExtractEachSupported()const { return false; }
 	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
 	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}

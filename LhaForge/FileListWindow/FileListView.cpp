@@ -706,12 +706,6 @@ void CFileListView::OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl)
 //bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 {
-	if(!mr_Model.IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
-		return false;
-	}
-
 	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
 		CString msg;
 		msg.Format(IDS_ERROR_FILE_NOT_FOUND,mr_Model.GetArchiveFileName());
@@ -948,13 +942,6 @@ HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 
 LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 {
-	if(!mr_Model.IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
-		MessageBeep(MB_ICONASTERISK);
-		return 0;
-	}
-
 	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
 		return 0;
 	}
@@ -1083,13 +1070,6 @@ void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 		if(hdHitTestInfo.flags&HHT_ONHEADER){
 			return;
 		}
-	}
-
-	//部分解凍が使用できないなら、メニューを表示する意味がない
-	//TODO:削除メニューはどうする?部分解凍できずに削除可能はほぼあり得ない
-	if(!mr_Model.IsExtractEachSupported()){
-		MessageBeep(MB_ICONASTERISK);
-		return;
 	}
 
 	//---右クリックメニュー表示
@@ -1359,11 +1339,6 @@ void CFileListView::OnExtractItem(UINT,int nID,HWND)
 	const bool bSameDir=(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR==nID);
 
 	if(!mr_Model.IsOK()){
-		return;// false;
-	}
-	if(!mr_Model.IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
 		return;// false;
 	}
 

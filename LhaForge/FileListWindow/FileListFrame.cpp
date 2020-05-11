@@ -783,7 +783,7 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 		bool bSelected=SelCount>0;
 
 		//UI更新
-		EnableEntryExtractOperationMenu(bFileListActive && pTab->Model.IsExtractEachSupported() && bSelected);
+		EnableEntryExtractOperationMenu(bFileListActive && bSelected);
 		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsDeleteItemsSupported() && bSelected);
 		EnableAddItemsMenu(pTab->Model.IsAddItemsSupported());
 

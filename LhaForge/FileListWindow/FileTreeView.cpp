@@ -360,13 +360,6 @@ void CFileTreeView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 		cSubMenu=cMenu.GetSubMenu(0);
 	}else{
 		hWndSendTo=m_hWnd;
-		//アイテムメニュー
-		//部分解凍が使用できないなら、メニューを表示する意味がない
-		//TODO:削除メニューはどうする?部分解凍できずに削除可能はほぼあり得ない
-		if(!mr_Model.IsExtractEachSupported()){
-			MessageBeep(MB_ICONASTERISK);
-			return;
-		}
 
 		//---右クリックメニュー表示
 		cMenu.LoadMenu(IDR_FILELIST_POPUP);
@@ -620,11 +613,6 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	if(!mr_Model.IsOK()){
 		return;// false;
 	}
-	if(!mr_Model.IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
-		return;// false;
-	}
 
 	//選択されたアイテムを列挙
 	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
@@ -682,12 +670,6 @@ void CFileTreeView::OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl)
 //bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 bool CFileTreeView::OpenAssociation(bool bOverwrite,bool bOpen)
 {
-	if(!mr_Model.IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_EXTRACT_SELECTED_NOT_SUPPORTED)));
-		return false;
-	}
-
 	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
 		CString msg;
 		msg.Format(IDS_ERROR_FILE_NOT_FOUND,mr_Model.GetArchiveFileName());
