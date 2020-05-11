@@ -64,7 +64,7 @@ public:
 		UINT64 currentSize,
 		UINT64 totalSize
 		) {
-		auto str = Format(L"%s\n%d / %d",
+		auto str = Format(L"%s\n%I64d / %I64d",
 			archivePath,
 			fileIndex,
 			totalFiles
@@ -78,7 +78,7 @@ public:
 			UtilFormatSize(currentSize).c_str(),
 			UtilFormatSize(totalSize).c_str()
 		);
-		m_fileInfo.SetWindowTextW(
+		m_entryInfo.SetWindowTextW(
 			str.c_str());
 		m_entryProgress.SetPos(INT32(currentSize * 100ull / max(1ull, totalSize)));
 	}
