@@ -87,7 +87,6 @@ public:
 		return 0;
 	}
 	void OnDestroy() {
-		//メッセージフィルタの除去
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
 		pLoop->RemoveMessageFilter(this);
 	}
