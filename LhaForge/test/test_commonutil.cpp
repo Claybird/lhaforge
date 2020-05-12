@@ -67,6 +67,8 @@ TEST(CommonUtil, LF_sanitize_pathname) {
 	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a/./././b"));
 	EXPECT_EQ(L"c/_@@@_/d", LF_sanitize_pathname(L"c/../d"));
 	EXPECT_EQ(L"e/_@@@_/f", LF_sanitize_pathname(L"e/....../f"));
+	EXPECT_EQ(L"a/b/c", LF_sanitize_pathname(L"a/b/c"));
+	EXPECT_EQ(L"a/b/c/", LF_sanitize_pathname(L"a/b/c/"));
 
 	EXPECT_EQ(L"abc_(UNICODE_CTRL)_def", LF_sanitize_pathname(L"abc\u202Edef"));
 }
