@@ -54,4 +54,22 @@ TEST(CommonUtil, LF_make_expand_information) {
 	EXPECT_EQ(L"output.ext", envInfo[L"OutputFileName"]);
 }
 
+TEST(CommonUtil, LF_sanitize_pathname) {
+	EXPECT_EQ(L"", LF_sanitize_pathname(L""));
+	EXPECT_EQ(L"", LF_sanitize_pathname(L"//"));
+	EXPECT_EQ(L"", LF_sanitize_pathname(L"\\"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"/a"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"//a"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"\\a"));
+	EXPECT_EQ(L"a/", LF_sanitize_pathname(L"//a////"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a\\b"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a//b"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a/./././b"));
+	EXPECT_EQ(L"c/_@@@_/d", LF_sanitize_pathname(L"c/../d"));
+	EXPECT_EQ(L"e/_@@@_/f", LF_sanitize_pathname(L"e/....../f"));
+
+	EXPECT_EQ(L"abc_(UNICODE_CTRL)_def", LF_sanitize_pathname(L"abc\u202Edef"));
+}
+
+
 #endif

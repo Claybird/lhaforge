@@ -86,3 +86,5 @@ void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR On
 
 //prepare envInfo map for UtilExpandTemplateString()
 std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDir,LPCTSTR lpOutputFile);
+
+std::wstring LF_sanitize_pathname(const std::wstring &rawPath);

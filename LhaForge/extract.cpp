@@ -34,51 +34,6 @@
 #include "Utilities/OSUtil.h"
 #include "CommonUtil.h"
 
-std::wstring LF_sanitize_pathname(const std::wstring rawPath)
-{
-	const std::pair<std::wregex, wchar_t*> pattern[] = {
-		//---potential directory traversals are not harmful if properly replaced
-		//more than two directory separators, e.g., "//" -> "/"
-		{std::wregex(L"/{2,}"),L"/"},
-		//dot directory name, e.g., "/./" -> "/"
-		{std::wregex(L"(^|/)\\.(/|$)"),L"/"},
-		//parent directory name, e.g., "/../" -> "/_@@@_/"
-		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$1_@@@_$3"},
-		//backslashes "\\" -> "_@@@_" ; libarchive will use only "/" for directory separator
-		{std::wregex(L"\\\\"),L"_@@@_"},
-		//root directory, e.g., "/abc" -> "abc"
-		{std::wregex(L"^/"),L""},
-
-		//unicode control characters
-		{std::wregex(L"("
-			L"[\u0001-\u001f]"	//ISO 6429 C0 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
-			L"|\u007F"	//DEL
-			L"|[\u0080-\u009F]"	//ISO 6429 C1 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
-			L"|[\u200b-\u200d]"	//zero-width spaces
-
-			//https://en.wikipedia.org/wiki/Bidirectional_text
-			L"|\u200e|\u200f|\u061C"	//LRM,RLM,ALM
-			L"|[\u202a-\u202e]"	//RLE,LRO,PDF,RLE,RLO,
-			L"|[\u2066-\u2069]"	//LRI,RLI,FSI,PDI
-			L")"),
-			L"_(UNICODE_CTRL)_"},
-	};
-
-	auto buf = rawPath;
-	for (;;) {
-		bool modified = false;
-		for (const auto &p : pattern) {
-			auto updated = std::regex_replace(buf, p.first, p.second);
-			if ((!modified) && (updated != buf)) {
-				modified = true;
-			}
-			buf = updated;
-		}
-		if (!modified)break;
-	}
-	return buf;
-}
-
 std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path)
 {
 	//Symbols to be deleted

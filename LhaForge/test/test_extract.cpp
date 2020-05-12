@@ -3,21 +3,6 @@
 #include <gtest/gtest.h>
 #include "extract.h"
 
-TEST(extract, LF_sanitize_pathname) {
-	std::wstring LF_sanitize_pathname(const std::wstring rawPath);
-	EXPECT_EQ(L"", LF_sanitize_pathname(L""));
-	EXPECT_EQ(L"", LF_sanitize_pathname(L"//"));
-	EXPECT_EQ(L"a", LF_sanitize_pathname(L"/a"));
-	EXPECT_EQ(L"a", LF_sanitize_pathname(L"//a"));
-	EXPECT_EQ(L"a/", LF_sanitize_pathname(L"//a////"));
-	EXPECT_EQ(L"a_@@@_b", LF_sanitize_pathname(L"a\\b"));
-	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a/./././b"));
-	EXPECT_EQ(L"c/_@@@_/d", LF_sanitize_pathname(L"c/../d"));
-	EXPECT_EQ(L"e/_@@@_/f", LF_sanitize_pathname(L"e/....../f"));
-
-	EXPECT_EQ(L"abc_(UNICODE_CTRL)_def", LF_sanitize_pathname(L"abc\u202Edef"));
-}
-
 TEST(extract, trimArchiveName) {
 	std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path);
 	EXPECT_EQ(L"", trimArchiveName(true, L""));
