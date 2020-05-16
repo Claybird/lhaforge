@@ -66,6 +66,8 @@ std::unordered_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterDat
 
 	std::pair<std::unordered_map<StlString,SHELLDATA>::iterator,bool> Result;
 
+	//フォルダの識別文字列(拡張子)
+	const LPCTSTR FOLDER_EXTENSION_STRING = _T("***");
 	if(!Ext)Ext=FOLDER_EXTENSION_STRING;
 	Result=ShellDataMap.insert(std::pair<StlString,SHELLDATA>(Ext,ShellData));
 	return Result.first;

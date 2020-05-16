@@ -175,6 +175,9 @@
     <ClCompile Include="Utilities\test\test_Semaphore.cpp">
       <Filter>Utilities\test</Filter>
     </ClCompile>
+    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
+      <Filter>FileListWindow\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -215,6 +218,9 @@
     </Filter>
     <Filter Include="Utilities\test">
       <UniqueIdentifier>{4e1f840c-e4d7-48ff-b12a-722ae5cac635}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow\test">
+      <UniqueIdentifier>{12106ed9-2803-4993-b85e-f05a1976e42c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

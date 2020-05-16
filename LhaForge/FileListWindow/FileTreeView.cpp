@@ -94,7 +94,7 @@ LRESULT CFileTreeView::OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 bool CFileTreeView::UpdateCurrentNode()
 {
-	ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetCurrentNode();
+	ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetCurrentNode();
 	ITEMDICT::iterator ite=m_TreeItemMap.find(lpNode);
 	if(m_TreeItemMap.end()==ite){
 		return false;
@@ -105,7 +105,7 @@ bool CFileTreeView::UpdateCurrentNode()
 }
 
 
-bool CFileTreeView::ConstructTree(HTREEITEM hParentItem,ARCHIVE_ENTRY_INFO_TREE* lpNode)
+bool CFileTreeView::ConstructTree(HTREEITEM hParentItem,ARCHIVE_ENTRY_INFO* lpNode)
 {
 	BeginSelfAction();
 	HTREEITEM hItem;
@@ -123,7 +123,7 @@ bool CFileTreeView::ConstructTree(HTREEITEM hParentItem,ARCHIVE_ENTRY_INFO_TREE*
 		m_ImageList.AddIcon(shfi.hIcon);
 	}else{
 		//子を追加
-		hItem=InsertItem(lpNode->strTitle,hParentItem,TVI_LAST);
+		hItem=InsertItem(lpNode->_entryName.c_str(),hParentItem,TVI_LAST);
 		SetItemImage(hItem,0,1);
 	}
 	m_TreeItemMap.insert(ITEMDICT::value_type(lpNode,hItem));
@@ -131,9 +131,9 @@ bool CFileTreeView::ConstructTree(HTREEITEM hParentItem,ARCHIVE_ENTRY_INFO_TREE*
 	SetItemData(hItem,(DWORD_PTR)lpNode);
 
 	//Node配下のフォルダに対して処理
-	UINT numItems=lpNode->GetNumChildren();
+	UINT numItems=lpNode->getNumChildren();
 	for(UINT i=0;i<numItems;i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpChild=lpNode->GetChild(i);
+		ARCHIVE_ENTRY_INFO* lpChild=lpNode->getChild(i);
 		if(lpChild->isDirectory()){
 			//ディレクトリなら追加
 			ConstructTree(hItem,lpChild);
@@ -166,12 +166,12 @@ LRESULT CFileTreeView::OnTreeSelect(LPNMHDR)
 	}else{
 		//選択されたアイテムに関連付けられたノードを取得し、
 		//その配下のファイルをリストビューに表示する
-		ARCHIVE_ENTRY_INFO_TREE* lpCurrent=mr_Model.GetCurrentNode();
+		ARCHIVE_ENTRY_INFO* lpCurrent=mr_Model.GetCurrentNode();
 
 		HTREEITEM hItem=GetSelectedItem();
 		if(!hItem)return 0;
 
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=(ARCHIVE_ENTRY_INFO_TREE*)GetItemData(hItem);
+		ARCHIVE_ENTRY_INFO* lpNode=(ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
 		ASSERT(lpNode);
 
 		//TODO
@@ -264,7 +264,7 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		HTREEITEM hItem=HitTest(ptTemp,NULL);
 
 		CString strDest;	//放り込む先
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=(ARCHIVE_ENTRY_INFO_TREE*)GetItemData(hItem);
+		ARCHIVE_ENTRY_INFO* lpNode=(ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
 			ASSERT(lpNode->isDirectory());
@@ -337,7 +337,7 @@ LRESULT CFileTreeView::OnRClick(LPNMHDR lpNM)
 void CFileTreeView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 {
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	//何も選択していない、もしくはルートを選択した場合は表示しない
@@ -353,7 +353,7 @@ void CFileTreeView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 	CMenu cMenu;
 	CMenuHandle cSubMenu;
 	HWND hWndSendTo=NULL;
-	if((*items.begin())->lpParent==NULL){
+	if((*items.begin())->_parent==NULL){
 		hWndSendTo=m_hFrameWnd;
 		//ルートメニュー
 		cMenu.LoadMenu(IDR_ARCHIVE_POPUP);
@@ -396,7 +396,7 @@ void CFileTreeView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	//選択されたファイルを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	//ファイルが選択されていなければエラー
@@ -459,7 +459,7 @@ bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 	//---選択解凍開始
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	std::list<CString> filesList;
@@ -528,7 +528,7 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 
 	//---選択解凍開始
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	std::list<CString> filesList;
@@ -615,7 +615,7 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	if(items.empty()){
 		//選択されたファイルがない
@@ -625,7 +625,7 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 
 	//解凍
 	CString strLog;
-	HRESULT hr=mr_Model.ExtractItems(m_hFrameWnd,bSameDir,items,(*items.begin())->lpParent,strLog);
+	HRESULT hr=mr_Model.ExtractItems(m_hFrameWnd,bSameDir,items,(*items.begin())->_parent,strLog);
 
 	SetForegroundWindow(m_hFrameWnd);
 
@@ -642,12 +642,12 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	}
 }
 
-void CFileTreeView::GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*> &items)
+void CFileTreeView::GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items)
 {
 	items.clear();
 	HTREEITEM hItem=GetSelectedItem();
 	if(hItem){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=(ARCHIVE_ENTRY_INFO_TREE*)GetItemData(hItem);
+		ARCHIVE_ENTRY_INFO* lpNode=(ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
 		items.push_back(lpNode);
 	}
 	ASSERT(items.size()<=1);
@@ -678,7 +678,7 @@ bool CFileTreeView::OpenAssociation(bool bOverwrite,bool bOpen)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	if(!items.empty()){

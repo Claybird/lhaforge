@@ -28,11 +28,11 @@
 #include "../FileListModel.h"
 #include "resource.h"
 
-HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,ARCHIVE_ENTRY_INFO_TREE *lpBase,LPCTSTR lpszOutputDir,CString &strLog)
+HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO*> &items,ARCHIVE_ENTRY_INFO *lpBase,LPCTSTR lpszOutputDir,CString &strLog)
 {
 	//DnD対象ファイル名を取得
 	std::list<stdString> filesList;
-	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();items.end()!=ite;++ite){
+	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=items.begin();items.end()!=ite;++ite){
 		CString strNodePath;
 		ArcEntryInfoTree_GetNodePathRelative(*ite,lpBase,strNodePath);
 

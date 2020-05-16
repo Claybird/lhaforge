@@ -24,91 +24,11 @@
 
 #include "stdafx.h"
 #include "ArcFileContent.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/FileOperation.h"
-#include "../ArchiverCode/arc_interface.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
+#include "ArchiverCode/arc_interface.h"
+#include "CommonUtil.h"
 
-[[deprecated("will be removed")]]
-LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr)
-{
-	for (; *lpStr != _T('\0'); lpStr++) {
-		if (*lpStr == _T('/') || *lpStr == _T('\\')) {
-			break;
-		}
-	}
-	//終端
-	return lpStr;
-}
-
-[[deprecated("will be removed")]]
-bool UtilPathNextSection(LPCTSTR lpStart, LPCTSTR& r_lpStart, LPCTSTR& r_lpEnd, bool bSkipMeaningless)
-{
-	LPCTSTR lpEnd = UtilPathNextSeparator(lpStart);
-	if (bSkipMeaningless) {
-		while (true) {
-			//---無効なパスかどうかチェック
-			//2文字以上のパスは有効であると見なす
-
-			int length = lpEnd - lpStart;
-			if (length == 1) {
-				if (_T('.') == *lpStart || _T('\\') == *lpStart || _T('/') == *lpStart) {
-					//無効なパス
-					//次の要素を取ってくる
-					lpStart = lpEnd;
-					lpEnd = UtilPathNextSeparator(lpStart);
-				} else {
-					break;
-				}
-			} else if (length == 0) {
-				if (_T('\0') == *lpEnd) {	//もうパスの要素がなくなったので返る
-					return false;
-				} else {
-					lpEnd++;
-					//次の要素を取ってくる
-					lpStart = lpEnd;
-					lpEnd = UtilPathNextSeparator(lpStart);
-				}
-			} else {
-				break;
-			}
-		}
-	}
-	r_lpStart = lpStart;
-	r_lpEnd = lpEnd;
-	return true;
-}
-
-
-//Pathが'/'もしくは'\\'で終わっているならtrue
-[[deprecated("will be removed")]]
-bool UtilPathEndWithSeparator(LPCTSTR lpPath)
-{
-	UINT length = _tcslen(lpPath);
-	TCHAR c = lpPath[length - 1];
-	return (_T('/') == c || _T('\\') == c);
-}
-
-//パス名の最後の部分を取り出す
-[[deprecated("will be removed")]]
-void UtilPathGetLastSection(CString &strSection, LPCTSTR lpPath)
-{
-	CString strPath = lpPath;
-	strPath.Replace(_T('\\'), _T('/'));
-	while (true) {
-		int idx = strPath.ReverseFind(_T('/'));
-		if (-1 == idx) {	//そのまま
-			strSection = lpPath;
-			return;
-		} else if (idx < strPath.GetLength() - 1) {
-			//末尾がSeparatorではない
-			strSection = lpPath + idx + 1;
-			return;
-		} else {	//末尾がSeparator
-			//末尾を削る->削った後はループで再度処理;strSectionにはSeparator付きの文字が格納される
-			strPath.Delete(idx, strPath.GetLength());
-		}
-	}
-}
 
 void UtilModifyPath(CString &strPath)
 {
@@ -123,14 +43,15 @@ void UtilModifyPath(CString &strPath)
 	strPath.Replace(_T(":"), _T("__"));	//ドライブ名も置き換える(C:からC__へ)
 }
 
-void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode, const ARCHIVE_ENTRY_INFO_TREE* lpBase, CString &strPath)
+void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO* lpNode, const ARCHIVE_ENTRY_INFO* lpBase, CString &strPath)
 {
+	/*
 	//ここで面倒なことをしているのは、
 	//lpBaseがフルパス名を持っていない(=LhaForgeが仮想的に作り出したフォルダ)ことがあるから。
 	strPath = _T("");
 
 	for (; lpNode->lpParent && lpBase != lpNode; lpNode = lpNode->lpParent) {
-		CString strTmp = lpNode->strTitle;
+		CString strTmp = lpNode->strEntryName.c_str();
 		strTmp.Replace(_T('/'), _T('\\'));
 
 		CPath strBuffer = strTmp;
@@ -146,7 +67,7 @@ void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO_TREE* lpNode,
 		strPath.Insert(0, strBuffer);
 	}
 	// 出力パスの修正
-	UtilModifyPath(strPath);
+	UtilModifyPath(strPath);*/
 }
 
 
@@ -165,237 +86,106 @@ CArchiveFileContent::~CArchiveFileContent()
 
 void CArchiveFileContent::Clear()
 {
-	m_Root.Clear();
-	m_Root.lpParent=NULL;
-
+	m_Root.clear();
 	m_bReadOnly=false;
-	m_GC.clear();
 
 	m_pathArcFileName.Empty();
 	m_bExtractEachSupported=false;
 }
 
-ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_TREE* lpParent,LPCTSTR lpName)
-{
-	ASSERT(lpParent);
-	ARCHIVE_ENTRY_INFO_TREE::DICT::iterator ite=lpParent->childrenDict.find(lpName);
-	if(lpParent->childrenDict.end()==ite){
-		auto p = std::make_shared<ARCHIVE_ENTRY_INFO_TREE>();
-		m_GC.push_back(p);
-		ARCHIVE_ENTRY_INFO_TREE* lpTree = p.get();
-		lpTree->Clear();
 
-		lpTree->lpParent=lpParent;
-		lpParent->childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type(lpName,lpTree));
-		lpParent->childrenArray.push_back(lpTree);
-		return lpTree;
-	}else{
-		return (*ite).second;
-	}
-}
-
-HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
+void CArchiveFileContent::InspectArchiveStruct(
+	LPCTSTR lpFile,
+	IArchiveContentUpdateHandler* lpHandler)
 {
-	//解析開始
-	try {
-		HRESULT hr = S_OK;
-		ARCHIVE_FILE_TO_READ arc;
-		arc.read_open(lpFile);
+	ARCHIVE_FILE_TO_READ arc;
+	arc.read_open(lpFile);
 		
-		//少なくとも一つのファイルが暗号化されているならtrue
-		bool bEncrypted = false;
+	bool bEncrypted = false;
 
-		//一覧取得
-		for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
-			ARCHIVE_ENTRY_INFO item;
+	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->get_pathname()));
+		auto elements = UtilSplitString(pathname, L"/");
 
-			item.strFullPath = entry->get_pathname();	//格納されたときの名前
-			item.nAttribute = entry->get_file_mode();		//属性;自分がフォルダかどうかなどの情報
+		if (elements.empty())continue;
+		auto &item = m_Root.addEntry(elements);
+		item._entryName = elements.back();
+		item._fullpath = pathname;
+		item._nAttribute = entry->get_file_mode();
+		item._originalSize = entry->get_original_filesize();
+		item._st_mtime = entry->get_mtime();
 
-			//ファイルサイズ(圧縮前)
-			item.llOriginalSize = entry->get_original_filesize();
-			//日時取得
-			item.st_mtime = entry->get_mtime();
+		bEncrypted = bEncrypted || entry->is_encrypted();
 
-			//暗号
-			bEncrypted = bEncrypted || entry->is_encrypted();
-
-			//登録
-			entries.push_back(item);
-
-			//更新
-			if (lpHandler) {
-				while (UtilDoMessageLoop())continue;
-				lpHandler->onUpdated(item);
-				if (lpHandler->isAborted()) {
-					hr = E_ABORT;
-					break;
-				}
+		//notifier
+		if (lpHandler) {
+			while (UtilDoMessageLoop())continue;
+			lpHandler->onUpdated(item);
+			if (lpHandler->isAborted()) {
+				CANCEL_EXCEPTION();
 			}
 		}
-		//解析終了
-		arc.close();
-
-		m_bEncrypted = bEncrypted;
-		return hr;
-	}catch(const ARCHIVE_EXCEPTION& e) {
-		ErrorMessage(e.what());
-		return E_FAIL;
 	}
-}
 
+	m_bEncrypted = bEncrypted;
+}
 
 
 HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
-	Clear();
-
-	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
-
-	//--構造取得
-	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,entries,lpHandler);
-	if(FAILED(hr)){
-		ASSERT(hr==E_ABORT);
-		if(hr==E_ABORT){
-			strErr.Format(IDS_ERROR_USERCANCEL);
-		}
-		return hr;
-	}
-	//記録
-	m_pathArcFileName=lpFile;
-
-	//解析
-	size_t numEntries=entries.size();
-	for(size_t i=0;i<numEntries;i++){
-		if(bFilesOnly && entries[i].nAttribute & S_IFDIR)continue;	//ファイルのみの場合はディレクトリは無視
-		auto p = std::make_shared<ARCHIVE_ENTRY_INFO_TREE>();
-		m_GC.push_back(p);
-
-		auto lpEntry = p.get();
-		lpEntry->Clear();
-
-		//エントリ設定
-		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
-		lpEntry->lpParent=&m_Root;
-		UtilPathGetLastSection(lpEntry->strTitle,entries[i].strFullPath);
-
-		m_Root.childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type((LPCTSTR)lpEntry->strTitle,lpEntry));
-		m_Root.childrenArray.push_back(lpEntry);
-	}
-
-	PostProcess(NULL);
-	return S_OK;
+	return E_NOTIMPL;
 }
+
 
 HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
 	Clear();
 
-	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
+	m_bReadOnly = GetFileAttributesW(lpFile) & FILE_ATTRIBUTE_READONLY;
+	m_pathArcFileName = lpFile;
 
-	//--構造取得
-	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,entries,lpHandler);
-	if(FAILED(hr)){
-		ASSERT(hr==E_ABORT && "Not Implemented");
-		if(hr==E_ABORT){
-			strErr.Format(IDS_ERROR_USERCANCEL);
-		}
-		return hr;
+	try {
+		InspectArchiveStruct(lpFile, lpHandler);
+		PostProcess(nullptr);
+	} catch (LF_EXCEPTION&) {
+		strErr.Format(IDS_ERROR_USERCANCEL);	//TODO
+		Clear();
+		return E_ABORT;
 	}
 
-	//記録
-	m_pathArcFileName=lpFile;
-
-	//解析
-	//TODO:既に出現したディレクトリのみを対象に比較を行う
-	size_t numEntries=entries.size();
-	for(size_t i=0;i<numEntries;i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpEntry=&m_Root;
-		LPCTSTR lpPath=entries[i].strFullPath;
-
-		CString strEntry;
-		CString strTitle;
-		bool bBreak=false;
-		for(;*lpPath!=L'\0';){
-			LPCTSTR lpStart,lpEnd;
-			if(UtilPathNextSection(lpPath,lpStart,lpEnd,bSkipMeaningless)){
-				strEntry = std::wstring(lpStart,lpEnd).c_str();
-				lpPath=lpEnd;
-				if(*lpPath!=L'\0')lpPath++;
-			}else{
-				//分割不能
-				strEntry=lpPath;
-				bBreak=true;
-			}
-			strTitle=strEntry;
-			//小文字化
-			strEntry.MakeLower();
-
-			//子エントリ検索
-			lpEntry=ForceFindEntry(lpEntry,strEntry);
-			if(bBreak){
-				break;
-			}else{
-				if(lpEntry->strTitle.IsEmpty()){
-					//仮想ディレクトリの設定
-					lpEntry->strTitle=strTitle;
-				}
-			}
-		}
-		ASSERT(lpEntry);
-		//エントリ設定
-		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
-
-		lpEntry->strTitle=strTitle;
-	}
-
-	PostProcess(NULL);
 	return S_OK;
 }
 
-/*
- * ファイル一覧追加後の処理
- * ディレクトリ内ファイルのサイズを取得するなど
- */
-void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO_TREE* pNode)
+void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO* pNode)
 {
 	if (!pNode)pNode = &m_Root;
-	//属性
-	if (0 == pNode->nAttribute) {	//まったく分かっていない場合
-		if (!pNode->childrenDict.empty() || UtilPathEndWithSeparator(pNode->strFullPath)) {
-			//以下の条件のいずれかに合致すればディレクトリ
-			//・ノード名末尾にパス区切り文字が付いている
-			//・子ノードが空でない
-			pNode->nAttribute = S_IFDIR;
+
+	if (0 == pNode->_nAttribute) {
+		if (!pNode->_children.empty()) {
+			pNode->_nAttribute = S_IFDIR;
 		} else {
-			pNode->nAttribute = S_IFREG;
+			pNode->_nAttribute = S_IFREG;
 		}
 	} else {
-		if (!pNode->childrenDict.empty() || UtilPathEndWithSeparator(pNode->strFullPath)) {
-			pNode->nAttribute |= S_IFDIR;
+		if (!pNode->_children.empty()) {
+			pNode->_nAttribute |= S_IFDIR;
 		}
 	}
 	if (pNode->isDirectory()) {
-		pNode->llOriginalSize=0;
+		pNode->_originalSize = 0;
 	}
 
-	//子ノードにも適用
-	size_t numChildren=pNode->childrenArray.size();
-	for(size_t i=0;i<numChildren;i++){
-		ARCHIVE_ENTRY_INFO_TREE* pChild=pNode->childrenArray[i];
-		PostProcess(pChild);
+	//children
+	for (auto& child : pNode->_children) {
+		PostProcess(child.get());
 
-		//---ディレクトリなら、中のデータのサイズを集計する
 		if (pNode->isDirectory()) {
-			//---圧縮前サイズ
-			if(pNode->llOriginalSize>=0){	//ファイルサイズ取得済み
-				if (pChild->llOriginalSize >= 0) {
-					pNode->llOriginalSize += pChild->llOriginalSize;
+			if(pNode->_originalSize>=0){	//file size is known
+				if (child->_originalSize >= 0) {
+					pNode->_originalSize += child->_originalSize;
 				} else {
-					//ファイルサイズ不明な物あり、
-					pNode->llOriginalSize = -1;
+					//file size unknown
+					pNode->_originalSize = -1;
 				}
 			}
 		}
@@ -403,67 +193,49 @@ void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO_TREE* pNode)
 }
 
 
-
-void CArchiveFileContent::FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const
+std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubItem(
+	const std::wstring& pattern,
+	const ARCHIVE_ENTRY_INFO* parent)const
 {
-	//幅優先探索
-	std::vector<ARCHIVE_ENTRY_INFO_TREE*> dirs;
-	for(size_t i=0;i<lpTop->childrenArray.size();i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpTop->childrenArray[i];
-		ASSERT(lpNode);
-		CString strKey;
-		if(bMatchPath){	//パス名も一致
-			strKey=lpNode->strFullPath;
-			strKey.Replace(_T("/"),_T("\\"));
-		}else{
-			strKey=lpNode->strTitle;
-		}
-		if(::PathMatchSpec(strKey,lpszMask)){
-			founds.push_back(lpNode);
-		}
-		if(lpNode->isDirectory()){	//ディレクトリは再帰検索
-			dirs.push_back(lpNode);
+	//---breadth first search
+
+	//pattern contains '/', then need to match fullpath
+	bool matchPath = (std::wstring::npos != pattern.find(L'/'));
+
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > found;
+	for (auto& child : parent->_children) {
+		if (matchPath) {
+			if (UtilPathMatchSpec(child->_fullpath, pattern)) {
+				found.push_back(child);
+			}
+		} else {
+			if (UtilPathMatchSpec(child->_entryName, pattern)) {
+				found.push_back(child);
+			}
 		}
 	}
-	//ディレクトリ
-	for(size_t i=0;i<dirs.size();i++){
-		FindSubItem(lpszMask,bMatchPath,dirs[i],founds);
+	for (auto& child : parent->_children) {
+		if (child->isDirectory()) {
+			auto subFound = findSubItem(pattern, child.get());
+			found.insert(found.end(), subFound.begin(), subFound.end());
+		}
 	}
+	return found;
 }
 
 
-void CArchiveFileContent::FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const
-{
-	founds.clear();
-	ASSERT(lpTop);
-	if(!lpTop)return;
-
-	CString strMask(lpszMask);
-	strMask.Replace(_T("/"),_T("\\"));
-	bool bMatchPath=(-1!=strMask.Find(_T('\\')));
-
-	//*も?も付いていない場合は*を検索条件に追加
-	if(-1==strMask.FindOneOf(_T("*?"))){
-		strMask.Insert(0,_T("*"));
-		strMask+=_T("*");
-	}
-
-	FindSubItem(strMask,bMatchPath,lpTop,founds);
-}
-
-
-bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)
+bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
 	return false;// return m_lpArchiver->ExtractItems(m_pathArcFileName, ConfMan, lpBase, items, lpszDir, bCollapseDir, strLog);
 }
 
-void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpParent,std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > &toExtractList)
+void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList)
 {
-	size_t numChildren=lpParent->GetNumChildren();
+	size_t numChildren=lpParent->getNumChildren();
 	for(size_t i=0;i<numChildren;i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpParent->GetChild(i);
+		ARCHIVE_ENTRY_INFO* lpNode=lpParent->getChild(i);
 		CPath path=lpOutputDir;
 
 		CString strItem;
@@ -482,16 +254,16 @@ void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCH
 
 
 //bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
+bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
 {
 	//選択されたアイテムを列挙
-	std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > toExtractList;
+	std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > toExtractList;
 
 	std::list<CString> newFilesList;	//これから解凍するファイルのディスク上のパス名
 
-	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();ite!=items.end();++ite){
+	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=items.begin();ite!=items.end();++ite){
 		// 存在をチェックし、もし解凍済みであればそれを開く
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=*ite;
+		ARCHIVE_ENTRY_INFO* lpNode=*ite;
 		CPath path=lpOutputDir;
 
 		CString strItem;
@@ -527,12 +299,12 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 	}
 
 	//未解凍の物のみ一時フォルダに解凍
-	for(std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
-		const std::list<ARCHIVE_ENTRY_INFO_TREE*> &filesList = (*ite).second;
+	for(std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
+		const std::list<ARCHIVE_ENTRY_INFO*> &filesList = (*ite).second;
 		if(!ExtractItems(ConfMan,filesList,lpOutputDir,lpBase,false,strLog)){
-			for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
+			for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
 				//失敗したので削除
-				ARCHIVE_ENTRY_INFO_TREE* lpNode = *iteRemove;
+				ARCHIVE_ENTRY_INFO* lpNode = *iteRemove;
 				CPath path=lpOutputDir;
 				CString strItem;
 				ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
@@ -568,14 +340,14 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 	}*/
 }
 
-bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &fileList,CString &strLog)
+bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
 	return false;
 /*	//削除対象を列挙
 	std::list<CString> filesToDel;
-	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
+	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		(*ite)->EnumFiles(filesToDel);
 	}
 	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);*/

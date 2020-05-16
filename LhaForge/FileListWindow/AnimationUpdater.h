@@ -33,7 +33,7 @@ struct AnimationUpdater:public IArchiveContentUpdateHandler{
 	void onUpdated(ARCHIVE_ENTRY_INFO &rInfo){
 		if(lpDialog){
 			lpDialog->AnimationCall();
-			lpDialog->SetMessageString(rInfo.strFullPath);
+			lpDialog->SetMessageString(rInfo._fullpath.c_str());
 		}
 	}
 	bool isAborted(){

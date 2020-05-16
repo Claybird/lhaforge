@@ -188,14 +188,14 @@ void CFileListView::GetColumnState(int* pColumnOrderArray, int *pFileInfoWidthAr
 	}
 }
 
-void CFileListView::GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*> &items)
+void CFileListView::GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items)
 {
 	items.clear();
 	int nIndex=-1;
 	for(;;){
 		nIndex = GetNextItem(nIndex, LVNI_ALL | LVNI_SELECTED);
 		if(-1==nIndex)break;
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
+		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 
 		ASSERT(lpNode);
 
@@ -210,10 +210,10 @@ LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lPa
 	DeleteAllItems();
 	SetItemCount(0);
 	if(mr_Model.IsOK()){
-		ARCHIVE_ENTRY_INFO_TREE* lpCurrent=mr_Model.GetCurrentNode();
+		ARCHIVE_ENTRY_INFO* lpCurrent=mr_Model.GetCurrentNode();
 		ASSERT(lpCurrent);
 		if(lpCurrent){
-			SetItemCount(lpCurrent->GetNumChildren());
+			SetItemCount(lpCurrent->getNumChildren());
 			SetItemState(0,LVIS_FOCUSED,LVIS_FOCUSED);
 		}
 	}
@@ -253,10 +253,10 @@ LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 	}
 
 	//選択されたアイテムを取得
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	if(items.empty())return 0;
-	ARCHIVE_ENTRY_INFO_TREE* lpNode=*(items.begin());
+	ARCHIVE_ENTRY_INFO* lpNode=*(items.begin());
 
 	if(lpNode->isDirectory()){
 		//階層構造を無視する場合には、この動作は無視される
@@ -366,11 +366,11 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 //キー入力によるファイル検索
 LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 {
-	ARCHIVE_ENTRY_INFO_TREE* lpCurrent=mr_Model.GetCurrentNode();
+	ARCHIVE_ENTRY_INFO* lpCurrent=mr_Model.GetCurrentNode();
 	ASSERT(lpCurrent);
 	if(!lpCurrent)return -1;
 
-	int iCount=lpCurrent->GetNumChildren();
+	int iCount=lpCurrent->getNumChildren();
 	if(iCount<=0)return -1;
 
 	LPNMLVFINDITEM lpFindInfo = (LPNMLVFINDITEM)pnmh;
@@ -381,17 +381,17 @@ LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 		size_t nLength=_tcslen(lpFindString);
 		//前方一致で検索
 		for(int i=iStart;i<iCount;i++){
-			ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(i);
+			ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(i);
 			ASSERT(lpNode);
-			if(0==_tcsnicmp(lpFindString,lpNode->strTitle,nLength)){
+			if(0==_tcsnicmp(lpFindString,lpNode->_entryName.c_str(),nLength)){
 				return i;
 			}
 		}
 		if(lpFindInfo->lvfi.flags & LVFI_WRAP){
 			for(int i=0;i<iStart;i++){
-				ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(i);
+				ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(i);
 				ASSERT(lpNode);
-				if(0==_tcsnicmp(lpFindString,lpNode->strTitle,nLength)){
+				if(0==_tcsnicmp(lpFindString,lpNode->_entryName.c_str(),nLength)){
 					return i;
 				}
 			}
@@ -482,7 +482,7 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 	/*if(lpnmcd->hdr.hwndFrom == m_hWnd){
 		LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
 
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(lpnmcd->dwItemSpec);
+		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(lpnmcd->dwItemSpec);
 		if(lpNode){
 			if(!lpNode->bSafe){
 				//危険なアーカイブなので色を付ける
@@ -500,7 +500,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
 
-	ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(pstLVDInfo->item.iItem);
+	ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(pstLVDInfo->item.iItem);
 	//ASSERT(lpNode);
 	if(!lpNode)return 0;
 
@@ -512,16 +512,16 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	LPCTSTR lpText=NULL;
 	switch(m_ColumnIndexArray[pstLVDInfo->item.iSubItem]){
 	case FILEINFO_FILENAME:	//ファイル名
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->strTitle;
-		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->getExt());
+		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=lpNode->_entryName.c_str();
+		if(pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage=m_ShellDataManager.GetIconIndex(lpNode->getExt().c_str());
 		break;
 	case FILEINFO_FULLPATH:	//格納パス
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if(m_bPathOnly){
 				//'\\'ではなく'/'でパスが区切られていればtrue
-				bool bSlash = (-1!=lpNode->strFullPath.Find(_T('/')));
+				bool bSlash = (std::wstring::npos!=lpNode->_fullpath.find(_T('/')));
 				//一度置き換え
-				strBuffer = lpNode->strFullPath;
+				strBuffer = lpNode->_fullpath.c_str();
 				strBuffer.Replace(_T('/'),_T('\\'));
 
 				//ファイル名除去
@@ -543,22 +543,22 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 				}
 				lpText = strBuffer;
 			}else{
-				lpText=lpNode->strFullPath;
+				lpText=lpNode->_fullpath.c_str();
 			}
 		}
 		break;
 	case FILEINFO_ORIGINALSIZE:	//サイズ(圧縮前)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			FormatFileSize(strBuffer,lpNode->llOriginalSize);
+			FormatFileSize(strBuffer,lpNode->_originalSize);
 			lpText=strBuffer;
 		}
 		break;
 	case FILEINFO_TYPENAME:	//ファイルタイプ
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->getExt());
+		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			strBuffer = UtilFormatTime(lpNode->st_mtime).c_str();
+			strBuffer = UtilFormatTime(lpNode->_st_mtime).c_str();
 			lpText=strBuffer;
 		}
 		break;
@@ -584,7 +584,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 {
 	LPNMLVGETINFOTIP pGetInfoTip=(LPNMLVGETINFOTIP)pnmh;
 
-	ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(pGetInfoTip->iItem);
+	ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(pGetInfoTip->iItem);
 	ASSERT(lpNode);
 	if(!lpNode)return 0;
 	CString strInfo;
@@ -592,19 +592,19 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 
 	//ファイル名
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILENAME));
-	strInfo+=_T(" : ");	strInfo+=lpNode->strTitle;		strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=lpNode->_entryName.c_str();		strInfo+=_T("\n");
 	//格納パス
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FULLPATH));
-	strInfo+=_T(" : ");	strInfo+=lpNode->strFullPath;	strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=lpNode->_fullpath.c_str();	strInfo+=_T("\n");
 	//圧縮前サイズ
-	FormatFileSize(strBuffer,lpNode->llOriginalSize);
+	FormatFileSize(strBuffer,lpNode->_originalSize);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_ORIGINALSIZE));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 	//ファイルタイプ
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
-	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt());	strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());	strInfo+=_T("\n");
 	//ファイル日時
-	strBuffer = UtilFormatTime(lpNode->st_mtime).c_str();
+	strBuffer = UtilFormatTime(lpNode->_st_mtime).c_str();
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 
@@ -616,7 +616,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 		strInfo+=_T("\n");
 		strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_SUBITEM));
 		strInfo+=_T(" : ");
-		strInfo.AppendFormat(IDS_FILELIST_ITEMCOUNT,lpNode->GetNumChildren());
+		strInfo.AppendFormat(IDS_FILELIST_ITEMCOUNT,lpNode->getNumChildren());
 	}
 
 	//InfoTipに設定
@@ -714,7 +714,7 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	if(!items.empty()){
@@ -881,7 +881,7 @@ HRESULT CFileListView::DragOver(IDataObject *,POINTL &pt,DWORD &dwEffect)
 			//全てのハイライトを無効に
 			SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 			m_nDropHilight=-1;
-			ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
+			ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 			if(lpNode){		//アイテム上にDnD
 				//アイテムがフォルダだったらハイライト
 				if(lpNode->isDirectory()){
@@ -913,7 +913,7 @@ HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		int nIndex=HitTest(ptTemp,NULL);
 
 		CString strDest;	//放り込む先
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
+		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
 			if(lpNode->isDirectory()){
@@ -946,7 +946,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 		return 0;
 	}
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	if(items.empty()){	//本来あり得ない
 		ASSERT(!"This code cannot be run");
@@ -1010,7 +1010,7 @@ void CFileListView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	//選択されたファイルを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	//ファイルが選択されていなければエラー
@@ -1098,42 +1098,42 @@ void CFileListView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
-	std::list<ARCHIVE_ENTRY_INFO_TREE*>::iterator ite=items.begin();
-	std::list<ARCHIVE_ENTRY_INFO_TREE*>::iterator end=items.end();
+	std::list<ARCHIVE_ENTRY_INFO*>::iterator ite=items.begin();
+	std::list<ARCHIVE_ENTRY_INFO*>::iterator end=items.end();
 
 	CString info;
 
 	switch(nID){
 	case ID_MENUITEM_COPY_FILENAME:
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strTitle);
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->_entryName.c_str());
 		}
 		break;
 	case ID_MENUITEM_COPY_PATH:
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)lpItem->strFullPath);
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),lpItem->_fullpath.c_str());
 		}
 		break;
 	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%I64d\n"),lpItem->llOriginalSize);
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			info.AppendFormat(_T("%I64d\n"),lpItem->_originalSize);
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETYPE:
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(lpItem->getExt()));
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(lpItem->getExt().c_str()));
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETIME:
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strBuffer = UtilFormatTime(lpItem->st_mtime).c_str();
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			CString strBuffer = UtilFormatTime(lpItem->_st_mtime).c_str();
 			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
 		}
 		break;
@@ -1148,14 +1148,14 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	case ID_MENUITEM_COPY_ALL:
 		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
 		for(;ite!=end;++ite){
-			ARCHIVE_ENTRY_INFO_TREE* lpItem = *ite;
-			CString strFileTime = UtilFormatTime(lpItem->st_mtime).c_str();
+			ARCHIVE_ENTRY_INFO* lpItem = *ite;
+			CString strFileTime = UtilFormatTime(lpItem->_st_mtime).c_str();
 
 			info.AppendFormat(L"%s\t%s\t%I64d\t%s\t%s\n",
-				(LPCTSTR)lpItem->strTitle,
-				(LPCTSTR)lpItem->strFullPath,
-				lpItem->llOriginalSize,
-				m_ShellDataManager.GetTypeName(lpItem->getExt()),
+				(LPCTSTR)lpItem->_entryName.c_str(),
+				(LPCTSTR)lpItem->_fullpath.c_str(),
+				lpItem->_originalSize,
+				m_ShellDataManager.GetTypeName(lpItem->getExt().c_str()),
 				(LPCTSTR)strFileTime);
 		}
 		break;
@@ -1187,7 +1187,7 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	if(!mr_Model.IsOK())return false;
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	std::list<CString> filesList;
@@ -1256,7 +1256,7 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 
 	//---選択解凍開始
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	std::list<CString> filesList;
@@ -1343,7 +1343,7 @@ void CFileListView::OnExtractItem(UINT,int nID,HWND)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> items;
+	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	if(items.empty()){
 		//選択されたファイルがない
@@ -1379,7 +1379,7 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 		if(IDOK == dlg.DoModal()){
 			mr_Model.EndFindItem();
-			ARCHIVE_ENTRY_INFO_TREE* lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.GetCurrentNode());
+			ARCHIVE_ENTRY_INFO* lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.GetCurrentNode());
 			mr_Model.SetCurrentNode(lpFound);
 		}
 	}
