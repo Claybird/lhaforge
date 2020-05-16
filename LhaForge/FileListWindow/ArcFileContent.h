@@ -25,8 +25,6 @@
 #pragma once
 #include "ConfigCode/ConfigManager.h"
 
-#pragma message("FIXME: move this file to more generic position")
-
 struct ARCHIVE_ENTRY_INFO;
 struct IArchiveContentUpdateHandler {
 	virtual ~IArchiveContentUpdateHandler() {}
@@ -118,6 +116,19 @@ struct ARCHIVE_ENTRY_INFO {
 			}
 		} else {
 			return _fullpath;
+		}
+	}
+	//returns pathname from base to this
+	std::wstring getRelativePath(const ARCHIVE_ENTRY_INFO* base)const {
+		if (_parent && base != this) {
+			auto parent_name = _parent->getRelativePath(base);
+			if (parent_name.empty()) {
+				return _entryName;
+			} else {
+				return parent_name + L"/" + _entryName;
+			}
+		} else {
+			return L"";
 		}
 	}
 	//enumerate myself and children

@@ -39,6 +39,10 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->getFullpath());
 	EXPECT_EQ(L"dirA/dirB/dirC", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->getFullpath());
 	EXPECT_EQ(5, root.enumFiles().size());
+
+	auto file1 = root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->getChild(L"file1.txt");
+	EXPECT_EQ(L"dirB/dirC/file1.txt", file1->getRelativePath(root.getChild(L"dirA")));
+	EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", file1->getRelativePath(&root));
 }
 
 #endif
