@@ -148,6 +148,8 @@ TEST(FileOperation, UtilPathAddLastSeparator) {
 }
 TEST(FileOperation, UtilPathRemoveLastSeparator) {
 	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L""));
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"/"));
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"\\"));
 	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:/"));
 	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:\\"));
 	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:"));

@@ -109,6 +109,9 @@ TEST(StringUtil, UtilSplitString) {
 	EXPECT_EQ(L"", out[4]);
 	EXPECT_EQ(L"def", out[5]);
 	EXPECT_EQ(L"", out[6]);
+
+	out = UtilSplitString(L"", L",");
+	EXPECT_EQ(size_t(1), out.size());
 }
 
 TEST(StringUtil, UtilStringToIntArray) {
