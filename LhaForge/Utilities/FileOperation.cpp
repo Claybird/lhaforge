@@ -153,6 +153,15 @@ std::wstring UtilPathAddLastSeparator(const std::wstring& path)
 	return p;
 }
 
+std::wstring UtilPathRemoveLastSeparator(const std::wstring& path)
+{
+	std::wstring p = path;
+	if (!p.empty() && (p.back() == L'/' || p.back() == L'\\')) {
+		p.back() = L'\0';
+	}
+	return p.c_str();
+}
+
 //get full & absolute path
 std::wstring UtilGetCompletePathName(const std::wstring& filePath)
 {

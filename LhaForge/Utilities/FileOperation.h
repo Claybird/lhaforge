@@ -75,6 +75,7 @@ std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root);
 
 bool UtilPathIsRoot(const std::wstring& path);
 std::wstring UtilPathAddLastSeparator(const std::wstring& path);
+std::wstring UtilPathRemoveLastSeparator(const std::wstring& path);
 
 //get full & absolute path
 std::wstring UtilGetCompletePathName(const std::wstring& filePath);

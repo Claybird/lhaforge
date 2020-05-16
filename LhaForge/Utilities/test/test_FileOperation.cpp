@@ -146,6 +146,15 @@ TEST(FileOperation, UtilPathAddLastSeparator) {
 	EXPECT_EQ(L"/tmp\\", UtilPathAddLastSeparator(L"/tmp\\"));
 	EXPECT_EQ(L"/tmp/", UtilPathAddLastSeparator(L"/tmp/"));
 }
+TEST(FileOperation, UtilPathRemoveLastSeparator) {
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L""));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:/"));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:\\"));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp\\"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp/"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp"));
+}
 TEST(FileOperation, UtilGetCompletePathName) {
 	EXPECT_THROW(UtilGetCompletePathName(L""), LF_EXCEPTION);
 	EXPECT_TRUE(UtilPathIsRoot(L"C:\\"));
