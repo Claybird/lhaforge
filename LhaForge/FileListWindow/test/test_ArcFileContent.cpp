@@ -8,7 +8,6 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 {
 	ARCHIVE_ENTRY_INFO root;
 	std::vector<std::wstring> files = {
-		L"/dirA/dirB/dirC/",
 		L"/dirA/dirB/dirC/file1.txt",
 		L"/dirA/dirB",
 		L"/dirA/dirB/file2.txt",
@@ -37,6 +36,8 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 	EXPECT_EQ(nullptr, root.getChild(L"DIRC"));
 
 	EXPECT_EQ(L".txt", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"file2.txt")->getExt());
+	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->getFullpath());
+	EXPECT_EQ(L"dirA/dirB/dirC", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->getFullpath());
 	EXPECT_EQ(5, root.enumFiles().size());
 }
 
