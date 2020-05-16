@@ -36,8 +36,10 @@ std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUB
 std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage);
 
 //checks if path extension matches specific patterns
-//pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
+//pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
 bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string);
+//checks if path matches specific patterns
+bool UtilPathMatchSpec(const std::wstring& path, const std::wstring& pattern_string);
 
 //Message loop utility
 bool UtilDoMessageLoop();

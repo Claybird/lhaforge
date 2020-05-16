@@ -34,23 +34,19 @@ TEST(Utility, UtilExtMatchSpec) {
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L".abc"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.ABC", L"abc"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"ab"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L".ab"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.ABC", L"ab"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test.abc"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"*.test"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"ab*"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc*"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"??c"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"?c"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"??d"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"test.tar.gz", L"tar.gz"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.tar.gz", L""));
-
-	//---multiple
-	EXPECT_TRUE(UtilExtMatchSpec(L"あいう.えお", L"*.abc;えお"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc;def;.ghi"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.doc", L"abc;doc*"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.docx", L"abc;doc*"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"abc;doc*;*.exe"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L";;"));
 
 	//---possible regex
 	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"(.*)"));
@@ -64,6 +60,48 @@ TEST(Utility, UtilExtMatchSpec) {
 	EXPECT_TRUE(UtilExtMatchSpec(L".gitignore", L".gitignore"));
 	EXPECT_TRUE(UtilExtMatchSpec(L"abc.gitignore", L".gitignore"));
 	EXPECT_FALSE(UtilExtMatchSpec(L"test", L"test"));
+}
+TEST(Utility, UtilPathMatchSpec) {
+	//---single
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"", L""));
+	EXPECT_FALSE(UtilPathMatchSpec(L"", L"*.abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test.abc"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"*.test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"??c"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"?c"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"??d"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar.gz"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.tar.gz", L""));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar"));
+
+	//---possible regex
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"(.*)"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"[a-Z]*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"\\"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"$"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"^"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"txt|abc"));
+
+	//---no name part or no exts
+	EXPECT_TRUE(UtilPathMatchSpec(L".gitignore", L".gitignore"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc.gitignore", L".gitignore"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"test"));
 }
 TEST(Utility, has_key) {
 	std::map<std::wstring, std::wstring> m;

@@ -90,50 +90,71 @@ std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile,
 }
 
 //checks if path extension matches specific patterns
-//pattern_string may contain multiple patterns separated with ';', such as "*.txt;*.do?"
+//pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
 bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string)
 {
+	if (pattern_string.empty())return false;
 	//characters to be escaped
 	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
-	auto patterns = UtilSplitString(pattern_string, L";");
 
-	std::wstring regex_string;
-	for (auto& pattern : patterns) {
-		if (pattern.empty())continue;
-		//compatibility
-		if (pattern.find(L"*.") == 0) {
-			pattern = pattern.substr(1);
-		}
-
-		std::wstring pstr;
-		if (pattern[0] != L'.') {
-			pstr += L"\\.";
-		}
-		for (const auto& p : pattern) {
-			if (isIn(escapeSubjects, p)) {
-				pstr += L"\\";
-				pstr += p;
-			} else if (p == L'*') {
-				pstr += L".*?";
-			} else if (p == L'?') {
-				pstr += L".";
-			} else {
-				pstr += p;
-			}
-		}
-
-		if (!regex_string.empty()) {
-			regex_string += L'|';
-		}
-		regex_string += L"(" + pstr + L"$)";
+	//compatibility
+	auto pattern = pattern_string;
+	if (pattern.find(L"*.") == 0) {
+		pattern = pattern.substr(1);
 	}
 
-	if (regex_string.empty())return false;
+	std::wstring regex_str;
+	if (pattern[0] != L'.') {
+		regex_str += L"\\.";
+	}
+	for (const auto& p : pattern) {
+		if (isIn(escapeSubjects, p)) {
+			regex_str += L"\\";
+			regex_str += p;
+		} else if (p == L'*') {
+			regex_str += L".*?";
+		} else if (p == L'?') {
+			regex_str += L".";
+		} else {
+			regex_str += p;
+		}
+	}
 
-	std::wregex re(toLower(regex_string));
+	if (regex_str.empty())return false;
+	regex_str += L"$";
+
+	std::wregex re(toLower(regex_str));
 	return std::regex_search(toLower(path), re);
 }
 
+//checks if path matches specific patterns
+//pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
+bool UtilPathMatchSpec(const std::wstring& path, const std::wstring& pattern_string)
+{
+	if (pattern_string.empty())return false;
+	//characters to be escaped
+	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
+
+	auto pattern = pattern_string;
+	std::wstring regex_str;
+	for (const auto& p : pattern) {
+		if (isIn(escapeSubjects, p)) {
+			regex_str += L"\\";
+			regex_str += p;
+		} else if (p == L'*') {
+			regex_str += L".*?";
+		} else if (p == L'?') {
+			regex_str += L".";
+		} else {
+			regex_str += p;
+		}
+	}
+
+	if (regex_str.empty())return false;
+
+	std::wregex re(toLower(regex_str));
+	return std::regex_search(toLower(path), re);
+}
 
 bool UtilDoMessageLoop()
 {
