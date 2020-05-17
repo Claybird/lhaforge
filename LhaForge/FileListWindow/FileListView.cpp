@@ -802,9 +802,9 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	ASSERT(mr_Model.IsAddItemsSupported());
 	if(!mr_Model.IsAddItemsSupported())return;
 
-	CString strDest;	//放り込む先
 	//カレントフォルダに追加
-	ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
+	//CString strDest;	//放り込む先
+	auto strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
 
 	std::list<CString> fileList;
 	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
@@ -831,7 +831,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 	if(!fileList.empty()){
 		//追加開始
-		AddItems(fileList,strDest);
+		AddItems(fileList,strDest.c_str());
 	}
 }
 
@@ -912,23 +912,23 @@ HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		ScreenToClient(&ptTemp);
 		int nIndex=HitTest(ptTemp,NULL);
 
-		CString strDest;	//放り込む先
+		std::wstring strDest;	//放り込む先
 		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
 			if(lpNode->isDirectory()){
-				ArcEntryInfoTree_GetNodePathRelative(lpNode,mr_Model.GetRootNode(),strDest);
+				strDest = lpNode->getRelativePath(mr_Model.GetRootNode());
 			}else{
 				//カレントフォルダに追加
-				ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
+				strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
 			}
 		}else{	//アイテム外にDnD->カレントフォルダに追加
-			ArcEntryInfoTree_GetNodePathRelative(mr_Model.GetCurrentNode(),mr_Model.GetRootNode(),strDest);
+			strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
 		}
-		TRACE(_T("Target:%s\n"),(LPCTSTR)strDest);
+		TRACE(_T("Target:%s\n"),strDest.c_str());
 
 		//追加開始
-		return AddItems(fileList,strDest);
+		return AddItems(fileList,strDest.c_str());
 	}else{
 		//受け入れできない形式
 		dwEffect = DROPEFFECT_NONE;

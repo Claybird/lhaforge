@@ -148,9 +148,6 @@ struct ARCHIVE_ENTRY_INFO {
 	}
 };
 
-//ルートからみて自分までのパスを取得
-void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO* lpDir, const ARCHIVE_ENTRY_INFO* lpBase, CString &strPath);
-
 /*
  * アーカイブ内のファイル構造を保持
  */

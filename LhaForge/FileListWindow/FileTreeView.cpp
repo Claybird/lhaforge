@@ -268,7 +268,7 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		if(lpNode){		//アイテム上にDnD
 			//アイテムがフォルダだったらそのフォルダに追加
 			ASSERT(lpNode->isDirectory());
-			ArcEntryInfoTree_GetNodePathRelative(lpNode,mr_Model.GetRootNode(),strDest);
+			strDest = lpNode->getRelativePath(mr_Model.GetRootNode()).c_str();
 		}else{
 			return E_HANDLE;
 		}

@@ -30,48 +30,6 @@
 #include "CommonUtil.h"
 
 
-void UtilModifyPath(CString &strPath)
-{
-	// パスの修正
-	strPath.Replace(_T("/"), _T("\\"));	//パス区切り文字
-
-	int Ret = 0;
-	do {
-		Ret = strPath.Replace(_T("\\\\"), _T("\\"));	//\\を\に置き換えていく
-	} while (Ret != 0);
-	strPath.Replace(_T("..\\"), _T("__\\"));	//相対パス指定..は__に置き換える
-	strPath.Replace(_T(":"), _T("__"));	//ドライブ名も置き換える(C:からC__へ)
-}
-
-void ArcEntryInfoTree_GetNodePathRelative(const ARCHIVE_ENTRY_INFO* lpNode, const ARCHIVE_ENTRY_INFO* lpBase, CString &strPath)
-{
-	/*
-	//ここで面倒なことをしているのは、
-	//lpBaseがフルパス名を持っていない(=LhaForgeが仮想的に作り出したフォルダ)ことがあるから。
-	strPath = _T("");
-
-	for (; lpNode->lpParent && lpBase != lpNode; lpNode = lpNode->lpParent) {
-		CString strTmp = lpNode->strEntryName.c_str();
-		strTmp.Replace(_T('/'), _T('\\'));
-
-		CPath strBuffer = strTmp;
-		if (-1 != strTmp.Find(_T('\\'))) {
-			//ディレクトリノードの名前にパス区切り文字が入るのは、階層構造を無視した一覧の時のみ。
-			//このときは、パス区切りを全部飛ばす必要がある。
-			strBuffer.StripPath();	//一番最後の部分を残して、パスをカット
-			strBuffer.RemoveBackslash();	//パス区切り文字を一旦削除
-		}
-		if (lpNode->isDirectory()) {
-			strBuffer.AddBackslash();
-		}
-		strPath.Insert(0, strBuffer);
-	}
-	// 出力パスの修正
-	UtilModifyPath(strPath);*/
-}
-
-
-
 CArchiveFileContent::CArchiveFileContent():
 m_bReadOnly(false),
 m_bEncrypted(false)
@@ -238,9 +196,8 @@ void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCH
 		ARCHIVE_ENTRY_INFO* lpNode=lpParent->getChild(i);
 		CPath path=lpOutputDir;
 
-		CString strItem;
-		ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-		path.Append(strItem);
+		auto subPath = lpNode->getRelativePath(lpBase);
+		path.Append(subPath.c_str());
 
 		if(::PathIsDirectory(path)){
 			// フォルダが存在するが中身はそろっているか?
@@ -266,9 +223,8 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 		ARCHIVE_ENTRY_INFO* lpNode=*ite;
 		CPath path=lpOutputDir;
 
-		CString strItem;
-		ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-		path.Append(strItem);
+		auto subPath = lpNode->getRelativePath(lpBase);
+		path.Append(subPath.c_str());
 
 		if(bOverwrite){
 			// 上書き解凍するので、存在するファイルは削除
@@ -306,9 +262,8 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 				//失敗したので削除
 				ARCHIVE_ENTRY_INFO* lpNode = *iteRemove;
 				CPath path=lpOutputDir;
-				CString strItem;
-				ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-				path.Append(strItem);
+				auto subPath = lpNode->getRelativePath(lpBase);
+				path.Append(subPath.c_str());
 				UtilDeletePath((const wchar_t*)path);
 			}
 			return false;

@@ -33,11 +33,10 @@ HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_E
 	//DnD対象ファイル名を取得
 	std::list<stdString> filesList;
 	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=items.begin();items.end()!=ite;++ite){
-		CString strNodePath;
-		ArcEntryInfoTree_GetNodePathRelative(*ite,lpBase,strNodePath);
+		auto strNodePath = (*ite)->getRelativePath(lpBase);
 
 		CPath strPath=lpszOutputDir;
-		strPath+=strNodePath;
+		strPath+=strNodePath.c_str();
 		strPath.RemoveBackslash();
 		filesList.push_back((LPCTSTR)strPath);
 	}
