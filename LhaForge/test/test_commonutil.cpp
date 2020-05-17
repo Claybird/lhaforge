@@ -71,6 +71,9 @@ TEST(CommonUtil, LF_sanitize_pathname) {
 	EXPECT_EQ(L"a/b/c/", LF_sanitize_pathname(L"a/b/c/"));
 
 	EXPECT_EQ(L"abc_(UNICODE_CTRL)_def", LF_sanitize_pathname(L"abc\u202Edef"));
+
+	EXPECT_EQ(L"あいうえお", LF_sanitize_pathname(L"あいうえお"));
+	EXPECT_EQ(L"あいう/えお", LF_sanitize_pathname(L"あいう//えお"));
 }
 
 
