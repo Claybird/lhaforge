@@ -148,36 +148,42 @@ struct ARCHIVE_ENTRY_INFO {
 	}
 };
 
-/*
- * アーカイブ内のファイル構造を保持
- */
 class CArchiveFileContent{
+#ifdef UNIT_TEST
+public:
+#else
 protected:
-	//ファイル情報
+#endif
 	ARCHIVE_ENTRY_INFO m_Root;
 
-	CString			m_pathArcFileName;
+	std::wstring	m_pathArchive;
 	bool			m_bExtractEachSupported;
 	bool			m_bReadOnly;
 
-	bool			m_bEncrypted;	//少なくとも一つのファイルが暗号化されているならtrue
+	bool			m_bEncrypted;	//true if at least one entry is encrypted
 
 protected:
 	//---internal functions
-	//bMatchPath:trueならパスも含め検索、falseならファイル名のみ検索
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findSubItem(const std::wstring& pattern, const ARCHIVE_ENTRY_INFO* parent)const;
 
 	void PostProcess(ARCHIVE_ENTRY_INFO*);
-	void InspectArchiveStruct(LPCTSTR lpFile, IArchiveContentUpdateHandler*);
 	void CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList);
 
 public:
-	CArchiveFileContent();
-	virtual ~CArchiveFileContent();
-
+	CArchiveFileContent(): m_bReadOnly(false),m_bEncrypted(false), m_bExtractEachSupported(false){
+		clear();
+	}
+	virtual ~CArchiveFileContent() {}
+	void clear() {
+		m_Root.clear();
+		m_bReadOnly = false;
+		m_pathArchive.clear();
+		m_bExtractEachSupported = false;
+		m_bEncrypted = false;
+	}
+	void inspectArchiveStruct(const std::wstring& archiveName, IArchiveContentUpdateHandler* lpHandler);
 	//処理対象アーカイブ名を取得
-	void SetArchiveFileName(LPCTSTR lpFile) { m_pathArcFileName = lpFile; }
-	LPCTSTR GetArchiveFileName()const{return m_pathArcFileName;}
+	LPCTSTR GetArchiveFileName()const{return m_pathArchive.c_str();}
 
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > FindItem(const wchar_t* name_or_pattern, const ARCHIVE_ENTRY_INFO* parent)const {
 		if (!parent)parent = &m_Root;
@@ -188,13 +194,8 @@ public:
 	ARCHIVE_ENTRY_INFO* GetRootNode(){return &m_Root;}
 	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return &m_Root;}
 
-	[[deprecated("flat structure should be calculated from tree structure")]]
-	HRESULT ConstructFlat(LPCTSTR lpFile,CConfigManager&,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler*);
-	HRESULT ConstructTree(LPCTSTR lpFile,CConfigManager&,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler*);
-	void Clear();
-
 	bool IsArchiveEncrypted()const{return m_bEncrypted;}
-	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
+	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArchive.c_str());}
 	bool IsOK()const { return false; /*TODO*/
 #pragma message("FIXME!")
 	}

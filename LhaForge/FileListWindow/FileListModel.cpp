@@ -63,19 +63,12 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,
 
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
-	HRESULT hr;
-	//解析
-	if(flMode==FILELIST_TREE){
-		CConfigFileListWindow ConfFLW;
-		ConfFLW.load(mr_Config);
-		hr=m_Content.ConstructTree(strArchive,mr_Config,ConfExtract.DenyExt,BOOL2bool(ConfFLW.IgnoreMeaninglessPath),strErr,lpHandler);
-	}else{
-		hr=m_Content.ConstructFlat(strArchive,mr_Config,ConfExtract.DenyExt,(flMode==FILELIST_FLAT_FILESONLY),strErr,lpHandler);
-	}
-
-	if(FAILED(hr)){
-		m_Content.SetArchiveFileName(strArchive);
-		return hr;
+	//if (flMode == FILELIST_TREE) {
+	try {
+		//解析
+		m_Content.inspectArchiveStruct((LPCTSTR)strArchive, lpHandler);
+	}catch(LF_EXCEPTION&){
+		return E_FAIL;	//TODO
 	}
 
 	m_lpCurrentNode=m_Content.GetRootNode();
@@ -93,7 +86,7 @@ HRESULT CFileListModel::ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IA
 
 void CFileListModel::Clear()
 {
-	m_Content.Clear();
+	m_Content.clear();
 	m_lpCurrentNode=NULL;
 	m_SortedChildren.clear();
 

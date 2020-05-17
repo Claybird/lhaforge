@@ -30,42 +30,22 @@
 #include "CommonUtil.h"
 
 
-CArchiveFileContent::CArchiveFileContent():
-m_bReadOnly(false),
-m_bEncrypted(false)
-{
-	Clear();
-}
-
-CArchiveFileContent::~CArchiveFileContent()
-{
-	Clear();
-}
-
-void CArchiveFileContent::Clear()
-{
-	m_Root.clear();
-	m_bReadOnly=false;
-
-	m_pathArcFileName.Empty();
-	m_bExtractEachSupported=false;
-}
-
-
-void CArchiveFileContent::InspectArchiveStruct(
-	LPCTSTR lpFile,
+void CArchiveFileContent::inspectArchiveStruct(
+	const std::wstring& archiveName,
 	IArchiveContentUpdateHandler* lpHandler)
 {
-	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(lpFile);
-		
-	bool bEncrypted = false;
+	clear();
 
+	ARCHIVE_FILE_TO_READ arc;
+	arc.read_open(archiveName.c_str());
+
+	bool bEncrypted = false;
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->get_pathname()));
 		auto elements = UtilSplitString(pathname, L"/");
 
-		if (elements.empty())continue;
+		if (elements.empty() || elements[0].empty())continue;
+
 		auto &item = m_Root.addEntry(elements);
 		item._entryName = elements.back();
 		item._fullpath = pathname;
@@ -84,35 +64,12 @@ void CArchiveFileContent::InspectArchiveStruct(
 			}
 		}
 	}
-
 	m_bEncrypted = bEncrypted;
+	m_bReadOnly = GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY;
+	m_pathArchive = archiveName;
+	PostProcess(nullptr);
 }
 
-
-HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
-{
-	return E_NOTIMPL;
-}
-
-
-HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMan,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
-{
-	Clear();
-
-	m_bReadOnly = GetFileAttributesW(lpFile) & FILE_ATTRIBUTE_READONLY;
-	m_pathArcFileName = lpFile;
-
-	try {
-		InspectArchiveStruct(lpFile, lpHandler);
-		PostProcess(nullptr);
-	} catch (LF_EXCEPTION&) {
-		strErr.Format(IDS_ERROR_USERCANCEL);	//TODO
-		Clear();
-		return E_ABORT;
-	}
-
-	return S_OK;
-}
 
 void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO* pNode)
 {
@@ -186,7 +143,7 @@ bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<A
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
-	return false;// return m_lpArchiver->ExtractItems(m_pathArcFileName, ConfMan, lpBase, items, lpszDir, bCollapseDir, strLog);
+	return false;// return m_lpArchiver->ExtractItems(m_pathArchive, ConfMan, lpBase, items, lpszDir, bCollapseDir, strLog);
 }
 
 void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList)
@@ -277,7 +234,7 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 {
 	//---ファイル名チェック
 	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		if(0==m_pathArcFileName.CompareNoCase(*ite)){
+		if(0==_wcsicmp(m_pathArchive.c_str(), *ite)){
 			//アーカイブ自身を追加しようとした
 			return E_LF_SAME_INPUT_AND_OUTPUT;
 		}
@@ -288,7 +245,7 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 	return E_NOTIMPL;
 /*	//---追加
 	//基底ディレクトリ取得などはCArchiverDLL側に任せる
-	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
+	if(m_lpArchiver->AddItemToArchive(m_pathArchive,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
 		return S_OK;
 	}else{
 		return S_FALSE;
@@ -305,6 +262,6 @@ bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<AR
 	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		(*ite)->EnumFiles(filesToDel);
 	}
-	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);*/
+	return m_lpArchiver->DeleteItemFromArchive(m_pathArchive,ConfMan,filesToDel,strLog);*/
 }
 
