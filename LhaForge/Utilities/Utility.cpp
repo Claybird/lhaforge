@@ -135,7 +135,7 @@ bool UtilPathMatchSpec(const std::wstring& path, const std::wstring& pattern_str
 	//characters to be escaped
 	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
 
-	auto pattern = pattern_string;
+	auto pattern = replace(pattern_string, L"*.*", L"*");	//compatibility
 	std::wstring regex_str;
 	for (const auto& p : pattern) {
 		if (isIn(escapeSubjects, p)) {

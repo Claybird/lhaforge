@@ -63,6 +63,7 @@ TEST(Utility, UtilExtMatchSpec) {
 }
 TEST(Utility, UtilPathMatchSpec) {
 	//---single
+	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"*.*"));
 	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.*"));
 	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".*"));
 	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*"));
