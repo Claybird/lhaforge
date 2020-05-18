@@ -35,6 +35,7 @@ void CArchiveFileContent::inspectArchiveStruct(
 	IArchiveContentUpdateHandler* lpHandler)
 {
 	clear();
+	m_pRoot = std::make_shared<ARCHIVE_ENTRY_INFO>();
 
 	ARCHIVE_FILE_TO_READ arc;
 	arc.read_open(archiveName.c_str());
@@ -46,7 +47,7 @@ void CArchiveFileContent::inspectArchiveStruct(
 
 		if (elements.empty() || elements[0].empty())continue;
 
-		auto &item = m_Root.addEntry(elements);
+		auto &item = m_pRoot->addEntry(elements);
 		item._entryName = elements.back();
 		item._fullpath = pathname;
 		item._nAttribute = entry->get_file_mode();
@@ -73,9 +74,9 @@ void CArchiveFileContent::inspectArchiveStruct(
 
 void CArchiveFileContent::postInspectArchive(ARCHIVE_ENTRY_INFO* pNode)
 {
-	if (!pNode)pNode = &m_Root;
+	if (!pNode)pNode = m_pRoot.get();
 
-	if (pNode != &m_Root) {
+	if (pNode != m_pRoot.get()) {
 		//in case of directories that does not have a fullpath
 		pNode->_fullpath = pNode->getFullpath();
 	}

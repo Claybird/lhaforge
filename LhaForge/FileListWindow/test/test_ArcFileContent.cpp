@@ -57,15 +57,19 @@ TEST(CArchiveFileContent, inspectArchiveStruct)
 	CArchiveFileContent content;
 
 	content.inspectArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", nullptr);
+	EXPECT_TRUE(content.IsOK());
 
-	const auto& root = content.getRootNode();
-	EXPECT_EQ(3, root.getNumChildren());
-	EXPECT_EQ(L"dirA", root.getChild(0)->_entryName);
-	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->_entryName);
-	EXPECT_EQ(L"dirB", root.getChild(L"dirA")->getChild(L"dirB")->_entryName);
-	EXPECT_EQ(8, root.enumFiles().size());
-	EXPECT_EQ(L"file3.txt", root.getChild(L"かきくけこ")->getChild(0)->_entryName);
-	EXPECT_EQ(L"あいうえお.txt", root.getChild(L"あいうえお.txt")->_entryName);
+	const auto* root = content.getRootNode();
+	EXPECT_EQ(3, root->getNumChildren());
+	EXPECT_EQ(L"dirA", root->getChild(0)->_entryName);
+	EXPECT_EQ(L"dirA", root->getChild(L"dirA")->_entryName);
+	EXPECT_EQ(L"dirB", root->getChild(L"dirA")->getChild(L"dirB")->_entryName);
+	EXPECT_EQ(8, root->enumFiles().size());
+	EXPECT_EQ(L"file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entryName);
+	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entryName);
+
+	content.clear();
+	EXPECT_FALSE(content.IsOK());
 }
 
 TEST(CArchiveFileContent, findItem)
@@ -74,10 +78,11 @@ TEST(CArchiveFileContent, findItem)
 	CArchiveFileContent content;
 
 	content.inspectArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", nullptr);
+	EXPECT_TRUE(content.IsOK());
 	auto result = content.findItem(L"*");
-	EXPECT_EQ(content.getRootNode().enumFiles().size(), result.size());
+	EXPECT_EQ(content.getRootNode()->enumFiles().size(), result.size());
 	result = content.findItem(L"*.*");
-	EXPECT_EQ(content.getRootNode().enumFiles().size(), result.size());
+	EXPECT_EQ(content.getRootNode()->enumFiles().size(), result.size());
 	result = content.findItem(L".txt");
 	EXPECT_EQ(4, result.size());
 	result = content.findItem(L"*.txt");

@@ -150,7 +150,7 @@ struct ARCHIVE_ENTRY_INFO {
 
 class CArchiveFileContent{
 protected:
-	ARCHIVE_ENTRY_INFO m_Root;
+	std::shared_ptr<ARCHIVE_ENTRY_INFO> m_pRoot;
 
 	std::wstring	m_pathArchive;
 	bool			m_bExtractEachSupported;
@@ -174,7 +174,7 @@ public:
 	}
 	virtual ~CArchiveFileContent() {}
 	void clear() {
-		m_Root.clear();
+		m_pRoot.reset();
 		m_bReadOnly = false;
 		m_pathArchive.clear();
 		m_bExtractEachSupported = false;
@@ -182,24 +182,22 @@ public:
 	}
 	void inspectArchiveStruct(const std::wstring& archiveName, IArchiveContentUpdateHandler* lpHandler);
 	const wchar_t* getArchivePath()const { return m_pathArchive.c_str(); }
-	const ARCHIVE_ENTRY_INFO& getRootNode()const { return m_Root; }
-	ARCHIVE_ENTRY_INFO& getRootNode(){ return m_Root; }
+	const ARCHIVE_ENTRY_INFO* getRootNode()const { return m_pRoot.get(); }
+	ARCHIVE_ENTRY_INFO* getRootNode(){ return m_pRoot.get(); }
 
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findItem(
 		const wchar_t* name_or_pattern,
 		const ARCHIVE_ENTRY_INFO* parent = nullptr
 	)const {
-		if (!parent)parent = &m_Root;
+		if (!parent)parent = m_pRoot.get();
 		auto pattern = replace(name_or_pattern, L"\\", L"/");
 		return findSubItem(pattern, parent);
 	}
 
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
 
-	BOOL checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
-	bool IsOK()const { return false; /*TODO*/
-#pragma message("FIXME!")
-	}
+	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
+	bool IsOK()const { return m_pRoot.get() != nullptr; }
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
 	bool ExtractItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);

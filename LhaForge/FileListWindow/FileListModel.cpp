@@ -71,7 +71,7 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,
 		return E_FAIL;	//TODO
 	}
 
-	m_lpCurrentNode=&m_Content.getRootNode();
+	m_lpCurrentNode = m_Content.getRootNode();
 	dispatchEvent(WM_FILELIST_ARCHIVE_LOADED);
 
 	//ソートしておく
@@ -98,7 +98,7 @@ void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
 	//カレントディレクトリの保存
 	if(m_lpCurrentNode){
 		ARCHIVE_ENTRY_INFO* lpNode=m_lpCurrentNode;
-		ARCHIVE_ENTRY_INFO* lpRoot=&m_Content.getRootNode();
+		ARCHIVE_ENTRY_INFO* lpRoot=m_Content.getRootNode();
 		for(;lpNode!=lpRoot;lpNode=lpNode->_parent){
 			dirStack.push(lpNode->_entryName.c_str());
 		}
@@ -114,7 +114,7 @@ bool CFileListModel::SetDirStack(const std::stack<CString> &_dirStack)
 		m_lpCurrentNode=m_lpCurrentNode->getChild((LPCTSTR)dirStack.top());
 		dirStack.pop();
 		if(!m_lpCurrentNode){
-			m_lpCurrentNode=&m_Content.getRootNode();
+			m_lpCurrentNode=m_Content.getRootNode();
 			dispatchEvent(WM_FILELIST_NEWCONTENT);
 			SortCurrentEntries();
 			return false;
