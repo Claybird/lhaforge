@@ -116,7 +116,7 @@ public:
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
 	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
 	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
-	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
+	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
 	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);

@@ -196,7 +196,7 @@ public:
 
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
 
-	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArchive.c_str());}
+	BOOL checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
 	bool IsOK()const { return false; /*TODO*/
 #pragma message("FIXME!")
 	}
