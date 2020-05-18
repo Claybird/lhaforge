@@ -6,7 +6,6 @@
 
 TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 {
-	_wsetlocale(LC_ALL, L"");	//default locale
 	ARCHIVE_ENTRY_INFO root;
 	std::vector<std::wstring> files = {
 		L"/dirA/dirB/dirC/file1.txt",
@@ -59,7 +58,7 @@ TEST(CArchiveFileContent, inspectArchiveStruct)
 
 	content.inspectArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", nullptr);
 
-	const auto& root = content.m_Root;
+	const auto& root = content.getRootNode();
 	EXPECT_EQ(3, root.getNumChildren());
 	EXPECT_EQ(L"dirA", root.getChild(0)->_entryName);
 	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->_entryName);
@@ -67,6 +66,26 @@ TEST(CArchiveFileContent, inspectArchiveStruct)
 	EXPECT_EQ(8, root.enumFiles().size());
 	EXPECT_EQ(L"file3.txt", root.getChild(L"かきくけこ")->getChild(0)->_entryName);
 	EXPECT_EQ(L"あいうえお.txt", root.getChild(L"あいうえお.txt")->_entryName);
+}
+
+TEST(CArchiveFileContent, findItem)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CArchiveFileContent content;
+
+	content.inspectArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", nullptr);
+	auto result = content.findItem(L"*");
+	EXPECT_EQ(content.getRootNode().enumFiles().size(), result.size());
+	result = content.findItem(L"*.*");
+	EXPECT_EQ(content.getRootNode().enumFiles().size(), result.size());
+	result = content.findItem(L".txt");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"*.txt");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"*.TXT");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"dirB");
+	EXPECT_EQ(1, result.size());
 }
 
 #endif

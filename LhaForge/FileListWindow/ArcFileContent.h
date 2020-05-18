@@ -149,11 +149,7 @@ struct ARCHIVE_ENTRY_INFO {
 };
 
 class CArchiveFileContent{
-#ifdef UNIT_TEST
-public:
-#else
 protected:
-#endif
 	ARCHIVE_ENTRY_INFO m_Root;
 
 	std::wstring	m_pathArchive;
@@ -164,9 +160,12 @@ protected:
 
 protected:
 	//---internal functions
-	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findSubItem(const std::wstring& pattern, const ARCHIVE_ENTRY_INFO* parent)const;
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findSubItem(
+		const std::wstring& pattern,
+		const ARCHIVE_ENTRY_INFO* parent
+	)const;
 
-	void PostProcess(ARCHIVE_ENTRY_INFO*);
+	void postInspectArchive(ARCHIVE_ENTRY_INFO*);
 	void CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList);
 
 public:
@@ -182,19 +181,21 @@ public:
 		m_bEncrypted = false;
 	}
 	void inspectArchiveStruct(const std::wstring& archiveName, IArchiveContentUpdateHandler* lpHandler);
-	//処理対象アーカイブ名を取得
-	LPCTSTR GetArchiveFileName()const{return m_pathArchive.c_str();}
+	const wchar_t* getArchivePath()const { return m_pathArchive.c_str(); }
+	const ARCHIVE_ENTRY_INFO& getRootNode()const { return m_Root; }
+	ARCHIVE_ENTRY_INFO& getRootNode(){ return m_Root; }
 
-	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > FindItem(const wchar_t* name_or_pattern, const ARCHIVE_ENTRY_INFO* parent)const {
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findItem(
+		const wchar_t* name_or_pattern,
+		const ARCHIVE_ENTRY_INFO* parent = nullptr
+	)const {
 		if (!parent)parent = &m_Root;
 		auto pattern = replace(name_or_pattern, L"\\", L"/");
 		return findSubItem(pattern, parent);
 	}
 
-	ARCHIVE_ENTRY_INFO* GetRootNode(){return &m_Root;}
-	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return &m_Root;}
+	bool isArchiveEncrypted()const { return m_bEncrypted; }
 
-	bool IsArchiveEncrypted()const{return m_bEncrypted;}
 	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArchive.c_str());}
 	bool IsOK()const { return false; /*TODO*/
 #pragma message("FIXME!")

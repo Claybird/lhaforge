@@ -67,41 +67,33 @@ void CArchiveFileContent::inspectArchiveStruct(
 	m_bEncrypted = bEncrypted;
 	m_bReadOnly = GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY;
 	m_pathArchive = archiveName;
-	PostProcess(nullptr);
+	postInspectArchive(nullptr);
 }
 
 
-void CArchiveFileContent::PostProcess(ARCHIVE_ENTRY_INFO* pNode)
+void CArchiveFileContent::postInspectArchive(ARCHIVE_ENTRY_INFO* pNode)
 {
 	if (!pNode)pNode = &m_Root;
 
-	if (0 == pNode->_nAttribute) {
-		if (!pNode->_children.empty()) {
-			pNode->_nAttribute = S_IFDIR;
-		} else {
-			pNode->_nAttribute = S_IFREG;
-		}
-	} else {
-		if (!pNode->_children.empty()) {
-			pNode->_nAttribute |= S_IFDIR;
-		}
+	if (pNode != &m_Root) {
+		//in case of directories that does not have a fullpath
+		pNode->_fullpath = pNode->getFullpath();
 	}
+
 	if (pNode->isDirectory()) {
 		pNode->_originalSize = 0;
 	}
 
 	//children
 	for (auto& child : pNode->_children) {
-		PostProcess(child.get());
+		postInspectArchive(child.get());
 
-		if (pNode->isDirectory()) {
-			if(pNode->_originalSize>=0){	//file size is known
-				if (child->_originalSize >= 0) {
-					pNode->_originalSize += child->_originalSize;
-				} else {
-					//file size unknown
-					pNode->_originalSize = -1;
-				}
+		if (pNode->_originalSize >= 0) {
+			if (child->_originalSize >= 0) {
+				pNode->_originalSize += child->_originalSize;
+			} else {
+				//file size unknown
+				pNode->_originalSize = -1;
 			}
 		}
 	}
@@ -114,19 +106,10 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 {
 	//---breadth first search
 
-	//pattern contains '/', then need to match fullpath
-	bool matchPath = (std::wstring::npos != pattern.find(L'/'));
-
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > found;
 	for (auto& child : parent->_children) {
-		if (matchPath) {
-			if (UtilPathMatchSpec(child->_fullpath, pattern)) {
-				found.push_back(child);
-			}
-		} else {
-			if (UtilPathMatchSpec(child->_entryName, pattern)) {
-				found.push_back(child);
-			}
+		if (UtilPathMatchSpec(child->_entryName, pattern)) {
+			found.push_back(child);
 		}
 	}
 	for (auto& child : parent->_children) {

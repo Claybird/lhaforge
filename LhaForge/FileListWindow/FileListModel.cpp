@@ -71,7 +71,7 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,
 		return E_FAIL;	//TODO
 	}
 
-	m_lpCurrentNode=m_Content.GetRootNode();
+	m_lpCurrentNode=&m_Content.getRootNode();
 	dispatchEvent(WM_FILELIST_ARCHIVE_LOADED);
 
 	//ソートしておく
@@ -98,7 +98,7 @@ void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
 	//カレントディレクトリの保存
 	if(m_lpCurrentNode){
 		ARCHIVE_ENTRY_INFO* lpNode=m_lpCurrentNode;
-		ARCHIVE_ENTRY_INFO* lpRoot=m_Content.GetRootNode();
+		ARCHIVE_ENTRY_INFO* lpRoot=&m_Content.getRootNode();
 		for(;lpNode!=lpRoot;lpNode=lpNode->_parent){
 			dirStack.push(lpNode->_entryName.c_str());
 		}
@@ -114,7 +114,7 @@ bool CFileListModel::SetDirStack(const std::stack<CString> &_dirStack)
 		m_lpCurrentNode=m_lpCurrentNode->getChild((LPCTSTR)dirStack.top());
 		dirStack.pop();
 		if(!m_lpCurrentNode){
-			m_lpCurrentNode=m_Content.GetRootNode();
+			m_lpCurrentNode=&m_Content.getRootNode();
 			dispatchEvent(WM_FILELIST_NEWCONTENT);
 			SortCurrentEntries();
 			return false;
@@ -316,7 +316,7 @@ void CFileListModel::SortCurrentEntries()
 //lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFOのポインタを返す
 ARCHIVE_ENTRY_INFO* CFileListModel::FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO *lpTop)
 {
-	m_FoundItems._children = m_Content.FindItem(lpszMask, lpTop);
+	m_FoundItems._children = m_Content.findItem(lpszMask, lpTop);
 
 	m_FoundItems._parent = nullptr;
 

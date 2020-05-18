@@ -98,7 +98,7 @@ public:
 	bool MoveUpDir();
 	bool MoveDownDir(ARCHIVE_ENTRY_INFO*);
 
-	bool IsRoot()const{return (GetCurrentNode()==m_Content.GetRootNode());}
+	bool IsRoot()const{return (GetCurrentNode()==&m_Content.getRootNode());}
 	bool IsOK()const{return m_Content.IsOK();}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
 	bool IsFindMode()const{return m_lpCurrentNode==&m_FoundItems;}
 
@@ -109,11 +109,11 @@ public:
 	void EndFindItem();
 
 	//処理対象アーカイブ名を取得
-	LPCTSTR GetArchiveFileName()const{return m_Content.GetArchiveFileName();}
-	ARCHIVE_ENTRY_INFO* GetRootNode(){return m_Content.GetRootNode();}
-	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.GetRootNode();}
+	LPCTSTR GetArchiveFileName()const{return m_Content.getArchivePath();}
+	ARCHIVE_ENTRY_INFO* GetRootNode(){return &m_Content.getRootNode();}
+	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return &m_Content.getRootNode();}
 
-	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
+	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
 	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
 	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
 	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
