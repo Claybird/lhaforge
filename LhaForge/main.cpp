@@ -28,7 +28,6 @@
 #include "ConfigCode/configwnd.h"
 #include "compress.h"
 #include "extract.h"
-#include "TestArchive.h"
 #include "ArchiverCode/arc_interface.h"
 #include "FileListWindow/FileListFrame.h"
 #include "Dialogs/SelectDlg.h"
@@ -382,7 +381,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 
 	//テスト
-	return TestArchive(tmp,ConfigManager);
+	return GUI_test_multiple_files(cli.FileList, &cli);
 }
 
 //リストからフォルダを削除し、サブフォルダのファイルを追加

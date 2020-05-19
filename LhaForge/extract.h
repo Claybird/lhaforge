@@ -42,3 +42,7 @@ bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
 );
+bool GUI_test_multiple_files(
+	const std::vector<std::wstring> &archive_files,
+	const CMDLINEINFO* lpCmdLineInfo
+);

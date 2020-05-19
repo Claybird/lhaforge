@@ -31,7 +31,6 @@
 #include "../Utilities/FileOperation.h"
 #include "../CommonUtil.h"
 #include "../Extract.h"
-#include "../TestArchive.h"
 #include "FileListMessages.h"
 
 CString CFileListModel::ms_strExtAccept;
@@ -407,12 +406,12 @@ bool CFileListModel::ExtractArchive()
 	return GUI_extract_multiple_files(archiveList, NULL);
 }
 
-void CFileListModel::TestArchive()
+bool CFileListModel::TestArchive()
 {
 	//検査
-	std::list<CString> archiveList;
+	std::vector<std::wstring> archiveList;
 	archiveList.push_back(GetArchiveFileName());
-	::TestArchive(archiveList,mr_Config);
+	return GUI_test_multiple_files(archiveList, NULL);
 }
 
 void CFileListModel::ClearTempDir()

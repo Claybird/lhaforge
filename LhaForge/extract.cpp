@@ -25,10 +25,10 @@
 #include "stdafx.h"
 #include "extract.h"
 #include "resource.h"
-#include "Utilities/Semaphore.h"
 #include "Dialogs/LogListDialog.h"
 #include "Dialogs/ProgressDlg.h"
 #include "Dialogs/ConfirmOverwriteDlg.h"
+#include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
@@ -108,6 +108,7 @@ struct PRE_EXTRACT_CHECK {
 
 			auto path_components = UtilSplitString(fname, L"/");
 			//to remove trailing '/'
+			//TODO: use UtilPathRemoveLastSeparator
 			remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
 
 			if (path_components.empty())continue;
@@ -231,8 +232,8 @@ overwrite_options confirmOverwrite(
 }
 
 void extractOneArchive(
-	const wchar_t* archive_path,
-	const wchar_t* output_dir,
+	const std::wstring& archive_path,
+	const std::wstring& output_dir,
 	LF_EXTRACT_ARGS& args,
 	ARCLOG &arcLog,
 	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
@@ -240,7 +241,7 @@ void extractOneArchive(
 ){
 	auto defaultDecision = overwrite_options::abort;
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path);
+	arc.read_open(archive_path.c_str());
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
@@ -255,75 +256,79 @@ void extractOneArchive(
 		auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
 
 		progressHandler(outputPath, 0, llOriginalSize);
-		if (entry->is_dir()) {
-			try {
-				std::filesystem::create_directories(outputPath);
-				arcLog(originalPath, L"directory created");
-			} catch (std::filesystem::filesystem_error&) {
-				arcLog(originalPath, L"failed to create directory");
-				CString err;	//TODO
-				err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
-				RAISE_EXCEPTION((LPCWSTR)err);
-			}
-		} else {
-			auto decision = overwrite_options::overwrite;
-			if (std::filesystem::exists(outputPath)
-				&& std::filesystem::is_regular_file(outputPath)) {
-				if (overwrite_options::skip_all == defaultDecision) {
-					decision = overwrite_options::skip;
-				} else if (overwrite_options::overwrite_all == defaultDecision) {
-					decision = overwrite_options::overwrite;
-				} else {
-					decision = preExtractHandler(outputPath, entry);
+		try {
+			if (entry->is_dir()) {
+				try {
+					std::filesystem::create_directories(outputPath);
+					arcLog(originalPath, L"directory created");
+				} catch (std::filesystem::filesystem_error&) {
+					arcLog(originalPath, L"failed to create directory");
+					CString err;	//TODO
+					err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
+					RAISE_EXCEPTION((LPCWSTR)err);
 				}
-			}
-			switch (decision) {
-			case overwrite_options::overwrite_all:	//FALLTHROUGH
-				defaultDecision = decision;
-			case overwrite_options::overwrite:
-				//do nothing, keep going
-				break;
-			case overwrite_options::skip_all:	//FALLTHROUGH
-				defaultDecision = decision;
-			case overwrite_options::skip:
-				arcLog(originalPath, L"skipped");
-				continue;
-				break;
-			case overwrite_options::abort:
-				//abort
-				arcLog(originalPath, L"cancelled by user");
-				CANCEL_EXCEPTION();
-				break;
-			}
-
-			//go
-			CAutoFile fp;
-			fp.open(outputPath, L"wb");
-			if (!fp.is_opened()) {
-				arcLog(originalPath, L"failed to open for write");
-				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
-			}
-			for (;;) {
-				auto buffer = arc.read_block();
-				if (buffer.is_eof()) {
-					progressHandler(originalPath, llOriginalSize, llOriginalSize);
-					break;
-				} else {
-					progressHandler(originalPath, 0, llOriginalSize);
-					auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
-					if (written != buffer.size) {
-						arcLog(originalPath, L"write failed");
-						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+			} else {
+				auto decision = overwrite_options::overwrite;
+				if (std::filesystem::exists(outputPath)
+					&& std::filesystem::is_regular_file(outputPath)) {
+					if (overwrite_options::skip_all == defaultDecision) {
+						decision = overwrite_options::skip;
+					} else if (overwrite_options::overwrite_all == defaultDecision) {
+						decision = overwrite_options::overwrite;
+					} else {
+						decision = preExtractHandler(outputPath, entry);
 					}
 				}
+				switch (decision) {
+				case overwrite_options::overwrite_all:	//FALLTHROUGH
+					defaultDecision = decision;
+				case overwrite_options::overwrite:
+					//do nothing, keep going
+					break;
+				case overwrite_options::skip_all:	//FALLTHROUGH
+					defaultDecision = decision;
+				case overwrite_options::skip:
+					arcLog(originalPath, L"skipped");
+					continue;
+					break;
+				case overwrite_options::abort:
+					//abort
+					arcLog(originalPath, L"cancelled by user");
+					CANCEL_EXCEPTION();
+					break;
+				}
+
+				//go
+				CAutoFile fp;
+				fp.open(outputPath, L"wb");
+				if (!fp.is_opened()) {
+					arcLog(originalPath, L"failed to open for write");
+					RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
+				}
+				for (;;) {
+					auto buffer = arc.read_block();
+					if (buffer.is_eof()) {
+						progressHandler(originalPath, llOriginalSize, llOriginalSize);
+						break;
+					} else {
+						progressHandler(originalPath, buffer.offset, llOriginalSize);
+						auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
+						if (written != buffer.size) {
+							RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+						}
+					}
+				}
+				arcLog(originalPath, L"OK");
+				fp.close();
 			}
-			arcLog(originalPath, L"OK");
-			fp.close();
+			struct __utimbuf64 ut;
+			ut.modtime = entry->get_mtime();
+			ut.actime = entry->get_mtime();
+			_wutime64(outputPath.c_str(), &ut);
+		} catch (LF_EXCEPTION &e) {
+			arcLog(originalPath, e.what());
+			throw e;
 		}
-		struct __utimbuf64 ut;
-		ut.modtime = entry->get_mtime();
-		ut.actime = entry->get_mtime();
-		_wutime64(outputPath.c_str(), &ut);
 	}
 	//end
 	arc.close();
@@ -524,8 +529,8 @@ bool GUI_extract_multiple_files(
 			logs.resize(logs.size() + 1);
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
-			arcLog.setArchivePath(archive_path.c_str());
-			extractOneArchive(archive_path.c_str(), output_dir.c_str(), args, arcLog, preExtractHandler, progressHandler);
+			arcLog.setArchivePath(archive_path);
+			extractOneArchive(archive_path, output_dir, args, arcLog, preExtractHandler, progressHandler);
 			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
@@ -584,13 +589,145 @@ bool GUI_extract_multiple_files(
 		break;
 	}
 
+	// close progress bar
+	if (dlg.IsWindow())dlg.DestroyWindow();
+
 	if (displayLog) {
 		CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_EXTRACT)));
 		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal(::GetDesktopWindow());
 	}
 
-	// close progress bar
-	if (dlg.IsWindow())dlg.DestroyWindow();
 	return bAllOK;
 }
+
+//------
+
+//test an archive by reading whole archive
+void testOneArchive(
+	const wchar_t* archive_path,
+	ARCLOG &arcLog,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+) {
+	ARCHIVE_FILE_TO_READ arc;
+	arc.read_open(archive_path);
+	// loop for each entry
+	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+		//original file name
+		std::wstring originalPath = entry->get_pathname();
+		//original attributes
+		int nAttribute = entry->get_file_mode();
+		//original file size (before compression)
+		auto llOriginalSize = entry->get_original_filesize();
+
+		progressHandler(originalPath, 0, llOriginalSize);
+		try {
+			if (entry->is_dir()) {
+				arcLog(originalPath, L"directory");
+			} else {
+				//go
+				for (;;) {
+					auto buffer = arc.read_block();
+					if (buffer.is_eof()) {
+						progressHandler(originalPath, llOriginalSize, llOriginalSize);
+						break;
+					} else {
+						progressHandler(originalPath, buffer.offset, llOriginalSize);
+					}
+				}
+				arcLog(originalPath, L"OK");
+			}
+		} catch (LF_EXCEPTION &e) {
+			arcLog(originalPath, e.what());
+			throw e;
+		}
+	}
+	//end
+	arc.close();
+}
+
+
+bool GUI_test_multiple_files(
+	const std::vector<std::wstring> &archive_files,
+	const CMDLINEINFO* lpCmdLineInfo
+)
+{
+	//progress bar
+	CProgressDialog dlg;
+	dlg.Create(NULL);
+	dlg.ShowWindow(SW_SHOW);
+
+	LF_EXTRACT_ARGS args;
+	CConfigManager mngr;
+	try {
+		CString strErr;	//TODO: remove this
+		if (!mngr.LoadConfig(strErr)) {
+			RAISE_EXCEPTION((const wchar_t*)strErr);
+		}
+		// load configuration, then override them with command line args
+		parseExtractOption(args, mngr, lpCmdLineInfo);
+	} catch (const LF_EXCEPTION& e) {
+		UtilMessageBox(NULL, e.what(), MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	UINT64 totalFiles = archive_files.size();
+	std::vector<ARCLOG> logs;
+	for (const auto &archive_path : archive_files) {
+		try {
+			const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
+			// limit concurrent extractions
+			CSemaphoreLocker SemaphoreLock;
+			if (args.extract.LimitExtractFileCount) {
+				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+			}
+			while (UtilDoMessageLoop())continue;
+			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
+				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
+				dlg.SetProgress(
+					archive_path.c_str(),
+					logs.size(),
+					totalFiles,
+					originalPath.c_str(),
+					currentSize,
+					totalSize);
+				while (UtilDoMessageLoop())continue;
+			};
+
+			logs.resize(logs.size() + 1);
+			ARCLOG &arcLog = logs.back();
+			// record archive filename
+			arcLog.setArchivePath(archive_path.c_str());
+			testOneArchive(archive_path.c_str(), arcLog, progressHandler);
+			arcLog.overallResult = LF_RESULT::OK;
+		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.overallResult = LF_RESULT::CANCELED;
+			break;
+		} catch (const ARCHIVE_EXCEPTION& e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.overallResult = LF_RESULT::NOTARCHIVE;
+			continue;
+		} catch (const LF_EXCEPTION &e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.overallResult = LF_RESULT::NG;
+			continue;
+		}
+	}
+
+	bool bAllOK = true;
+	for (const auto& log : logs) {
+		bAllOK = bAllOK && (log.overallResult == LF_RESULT::OK);
+	}
+	// close progress bar
+	if (dlg.IsWindow())dlg.DestroyWindow();
+
+	//---display logs
+	CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
+	LogDlg.SetLogArray(logs);
+	LogDlg.DoModal(::GetDesktopWindow());
+
+	return bAllOK;
+}
+
+

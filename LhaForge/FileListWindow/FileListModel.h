@@ -133,7 +133,7 @@ public:
 	FILELISTMODE GetListMode()const{return m_Mode;}
 
 	bool ExtractArchive();	//::Extract()を呼ぶ
-	void TestArchive();
+	bool TestArchive();
 
 	void ClearTempDir();
 
