@@ -38,7 +38,7 @@ enum class LF_RESULT {
 
 struct ARCLOG{
 	virtual ~ARCLOG(){}
-	void setArchivePath(const wchar_t* archivePath) {
+	void setArchivePath(const std::wstring& archivePath) {
 		_archivePath = archivePath;
 		_archiveFilename = std::filesystem::path(archivePath).filename().generic_wstring().c_str();
 	}
