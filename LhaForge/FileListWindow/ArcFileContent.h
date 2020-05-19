@@ -197,6 +197,8 @@ public:
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
 
 	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
+
+	//TODO
 	bool IsOK()const { return m_pRoot.get() != nullptr; }
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮

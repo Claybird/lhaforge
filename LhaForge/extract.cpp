@@ -444,7 +444,7 @@ bool GUI_extract_multiple_files(
 	const CMDLINEINFO* lpCmdLineInfo
 )
 {
-	//プログレスバー
+	//progress bar
 	CProgressDialog dlg;
 	dlg.Create(NULL);
 	dlg.ShowWindow(SW_SHOW);
