@@ -197,20 +197,20 @@ enum class overwrite_options {
 
 #include "Dialogs/ConfirmOverwriteDlg.h"
 overwrite_options confirmOverwrite(
-	const wchar_t* extracting_file_path,
+	const std::wstring& extracting_file_path,
 	UINT64 extracting_file_size,
 	__time64_t extracting_file_mtime,
-	const wchar_t* existing_file_path,
+	const std::wstring& existing_file_path,
 	UINT64 existing_file_size,
 	__time64_t existing_file_mtime
 	)
 {
 	CConfirmOverwriteDialog dlg;
 	dlg.SetFileInfo(
-		extracting_file_path,
+		extracting_file_path.c_str(),
 		extracting_file_size,
 		extracting_file_mtime,
-		existing_file_path,
+		existing_file_path.c_str(),
 		existing_file_size,
 		existing_file_mtime
 	);
@@ -235,8 +235,8 @@ void extractOneArchive(
 	const wchar_t* output_dir,
 	LF_EXTRACT_ARGS& args,
 	ARCLOG &arcLog,
-	std::function<overwrite_options(const wchar_t* /*fullpath*/, const LF_ARCHIVE_ENTRY* /*entry*/)> preExtractHandler,
-	std::function<void(const wchar_t* /*originalPath*/, UINT64/*currentSize*/, UINT64/*totalSize*/)> progressHandler
+	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 ){
 	auto defaultDecision = overwrite_options::abort;
 	ARCHIVE_FILE_TO_READ arc;
@@ -252,30 +252,29 @@ void extractOneArchive(
 		//filetime
 		auto cFileTime = entry->get_mtime();
 
-		auto fullPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
+		auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
 
-		auto outputPath = fullPath.generic_wstring();
-		progressHandler(outputPath.c_str(), 0, llOriginalSize);
+		progressHandler(outputPath, 0, llOriginalSize);
 		if (entry->is_dir()) {
 			try {
 				std::filesystem::create_directories(outputPath);
-				arcLog(originalPath.c_str(), L"directory created");
+				arcLog(originalPath, L"directory created");
 			} catch (std::filesystem::filesystem_error&) {
-				arcLog(originalPath.c_str(), L"failed to create directory");
+				arcLog(originalPath, L"failed to create directory");
 				CString err;	//TODO
 				err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
 				RAISE_EXCEPTION((LPCWSTR)err);
 			}
 		} else {
 			auto decision = overwrite_options::overwrite;
-			if (std::filesystem::exists(outputPath.c_str())
-				&& std::filesystem::is_regular_file(outputPath.c_str())) {
+			if (std::filesystem::exists(outputPath)
+				&& std::filesystem::is_regular_file(outputPath)) {
 				if (overwrite_options::skip_all == defaultDecision) {
 					decision = overwrite_options::skip;
 				} else if (overwrite_options::overwrite_all == defaultDecision) {
 					decision = overwrite_options::overwrite;
 				} else {
-					decision = preExtractHandler(outputPath.c_str(), entry);
+					decision = preExtractHandler(outputPath, entry);
 				}
 			}
 			switch (decision) {
@@ -287,38 +286,38 @@ void extractOneArchive(
 			case overwrite_options::skip_all:	//FALLTHROUGH
 				defaultDecision = decision;
 			case overwrite_options::skip:
-				arcLog(originalPath.c_str(), L"skipped");
+				arcLog(originalPath, L"skipped");
 				continue;
 				break;
 			case overwrite_options::abort:
 				//abort
-				arcLog(originalPath.c_str(), L"cancelled by user");
+				arcLog(originalPath, L"cancelled by user");
 				CANCEL_EXCEPTION();
 				break;
 			}
 
 			//go
 			CAutoFile fp;
-			fp.open(outputPath.c_str(), L"wb");
+			fp.open(outputPath, L"wb");
 			if (!fp.is_opened()) {
-				arcLog(originalPath.c_str(), L"failed to open for write");
+				arcLog(originalPath, L"failed to open for write");
 				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
 			}
 			for (;;) {
 				auto buffer = arc.read_block();
 				if (buffer.is_eof()) {
-					progressHandler(originalPath.c_str(), llOriginalSize, llOriginalSize);
+					progressHandler(originalPath, llOriginalSize, llOriginalSize);
 					break;
 				} else {
-					progressHandler(originalPath.c_str(), 0, llOriginalSize);
+					progressHandler(originalPath, 0, llOriginalSize);
 					auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
 					if (written != buffer.size) {
-						arcLog(originalPath.c_str(), L"write failed");
+						arcLog(originalPath, L"write failed");
 						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
 					}
 				}
 			}
-			arcLog(originalPath.c_str(), L"OK");
+			arcLog(originalPath, L"OK");
 			fp.close();
 		}
 		struct __utimbuf64 ut;
@@ -491,15 +490,15 @@ bool GUI_extract_multiple_files(
 			}
 
 			while (UtilDoMessageLoop())continue;
-			std::function<overwrite_options(const wchar_t*, const LF_ARCHIVE_ENTRY*)> preExtractHandler =
-				[&](const wchar_t* fullpath, const LF_ARCHIVE_ENTRY* entry)->overwrite_options {
+			std::function<overwrite_options(const std::wstring&, const LF_ARCHIVE_ENTRY*)> preExtractHandler =
+				[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)->overwrite_options {
 				if (args.extract.ForceOverwrite
 					|| !std::filesystem::exists(fullpath)
 					|| !std::filesystem::is_regular_file(fullpath)) {
 					return overwrite_options::overwrite;
 				} else {
 					struct _stat64 st;
-					_wstat64(fullpath, &st);
+					_wstat64(fullpath.c_str(), &st);
 					return confirmOverwrite(
 						std::filesystem::path(entry->get_pathname()).filename().generic_wstring().c_str(),
 						entry->get_original_filesize(),
@@ -510,13 +509,13 @@ bool GUI_extract_multiple_files(
 					);
 				}
 			};
-			std::function<void(const wchar_t*, UINT64, UINT64)> progressHandler =
-				[&](const wchar_t* originalPath, UINT64 currentSize, UINT64 totalSize)->void {
+			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
+				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
 				dlg.SetProgress(
 					archive_path.c_str(),
 					logs.size(),
 					totalFiles,
-					originalPath,
+					originalPath.c_str(),
 					currentSize,
 					totalSize);
 				while (UtilDoMessageLoop())continue;

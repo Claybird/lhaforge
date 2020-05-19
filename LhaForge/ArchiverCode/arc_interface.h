@@ -51,7 +51,7 @@ struct ARCLOG{
 		std::wstring message;
 	};
 	std::vector<LOGENTRY> logs;
-	void operator()(const wchar_t* entryPath, const wchar_t* message) {
+	void operator()(const std::wstring& entryPath, const std::wstring& message) {
 		LOGENTRY e = { entryPath,message };
 		logs.push_back(e);
 	}
