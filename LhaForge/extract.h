@@ -24,11 +24,12 @@
 
 #pragma once
 
+#include "CmdLineInfo.h"
+#include "CommonUtil.h"
+
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigExtract.h"
-#include "CmdLineInfo.h"
-#include "CommonUtil.h"
 
 struct LF_EXTRACT_ARGS {
 	//	std::wstring outputPath;
@@ -38,9 +39,29 @@ struct LF_EXTRACT_ARGS {
 	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
 };
 
+enum class overwrite_options {
+	overwrite,
+	overwrite_all,
+	skip,
+	skip_all,
+	abort,
+};
+
+void extractOneArchive(
+	const std::wstring& archive_path,
+	const std::wstring& output_dir,
+	ARCLOG &arcLog,
+	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+);
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
+);
+void testOneArchive(
+	const std::wstring& archive_path,
+	ARCLOG &arcLog,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 );
 bool GUI_test_multiple_files(
 	const std::vector<std::wstring> &archive_files,

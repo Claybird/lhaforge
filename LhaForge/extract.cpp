@@ -34,6 +34,7 @@
 #include "Utilities/OSUtil.h"
 #include "CommonUtil.h"
 
+
 std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path)
 {
 	//Symbols to be deleted
@@ -188,14 +189,6 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLI
 
 }
 
-enum class overwrite_options {
-	overwrite,
-	overwrite_all,
-	skip,
-	skip_all,
-	abort,
-};
-
 #include "Dialogs/ConfirmOverwriteDlg.h"
 overwrite_options confirmOverwrite(
 	const std::wstring& extracting_file_path,
@@ -234,7 +227,6 @@ overwrite_options confirmOverwrite(
 void extractOneArchive(
 	const std::wstring& archive_path,
 	const std::wstring& output_dir,
-	LF_EXTRACT_ARGS& args,
 	ARCLOG &arcLog,
 	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
@@ -296,6 +288,15 @@ void extractOneArchive(
 					arcLog(originalPath, L"cancelled by user");
 					CANCEL_EXCEPTION();
 					break;
+				}
+
+				{
+					auto parent = std::filesystem::path(outputPath).parent_path();
+					if (!std::filesystem::exists(parent)) {
+						//in case directory entry is not in archive
+						std::filesystem::create_directories(parent);
+						arcLog(parent, L"directory created");
+					}
 				}
 
 				//go
@@ -530,7 +531,7 @@ bool GUI_extract_multiple_files(
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
-			extractOneArchive(archive_path, output_dir, args, arcLog, preExtractHandler, progressHandler);
+			extractOneArchive(archive_path, output_dir, arcLog, preExtractHandler, progressHandler);
 			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
@@ -605,12 +606,12 @@ bool GUI_extract_multiple_files(
 
 //test an archive by reading whole archive
 void testOneArchive(
-	const wchar_t* archive_path,
+	const std::wstring& archive_path,
 	ARCLOG &arcLog,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 ) {
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path);
+	arc.read_open(archive_path.c_str());
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
