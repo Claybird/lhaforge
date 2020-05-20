@@ -39,7 +39,7 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 	std::wstring _default_path;
 	bool _skip_user_input;	//true if use _default_path without asking; will be set true by user
 	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK() : _skip_user_input(false) {}
-	void setArchivePath(const wchar_t* archivePath) {
+	void setArchivePath(const std::wstring& archivePath) {
 		if (_default_path.empty()) {
 			_default_path = std::filesystem::path(archivePath).parent_path();
 		}
@@ -68,7 +68,7 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 //returns output directory that corresponds to outputDirType
 std::wstring LF_get_output_dir(
 	OUTPUT_TO outputDirType,
-	const wchar_t* original_file_path,
+	const std::wstring& original_file_path,
 	const wchar_t* user_specified_path,
 	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback);
 
@@ -80,11 +80,11 @@ struct CConfigGeneral;
 HRESULT ConfirmOutputDir(const CConfigGeneral &Config,LPCTSTR lpszOutputDir,CString &strErr);
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
-bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outputDirIn);
-void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR OnDirNotFound);
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn);
+void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound);
 
 
 //prepare envInfo map for UtilExpandTemplateString()
-std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDir,LPCTSTR lpOutputFile);
+std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* lpOpenDir, const wchar_t* lpOutputFile);
 
 std::wstring LF_sanitize_pathname(const std::wstring &rawPath);

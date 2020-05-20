@@ -137,8 +137,8 @@ struct _LIBARCHIVE_INTERNAL {
 	std::wstring get_pathname() {
 		return archive_entry_pathname_w(_entry);
 	}
-	void set_pathname(const wchar_t * path) {
-		archive_entry_copy_pathname_w(_entry, path);
+	void set_pathname(const std::wstring& path) {
+		archive_entry_copy_pathname_w(_entry, path.c_str());
 	}
 	void set_stat(const struct __stat64 &st) {
 		archive_entry_set_size(_entry, st.st_size);
@@ -261,11 +261,11 @@ struct LF_ARCHIVE_ENTRY {
 	const char* get_mode_name()const { return _mode_name.c_str(); }
 	bool is_dir()const { return (_filemode & S_IFDIR) != 0; }
 
-	void copy_file_stat(const wchar_t* path) {
+	void copy_file_stat(const std::wstring& path) {
 		_pathname = path;
 		_la_internal.set_pathname(path);
 		struct __stat64 st;
-		if (0 != _wstat64(path, &st)) {
+		if (0 != _wstat64(path.c_str(), &st)) {
 			ARCHIVE_EXCEPTION(L"Failed to stat file");
 		}
 		_original_filesize = st.st_size;
@@ -307,8 +307,8 @@ struct ARCHIVE_FILE_TO_READ
 	virtual ~ARCHIVE_FILE_TO_READ() {
 		close();
 	}
-	void read_open(const wchar_t* arcname) {
-		int r = archive_read_open_filename_w(_arc, arcname, 10240);
+	void read_open(const std::wstring& arcname) {
+		int r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -399,7 +399,7 @@ enum LF_ARCHIVE_FORMAT {
 struct LF_ARCHIVE_CAPABILITY {
 	LF_ARCHIVE_FORMAT format;
 	int mapped_libarchive_format;
-	const wchar_t* extension;
+	const std::wstring extension;
 	bool multi_file_archive;	//true if archive can contain multiple files.
 	std::vector<int> allowed_combinations;	//empty if read only
 };
@@ -481,7 +481,7 @@ struct ARCHIVE_FILE_TO_WRITE
 		close();
 	}
 
-	void write_open(const wchar_t* arcname, LF_ARCHIVE_FORMAT fmt, LF_WRITE_OPTIONS opts) {
+	void write_open(const std::wstring& arcname, LF_ARCHIVE_FORMAT fmt, LF_WRITE_OPTIONS opts) {
 		close();
 		_arc = archive_write_new();
 		const auto& cap = get_archive_capability(fmt);
@@ -504,7 +504,7 @@ struct ARCHIVE_FILE_TO_WRITE
 		printf("%d\n", ret);
 		archive_write_set_passphrase(_arc, "test");
 		//TODO	archive_write_set_option(_arc, NULL/*to all modules*/, opt, value);
-		int r = archive_write_open_filename_w(_arc, arcname);
+		int r = archive_write_open_filename_w(_arc, arcname.c_str());
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}

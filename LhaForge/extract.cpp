@@ -35,7 +35,7 @@
 #include "CommonUtil.h"
 
 
-std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_path)
+std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const std::wstring& archive_path)
 {
 	//Symbols to be deleted
 	//last two characters are "half-width space" and "full-width space"
@@ -60,15 +60,19 @@ std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const wchar_t* archive_
 
 //GUICallback(default directory)->output directory
 std::wstring determineExtractBaseDir(
-	const wchar_t* archive_path,
+	const std::wstring& archive_path,
 	LF_EXTRACT_ARGS& args)
 {
 	args.output_dir_callback.setArchivePath(archive_path);
-	auto outputDir = LF_get_output_dir(args.extract.OutputDirType, archive_path, args.extract.OutputDirUserSpecified, args.output_dir_callback);
+	auto outputDir = LF_get_output_dir(
+		args.extract.OutputDirType,
+		archive_path,
+		args.extract.OutputDirUserSpecified.operator LPCWSTR(),
+		args.output_dir_callback);
 
 	// Warn if output is on network or on a removable disk
 	for (;;) {
-		if (LF_confirm_output_dir_type(args.general, outputDir.c_str())) {
+		if (LF_confirm_output_dir_type(args.general, outputDir)) {
 			break;
 		} else {
 			// Need to change path
@@ -77,7 +81,7 @@ std::wstring determineExtractBaseDir(
 			if (IDOK == dlg.DoModal()) {
 				std::filesystem::path pathOutputDir = dlg.GetFolderPath();
 				pathOutputDir /= L"/";
-				outputDir = pathOutputDir.c_str();
+				outputDir = pathOutputDir;
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {
 					args.extract.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
@@ -89,7 +93,7 @@ std::wstring determineExtractBaseDir(
 		}
 	}
 	// Confirm to make extract dir if it does not exist
-	LF_ask_and_make_sure_output_dir_exists(outputDir.c_str(), args.general.OnDirNotFound);
+	LF_ask_and_make_sure_output_dir_exists(outputDir, args.general.OnDirNotFound);
 
 	return outputDir;
 }
@@ -130,8 +134,8 @@ struct PRE_EXTRACT_CHECK {
 };
 
 std::wstring determineExtractDir(
-	const wchar_t* archive_path,
-	const wchar_t* output_base_dir,
+	const std::wstring& archive_path,
+	const std::wstring& output_base_dir,
 	const LF_EXTRACT_ARGS& args)
 {
 	bool needToCreateDir;
@@ -201,10 +205,10 @@ overwrite_options confirmOverwrite(
 {
 	CConfirmOverwriteDialog dlg;
 	dlg.SetFileInfo(
-		extracting_file_path.c_str(),
+		extracting_file_path,
 		extracting_file_size,
 		extracting_file_mtime,
-		existing_file_path.c_str(),
+		existing_file_path,
 		existing_file_size,
 		existing_file_mtime
 	);
@@ -233,7 +237,7 @@ void extractOneArchive(
 ){
 	auto defaultDecision = overwrite_options::abort;
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path.c_str());
+	arc.read_open(archive_path);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
@@ -474,10 +478,10 @@ bool GUI_extract_multiple_files(
 		std::wstring output_dir;
 		try {
 			//determine output base directory
-			auto output_base_dir = determineExtractBaseDir(archive_path.c_str(), args);
+			auto output_base_dir = determineExtractBaseDir(archive_path, args);
 
 			//output destination directory [could be same as the output base directory]
-			output_dir = determineExtractDir(archive_path.c_str(), output_base_dir.c_str(), args);
+			output_dir = determineExtractDir(archive_path, output_base_dir, args);
 
 			//make sure output directory exists
 			try {
@@ -518,10 +522,10 @@ bool GUI_extract_multiple_files(
 			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
 				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
 				dlg.SetProgress(
-					archive_path.c_str(),
+					archive_path,
 					logs.size(),
 					totalFiles,
-					originalPath.c_str(),
+					originalPath,
 					currentSize,
 					totalSize);
 				while (UtilDoMessageLoop())continue;
@@ -559,7 +563,7 @@ bool GUI_extract_multiple_files(
 				ShellExecuteW(NULL, L"open", strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 			} else {
 				//open with explorer
-				UtilNavigateDirectory(output_dir.c_str());
+				UtilNavigateDirectory(output_dir);
 			}
 		}
 
@@ -611,7 +615,7 @@ void testOneArchive(
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 ) {
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path.c_str());
+	arc.read_open(archive_path);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
@@ -686,10 +690,10 @@ bool GUI_test_multiple_files(
 			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
 				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
 				dlg.SetProgress(
-					archive_path.c_str(),
+					archive_path,
 					logs.size(),
 					totalFiles,
-					originalPath.c_str(),
+					originalPath,
 					currentSize,
 					totalSize);
 				while (UtilDoMessageLoop())continue;
@@ -698,8 +702,8 @@ bool GUI_test_multiple_files(
 			logs.resize(logs.size() + 1);
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
-			arcLog.setArchivePath(archive_path.c_str());
-			testOneArchive(archive_path.c_str(), arcLog, progressHandler);
+			arcLog.setArchivePath(archive_path);
+			testOneArchive(archive_path, arcLog, progressHandler);
 			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();

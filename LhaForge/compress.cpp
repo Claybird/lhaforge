@@ -625,11 +625,11 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	try {
 		ARCHIVE_FILE_TO_WRITE archive;
 		_wchdir(pathBase);
-		archive.write_open(pathArcFileName, format, options);
+		archive.write_open((LPCTSTR)pathArcFileName, format, options);
 		for (const auto &fname : sourcePathList) {
 			strLog += Format(L"Compress %s\n", (LPCWSTR)fname).c_str();
 			LF_ARCHIVE_ENTRY entry;
-			entry.copy_file_stat(fname);
+			entry.copy_file_stat((LPCTSTR)fname);
 			FILE_READER provider;
 			provider.open(fname);
 			archive.add_entry(entry, provider);

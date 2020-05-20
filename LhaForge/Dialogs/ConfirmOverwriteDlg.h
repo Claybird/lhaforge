@@ -63,19 +63,19 @@ public:
 	}
 
 	void SetFileInfo(
-		const wchar_t* extracting_file_path,
+		const std::wstring& extracting_file_path,
 		UINT64 extracting_file_size,
 		__time64_t extracting_file_mtime,
-		const wchar_t* existing_file_path,
+		const std::wstring& existing_file_path,
 		UINT64 existing_file_size,
 		__time64_t existing_file_mtime
 	) {
-		_extracting_filename = extracting_file_path;
+		_extracting_filename = extracting_file_path.c_str();
 		_extracting_filesize = (
 			UtilFormatSize(extracting_file_size) + Format(L" (%d Bytes)", extracting_file_size)
 			).c_str();
 		_extracting_filetime = UtilFormatTime(extracting_file_mtime).c_str();
-		_existing_filename = existing_file_path;
+		_existing_filename = existing_file_path.c_str();
 		_existing_filesize =(
 			UtilFormatSize(existing_file_size) + Format(L" (%d Bytes)", existing_file_size)
 			).c_str();

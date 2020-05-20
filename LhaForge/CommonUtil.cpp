@@ -96,7 +96,7 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 //returns output directory that corresponds to outputDirType
 std::wstring LF_get_output_dir(
 	OUTPUT_TO outputDirType,
-	const wchar_t* original_file_path,
+	const std::wstring& original_file_path,
 	const wchar_t* user_specified_path,
 	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback)
 {
@@ -188,7 +188,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 }
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
-bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outputDirIn)
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn)
 {
 	auto outputDir = std::filesystem::path(outputDirIn) / L"/";
 
@@ -236,7 +236,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const wchar_t* outpu
 	}
 }
 
-void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR OnDirNotFound)
+void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound)
 {
 	auto status = std::filesystem::status(outputDir);
 	if (status.type() == std::filesystem::file_type::not_found) {
@@ -271,7 +271,7 @@ void LF_ask_and_make_sure_output_dir_exists(const wchar_t* outputDir, LOSTDIR On
 }
 
 //prepare envInfo map for UtilExpandTemplateString()
-std::map<std::wstring, std::wstring> LF_make_expand_information(LPCTSTR lpOpenDir, LPCTSTR lpOutputFile)
+std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* lpOpenDir, const wchar_t* lpOutputFile)
 {
 	std::map<std::wstring, std::wstring> templateParams;
 

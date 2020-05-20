@@ -57,15 +57,15 @@ public:
 		return TRUE;
 	}
 	void SetProgress(
-		const wchar_t* archivePath,
+		const std::wstring& archivePath,
 		UINT64 fileIndex,
 		UINT64 totalFiles, 
-		const wchar_t* originalPath,
+		const std::wstring& originalPath,
 		UINT64 currentSize,
 		UINT64 totalSize
 		) {
 		auto str = Format(L"%s\n%I64d / %I64d",
-			archivePath,
+			archivePath.c_str(),
 			fileIndex,
 			totalFiles
 		);
@@ -74,7 +74,7 @@ public:
 		m_fileProgress.SetPos(INT32(fileIndex * 100ull / totalFiles));
 
 		str = Format(L"%s\n%s / %s",
-			originalPath,
+			originalPath.c_str(),
 			UtilFormatSize(currentSize).c_str(),
 			UtilFormatSize(totalSize).c_str()
 		);

@@ -38,7 +38,7 @@ void CArchiveFileContent::inspectArchiveStruct(
 	m_pRoot = std::make_shared<ARCHIVE_ENTRY_INFO>();
 
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archiveName.c_str());
+	arc.read_open(archiveName);
 
 	bool bEncrypted = false;
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
