@@ -339,46 +339,41 @@ void extractOneArchive(
 	arc.close();
 }
 
-
-//与えられたファイル名がマルチボリューム書庫と見なせるならtrueを返す
-//TODO
-bool IsMultiVolume(LPCTSTR lpszPath, CString &r_strFindParam)
+//enumerate archives to delete
+std::vector<std::wstring> enumeratePartialArchives(const std::wstring& original_archive)
 {
-	//初期化
-	r_strFindParam.Empty();
+	ASSERT(!std::filesystem::is_directory(original_archive));
+	if (std::filesystem::is_directory(original_archive))return std::vector<std::wstring>();
 
-	CPath strPath(lpszPath);
-	if (strPath.IsDirectory())return false;	//ディレクトリなら無条件に返る
-
-	strPath.StripPath();	//ファイル名のみに
-	int nExt = strPath.FindExtension();	//拡張子の.の位置
-	if (-1 == nExt)return false;	//拡張子は見つからず
-
-	CString strExt((LPCTSTR)strPath + nExt);
-	strExt.MakeLower();	//小文字に
-	if (strExt == _T(".rar")) {
+	//currently, only rar is supported
+	auto rar_pattern = std::wregex(LR"(\.part\d+.*\.rar$)", std::regex_constants::icase);
+	if (std::regex_search(original_archive, rar_pattern)) {
 		//---RAR
-		if (strPath.MatchSpec(_T("*.part*.rar"))) {
-			//検索文字列の作成
-			CPath tempPath(lpszPath);
-			tempPath.RemoveExtension();	//.rarの削除
-			tempPath.RemoveExtension();	//.part??の削除
-			tempPath.AddExtension(_T(".part*.rar"));
+		auto path = std::filesystem::path(original_archive);
+		path.make_preferred();
+		auto stem = path.stem().stem();
 
-			r_strFindParam = (CString)tempPath;
-			return true;
-		} else {
-			return false;
+		std::vector<std::wstring> files;
+		for (const auto& entry : std::filesystem::directory_iterator(path.parent_path())) {
+			auto p = entry.path();
+			p.make_preferred();
+			if (std::regex_search(p.wstring(), rar_pattern)) {
+				if (0==_wcsicmp(p.stem().stem().c_str(),stem.c_str())) {
+					files.push_back(p);
+				}
+			}
 		}
+		return files;
+	} else {
+		return std::vector<std::wstring>();
 	}
-	//TODO:使用頻度と実装の簡便さを考えてrarのみ対応とする
-	return false;
 }
+
 
 //TODO
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
 {
-	//---マルチボリュームならまとめて削除
+/*	//---マルチボリュームならまとめて削除
 	CString strFindParam;
 	bool bMultiVolume=false;
 	if(ConfExtract.DeleteMultiVolume){	//マルチボリュームでの削除が有効か？
@@ -445,7 +440,8 @@ bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFil
 			DeleteFileW(item.c_str());
 		}
 		return true;
-	}
+	}*/
+	return false;
 }
 
 bool GUI_extract_multiple_files(

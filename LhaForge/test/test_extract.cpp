@@ -115,6 +115,48 @@ TEST(extract, extractOneArchive_broken_files) {
 	}
 }
 
+TEST(extract, enumeratePartialArchives)
+{
+	std::vector<std::wstring> enumeratePartialArchives(const std::wstring& original_archive);
+	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_enumeratePartialArchives");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+
+	//fake archives
+	for (int i = 0; i < 12; i++) {
+		CAutoFile touch;
+		if (i % 2 == 0) {
+			touch.open(tempDir / Format(L"TEST.PART%d.RAR", i + 1), L"w");
+		} else {
+			touch.open(tempDir / Format(L"test.part%d.rar", i + 1), L"w");
+		}
+	}
+	{
+		CAutoFile touch;
+		touch.open(tempDir / Format(L"do_not_detect_this.part1.rar"), L"w");
+	}
+	{
+		CAutoFile touch;
+		touch.open(tempDir / Format(L"test.part1.rar.txt"), L"w");
+	}
+	{
+		CAutoFile touch;
+		touch.open(tempDir / Format(L"test.part1.rar.rar"), L"w");
+	}
+
+	auto files = enumeratePartialArchives(tempDir / L"test.part3.rar");
+	ASSERT_EQ(12,files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART5.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part6.rar").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART11.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part12.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"do_not_detect_this.part1.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	UtilDeleteDir(tempDir, true);
+}
+
 TEST(extract, testOneArchive) {
 	_wsetlocale(LC_ALL, L"");	//default locale
 
