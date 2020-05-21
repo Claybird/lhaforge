@@ -196,18 +196,14 @@ std::wstring UtilGetCompletePathName(const std::wstring& filePath)
 std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern)
 {
 	std::vector<std::wstring> out;
-	if(std::wstring::npos == pattern.find_first_of(L"*?")){	//no characters to expand
-		out.push_back(pattern);
-	}else{
-		//expand wild
-		CFindFile cFindFile;
-		BOOL bContinue=cFindFile.FindFile(pattern.c_str());
-		while(bContinue){
-			if(!cFindFile.IsDots()){
-				out.push_back((const wchar_t*)cFindFile.GetFilePath());
-			}
-			bContinue=cFindFile.FindNextFile();
+	//expand wild
+	CFindFile cFindFile;
+	BOOL bContinue=cFindFile.FindFile(pattern.c_str());
+	while(bContinue){
+		if(!cFindFile.IsDots()){
+			out.push_back((const wchar_t*)cFindFile.GetFilePath());
 		}
+		bContinue=cFindFile.FindNextFile();
 	}
 	return out;
 }
