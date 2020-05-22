@@ -115,37 +115,34 @@ TEST(extract, extractOneArchive_broken_files) {
 	}
 }
 
-TEST(extract, enumeratePartialArchives)
+TEST(extract, enumerateOriginalArchives)
 {
-	std::vector<std::wstring> enumeratePartialArchives(const std::wstring& original_archive);
-	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_enumeratePartialArchives");
+	std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original_archive);
+	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_enumerateOriginalArchives");
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 	std::filesystem::create_directories(tempDir);
 
+	auto touch = [&](const std::wstring& fname) {
+		CAutoFile fp;
+		fp.open(tempDir / fname, L"w");
+	};
+
 	//fake archives
 	for (int i = 0; i < 12; i++) {
-		CAutoFile touch;
 		if (i % 2 == 0) {
-			touch.open(tempDir / Format(L"TEST.PART%d.RAR", i + 1), L"w");
+			touch(Format(L"TEST.PART%d.RAR", i + 1));
 		} else {
-			touch.open(tempDir / Format(L"test.part%d.rar", i + 1), L"w");
+			touch(Format(L"test.part%d.rar", i + 1));
 		}
 	}
-	{
-		CAutoFile touch;
-		touch.open(tempDir / Format(L"do_not_detect_this.part1.rar"), L"w");
-	}
-	{
-		CAutoFile touch;
-		touch.open(tempDir / Format(L"test.part1.rar.txt"), L"w");
-	}
-	{
-		CAutoFile touch;
-		touch.open(tempDir / Format(L"test.part1.rar.rar"), L"w");
-	}
+	touch(Format(L"do_not_detect_this.part1.rar"));
+	touch(Format(L"test.part1.rar.txt"));
+	touch(Format(L"test.part1.rar.rar"));
+	touch(Format(L"test2.rar"));
+	touch(Format(L"test3.zip"));
 
-	auto files = enumeratePartialArchives(tempDir / L"test.part3.rar");
+	auto files = enumerateOriginalArchives(tempDir / L"test.part3.rar");
 	ASSERT_EQ(12,files.size());
 	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART5.RAR").make_preferred()));
 	EXPECT_TRUE(isIn(files, (tempDir / L"test.part6.rar").make_preferred()));
@@ -153,6 +150,18 @@ TEST(extract, enumeratePartialArchives)
 	EXPECT_TRUE(isIn(files, (tempDir / L"test.part12.rar").make_preferred()));
 	EXPECT_FALSE(isIn(files, (tempDir / L"do_not_detect_this.part1.rar").make_preferred()));
 	EXPECT_FALSE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test.part1.rar.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test2.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test2.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test3.zip");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test3.zip").make_preferred()));
 
 	UtilDeleteDir(tempDir, true);
 }

@@ -340,7 +340,7 @@ void extractOneArchive(
 }
 
 //enumerate archives to delete
-std::vector<std::wstring> enumeratePartialArchives(const std::wstring& original_archive)
+std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original_archive)
 {
 	ASSERT(!std::filesystem::is_directory(original_archive));
 	if (std::filesystem::is_directory(original_archive))return std::vector<std::wstring>();
@@ -365,12 +365,11 @@ std::vector<std::wstring> enumeratePartialArchives(const std::wstring& original_
 		}
 		return files;
 	} else {
-		return std::vector<std::wstring>();
+		return { original_archive };
 	}
 }
 
 
-//TODO
 bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
 {
 /*	//---マルチボリュームならまとめて削除
