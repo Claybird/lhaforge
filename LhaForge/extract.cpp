@@ -370,77 +370,50 @@ std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original
 }
 
 
-bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
+void deleteOriginalArchives(const CConfigExtract &ConfExtract,const std::wstring &archive_path)
 {
-/*	//---マルチボリュームならまとめて削除
-	CString strFindParam;
-	bool bMultiVolume=false;
-	if(ConfExtract.DeleteMultiVolume){	//マルチボリュームでの削除が有効か？
-		bMultiVolume=IsMultiVolume(lpszArcFile,strFindParam);
-	}
+	auto original_files = enumerateOriginalArchives(archive_path);
 
-	CString strFiles;	//ファイル一覧
-	std::vector<std::wstring> fileList;	//削除対象のファイル一覧
-	if(bMultiVolume){
-		fileList = UtilPathExpandWild((const wchar_t*)strFindParam);
-		for (const auto &item : fileList) {
-			strFiles += L"\n";
-			strFiles += item.c_str();
-		}
-	}else{
-		fileList.push_back(lpszArcFile);
-	}
-
-	//削除する
 	if(ConfExtract.MoveToRecycleBin){
-		//--------------
-		// ごみ箱に移動
-		//--------------
-		if(!ConfExtract.DeleteNoConfirm){	//削除確認する場合
-			CString Message;
-			if(bMultiVolume){
-				//マルチボリューム
-				Message.Format(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN_MANY);
-				Message+=strFiles;
+		if(!ConfExtract.DeleteNoConfirm){
+			//confirm required
+			std::wstring msg;
+			if(original_files.size()>1){
+				//multiple files
+				msg = UtilLoadString(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN_MANY);
+				msg += join(L"\n", original_files).c_str();
 			}else{
-				//単一ファイル
-				Message.Format(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN,lpszArcFile);
+				//single file
+				msg = Format(UtilLoadString(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN), archive_path.c_str());
 			}
 
-			//確認後ゴミ箱に移動
-			if(IDYES!= UtilMessageBox(NULL, (const wchar_t*)Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
+			if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+				return;
 			}
 		}
 
-		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
-		return true;
+		UtilMoveFileToRecycleBin(original_files);
 	}else{
-		//------
-		// 削除
-		//------
-		if(!ConfExtract.DeleteNoConfirm){	//確認する場合
-			CString Message;
-			if(bMultiVolume){
-				//マルチボリューム
-				Message.Format(IDS_ASK_DELETE_ARCHIVE_MANY);
-				Message+=strFiles;
-			}else{
-				//単一ファイル
-				Message.Format(IDS_ASK_DELETE_ARCHIVE,lpszArcFile);
+		//confirm required
+		if(!ConfExtract.DeleteNoConfirm){
+			std::wstring msg;
+			if (original_files.size() > 1) {
+				//multiple files
+				msg = UtilLoadString(IDS_ASK_DELETE_ARCHIVE_MANY);
+				msg += join(L"\n", original_files).c_str();
+			} else {
+				//single file
+				msg = Format(UtilLoadString(IDS_ASK_DELETE_ARCHIVE), archive_path.c_str());
 			}
-			if(IDYES!= UtilMessageBox(NULL, (const wchar_t*)Message,MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
+			if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+				return;
 			}
 		}
-		//削除実行
-		for(const auto &item: fileList){
-			DeleteFileW(item.c_str());
+
+		for(const auto &item: original_files){
+			UtilDeletePath(item);
 		}
-		return true;
-	}*/
-	return false;
+	}
 }
 
 bool GUI_extract_multiple_files(
@@ -564,7 +537,7 @@ bool GUI_extract_multiple_files(
 
 		// delete archive or move it to recycle bin
 		if (args.extract.DeleteArchiveAfterExtract) {
-			DeleteOriginalArchives(args.extract, archive_path.c_str());
+			deleteOriginalArchives(args.extract, archive_path);
 		}
 		if (args.general.NotifyShellAfterProcess) {
 			//notify shell that output is completed

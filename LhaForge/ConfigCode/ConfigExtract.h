@@ -41,6 +41,7 @@ public:
 	BOOL MoveToRecycleBin;			//解凍後ファイルをごみ箱に移動
 	BOOL DeleteNoConfirm;			//確認せずに削除/ごみ箱に移動
 	BOOL ForceDelete;				//解凍エラーを検知できない場合も削除
+	[[deprecated("will be removed")]]
 	BOOL DeleteMultiVolume;			//マルチボリュームもまとめて削除
 	BOOL MinimumPasswordRequest;	//パスワード入力回数を最小にするならTRUE
 
