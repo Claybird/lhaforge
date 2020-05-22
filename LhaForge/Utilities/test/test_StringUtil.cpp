@@ -177,6 +177,11 @@ TEST(StringUtil, toUpper) {
 	EXPECT_EQ(L"👪", toUpper(L"👪"));	//emoji
 }
 
+TEST(StringUtil, join) {
+	EXPECT_EQ(L"abc", join(L", ", std::vector<std::wstring>({ L"abc" })));
+	EXPECT_EQ(L"abc, def", join(L", ", std::vector<std::wstring>({ L"abc", L"def" })));
+}
+
 TEST(StringUtil, UtilLoadString) {
 	EXPECT_EQ(L"LhaForge", UtilLoadString(IDS_MESSAGE_CAPTION));
 }
