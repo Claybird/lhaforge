@@ -117,19 +117,19 @@ struct _LIBARCHIVE_INTERNAL {
 	struct archive *_arc;
 	struct archive_entry *_entry;
 	_LIBARCHIVE_INTERNAL() {
-		_arc = NULL;
+		_arc = nullptr;
 		_entry = archive_entry_new();
 	}
 	virtual ~_LIBARCHIVE_INTERNAL() {
 		if (_entry) {
 			archive_entry_free(_entry);
-			_entry = NULL;
+			_entry = nullptr;
 		}
 	}
 	void renew() {
 		if (_entry) {
 			archive_entry_free(_entry);
-			_entry = NULL;
+			_entry = nullptr;
 		}
 		_entry = archive_entry_new();
 	}
@@ -284,11 +284,11 @@ struct LF_BUFFER_INFO {
 	size_t size;	//0 if it reaches EOF
 	int64_t offset;
 	const void* buffer;
-	bool is_eof()const { return NULL == buffer; }
+	bool is_eof()const { return nullptr == buffer; }
 	void make_eof() {
 		size = 0;
 		offset = 0;
-		buffer = NULL;
+		buffer = nullptr;
 	}
 };
 
@@ -318,7 +318,7 @@ struct ARCHIVE_FILE_TO_READ
 			archive_read_close(_arc);
 			archive_read_free(_arc);
 		}
-		_arc = NULL;
+		_arc = nullptr;
 	}
 
 	LF_ARCHIVE_ENTRY* begin() {
@@ -329,7 +329,7 @@ struct ARCHIVE_FILE_TO_READ
 		if (_entry.read_next()) {
 			return &_entry;
 		} else {
-			return NULL;
+			return nullptr;
 		}
 	}
 
@@ -475,7 +475,7 @@ struct ARCHIVE_FILE_TO_WRITE
 	LF_ARCHIVE_ENTRY _entry;
 	const ARCHIVE_FILE_TO_WRITE& operator=(const ARCHIVE_FILE_TO_WRITE&) = delete;
 
-	ARCHIVE_FILE_TO_WRITE() :_arc(NULL) {}
+	ARCHIVE_FILE_TO_WRITE() :_arc(nullptr) {}
 	ARCHIVE_FILE_TO_WRITE(const ARCHIVE_FILE_TO_WRITE&) = delete;
 	virtual ~ARCHIVE_FILE_TO_WRITE() {
 		close();
@@ -500,10 +500,10 @@ struct ARCHIVE_FILE_TO_WRITE
 
 		int la_fmt = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
 		archive_write_set_format(_arc, la_fmt);
-		int ret = archive_write_set_option(_arc, NULL, "encryption", "aes256");
+		int ret = archive_write_set_option(_arc, nullptr, "encryption", "aes256");
 		printf("%d\n", ret);
 		archive_write_set_passphrase(_arc, "test");
-		//TODO	archive_write_set_option(_arc, NULL/*to all modules*/, opt, value);
+		//TODO	archive_write_set_option(_arc, nullptr/*to all modules*/, opt, value);
 		int r = archive_write_open_filename_w(_arc, arcname.c_str());
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
@@ -514,7 +514,7 @@ struct ARCHIVE_FILE_TO_WRITE
 			archive_write_close(_arc);
 			archive_write_free(_arc);
 		}
-		_arc = NULL;
+		_arc = nullptr;
 	}
 
 	template<typename T>
