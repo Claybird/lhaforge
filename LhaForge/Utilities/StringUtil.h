@@ -136,11 +136,17 @@ inline std::wstring toUpper(const std::wstring& input) {
 
 //join array into one string as list[0]+separator+list[1]+separator...+list[N]
 //in the same way as the join() in python
-inline std::wstring join(const std::wstring& separator, const std::vector<std::wstring>& list) {
+inline std::wstring join(const std::wstring& separator, const std::vector<std::wstring>& list, size_t max_limit = -1) {
 	std::wstring out;
-	for (const auto &item : list) {
-		out += item;
-		if (&item != &list.back()) {
+	if (-1 == max_limit) {
+		max_limit = list.size();
+	} else {
+		max_limit = std::min(max_limit, list.size());
+	}
+
+	for (size_t i = 0; i < max_limit; i++) {
+		out += list[i];
+		if (i + 1 != max_limit) {
 			out += separator;
 		}
 	}

@@ -180,6 +180,7 @@ TEST(StringUtil, toUpper) {
 TEST(StringUtil, join) {
 	EXPECT_EQ(L"abc", join(L", ", std::vector<std::wstring>({ L"abc" })));
 	EXPECT_EQ(L"abc, def", join(L", ", std::vector<std::wstring>({ L"abc", L"def" })));
+	EXPECT_EQ(L"abc, def", join(L", ", std::vector<std::wstring>({ L"abc", L"def",L"ghi" }), 2));
 }
 
 TEST(StringUtil, UtilLoadString) {
