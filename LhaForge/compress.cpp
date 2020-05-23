@@ -71,9 +71,6 @@ std::wstring getBasePath(const std::vector<std::wstring> &directories)
 	return join(L"/", commonParts);
 }
 
-
-
-
 struct RAW_FILE_READER {
 	CAutoFile fp;
 	LF_BUFFER_INFO ibi;
@@ -101,18 +98,6 @@ struct RAW_FILE_READER {
 		fp.close();
 	}
 };
-
-
-//ファイル名に使えない文字列を置き換える
-void FixFileName(CString &rStr, LPCTSTR lpszOrg, TCHAR replace)
-{
-	const LPCTSTR c_InvalidPathChar = _T("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\"<>|:*?\\/\b\t");
-	rStr = lpszOrg;
-	int length = _tcslen(c_InvalidPathChar);
-	for (int i = 0; i < length; i++) {
-		rStr.Replace(c_InvalidPathChar[i], replace);
-	}
-}
 
 bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<std::wstring>& fileList)
 {
@@ -297,6 +282,20 @@ std::wstring getArchiveFileExtension(LF_ARCHIVE_FORMAT fmt, LPCTSTR lpszOrgExt, 
 	RAISE_EXCEPTION(L"unexpected format");
 }
 
+//replace filenames that are not suitable for pathname
+std::wstring volumeLabelToDirectoryName(const std::wstring& volume_label)
+{
+	const std::vector<wchar_t> toFilter = {
+		L'/', L'\\', L':', L'*', L'?', L'"', L'<', L'>', L'|',
+	};
+	auto p = volume_label;
+	for (const auto &f : toFilter) {
+		p = replace(p, f, L"_");
+	}
+	return p;
+}
+
+
 /*************************************************************
 アーカイブファイル名を決定する。
 
@@ -346,7 +345,7 @@ HRESULT GetArchiveName(
 			TCHAR szVolume[MAX_PATH];
 			GetVolumeInformation(pathRoot, szVolume, MAX_PATH, NULL, NULL, NULL, NULL, 0);
 			//ドライブを丸ごと圧縮する場合には、ボリューム名をファイル名とする
-			FixFileName(pathOrgFileName, szVolume, _T('_'));
+			pathOrgFileName = volumeLabelToDirectoryName(szVolume).c_str();
 		}
 	}
 

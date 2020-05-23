@@ -54,11 +54,6 @@ TEST(CommonUtil, LF_make_expand_information) {
 	EXPECT_EQ(L"output.ext", envInfo[L"OutputFileName"]);
 }
 
-TEST(CommonUtil, LF_fix_unavailable_path) {
-	EXPECT_EQ(L"_______", LF_fix_unavailable_path(L":*?\"<>|"));
-	EXPECT_EQ(L"C_/a_", LF_fix_unavailable_path(L"C:/a?"));
-}
-
 TEST(CommonUtil, LF_sanitize_pathname) {
 	EXPECT_EQ(L"", LF_sanitize_pathname(L""));
 	EXPECT_EQ(L"", LF_sanitize_pathname(L"//"));
