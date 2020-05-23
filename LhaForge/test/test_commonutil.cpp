@@ -76,15 +76,16 @@ TEST(CommonUtil, LF_sanitize_pathname) {
 	EXPECT_EQ(L"あいう/えお", LF_sanitize_pathname(L"あいう//えお"));
 
 	EXPECT_EQ(L"c_/", LF_sanitize_pathname(L"c:/"));
-	EXPECT_EQ(L"c_/AUX_/", LF_sanitize_pathname(L"c_/AUX/"));
-	EXPECT_EQ(L"c_/AUX_", LF_sanitize_pathname(L"c_/AUX"));
+	EXPECT_EQ(L"c_/AUX_/", LF_sanitize_pathname(L"c:/AUX/"));
+	EXPECT_EQ(L"c_/AUX_", LF_sanitize_pathname(L"c:/AUX"));
 	EXPECT_EQ(L"AUX_", LF_sanitize_pathname(L"AUX"));
 
-	EXPECT_EQ(L"c_/com1_/", LF_sanitize_pathname(L"c_/com1/"));
-	EXPECT_EQ(L"c_/CON_/", LF_sanitize_pathname(L"c_/CON/"));
-	EXPECT_EQ(L"c_/lpt1_/", LF_sanitize_pathname(L"c_/lpt1/"));
-	EXPECT_EQ(L"c_/nul_/", LF_sanitize_pathname(L"c_/nul/"));
-	EXPECT_EQ(L"c_/PRN_/", LF_sanitize_pathname(L"c_/PRN/"));
+	EXPECT_EQ(L"c_/com1_/", LF_sanitize_pathname(L"c:/com1/"));
+	EXPECT_EQ(L"c_/CON_/", LF_sanitize_pathname(L"c:/CON/"));
+	EXPECT_EQ(L"c_/lpt1_/", LF_sanitize_pathname(L"c:/lpt1/"));
+	EXPECT_EQ(L"c_/nul_/", LF_sanitize_pathname(L"c:/nul/"));
+	EXPECT_EQ(L"c_/PRN_/", LF_sanitize_pathname(L"c:/PRN/"));
+	EXPECT_EQ(L"c_/COM1_/CON_/PRN_/", LF_sanitize_pathname(L"c:/COM1/CON/PRN/"));
 }
 
 
