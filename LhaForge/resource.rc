@@ -1666,8 +1666,6 @@ BEGIN
     IDS_ERROR_CANT_COMPRESS_FOLDER "この形式ではフォルダを圧縮することは出来ません。"
     IDS_FILELIST_ITEMCOUNT  "%d 項目"
     IDS_FILELIST_SUBITEM    "フォルダ内項目数"
-    IDS_ASK_DELETE_ARCHIVE  "圧縮ファイル '%s' を削除しますか？"
-    IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN "圧縮ファイル '%s' をごみ箱に移動しますか？"
     IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE "LhaForgeで%sに個別圧縮"
     IDS_TESTARCHIVE_UNAVAILABLE 
                             "ファイル '%s' は '%s' が扱えるファイルのようですが、このDLLではアーカイブの完全性チェックを行うことは出来ません。"
@@ -1867,8 +1865,6 @@ BEGIN
     IDS_LOGINFO_RESULT_NOTARCHIVE "書庫ではない"
     IDS_ERROR_UNICODEPATH   "ファイル名/フォルダ名にUNICODEでのみ表現できる文字が含まれています。UNICODE非対応DLLでは処理できません。"
     IDS_ERROR_UNICODECONTROL "圧縮ファイルにUNICODE制御文字が含まれています。"
-    IDS_ASK_DELETE_ARCHIVE_MANY "以下の圧縮ファイルを削除しますか？"
-    IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN_MANY "以下の圧縮ファイルをごみ箱に移動しますか？"
     IDS_ERROR_USERCANCEL    "ユーザーによるキャンセルがありました"
     IDS_ERROR_FILE_COPY     "ファイルのコピーに失敗しました"
     IDS_ERROR_FILE_MOVE     "ファイルの移動に失敗しました"
@@ -1892,8 +1888,9 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ASK_MOVE_ORIGINALFILE_TO_RECYCLE_BIN "圧縮が完了した以下のファイルをごみ箱に移動しますか？"
-    IDS_ASK_DELETE_ORIGINALFILE "圧縮が完了した以下のファイルを削除しますか？"
+    IDS_ASK_MOVE_PROCESSED_FILES_TO_RECYCLE_BIN 
+                            "処理が完了しました。以下のファイルをごみ箱に移動しますか？\n"
+    IDS_ASK_DELETE_PROCESSED_FILE "処理が完了しました。以下のファイルを削除しますか？\n"
     IDS_MESSAGE_COMPRESS_DELETE_SKIPPED 
                             "現在使用中のDLLでは、正常に圧縮できたかどうか確認できません。\n正常に圧縮されたことを確認した上で、ファイルを手動で削除してください。"
     IDR_CLOSEBUTTON         "閉じる"

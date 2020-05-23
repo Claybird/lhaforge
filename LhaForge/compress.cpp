@@ -99,64 +99,6 @@ struct RAW_FILE_READER {
 	}
 };
 
-bool DeleteOriginalFiles(const CConfigCompress &ConfCompress, const std::vector<std::wstring>& fileList)
-{
-	std::wstring strFiles;	//ファイル一覧
-	size_t idx = 0;
-	for (const auto &file : fileList) {
-		strFiles += L"\n";
-		strFiles += file;
-		idx++;
-		if (idx >= 10 && idx < fileList.size()) {
-			strFiles += L"\n";
-			CString tmp;
-			tmp.Format(IDS_NUM_EXTRA_FILES, fileList.size() - idx);
-			strFiles += (LPCWSTR)tmp;
-			break;
-		}
-	}
-
-	//削除する
-	if (ConfCompress.MoveToRecycleBin) {
-		//--------------
-		// ごみ箱に移動
-		//--------------
-		if (!ConfCompress.DeleteNoConfirm) {	//削除確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_MOVE_ORIGINALFILE_TO_RECYCLE_BIN);
-			Message += strFiles.c_str();
-
-			//確認後ゴミ箱に移動
-			if (IDYES != UtilMessageBox(NULL, (const wchar_t*)Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
-				return false;
-			}
-		}
-
-		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
-		return true;
-	} else {
-		//------
-		// 削除
-		//------
-		if (!ConfCompress.DeleteNoConfirm) {	//確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
-			Message += strFiles.c_str();
-
-			if (IDYES != UtilMessageBox(NULL, (const wchar_t*)Message, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
-				return false;
-			}
-		}
-		//削除実行
-		for (const auto &file : fileList) {
-			UtilDeletePath(file.c_str());
-		}
-		return true;
-	}
-}
-
-
 HRESULT CheckArchiveName(LPCTSTR lpszArcFile, const std::list<CString> &rOrgFileList, bool bOverwrite, CString &strErr)
 {
 	// ファイル名が長すぎたとき
@@ -659,7 +601,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		for (const auto& item : _sourcePathList) {
 			tmp.push_back((LPCWSTR)item);	//TODO
 		}
-		DeleteOriginalFiles(ConfCompress,tmp);
+		LF_deleteOriginalArchives(ConfCompress.MoveToRecycleBin, ConfCompress.DeleteNoConfirm, tmp);
 	}
 
 

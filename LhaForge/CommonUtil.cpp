@@ -351,3 +351,36 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 	return buf;
 }
 
+void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files)
+{
+	const size_t max_limit = 10;
+	std::wstring files;
+	if (!noConfirm) {
+		files = join(L"\n", original_files, max_limit);
+		if (original_files.size() > max_limit) {
+			files += Format(UtilLoadString(IDS_NUM_EXTRA_FILES), original_files.size() - max_limit);
+		}
+
+		std::wstring msg;
+		if (moveToRecycleBin) {
+			msg = UtilLoadString(IDS_ASK_MOVE_PROCESSED_FILES_TO_RECYCLE_BIN);
+		} else {
+			msg = UtilLoadString(IDS_ASK_DELETE_PROCESSED_FILE);
+		}
+		msg += files;
+
+		if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+			return;
+		}
+	}
+
+	//---
+	if (moveToRecycleBin) {
+		UtilMoveFileToRecycleBin(original_files);
+	} else {
+		for (const auto &item : original_files) {
+			UtilDeletePath(item);
+		}
+	}
+}
+

@@ -370,52 +370,6 @@ std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original
 }
 
 
-void deleteOriginalArchives(const CConfigExtract &ConfExtract,const std::wstring &archive_path)
-{
-	auto original_files = enumerateOriginalArchives(archive_path);
-
-	if(ConfExtract.MoveToRecycleBin){
-		if(!ConfExtract.DeleteNoConfirm){
-			//confirm required
-			std::wstring msg;
-			if(original_files.size()>1){
-				//multiple files
-				msg = UtilLoadString(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN_MANY);
-				msg += join(L"\n", original_files).c_str();
-			}else{
-				//single file
-				msg = Format(UtilLoadString(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN), archive_path.c_str());
-			}
-
-			if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
-				return;
-			}
-		}
-
-		UtilMoveFileToRecycleBin(original_files);
-	}else{
-		//confirm required
-		if(!ConfExtract.DeleteNoConfirm){
-			std::wstring msg;
-			if (original_files.size() > 1) {
-				//multiple files
-				msg = UtilLoadString(IDS_ASK_DELETE_ARCHIVE_MANY);
-				msg += join(L"\n", original_files).c_str();
-			} else {
-				//single file
-				msg = Format(UtilLoadString(IDS_ASK_DELETE_ARCHIVE), archive_path.c_str());
-			}
-			if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
-				return;
-			}
-		}
-
-		for(const auto &item: original_files){
-			UtilDeletePath(item);
-		}
-	}
-}
-
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
@@ -537,7 +491,8 @@ bool GUI_extract_multiple_files(
 
 		// delete archive or move it to recycle bin
 		if (args.extract.DeleteArchiveAfterExtract) {
-			deleteOriginalArchives(args.extract, archive_path);
+			auto original_files = enumerateOriginalArchives(archive_path);
+			LF_deleteOriginalArchives(args.extract.MoveToRecycleBin, args.extract.DeleteNoConfirm, original_files);
 		}
 		if (args.general.NotifyShellAfterProcess) {
 			//notify shell that output is completed
