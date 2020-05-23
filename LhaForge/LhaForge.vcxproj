@@ -71,6 +71,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="test\test_commonutil.cpp" />
+    <ClCompile Include="test\test_compress.cpp" />
     <ClCompile Include="test\test_extract.cpp" />
     <ClCompile Include="Utilities\ConfigFile.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>

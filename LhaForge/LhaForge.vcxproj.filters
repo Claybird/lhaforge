@@ -175,6 +175,9 @@
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
       <Filter>FileListWindow\test</Filter>
     </ClCompile>
+    <ClCompile Include="test\test_compress.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">

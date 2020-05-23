@@ -39,17 +39,50 @@
 #include "CmdLineInfo.h"
 
 
-struct FILE_READER {
+//retrieves common path name of containing directories
+std::wstring getBasePath(const std::vector<std::wstring> &directories)
+{
+	if (directories.empty())return L"";
+	std::vector<std::wstring> commonParts;
+
+	bool first = true;
+	for(const auto &directory: directories){
+		auto parts = UtilSplitString(
+			UtilPathRemoveLastSeparator(
+				replace(directory, L"\\", L"/")
+			), L"/");
+
+		if (first) {
+			commonParts = parts;
+			first = false;
+		} else {
+			size_t count = std::min(commonParts.size(), parts.size());
+			for (size_t i = 0; i < count; i++) {
+				//compare path; Win32 ignores path cases
+				if (0 != _wcsicmp(parts[i].c_str(), commonParts[i].c_str())) {
+					commonParts.resize(i);
+					break;
+				}
+			}
+		}
+		if (commonParts.empty())break;
+	}
+
+	return join(L"/", commonParts);
+}
+
+
+
+
+struct RAW_FILE_READER {
 	CAutoFile fp;
 	LF_BUFFER_INFO ibi;
 	std::vector<unsigned char> buffer;
-	FILE_READER() {
+	RAW_FILE_READER() {
 		ibi.make_eof();
-		buffer.resize(1024 * 1024);
+		buffer.resize(1024 * 1024 * 32);	//32MB cache
 	}
-	virtual ~FILE_READER() {
-		close();
-	}
+	virtual ~RAW_FILE_READER() {}
 	const LF_BUFFER_INFO& operator()() {
 		if (!fp || feof(fp)) {
 			ibi.make_eof();
@@ -68,84 +101,6 @@ struct FILE_READER {
 		fp.close();
 	}
 };
-
-
-//パスに共通する部分を取り出し、基底パスを取り出す
-void GetBaseDirectory(CString &BasePath, const std::list<CString> &PathList)
-{
-	bool bFirst = true;
-	size_t ElementsCount = 0;	//共通項目数
-	std::vector<CString> PathElements;	//共通項目の配列
-
-	std::list<CString>::const_iterator ite, end;
-	end = PathList.end();
-	for (ite = PathList.begin(); ite != end; ++ite) {
-		if (!bFirst && 0 == ElementsCount) {
-			//既に共通している要素が配列内に存在しないとき
-			break;
-		}
-
-		//親ディレクトリまでで終わるパスを作る
-		TCHAR Path[_MAX_PATH + 1];
-		FILL_ZERO(Path);
-		_tcsncpy_s(Path, *ite, _MAX_PATH);
-		PathRemoveFileSpec(Path);
-		PathAddBackslash(Path);
-
-		CString buffer;
-		size_t iElement = 0;	//一致しているパスの要素のカウント用(ループ内)
-		size_t iIndex = 0;	//パス内の文字のインデックス
-		const size_t Length = _tcslen(Path);
-		for (; iIndex < Length; iIndex++) {
-#if !defined(_UNICODE)&&!defined(UNICODE)
-			if (_MBC_SINGLE == _mbsbtype((const unsigned char *)Path, iIndex)) {
-#endif
-				if (_T('\\') == Path[iIndex]) {
-					//初回ならパスを詰め込み、そうでなければ要素を比較
-					if (bFirst) {
-						PathElements.push_back(buffer);
-						buffer.Empty();
-						continue;
-					} else {
-						//大文字小文字区別せずに比較
-						if (0 == PathElements[iElement].CompareNoCase(buffer)) {
-							//要素が共通しているうちはOK
-							iElement++;
-							if (iElement >= ElementsCount)break;
-							else {
-								buffer.Empty();
-								continue;
-							}
-						} else {
-							//要素数を減らす
-							//0オリジンのi番目で不一致ならばi個まで一致
-							ElementsCount = iElement;
-							break;
-						}
-					}
-				}
-#if !defined(_UNICODE)&&!defined(UNICODE)
-			}
-#endif
-			buffer += Path[iIndex];
-		}
-		if (bFirst) {
-			bFirst = false;
-			ElementsCount = PathElements.size();
-		} else if (ElementsCount > iElement) {
-			//パスが短かった場合、不一致なしのまま処理が終了する場合がある
-			ElementsCount = iElement;
-		}
-	}
-
-	BasePath.Empty();
-	for (size_t i = 0; i < ElementsCount; i++) {
-		BasePath += PathElements[i];
-		BasePath += _T("\\");
-	}
-	TRACE(_T("BasePath=%s\n"), BasePath);
-}
-
 
 
 //ファイル名に使えない文字列を置き換える
@@ -491,7 +446,7 @@ int CheckIfMultipleFilesToCompress(LPCTSTR lpszPath, CPath &pathFileName)
 				}
 			}
 		}
-		return min(2, nFileCount);
+		return std::min(2, nFileCount);
 	}
 }
 
@@ -564,9 +519,13 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	//=========================================================
 	// get common path for base path
 	//=========================================================
-	CString pathBase;
-	GetBaseDirectory(pathBase, sourcePathList);
-	TRACE((LPCTSTR)pathBase),TRACE(_T("\n"));
+	std::wstring pathBase;
+	{
+		std::vector<std::wstring> tmp;
+		tmp.assign(sourcePathList.begin(), sourcePathList.end());
+		pathBase = getBasePath(tmp);
+	}
+	TRACE(pathBase.c_str()),TRACE(_T("\n"));
 
 	//圧縮先ファイル名決定
 	TRACE(_T("圧縮先ファイル名決定\n"));
@@ -596,7 +555,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		//======================================
 		// 圧縮対象ファイル名を修正する
 		//======================================
-		const int nBasePathLength=pathBase.GetLength();
+		const int nBasePathLength=pathBase.length();
 		for(std::list<CString>::iterator ite=sourcePathList.begin();ite!= sourcePathList.end();++ite){
 			//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
 			//(*ite)=(*ite).Right((*ite).GetLength()-BasePathLength);
@@ -624,13 +583,13 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	bool bError = false;
 	try {
 		ARCHIVE_FILE_TO_WRITE archive;
-		_wchdir(pathBase);
+		_wchdir(pathBase.c_str());
 		archive.write_open((LPCTSTR)pathArcFileName, format, options);
 		for (const auto &fname : sourcePathList) {
 			strLog += Format(L"Compress %s\n", (LPCWSTR)fname).c_str();
 			LF_ARCHIVE_ENTRY entry;
 			entry.copy_file_stat((LPCTSTR)fname);
-			FILE_READER provider;
+			RAW_FILE_READER provider;
 			provider.open(fname);
 			archive.add_entry(entry, provider);
 		}
