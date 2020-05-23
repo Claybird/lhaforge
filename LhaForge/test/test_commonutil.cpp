@@ -74,6 +74,17 @@ TEST(CommonUtil, LF_sanitize_pathname) {
 
 	EXPECT_EQ(L"あいうえお", LF_sanitize_pathname(L"あいうえお"));
 	EXPECT_EQ(L"あいう/えお", LF_sanitize_pathname(L"あいう//えお"));
+
+	EXPECT_EQ(L"c_/", LF_sanitize_pathname(L"c:/"));
+	EXPECT_EQ(L"c_/AUX_/", LF_sanitize_pathname(L"c_/AUX/"));
+	EXPECT_EQ(L"c_/AUX_", LF_sanitize_pathname(L"c_/AUX"));
+	EXPECT_EQ(L"AUX_", LF_sanitize_pathname(L"AUX"));
+
+	EXPECT_EQ(L"c_/com1_/", LF_sanitize_pathname(L"c_/com1/"));
+	EXPECT_EQ(L"c_/CON_/", LF_sanitize_pathname(L"c_/CON/"));
+	EXPECT_EQ(L"c_/lpt1_/", LF_sanitize_pathname(L"c_/lpt1/"));
+	EXPECT_EQ(L"c_/nul_/", LF_sanitize_pathname(L"c_/nul/"));
+	EXPECT_EQ(L"c_/PRN_/", LF_sanitize_pathname(L"c_/PRN/"));
 }
 
 

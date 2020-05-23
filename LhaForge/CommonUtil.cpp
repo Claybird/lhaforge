@@ -315,6 +315,10 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$1_@@@_$3"},
 		//root directory, e.g., "/abc" -> "abc"
 		{std::wregex(L"^/"),L""},
+		//drive
+		{std::wregex(L":"),L"_"},
+		//reserved names
+		{std::wregex(LR"((^|/)(aux|com\d+|con|lpt\d+|nul|prn)(\.|/|$))", std::regex_constants::icase),L"$1$2_$3"},
 
 		//unicode control characters
 		{std::wregex(L"("
