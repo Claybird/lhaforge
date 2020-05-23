@@ -102,7 +102,7 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 			//カラムの並び順を取得
 			std::vector<int> numArr = UtilStringToIntArray((const wchar_t*)Buffer);
 			//並び順のチェック
-			for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
+			for(int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++){
 				int columnPosition = numArr[idx];
 				if(columnPosition<0)columnPosition = -1;
 				if(columnPosition >= FILEINFO_ITEM_COUNT){
@@ -121,7 +121,7 @@ void CConfigFileListWindow::load(CONFIG_SECTION &Config)
 		CString Buffer=Config.Data[_T("ColumnWidth")];
 		//カラムの幅を取得
 		std::vector<int> numArr = UtilStringToIntArray((const wchar_t*)Buffer);
-		for(int idx = 0; idx < min((int)numArr.size(), FILEINFO_ITEM_COUNT); idx++){
+		for(int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++){
 			ColumnWidthArray[idx] = numArr[idx];
 		}
 	}

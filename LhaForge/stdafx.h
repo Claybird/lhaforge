@@ -35,6 +35,7 @@
 #define _ATL_NO_OPENGL
 #define ATL_NO_LEAN_AND_MEAN
 #define _ATL_USE_CSTRING_FLOAT	//CStringのFormatで小数が出力できるようになる
+#define NOMINMAX
 
 //#if (defined _DEBUG)||(defined DEBUG)
 //#define _CRTDBG_MAP_ALLOC

@@ -53,7 +53,7 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	LimitCompressFileCount=Config.Data[_T("LimitCompressFileCount")].GetNParam(FALSE);
 
 	//同時に圧縮するファイル数の上限
-	MaxCompressFileCount=max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
+	MaxCompressFileCount=std::max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
 
 	//デフォルト圧縮パラメータを使用するならtrue
 	UseDefaultParameter=Config.Data[_T("UseDefaultParameter")].GetNParam(FALSE);

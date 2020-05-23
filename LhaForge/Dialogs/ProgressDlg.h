@@ -80,7 +80,7 @@ public:
 		);
 		m_entryInfo.SetWindowTextW(
 			str.c_str());
-		m_entryProgress.SetPos(INT32(currentSize * 100ull / max(1ull, totalSize)));
+		m_entryProgress.SetPos(INT32(currentSize * 100ull / std::max(1ull, totalSize)));
 	}
 	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		CANCEL_EXCEPTION();

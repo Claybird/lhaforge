@@ -62,7 +62,7 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 	LimitExtractFileCount=Config.Data[_T("LimitExtractFileCount")].GetNParam(FALSE);
 
 	//同時に解凍するファイル数の上限
-	MaxExtractFileCount=max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
+	MaxExtractFileCount=std::max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
 
 	//正常に解凍できた圧縮ファイルを削除
 	DeleteArchiveAfterExtract=Config.Data[_T("DeleteArchiveAfterExtract")].GetNParam(FALSE);

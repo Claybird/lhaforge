@@ -1078,9 +1078,9 @@ HWND CFileListFrame::CreateToolBarCtrl(HWND hWndParent, UINT nResourceID,HIMAGEL
 	}
 
 	::SendMessage(hWnd, TB_ADDBUTTONS, nItems, (LPARAM)pTBBtn);
-	::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, max(pData->wHeight, cyFontHeight)));
+	::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, std::max(pData->wHeight, cyFontHeight)));
 	const int cxyButtonMargin = 7;
-	::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
+	::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, std::max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
 
 	return hWnd;
 }
