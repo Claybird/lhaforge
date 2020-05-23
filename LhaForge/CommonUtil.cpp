@@ -301,6 +301,21 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* l
 	return templateParams;
 }
 
+//replace filenames that are not suitable for pathname
+std::wstring LF_fix_unavailable_path(const std::wstring& path)
+{
+	const std::vector<wchar_t> toFilter = {
+		//L'/', L'\\',
+		L':', L'*', L'?', L'"', L'<', L'>', L'|',
+	};
+	auto p = path;
+	for (const auto &f : toFilter) {
+		p = replace(p, f, L"_");
+	}
+	return p;
+}
+
+//replace filenames that could be harmful
 std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 {
 	const std::pair<std::wregex, wchar_t*> pattern[] = {
@@ -315,8 +330,6 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$1_@@@_$3"},
 		//root directory, e.g., "/abc" -> "abc"
 		{std::wregex(L"^/"),L""},
-		//drive
-		{std::wregex(L":"),L"_"},
 		//reserved names
 		{std::wregex(LR"((^|/)(aux|com\d+|con|lpt\d+|nul|prn)(\.|/|$))", std::regex_constants::icase),L"$1$2_$3"},
 
@@ -335,7 +348,7 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 			L"_(UNICODE_CTRL)_"},
 	};
 
-	auto buf = rawPath;
+	auto buf = LF_fix_unavailable_path(rawPath);
 	for (;;) {
 		bool modified = false;
 		for (const auto &p : pattern) {

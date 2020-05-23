@@ -87,4 +87,8 @@ void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTD
 //prepare envInfo map for UtilExpandTemplateString()
 std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* lpOpenDir, const wchar_t* lpOutputFile);
 
+
+//replace filenames that are not suitable for pathname
+std::wstring LF_fix_unavailable_path(const std::wstring& path);
+//replace filenames that could be harmful
 std::wstring LF_sanitize_pathname(const std::wstring &rawPath);
