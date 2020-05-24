@@ -462,9 +462,17 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	//=========================================================
 	std::wstring pathBase;
 	{
-		std::vector<std::wstring> tmp;
-		tmp.assign(sourcePathList.begin(), sourcePathList.end());
-		pathBase = getBasePath(tmp);
+		std::vector<std::wstring> directories;
+		for (const auto &item : sourcePathList) {
+			if (std::filesystem::is_directory(item.operator LPCWSTR())) {
+				directories.push_back(item.operator LPCWSTR());
+			} else {
+				directories.push_back(std::filesystem::path(item.operator LPCWSTR()).parent_path());
+			}
+		}
+		std::sort(directories.begin(), directories.end());
+		directories.erase(std::unique(directories.begin(), directories.end()), directories.end());
+		pathBase = getBasePath(directories);
 	}
 	TRACE(pathBase.c_str()),TRACE(_T("\n"));
 
