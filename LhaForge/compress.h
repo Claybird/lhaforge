@@ -30,7 +30,7 @@ struct CMDLINEINFO;
 
 
 //圧縮を行う。引数には必ずフルパスを渡すこと
-bool Compress(const std::list<CString>&,LF_ARCHIVE_FORMAT, LF_WRITE_OPTIONS options, CConfigManager&,CMDLINEINFO&);
+bool Compress(const std::vector<std::wstring>&,LF_ARCHIVE_FORMAT, LF_WRITE_OPTIONS options, CConfigManager&,CMDLINEINFO&);
 
 const LPCTSTR LHAFORGE_COMPRESS_SEMAPHORE_NAME=_T("LhaForgeCompressLimitSemaphore");
 

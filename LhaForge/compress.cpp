@@ -90,7 +90,7 @@ struct RAW_FILE_READER {
 		}
 		return ibi;
 	}
-	void open(const wchar_t* path) {
+	void open(const std::wstring& path) {
 		close();
 		fp.open(path, L"rb");
 	}
@@ -99,39 +99,8 @@ struct RAW_FILE_READER {
 	}
 };
 
-HRESULT CheckArchiveName(LPCTSTR lpszArcFile, const std::list<CString> &rOrgFileList, bool bOverwrite, CString &strErr)
-{
-	// ファイル名が長すぎたとき
-	if (_tcslen(lpszArcFile) >= _MAX_PATH) {
-		strErr = CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
-		return E_LF_CANNOT_DECIDE_FILENAME;
-	}
-
-	// できあがったファイル名が入力元のファイル名と同じか
-	std::list<CString>::const_iterator ite, end;
-	end = rOrgFileList.end();
-	for (ite = rOrgFileList.begin(); ite != end; ++ite) {
-		if (0 == (*ite).CompareNoCase(lpszArcFile)) {
-			strErr.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT, lpszArcFile);
-			return E_LF_OVERWRITE_SOURCE;
-		}
-	}
-
-	// ファイルが既に存在するかどうか
-	if (!bOverwrite) {
-		if (PathFileExists(lpszArcFile)) {
-			// ファイルが存在したら問題あり
-			// この場合はエラーメッセージを出さずにファイル名を入力させる
-			return S_LF_ARCHIVE_EXISTS;
-		}
-	}
-
-	return S_OK;
-}
-
-
 //上書き確認など
-HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rOrgFileNameList, LPCTSTR lpExt, BOOL bAskName)
+void ConfirmOutputFile(CPath &r_pathArcFileName, const std::vector<std::wstring> &rOrgFileNameList, LPCTSTR lpExt, BOOL bAskName)
 {
 	//----------------------------
 	// ファイル名指定が適切か確認
@@ -142,9 +111,28 @@ HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rO
 	HRESULT hStatus = E_UNEXPECTED;
 	while (S_OK != hStatus) {
 		if (!bInputFilenameFirst) {
-			//ファイル名の長さなど確認
 			CString strLocalErr;
-			hStatus = CheckArchiveName(r_pathArcFileName, rOrgFileNameList, bForceOverwrite, strLocalErr);
+
+			{
+				// できあがったファイル名が入力元のファイル名と同じか
+				for (const auto& ite: rOrgFileNameList) {
+					if (0 == _wcsicmp(ite.c_str(), r_pathArcFileName)) {
+						strLocalErr.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT, r_pathArcFileName.operator LPCWSTR());
+						hStatus = E_LF_OVERWRITE_SOURCE;
+						break;
+					}
+				}
+
+				// ファイルが既に存在するかどうか
+				if (!bForceOverwrite) {
+					if (PathFileExists(r_pathArcFileName)) {
+						// ファイルが存在したら問題あり
+						// この場合はエラーメッセージを出さずにファイル名を入力させる
+						hStatus = S_LF_ARCHIVE_EXISTS;
+						break;
+					}
+				}
+			}
 			if (FAILED(hStatus)) {
 				ErrorMessage((const wchar_t*)strLocalErr);
 			}
@@ -176,16 +164,14 @@ HRESULT ConfirmOutputFile(CPath &r_pathArcFileName, const std::list<CString> &rO
 
 		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
 		if (IDCANCEL == dlg.DoModal()) {	//キャンセル
-			return E_ABORT;
+			CANCEL_EXCEPTION();
 		}
 
 		r_pathArcFileName = dlg.m_szFileName;
-		//DELETED:ファイル名のロングパスを取得
 
 		bForceOverwrite = true;
 		bInputFilenameFirst = false;
 	}
-	return S_OK;
 }
 
 
@@ -246,7 +232,7 @@ std::wstring volumeLabelToDirectoryName(const std::wstring& volume_label)
 *************************************************************/
 HRESULT GetArchiveName(
 	CPath &r_pathArcFileName,
-	const std::list<CString> &OrgFileNameList,
+	const std::vector<std::wstring> &OrgFileNameList,
 	LF_ARCHIVE_FORMAT format,
 	int option,
 	const CConfigCompress &ConfCompress,
@@ -273,7 +259,7 @@ HRESULT GetArchiveName(
 		pathOrgFileName.StripPath();	//パス名を取り除く
 	} else {
 		//先頭のファイル名を元に暫定的にファイル名を作り出す
-		pathOrgFileName = (LPCTSTR)*OrgFileNameList.begin();
+		pathOrgFileName = OrgFileNameList.front().c_str();
 
 		//---判定
 		//ディレクトリかどうか
@@ -349,7 +335,12 @@ HRESULT GetArchiveName(
 	}
 
 	//ドライブルートを圧縮する場合、ファイル名は即決しない
-	return ConfirmOutputFile(r_pathArcFileName, OrgFileNameList, strExt, ConfCompress.SpecifyOutputFilename || bDriveRoot);
+	try {
+		ConfirmOutputFile(r_pathArcFileName, OrgFileNameList, strExt, ConfCompress.SpecifyOutputFilename || bDriveRoot);
+	} catch (const LF_EXCEPTION&) {
+		return E_ABORT;
+	}
+	return S_OK;
 }
 
 //pathFileNameは最初のファイル名
@@ -392,7 +383,7 @@ int CheckIfMultipleFilesToCompress(LPCTSTR lpszPath, CPath &pathFileName)
 }
 
 
-bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, CConfigManager &ConfigManager,CMDLINEINFO& CmdLineInfo)
+bool Compress(const std::vector<std::wstring> &_sourcePathList,LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, CConfigManager &ConfigManager,CMDLINEINFO& CmdLineInfo)
 {
 	CConfigCompress ConfCompress;
 	ConfCompress.load(ConfigManager);
@@ -420,7 +411,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		ite++;
 		if(ite == sourcePathList.end()){
 			//ファイルが一つしかない
-			CPath path = sourcePathList.front();
+			CPath path = sourcePathList.front().c_str();
 			path.AddBackslash();
 			if(path.IsDirectory()){
 				//単体のディレクトリを圧縮
@@ -443,7 +434,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		int nFileCount=0;
 		CPath pathFileName;
 		for(const auto &path: sourcePathList){
-			nFileCount += CheckIfMultipleFilesToCompress(path, pathFileName);
+			nFileCount += CheckIfMultipleFilesToCompress(path.c_str(), pathFileName);
 			if(nFileCount>=2){
 				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_SINGLE_FILE_ONLY)));
 				return false;
@@ -454,7 +445,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 			return false;
 		}
 		sourcePathList.clear();
-		sourcePathList.push_back(pathFileName);
+		sourcePathList.push_back(pathFileName.operator LPCWSTR());
 	}
 
 	//=========================================================
@@ -464,10 +455,10 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 	{
 		std::vector<std::wstring> directories;
 		for (const auto &item : sourcePathList) {
-			if (std::filesystem::is_directory(item.operator LPCWSTR())) {
-				directories.push_back(item.operator LPCWSTR());
+			if (std::filesystem::is_directory(item)) {
+				directories.push_back(item);
 			} else {
-				directories.push_back(std::filesystem::path(item.operator LPCWSTR()).parent_path());
+				directories.push_back(std::filesystem::path(item).parent_path());
 			}
 		}
 		std::sort(directories.begin(), directories.end());
@@ -505,15 +496,15 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		// 圧縮対象ファイル名を修正する
 		//======================================
 		const int nBasePathLength=pathBase.length();
-		for(std::list<CString>::iterator ite=sourcePathList.begin();ite!= sourcePathList.end();++ite){
+		for(auto &ite: sourcePathList){
 			//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
 			//(*ite)=(*ite).Right((*ite).GetLength()-BasePathLength);
 			//(*ite).Delete(0,nBasePathLength);
-			(*ite)=(LPCTSTR)(*ite)+nBasePathLength;
+			ite = ite.substr(nBasePathLength);
 
 			//もしBasePathと同じになって空になってしまったパスがあれば、カレントディレクトリ指定を代わりに入れておく
-			if((*ite).IsEmpty()){
-				*ite=L".";
+			if(ite.empty()){
+				ite=L".";
 			}
 		}
 	}
@@ -535,9 +526,9 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		_wchdir(pathBase.c_str());
 		archive.write_open((LPCTSTR)pathArcFileName, format, options);
 		for (const auto &fname : sourcePathList) {
-			strLog += Format(L"Compress %s\n", (LPCWSTR)fname).c_str();
+			strLog += Format(L"Compress %s\n", fname.c_str()).c_str();
 			LF_ARCHIVE_ENTRY entry;
-			entry.copy_file_stat((LPCTSTR)fname);
+			entry.copy_file_stat(fname);
 			RAW_FILE_READER provider;
 			provider.open(fname);
 			archive.add_entry(entry, provider);
@@ -605,11 +596,7 @@ bool Compress(const std::list<CString> &_sourcePathList,LF_ARCHIVE_FORMAT format
 		//カレントディレクトリは削除できないので別の場所へ移動
 		::SetCurrentDirectory(UtilGetModuleDirectoryPath().c_str());
 		//削除:オリジナルの指定で消す
-		std::vector<std::wstring> tmp;
-		for (const auto& item : _sourcePathList) {
-			tmp.push_back((LPCWSTR)item);	//TODO
-		}
-		LF_deleteOriginalArchives(ConfCompress.MoveToRecycleBin, ConfCompress.DeleteNoConfirm, tmp);
+		LF_deleteOriginalArchives(ConfCompress.MoveToRecycleBin, ConfCompress.DeleteNoConfirm, _sourcePathList);
 	}
 
 
