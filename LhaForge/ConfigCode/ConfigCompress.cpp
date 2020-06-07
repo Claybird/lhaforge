@@ -36,12 +36,12 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	CString Buffer=Config.Data[_T("OutputDir")];
 	try {
 		if (!Buffer.IsEmpty()) {
-			OutputDir = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
+			OutputDirUserSpecified = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
 		} else {
-			OutputDir = _T("");
+			OutputDirUserSpecified = _T("");
 		}
 	} catch (LF_EXCEPTION) {
-		OutputDir = _T("");
+		OutputDirUserSpecified = _T("");
 	}
 	//圧縮後フォルダを開くかどうか
 	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
@@ -83,7 +83,7 @@ void CConfigCompress::store(CONFIG_SECTION &Config)const
 	//出力先の種類
 	Config.Data[_T("OutputDirType")]=OutputDirType;
 	//出力先のパス
-	Config.Data[_T("OutputDir")]=OutputDir;
+	Config.Data[_T("OutputDir")]= OutputDirUserSpecified;
 	//圧縮後フォルダを開くかどうか
 	Config.Data[_T("OpenFolder")]=OpenDir;
 

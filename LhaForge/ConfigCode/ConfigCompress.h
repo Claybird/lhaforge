@@ -29,7 +29,7 @@ enum LF_ARCHIVE_FORMAT;
 struct CConfigCompress:public IConfigConverter{
 public:
 	OUTPUT_TO OutputDirType;
-	CString OutputDir;
+	CString OutputDirUserSpecified;
 	BOOL OpenDir;
 	BOOL SpecifyOutputFilename;
 	BOOL LimitCompressFileCount;	//同時に圧縮するファイルの数を限定するならtrue
@@ -44,6 +44,7 @@ public:
 	BOOL ForceDelete;			//正常処理を確認できない形式でも削除
 
 	BOOL IgnoreTopDirectory;	//「フォルダより下のファイルを圧縮」
+	BOOL IgnoreTopDirectoryRecursively;	//「再帰的にフォルダより下のファイルを圧縮」:TODO
 protected:
 	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
 	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む

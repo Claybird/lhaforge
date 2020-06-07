@@ -52,7 +52,7 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//----------------------------------------------------
 	Edit_CompressOutputDirPath=GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR);
 	Edit_CompressOutputDirPath.SetLimitText(_MAX_PATH);
-	Edit_CompressOutputDirPath.SetWindowText(m_Config.OutputDir);
+	Edit_CompressOutputDirPath.SetWindowText(m_Config.OutputDirUserSpecified);
 
 	Button_CompressToFolder=GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER);
 
@@ -120,7 +120,7 @@ LRESULT CConfigDlgCompressGeneral::OnApply()
 	//----------------------
 	// 出力先フォルダのパス
 	//----------------------
-	Edit_CompressOutputDirPath.GetWindowText(m_Config.OutputDir);
+	Edit_CompressOutputDirPath.GetWindowText(m_Config.OutputDirUserSpecified);
 
 	//--------------------------------
 	// 同時に圧縮するファイル数の上限
