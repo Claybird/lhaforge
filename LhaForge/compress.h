@@ -26,13 +26,19 @@
 #include "Utilities/Utility.h"
 #include "ArchiverCode/arc_interface.h"
 
-struct CMDLINEINFO;
+#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigGeneral.h"
+#include "ConfigCode/ConfigCompress.h"
 
+struct LF_COMPRESS_ARGS {
+	CConfigGeneral general;
+	CConfigCompress compress;
+};
+
+struct CMDLINEINFO;
 
 //圧縮を行う。引数には必ずフルパスを渡すこと
 bool Compress(const std::vector<std::wstring>&,LF_ARCHIVE_FORMAT, LF_WRITE_OPTIONS options, CConfigManager&,CMDLINEINFO&);
-
-const LPCTSTR LHAFORGE_COMPRESS_SEMAPHORE_NAME=_T("LhaForgeCompressLimitSemaphore");
 
 //コマンドラインパラメータとCompressに渡るパラメータの対応表
 struct COMPRESS_COMMANDLINE_PARAMETER{
