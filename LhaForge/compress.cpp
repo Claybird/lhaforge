@@ -101,48 +101,6 @@ std::wstring getSourcesBasePath(const std::vector<std::wstring> &sources)
 	return join(L"/", commonParts);
 }
 
-//retrieves top elements of file list
-std::unordered_set<std::wstring> getTopElements(const std::vector<std::wstring>& sources)
-{
-	std::unordered_set<std::wstring> tops;
-	for (const auto &path : sources) {
-		auto parts = UtilSplitString(replace(path, L"\\", L"/"), L"/");
-		if (!parts.empty()) {
-			tops.insert(parts.front());
-		}
-	}
-	return tops;
-}
-
-
-struct RAW_FILE_READER {
-	CAutoFile fp;
-	LF_BUFFER_INFO ibi;
-	std::vector<unsigned char> buffer;
-	RAW_FILE_READER() {
-		ibi.make_eof();
-		buffer.resize(1024 * 1024 * 32);	//32MB cache
-	}
-	virtual ~RAW_FILE_READER() {}
-	const LF_BUFFER_INFO& operator()() {
-		if (!fp || feof(fp)) {
-			ibi.make_eof();
-		} else {
-			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
-			ibi.buffer = &buffer[0];
-			ibi.offset = _ftelli64(fp);
-		}
-		return ibi;
-	}
-	void open(const std::wstring& path) {
-		close();
-		fp.open(path, L"rb");
-	}
-	void close() {
-		fp.close();
-	}
-};
-
 //TODO: is this needed?
 bool isAllowedCombination(LF_ARCHIVE_FORMAT fmt, int option)
 {
@@ -175,7 +133,7 @@ std::wstring getArchiveFileExtension(LF_ARCHIVE_FORMAT fmt, LF_WRITE_OPTIONS opt
 				if (option & LF_WOPT_SFX) {
 					return original_ext + L".exe";
 				} else {
-					return original_ext + L"." + cap.extension;
+					return original_ext + cap.extension;
 				}
 			}
 		}
@@ -225,16 +183,6 @@ std::wstring determineDefaultArchiveTitle(
 
 //---
 //get relative path of source files, from basePath
-struct COMPRESS_SOURCES {
-	COMPRESS_SOURCES(): total_filesize(0){}
-	struct PATH_PAIR {
-		std::wstring originalFullPath;
-		std::wstring entryPath;
-	};
-	std::wstring basePath;
-	std::vector<PATH_PAIR> pathPair;
-	std::uintmax_t total_filesize;
-};
 std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
 	const std::wstring& basePath,
 	const std::vector<std::wstring>& sourcePathList)
@@ -253,11 +201,10 @@ std::vector<std::wstring> getAllSourceFiles(const std::vector<std::wstring> &sou
 {
 	std::vector<std::wstring> out;
 	for (const auto& path : sourcePathList) {
+		out.push_back(path);
 		if (std::filesystem::is_directory(path)) {
-			auto tmp = UtilRecursiveEnumFile(path);
+			auto tmp = UtilRecursiveEnumFileAndDirectory(path);
 			out.insert(out.end(), tmp.begin(), tmp.end());
-		} else {
-			out.push_back(path);
 		}
 	}
 	std::sort(out.begin(), out.end());
@@ -274,25 +221,24 @@ COMPRESS_SOURCES buildCompressSources(
 	COMPRESS_SOURCES targets;
 	std::vector<std::wstring> sourcePathList = getAllSourceFiles(givenFiles);
 	targets.basePath = getSourcesBasePath(givenFiles);
-
-	if (args.compress.IgnoreTopDirectory && givenFiles.size() == 1) {
-		if (args.compress.IgnoreTopDirectoryRecursively) {
-			targets.basePath = getSourcesBasePath(sourcePathList);
-		} else {
-			if (std::filesystem::is_directory(givenFiles.front())) {
-				auto di = std::filesystem::directory_iterator(givenFiles.front());
-				if (std::filesystem::begin(di) != std::filesystem::end(di)) {
-					targets.basePath = givenFiles.front();
+	try {
+		if (args.compress.IgnoreTopDirectory && givenFiles.size() == 1) {
+			if (args.compress.IgnoreTopDirectoryRecursively) {
+				targets.basePath = getSourcesBasePath(sourcePathList);
+			} else {
+				if (std::filesystem::is_directory(givenFiles.front())) {
+					auto di = std::filesystem::directory_iterator(givenFiles.front());
+					if (std::filesystem::begin(di) != std::filesystem::end(di)) {
+						targets.basePath = givenFiles.front();
+					}
 				}
 			}
 		}
-	}
 
-	targets.pathPair = getRelativePathList(targets.basePath, sourcePathList);
+		targets.pathPair = getRelativePathList(targets.basePath, sourcePathList);
 
-	//original size
-	targets.total_filesize = 0;
-	try {
+		//original size
+		targets.total_filesize = 0;
 		for (const auto& path : sourcePathList) {
 			if (std::filesystem::is_regular_file(path)) {
 				targets.total_filesize += std::filesystem::file_size(path);
@@ -374,6 +320,35 @@ std::wstring determineDefaultArchiveDir(
 		user_specified_dirpath,
 		fileCallback);
 }
+
+struct RAW_FILE_READER {
+	CAutoFile fp;
+	LF_BUFFER_INFO ibi;
+	std::vector<unsigned char> buffer;
+	RAW_FILE_READER() {
+		ibi.make_eof();
+		buffer.resize(1024 * 1024 * 32);	//32MB cache
+	}
+	virtual ~RAW_FILE_READER() {}
+	const LF_BUFFER_INFO& operator()() {
+		if (!fp || feof(fp)) {
+			ibi.make_eof();
+		} else {
+			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
+			ibi.buffer = &buffer[0];
+			ibi.offset = _ftelli64(fp);
+		}
+		return ibi;
+	}
+	void open(const std::wstring& path) {
+		close();
+		fp.open(path, L"rb");
+	}
+	void close() {
+		fp.close();
+	}
+};
+
 
 void compressOneArchive(
 	LF_ARCHIVE_FORMAT format,

@@ -8,7 +8,7 @@ TEST(compress, getSourcesBasePath)
 {
 	std::wstring getSourcesBasePath(const std::vector<std::wstring> &sources);
 
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test";
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/getSourcesBasePath";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir / L"abc");
@@ -194,7 +194,7 @@ TEST(compress, getArchiveFileExtension)
 
 	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_ZIP, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_7Z, LF_WOPT_SFX, path));
-	EXPECT_EQ(L".ext.exe", getArchiveFileExtension(LF_FMT_GZ, LF_WOPT_SFX, path));
+	/*EXPECT_EQ(L".ext.exe", getArchiveFileExtension(LF_FMT_GZ, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".ext.exe", getArchiveFileExtension(LF_FMT_BZ2, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".ext.exe", getArchiveFileExtension(LF_FMT_LZMA, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".ext.exe", getArchiveFileExtension(LF_FMT_XZ, LF_WOPT_SFX, path));
@@ -205,7 +205,7 @@ TEST(compress, getArchiveFileExtension)
 	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_TAR_LZMA, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_TAR_XZ, LF_WOPT_SFX, path));
 	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_TAR_Z, LF_WOPT_SFX, path));
-	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_UUE, LF_WOPT_SFX, path));
+	EXPECT_EQ(L".exe", getArchiveFileExtension(LF_FMT_UUE, LF_WOPT_SFX, path));*/
 }
 
 TEST(compress, volumeLabelToDirectoryName)
@@ -225,18 +225,6 @@ TEST(compress, determineDefaultArchiveTitle)
 	EXPECT_EQ(L"source.txt.gz", determineDefaultArchiveTitle(LF_FMT_GZ, LF_WOPT_STANDARD, L"/path/to/source.txt"));
 }
 
-struct COMPRESS_SOURCES {
-	COMPRESS_SOURCES() : total_filesize(0) {}
-	virtual ~COMPRESS_SOURCES() {}
-	struct PATH_PAIR {
-		std::wstring originalFullPath;
-		std::wstring entryPath;
-	};
-	std::wstring basePath;
-	std::vector<PATH_PAIR> pathPair;
-	std::uintmax_t total_filesize;
-};
-
 TEST(compress, getRelativePathList)
 {
 	std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
@@ -249,7 +237,7 @@ TEST(compress, getRelativePathList)
 	EXPECT_EQ(L"/path/to/base/", result[0].originalFullPath);
 	EXPECT_EQ(L"file1.txt", result[1].entryPath);
 	EXPECT_EQ(L"/path/to/base/file1.txt", result[1].originalFullPath);
-	EXPECT_EQ(L"dir1/file2.txt", result[2].entryPath);
+	EXPECT_EQ(std::filesystem::path(L"dir1/file2.txt").make_preferred(), result[2].entryPath);
 	EXPECT_EQ(L"/path/to/base/dir1/file2.txt", result[2].originalFullPath);
 }
 
@@ -258,28 +246,28 @@ TEST(compress, getAllSourceFiles)
 	std::vector<std::wstring> getAllSourceFiles(const std::vector<std::wstring> &sourcePathList);
 
 	//delete directory
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test";
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/getAllSourceFiles";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 	std::filesystem::create_directories(dir / L"a");
 	std::filesystem::create_directories(dir / L"b/c");
 	for (int i = 0; i < 3; i++) {
-		touchFile(dir / Format(L"/a/a%03d.txt", i));
-		touchFile(dir / Format(L"/b/c/b%03d.txt", i));
+		touchFile(dir / Format(L"a/a%03d.txt", i));
+		touchFile(dir / Format(L"b/c/b%03d.txt", i));
 	}
 
 	auto files = getAllSourceFiles({ dir });
-	EXPECT_EQ(10, files.size());
+	EXPECT_EQ(9, files.size());		//a,a[000-002].txt,b,b/c,b/c/b[000-002].txt
 
 	files = getAllSourceFiles({ dir / L"a" });
-	EXPECT_EQ(4, files.size());
+	EXPECT_EQ(4, files.size());		//a,a[000-002].txt
 	files = getAllSourceFiles({ dir / L"b" });
-	EXPECT_EQ(5, files.size());
+	EXPECT_EQ(5, files.size());		//b,b/c,b/c/b[000-002].txt
 	files = getAllSourceFiles({ dir / L"c" });
-	EXPECT_EQ(0, files.size());
+	EXPECT_EQ(1, files.size());		//dir nor file does not exist, but listed
 	files = getAllSourceFiles({ dir / L"b/c" });
-	EXPECT_EQ(3, files.size());
+	EXPECT_EQ(4, files.size());		//b/c,b/c/b[000-002].txt
 
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
@@ -304,8 +292,8 @@ TEST(compress, buildCompressSources)
 	givenFiles.push_back(dir / L"a");
 	givenFiles.push_back(dir / L"b");
 	for (int i = 0; i < 3; i++) {
-		touchFile(dir / Format(L"/a/a%03d.txt", i));
-		touchFile(dir / Format(L"/b/c/b%03d.txt", i));
+		touchFile(dir / Format(L"a/a%03d.txt", i));
+		touchFile(dir / Format(L"b/c/b%03d.txt", i));
 	}
 	{
 		CAutoFile fp;

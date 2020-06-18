@@ -49,3 +49,14 @@ struct COMPRESS_COMMANDLINE_PARAMETER{
 };
 extern const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams;
 const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT fmt, int opts);
+struct COMPRESS_SOURCES {
+	COMPRESS_SOURCES() : total_filesize(0) {}
+	virtual ~COMPRESS_SOURCES() {}
+	struct PATH_PAIR {
+		std::wstring originalFullPath;
+		std::wstring entryPath;
+	};
+	std::wstring basePath;
+	std::vector<PATH_PAIR> pathPair;
+	std::uintmax_t total_filesize;
+};
