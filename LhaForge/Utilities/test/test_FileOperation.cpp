@@ -71,31 +71,50 @@ TEST(FileOperation, UtilMoveFileToRecycleBin) {
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-TEST(FileOperation, UtilRecursiveEnumFile_UtilPathExpandWild) {
+TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 	//prepare files
-	std::vector<std::wstring> fileList;
+	std::vector<std::wstring> fileList, fileAndDir;
 	auto dir = UtilGetTempPath() + L"lhaforge_test";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 	for (int i = 0; i < 3; i++) {
-		fileList.push_back(dir + Format(L"/a%03d.txt", i));
-		touchFile(dir + Format(L"/a%03d.txt", i));
+		auto fname = dir + Format(L"/a%03d.txt", i);
+		fileList.push_back(fname);
+		fileAndDir.push_back(fname);
+		touchFile(fname);
 	}
+
 	std::filesystem::create_directories(dir + L"/b");
+	fileAndDir.push_back(dir + L"/b");
 	for (int i = 0; i < 3; i++) {
-		fileList.push_back(dir + Format(L"/b/a%03d.txt", i));
-		touchFile(dir + Format(L"/b/a%03d.txt", i));
+		auto fname = dir + Format(L"/b/a%03d.txt", i);
+		fileList.push_back(fname);
+		fileAndDir.push_back(fname);
+		touchFile(fname);
 	}
 
 	//enumerate
 	{
 		auto enumerated = UtilRecursiveEnumFile(dir);
 		EXPECT_EQ(fileList.size(), enumerated.size());
-		for (size_t i = 0; i < fileList.size(); i++) {
-			EXPECT_EQ(
-				std::filesystem::path(fileList[i]).make_preferred().wstring(),
-				std::filesystem::path(enumerated[i]).make_preferred().wstring());
+		if (fileList.size() == enumerated.size()) {
+			for (size_t i = 0; i < fileList.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileList[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			}
+		}
+	}
+	{
+		auto enumerated = UtilRecursiveEnumFileAndDirectory(dir);
+		EXPECT_EQ(fileAndDir.size(), enumerated.size());
+		if (fileAndDir.size() == enumerated.size()) {
+			for (size_t i = 0; i < fileAndDir.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			}
 		}
 	}
 
@@ -187,6 +206,23 @@ TEST(FileOperation, UtilReadFile) {
 		EXPECT_EQ("test file content", std::string((const char*)&read[0]));
 	}
 	std::filesystem::remove(fname);
+}
+
+TEST(FileOperation, touchFile)
+{
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/touchFile";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+
+	auto filename = dir / L"a.txt";
+	EXPECT_FALSE(std::filesystem::exists(filename));
+	touchFile(filename);
+	EXPECT_TRUE(std::filesystem::exists(filename));
+
+
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
 }
 
 #endif
