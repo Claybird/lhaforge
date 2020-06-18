@@ -7,12 +7,26 @@
 TEST(compress, getSourcesBasePath)
 {
 	std::wstring getSourcesBasePath(const std::vector<std::wstring> &sources);
-	EXPECT_EQ(L"", getSourcesBasePath(std::vector<std::wstring>({ })));
-	EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc/" })));
-	EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc/",L"ABC/ghi/" })));
-	EXPECT_EQ(L"", getSourcesBasePath(std::vector<std::wstring>({ L"abc",L"ghi/" })));
-	EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc",L"abc/" })));
-	EXPECT_EQ(L"c:/abc", getSourcesBasePath(std::vector<std::wstring>({ L"c:/abc",L"c:/abc/def" })));
+
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir / L"abc");
+	std::filesystem::create_directories(dir / L"ghi");
+
+	{
+		CCurrentDirManager mngr(dir);
+
+		EXPECT_EQ(L"", getSourcesBasePath(std::vector<std::wstring>({ })));
+		EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc/" })));
+		EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc/",L"ABC/ghi/" })));
+		EXPECT_EQ(L"", getSourcesBasePath(std::vector<std::wstring>({ L"abc",L"ghi/" })));
+		EXPECT_EQ(L"abc", getSourcesBasePath(std::vector<std::wstring>({ L"abc",L"abc/" })));
+		EXPECT_EQ(L"c:/windows", getSourcesBasePath(std::vector<std::wstring>({ L"c:/windows",L"c:/windows/systen32" })));
+	}
+
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
 }
 
 struct RAW_FILE_READER {
@@ -270,7 +284,7 @@ TEST(compress, getAllSourceFiles)
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-
+/*
 TEST(compress, buildCompressSources)
 {
 	COMPRESS_SOURCES buildCompressSources(
@@ -295,7 +309,8 @@ TEST(compress, buildCompressSources)
 	}
 	{
 		CAutoFile fp;
-		fp.open(dir / L"/a/test.txt");
+		fp.open(dir / L"/a/test.txt", L"w");
+		EXPECT_TRUE(fp.is_opened());
 		fprintf(fp, "abcde");
 	}
 
@@ -315,7 +330,7 @@ TEST(compress, buildCompressSources)
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-
+*/
 /*TEST(compress, confirmOutputFile)
 {
 	std::wstring confirmOutputFile(
