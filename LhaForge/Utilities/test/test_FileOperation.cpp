@@ -5,14 +5,6 @@
 #include "Utilities/OSUtil.h"
 #include "Utilities/Utility.h"
 
-void touchFile(const std::wstring& path)
-{
-	FILE* fp = nullptr;
-	EXPECT_EQ(0, _wfopen_s(&fp, path.c_str(), L"w"));
-	EXPECT_NE(nullptr, fp);
-	fclose(fp);
-}
-
 TEST(FileOperation, UtilGetTempPath) {
 	EXPECT_TRUE(std::filesystem::exists(UtilGetTempPath()));
 }

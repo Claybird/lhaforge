@@ -254,3 +254,9 @@ std::vector<BYTE> UtilReadFile(const std::wstring& filePath)
 	return cReadBuffer;
 }
 
+void touchFile(const std::wstring& path)
+{
+	CAutoFile fp;
+	fp.open(path, L"w");
+}
+

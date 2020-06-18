@@ -120,3 +120,4 @@ public:
 };
 
 
+void touchFile(const std::wstring& path);
