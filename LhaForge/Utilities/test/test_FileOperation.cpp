@@ -186,6 +186,7 @@ TEST(FileOperation, UtilReadFile) {
 		read.push_back('\0');
 		EXPECT_EQ("test file content", std::string((const char*)&read[0]));
 	}
+	std::filesystem::remove(fname);
 }
 
 #endif
