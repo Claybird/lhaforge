@@ -22,7 +22,7 @@ TEST(FileOperation, UtilDeletePath) {
 	EXPECT_FALSE(UtilDeletePath(path));
 
 	//delete directory
-	auto dir = UtilGetTempPath() + L"lhaforge_test";
+	auto dir = UtilGetTempPath() + L"lhaforge_test/UtilDeletePath";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -59,7 +59,7 @@ TEST(FileOperation, CTemporaryDirectoryManager) {
 TEST(FileOperation, UtilMoveFileToRecycleBin) {
 	std::vector<std::wstring> fileList;
 	//delete directory
-	auto dir = UtilGetTempPath() + L"lhaforge_test";
+	auto dir = UtilGetTempPath() + L"lhaforge_test/UtilMoveFileToRecycleBin";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -74,21 +74,21 @@ TEST(FileOperation, UtilMoveFileToRecycleBin) {
 TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 	//prepare files
 	std::vector<std::wstring> fileList, fileAndDir;
-	auto dir = UtilGetTempPath() + L"lhaforge_test";
+	auto dir = std::filesystem::path(UtilGetTempPath()) / L"lhaforge_test/UtilRecursiveEnumXXX_UtilPathExpandWild";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 	for (int i = 0; i < 3; i++) {
-		auto fname = dir + Format(L"/a%03d.txt", i);
+		auto fname = dir / Format(L"a%03d.txt", i);
 		fileList.push_back(fname);
 		fileAndDir.push_back(fname);
 		touchFile(fname);
 	}
 
-	std::filesystem::create_directories(dir + L"/b");
-	fileAndDir.push_back(dir + L"/b");
+	std::filesystem::create_directories(dir / L"b");
+	fileAndDir.push_back(dir / L"b");
 	for (int i = 0; i < 3; i++) {
-		auto fname = dir + Format(L"/b/a%03d.txt", i);
+		auto fname = dir / Format(L"b/a%03d.txt", i);
 		fileList.push_back(fname);
 		fileAndDir.push_back(fname);
 		touchFile(fname);
@@ -122,7 +122,7 @@ TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 	{
 		auto enumerated = UtilPathExpandWild(dir);
 		EXPECT_EQ(size_t(1), enumerated.size());
-		EXPECT_EQ(enumerated[0], dir);
+		EXPECT_EQ(enumerated[0], dir.make_preferred());
 
 		auto pdir = std::filesystem::path(dir);
 		enumerated = UtilPathExpandWild(pdir / L"*.txt");
