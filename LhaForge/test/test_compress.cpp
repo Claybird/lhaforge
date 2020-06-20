@@ -272,8 +272,8 @@ TEST(compress, getAllSourceFiles)
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-/*
-TEST(compress, buildCompressSources)
+
+TEST(compress, buildCompressSources_confirmOutputFile)
 {
 	COMPRESS_SOURCES buildCompressSources(
 		const LF_COMPRESS_ARGS &args,
@@ -281,7 +281,7 @@ TEST(compress, buildCompressSources)
 	);
 
 	//delete directory
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test";
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/compressSources";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -297,7 +297,7 @@ TEST(compress, buildCompressSources)
 	}
 	{
 		CAutoFile fp;
-		fp.open(dir / L"/a/test.txt", L"w");
+		fp.open(dir / L"a/test.txt", L"w");
 		EXPECT_TRUE(fp.is_opened());
 		fprintf(fp, "abcde");
 	}
@@ -305,32 +305,48 @@ TEST(compress, buildCompressSources)
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.compress.IgnoreTopDirectory = false;
 	fake_args.compress.IgnoreTopDirectoryRecursively = false;
-	auto out = buildCompressSources(fake_args, givenFiles);
+	auto sources = buildCompressSources(fake_args, givenFiles);
 
-	EXPECT_EQ(dir, out.basePath);
-	EXPECT_EQ(5, out.total_filesize);
-	EXPECT_EQ(10, out.pathPair.size());
-	EXPECT_EQ(dir / L"a", out.pathPair[0].originalFullPath);
-	EXPECT_EQ(L"a", out.pathPair[0].entryPath);
-	EXPECT_EQ(dir / L"a/a000.txt", out.pathPair[1].originalFullPath);
-	EXPECT_EQ(L"a/a000.txt", out.pathPair[1].entryPath);
+	EXPECT_EQ(dir, sources.basePath);
+	EXPECT_EQ(5, sources.total_filesize);
+	EXPECT_EQ(10, sources.pathPair.size());
+
+	std::map<std::wstring, std::wstring> expected = {
+		{(dir / L"a").make_preferred(),L"a"},
+		{(dir / L"a/a000.txt").make_preferred(),L"a/a000.txt"},
+		{(dir / L"a/a001.txt").make_preferred(),L"a/a001.txt"},
+		{(dir / L"a/a002.txt").make_preferred(),L"a/a002.txt"},
+		{(dir / L"a/test.txt").make_preferred(),L"a/test.txt"},
+		{(dir / L"b").make_preferred(),L"b"},
+		{(dir / L"b/c").make_preferred(),L"b/c"},
+		{(dir / L"b/c/b000.txt").make_preferred(),L"b/c/b000.txt"},
+		{(dir / L"b/c/b001.txt").make_preferred(),L"b/c/b001.txt"},
+		{(dir / L"b/c/b002.txt").make_preferred(),L"b/c/b002.txt"},
+	};
+
+	for (auto pair : sources.pathPair) {
+		auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+		EXPECT_TRUE(has_key(expected, orgPath));
+		EXPECT_EQ(expected[orgPath], pair.entryPath);
+	}
+
+
+	//---
+	std::wstring confirmOutputFile(
+		const std::wstring &default_archive_path,
+		const COMPRESS_SOURCES &original_source_list,
+		const std::wstring& ext,	//with '.'
+		bool bInputFilenameFirst);	//Compress.SpecifyOutputFilename;
+	auto output_path = confirmOutputFile(dir / L"test.archive", sources, L".archive", false);
+	EXPECT_EQ(dir / L"test.archive", output_path);
+
+	//---
 
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-*/
-/*TEST(compress, confirmOutputFile)
-{
-	std::wstring confirmOutputFile(
-		const std::wstring &original_archive_path,
-		const COMPRESS_SOURCES &original_source_list,
-		const std::wstring& ext,	//with '.'
-		bool bInputFilenameFirst);	//Compress.SpecifyOutputFilename;
 
-	TODO;
-}
-
-TEST(compress, determineDefaultArchiveDir)
+/*TEST(compress, determineDefaultArchiveDir)
 {
 	std::wstring determineDefaultArchiveDir(
 		OUTPUT_TO outputDirType,

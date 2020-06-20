@@ -192,6 +192,7 @@ std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
 		COMPRESS_SOURCES::PATH_PAIR rp;
 		rp.originalFullPath = path;
 		rp.entryPath = std::filesystem::relative(path, basePath);
+		rp.entryPath = replace(rp.entryPath, L"\\", L"/");
 		out.push_back(rp);
 	}
 	return out;
@@ -254,7 +255,7 @@ COMPRESS_SOURCES buildCompressSources(
 
 
 std::wstring confirmOutputFile(
-	const std::wstring &original_archive_path,
+	const std::wstring &default_archive_path,
 	const COMPRESS_SOURCES &original_source_list,
 	const std::wstring& ext,	//with '.'
 	bool bInputFilenameFirst)	//Compress.SpecifyOutputFilename;
@@ -271,7 +272,7 @@ std::wstring confirmOutputFile(
 		sourceFiles.insert(toLower(src.originalFullPath));
 	}
 
-	auto archive_path = original_archive_path;
+	auto archive_path = default_archive_path;
 	bool bForceOverwrite = false;
 	
 	//if file exists
