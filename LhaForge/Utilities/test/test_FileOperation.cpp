@@ -5,6 +5,10 @@
 #include "Utilities/OSUtil.h"
 #include "Utilities/Utility.h"
 
+
+TEST(FileOperation, UtilGetDesktopPath) {
+	EXPECT_TRUE(std::filesystem::exists(UtilGetDesktopPath()));
+}
 TEST(FileOperation, UtilGetTempPath) {
 	EXPECT_TRUE(std::filesystem::exists(UtilGetTempPath()));
 }

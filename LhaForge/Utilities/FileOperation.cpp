@@ -27,6 +27,22 @@
 #include "Utility.h"
 #include "StringUtil.h"
 #include "OSUtil.h"
+#include "resource.h"
+
+std::wstring UtilGetDesktopPath()
+{
+	wchar_t* ptr = nullptr;
+	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &ptr))) {
+		std::wstring desktop = ptr;
+		CoTaskMemFree(ptr);
+		ptr = nullptr;
+		return desktop;
+	} else {
+		//possibly, no desktops
+		//RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+		return UtilLoadString(IDS_ERROR_GET_DESKTOP);
+	}
+}
 
 //returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath()

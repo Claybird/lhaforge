@@ -24,6 +24,8 @@
 
 #pragma once
 
+std::wstring UtilGetDesktopPath();
+
 //returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath();
 std::wstring UtilGetTemporaryFileName();
