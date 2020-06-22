@@ -115,14 +115,7 @@ std::wstring LF_get_output_dir(
 		//FALLTHROUGH
 	case OUTPUT_TO_DESKTOP:
 	default:
-	{
-		std::array<wchar_t, MAX_PATH + 1> buf = {};
-		if (SHGetSpecialFolderPathW(NULL, &buf[0], CSIDL_DESKTOPDIRECTORY, FALSE)) {
-			return std::wstring(&buf[0]);
-		} else {	//unexpected case; desktop does not exist?
-			RAISE_EXCEPTION(L"Unexpected error: %s", (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
-		}
-	}
+		return UtilGetDesktopPath();
 	}
 }
 

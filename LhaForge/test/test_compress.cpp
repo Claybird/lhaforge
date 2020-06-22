@@ -346,18 +346,28 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
 
-/*TEST(compress, determineDefaultArchiveDir)
+TEST(compress, determineDefaultArchiveDir)
 {
 	std::wstring determineDefaultArchiveDir(
 		OUTPUT_TO outputDirType,
 		const std::wstring& original_file_path,
 		const wchar_t* user_specified_dirpath
 	);
-	TODO;
+
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	EXPECT_EQ(UtilGetDesktopPath(), determineDefaultArchiveDir(OUTPUT_TO_DESKTOP, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_SAME_DIR, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(L"C:/path_to_dir", determineDefaultArchiveDir(OUTPUT_TO_SPECIFIC_DIR, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_ALWAYS_ASK_WHERE, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_ALWAYS_ASK_WHERE, temp, L"C:/path_to_dir"));
 }
 
 TEST(compress, compressOneArchive)
 {
+	COMPRESS_SOURCES buildCompressSources(
+		const LF_COMPRESS_ARGS &args,
+		const std::vector<std::wstring> &givenFiles
+	);
 	void compressOneArchive(
 		LF_ARCHIVE_FORMAT format,
 		LF_WRITE_OPTIONS options,
@@ -369,9 +379,48 @@ TEST(compress, compressOneArchive)
 			UINT64 currentSize,
 			UINT64 totalSize)> progressHandler
 	);
+
+	//delete directory
+	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/compress";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	std::filesystem::create_directories(dir / L"a");
+	std::filesystem::create_directories(dir / L"b/c");
+
+	std::vector<std::wstring> givenFiles;
+	givenFiles.push_back(dir / L"a");
+	givenFiles.push_back(dir / L"b");
+	for (int i = 0; i < 3; i++) {
+		touchFile(dir / Format(L"a/a%03d.txt", i));
+		touchFile(dir / Format(L"b/c/b%03d.txt", i));
+	}
+	{
+		CAutoFile fp;
+		fp.open(dir / L"a/test.txt", L"w");
+		EXPECT_TRUE(fp.is_opened());
+		fprintf(fp, "abcde");
+	}
+
+	LF_COMPRESS_ARGS fake_args;
+	fake_args.compress.IgnoreTopDirectory = false;
+	fake_args.compress.IgnoreTopDirectoryRecursively = false;
+	auto sources = buildCompressSources(fake_args, givenFiles);
+
+
+	std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output.zip";
+	ARCLOG arcLog;
+	compressOneArchive(LF_FMT_ZIP, LF_WOPT_STANDARD, archive, sources, arcLog, [](
+		const std::wstring&,
+		const std::wstring&,
+		UINT64,
+		UINT64) {});
+
+	UtilDeletePath(dir);
+	UtilDeletePath(archive);
 }
 
-TEST(compress, compress_helper)
+/*TEST(compress, compress_helper)
 {
 	void compress_helper(
 		const std::vector<std::wstring> &givenFiles,
