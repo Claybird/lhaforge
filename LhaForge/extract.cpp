@@ -80,7 +80,6 @@ std::wstring determineExtractBaseDir(
 			CFolderDialog dlg(NULL, title, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
 			if (IDOK == dlg.DoModal()) {
 				std::filesystem::path pathOutputDir = dlg.GetFolderPath();
-				pathOutputDir /= L"/";
 				outputDir = pathOutputDir;
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {
@@ -414,10 +413,10 @@ bool GUI_extract_multiple_files(
 				RAISE_EXCEPTION((LPCWSTR)err);
 			}
 
-			const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
 			// limit concurrent extractions
 			CSemaphoreLocker SemaphoreLock;
 			if (args.extract.LimitExtractFileCount) {
+				const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
 				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
 			}
 
@@ -459,15 +458,15 @@ bool GUI_extract_multiple_files(
 			arcLog.setArchivePath(archive_path);
 			extractOneArchive(archive_path, output_dir, arcLog, preExtractHandler, progressHandler);
 			arcLog.overallResult = LF_RESULT::OK;
-		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
+		} catch (const LF_USER_CANCEL_EXCEPTION&) {
 			ARCLOG &arcLog = logs.back();
 			arcLog.overallResult = LF_RESULT::CANCELED;
 			break;
-		} catch (const ARCHIVE_EXCEPTION& e) {
+		} catch (const ARCHIVE_EXCEPTION&) {
 			ARCLOG &arcLog = logs.back();
 			arcLog.overallResult = LF_RESULT::NOTARCHIVE;
 			continue;
-		} catch (const LF_EXCEPTION &e) {
+		} catch (const LF_EXCEPTION&) {
 			ARCLOG &arcLog = logs.back();
 			arcLog.overallResult = LF_RESULT::NG;
 			continue;
