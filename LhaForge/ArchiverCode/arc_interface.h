@@ -309,11 +309,11 @@ struct ARCHIVE_FILE_TO_READ
 	}
 	void read_open(const std::wstring& arcname,
 		archive_passphrase_callback passphrase_callback) {
-		int r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
+		int r = archive_read_set_passphrase_callback(_arc, nullptr, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
-		r = archive_read_set_passphrase_callback(_arc, nullptr, passphrase_callback);
+		r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -510,6 +510,10 @@ struct ARCHIVE_FILE_TO_WRITE
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 
+		r = archive_write_set_passphrase_callback(_arc, nullptr, passphrase_callback);
+		if (r < ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
+		}
 		for(auto &ite: archive_options){
 			int r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
 			if (r < ARCHIVE_OK) {
@@ -517,10 +521,6 @@ struct ARCHIVE_FILE_TO_WRITE
 			}
 		}
 		r = archive_write_open_filename_w(_arc, arcname.c_str());
-		if (r < ARCHIVE_OK) {
-			throw ARCHIVE_EXCEPTION(_arc);
-		}
-		r = archive_write_set_passphrase_callback(_arc, nullptr, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
