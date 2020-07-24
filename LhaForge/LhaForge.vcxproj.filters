@@ -407,6 +407,9 @@
     <ClInclude Include="FileListWindow\EventDispatcher.h">
       <Filter>FileListWindow</Filter>
     </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigCompressFormat.h">
+      <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">

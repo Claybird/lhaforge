@@ -31,6 +31,7 @@
 #include "ConfigCode/ConfigCompress.h"
 
 struct LF_COMPRESS_ARGS {
+	CConfigManager mngr;
 	CConfigGeneral general;
 	CConfigCompress compress;
 };

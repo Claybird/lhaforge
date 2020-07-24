@@ -404,7 +404,7 @@ enum LF_ARCHIVE_FORMAT {
 struct LF_ARCHIVE_CAPABILITY {
 	LF_ARCHIVE_FORMAT format;
 	int mapped_libarchive_format;
-	bool need_original_ext;
+	bool need_original_ext;	//TODO: update to include original ext as "{ext}.gz"
 	const std::wstring extension;
 	bool multi_file_archive;	//true if archive can contain multiple files.
 	std::vector<int> allowed_combinations;	//empty if read only
@@ -456,6 +456,7 @@ WEAK_SYMBOL std::vector<LF_ARCHIVE_CAPABILITY> g_capabilities = {
 	//{ARCHIVE_FORMAT_MTREE},	disabled because it contains only metadata, i.e., no actual data
 	{LF_FMT_XAR, ARCHIVE_FORMAT_XAR, false, L".xar", true, {}},	// create is supported, but disabled intentionally; xar is not popular on windows
 	{LF_FMT_WARC, ARCHIVE_FORMAT_WARC, false, L".warc", true, {}},	//create is supported, but disabled intentionally; lhaforge is not designed as a web archive writer
+	{LF_FMT_CPIO, ARCHIVE_FORMAT_CPIO, false, L".cpio", true, {}},
 	//---following are extracted other than libarchive
 	{LF_FMT_ACE, NOT_BY_LIBARCHIVE, false, L".ace", true, {}},
 	{LF_FMT_JAK, NOT_BY_LIBARCHIVE, false, L".jak", true, {}},

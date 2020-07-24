@@ -147,14 +147,13 @@ TEST(compress, isAllowedCombination)
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_BZ2, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_LZMA, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_XZ, LF_WOPT_STANDARD));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_Z, LF_WOPT_STANDARD));
+	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZSTD, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_GZ, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_BZ2, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_LZMA, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_XZ, LF_WOPT_STANDARD));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_Z, LF_WOPT_STANDARD));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_CPIO, LF_WOPT_STANDARD));
+	EXPECT_TRUE(isAllowedCombination(LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_UUE, LF_WOPT_STANDARD));
 
 	//---following are decompress only
@@ -170,6 +169,7 @@ TEST(compress, isAllowedCombination)
 	EXPECT_FALSE(isAllowedCombination(LF_FMT_BZA, LF_WOPT_STANDARD));
 	EXPECT_FALSE(isAllowedCombination(LF_FMT_GZA, LF_WOPT_STANDARD));
 	EXPECT_FALSE(isAllowedCombination(LF_FMT_ISH, LF_WOPT_STANDARD));
+	EXPECT_FALSE(isAllowedCombination(LF_FMT_CPIO, LF_WOPT_STANDARD));
 }
 
 TEST(compress, getArchiveFileExtension)
@@ -182,13 +182,13 @@ TEST(compress, getArchiveFileExtension)
 	EXPECT_EQ(L".ext.bz2", getArchiveFileExtension(LF_FMT_BZ2, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".ext.lzma", getArchiveFileExtension(LF_FMT_LZMA, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".ext.xz", getArchiveFileExtension(LF_FMT_XZ, LF_WOPT_STANDARD, path));
-	EXPECT_EQ(L".ext.z", getArchiveFileExtension(LF_FMT_Z, LF_WOPT_STANDARD, path));
+	EXPECT_EQ(L".ext.zst", getArchiveFileExtension(LF_FMT_ZSTD, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".tar", getArchiveFileExtension(LF_FMT_TAR, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".tar.gz", getArchiveFileExtension(LF_FMT_TAR_GZ, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".tar.bz2", getArchiveFileExtension(LF_FMT_TAR_BZ2, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".tar.lzma", getArchiveFileExtension(LF_FMT_TAR_LZMA, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".tar.xz", getArchiveFileExtension(LF_FMT_TAR_XZ, LF_WOPT_STANDARD, path));
-	EXPECT_EQ(L".tar.z", getArchiveFileExtension(LF_FMT_TAR_Z, LF_WOPT_STANDARD, path));
+	EXPECT_EQ(L".tar.zst", getArchiveFileExtension(LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD, path));
 	EXPECT_EQ(L".uue", getArchiveFileExtension(LF_FMT_UUE, LF_WOPT_STANDARD, path));
 
 
@@ -362,6 +362,19 @@ TEST(compress, determineDefaultArchiveDir)
 	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_ALWAYS_ASK_WHERE, temp, L"C:/path_to_dir"));
 }
 
+std::map<std::string, std::string> getLAOptionsFromConfig(
+	LF_COMPRESS_ARGS &args,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options);
+
+TEST(compress, getLAOptionsFromConfig)
+{
+	LF_COMPRESS_ARGS fake_args;
+	auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+	EXPECT_EQ(5, la_options.size());
+	EXPECT_EQ("deflate", la_options.at("compression"));
+}
+
 TEST(compress, compressOneArchive)
 {
 	COMPRESS_SOURCES buildCompressSources(
@@ -370,16 +383,16 @@ TEST(compress, compressOneArchive)
 	);
 	void compressOneArchive(
 		LF_ARCHIVE_FORMAT format,
-		LF_WRITE_OPTIONS options,
+		const std::map<std::string, std::string> &archive_options,
 		const std::wstring& output_archive,
 		const COMPRESS_SOURCES &source_files,
 		ARCLOG arcLog,
 		std::function<void(const std::wstring& archivePath,
 			const std::wstring& path_on_disk,
 			UINT64 currentSize,
-			UINT64 totalSize)> progressHandler
+			UINT64 totalSize)> progressHandler,
+		archive_passphrase_callback passphrase_callback
 	);
-
 	//delete directory
 	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/compress";
 	UtilDeletePath(dir);
@@ -410,11 +423,14 @@ TEST(compress, compressOneArchive)
 
 	std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output.zip";
 	ARCLOG arcLog;
-	compressOneArchive(LF_FMT_ZIP, LF_WOPT_STANDARD, archive, sources, arcLog, [](
+
+	auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+	compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
 		const std::wstring&,
 		const std::wstring&,
 		UINT64,
-		UINT64) {});
+		UINT64) {},
+		nullptr);
 
 	UtilDeletePath(dir);
 	UtilDeletePath(archive);

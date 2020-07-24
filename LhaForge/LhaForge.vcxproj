@@ -101,6 +101,7 @@
     <ClInclude Include="compress.h" />
     <ClInclude Include="ConfigCode\AssocSettings.h" />
     <ClInclude Include="ConfigCode\ConfigCompress.h" />
+    <ClInclude Include="ConfigCode\ConfigCompressFormat.h" />
     <ClInclude Include="ConfigCode\ConfigExtract.h" />
     <ClInclude Include="ConfigCode\ConfigFileListWindow.h" />
     <ClInclude Include="ConfigCode\ConfigGeneral.h" />

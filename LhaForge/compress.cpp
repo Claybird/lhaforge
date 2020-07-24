@@ -36,15 +36,16 @@
 #include "Utilities/OSUtil.h"
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigCompress.h"
+#include "ConfigCode/ConfigCompressFormat.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
 
-void parseCompressOption(LF_COMPRESS_ARGS& args, CConfigManager &mngr, const CMDLINEINFO* lpCmdLineInfo)
+void parseCompressOption(LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
 {
-	args.general.load(mngr);
-	args.compress.load(mngr);
+	args.general.load(args.mngr);
+	args.compress.load(args.mngr);
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
@@ -353,17 +354,18 @@ struct RAW_FILE_READER {
 
 void compressOneArchive(
 	LF_ARCHIVE_FORMAT format,
-	LF_WRITE_OPTIONS options,
+	const std::map<std::string, std::string> &archive_options,
 	const std::wstring& output_archive,
 	const COMPRESS_SOURCES &source_files,
 	ARCLOG arcLog,
 	std::function<void(const std::wstring& archivePath,
 		const std::wstring& path_on_disk,
 		UINT64 currentSize,
-		UINT64 totalSize)> progressHandler
+		UINT64 totalSize)> progressHandler,
+	archive_passphrase_callback passphrase_callback
 ) {
 	ARCHIVE_FILE_TO_WRITE archive;
-	archive.write_open(output_archive, format, options);
+	archive.write_open(output_archive, format, archive_options, passphrase_callback);
 	std::uintmax_t processed = 0;
 	for (const auto &source : source_files.pathPair) {
 		try {
@@ -408,6 +410,86 @@ void compressOneArchive(
 	}
 }
 
+std::map<std::string, std::string> getLAOptionsFromConfig(
+	LF_COMPRESS_ARGS &args,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options)
+{
+	const auto& cap = get_archive_capability(format);
+
+	std::map<std::string, std::string> params;
+	//formats
+	switch (cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK) {
+	case ARCHIVE_FORMAT_ZIP:
+	{
+		CConfigCompressFormatZIP conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FORMAT_7ZIP:
+	{
+		CConfigCompressFormat7Z conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FORMAT_TAR:
+	{
+		CConfigCompressFormatTAR conf;
+		conf.load(args.mngr);
+		params = conf.params;
+	}
+	break;
+	case ARCHIVE_FORMAT_RAW:
+	{
+		//nothing to do
+	}
+	break;
+	}
+
+	//filters
+	switch (cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK) {
+	case ARCHIVE_FILTER_GZIP:
+	{
+		CConfigCompressFormatGZ conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FILTER_BZIP2:
+	{
+		CConfigCompressFormatBZ2 conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FILTER_LZMA:
+	{
+		CConfigCompressFormatLZMA conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FILTER_XZ:
+	{
+		CConfigCompressFormatXZ conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	case ARCHIVE_FILTER_ZSTD:
+	{
+		CConfigCompressFormatZSTD conf;
+		conf.load(args.mngr);
+		params.merge(conf.params);
+	}
+	break;
+	}
+
+	return params;
+}
+
 void compress_helper(
 	const std::vector<std::wstring> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
@@ -418,7 +500,8 @@ void compress_helper(
 	std::function<void(const std::wstring& archivePath,
 		const std::wstring& path_on_disk,
 		UINT64 currentSize,
-		UINT64 totalSize)> &progressHandler
+		UINT64 totalSize)> &progressHandler,
+	archive_passphrase_callback passphraseHandler
 	)
 {
 	// get common path for base path
@@ -521,11 +604,12 @@ void compress_helper(
 	arcLog.setArchivePath(archivePath);
 	compressOneArchive(
 		format,
-		options,
+		getLAOptionsFromConfig(args, format, options),
 		archivePath,
 		sources,
 		arcLog,
-		progressHandler);
+		progressHandler,
+		passphraseHandler);
 
 	if (args.general.NotifyShellAfterProcess) {
 		//notify shell
@@ -563,13 +647,11 @@ bool GUI_compress_multiple_archives(
 	CMDLINEINFO& CmdLineInfo)
 {
 	LF_COMPRESS_ARGS args;
-	CConfigManager mngr;
-	parseCompressOption(args, mngr, &CmdLineInfo);
+	parseCompressOption(args, &CmdLineInfo);
 	//progress bar
 	CProgressDialog dlg;
 	dlg.Create(nullptr);
 	dlg.ShowWindow(SW_SHOW);
-	//do compression
 	std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
 		[&](const std::wstring& archivePath,
 			const std::wstring& path_on_disk,
@@ -585,7 +667,7 @@ bool GUI_compress_multiple_archives(
 		while (UtilDoMessageLoop())continue;
 	};
 
-
+	//do compression
 	if (0 != CmdLineInfo.Options) {
 		options = (LF_WRITE_OPTIONS)CmdLineInfo.Options;
 	}
@@ -604,7 +686,8 @@ bool GUI_compress_multiple_archives(
 					CmdLineInfo,
 					logs.back(),
 					args,
-					progressHandler
+					progressHandler,
+					LF_passphrase_callback
 				);
 			} catch (const LF_USER_CANCEL_EXCEPTION&) {
 				ARCLOG &arcLog = logs.back();
@@ -626,7 +709,8 @@ bool GUI_compress_multiple_archives(
 				CmdLineInfo,
 				logs.back(),
 				args,
-				progressHandler
+				progressHandler,
+				LF_passphrase_callback
 			);
 		} catch (const LF_USER_CANCEL_EXCEPTION&) {
 			ARCLOG &arcLog = logs.back();
