@@ -238,7 +238,7 @@ void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTD
 		case LOSTDIR_ASK_TO_CREATE:
 		{
 			CString strMsg;
-			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir);
+			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir.c_str());
 			if (IDNO == UtilMessageBox(NULL, (const wchar_t*)strMsg, MB_YESNO | MB_ICONQUESTION)) {
 				CANCEL_EXCEPTION();
 			}
@@ -249,14 +249,14 @@ void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTD
 				std::filesystem::create_directories(outputDir);
 			} catch (const std::filesystem::filesystem_error) {
 				CString strErr;
-				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir);
+				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir.c_str());
 				RAISE_EXCEPTION((const wchar_t*)strErr);
 			}
 			break;
 		default://treat as error
 		{
 			CString strErr;
-			strErr.Format(IDS_ERROR_DIR_NOTFOUND, outputDir);
+			strErr.Format(IDS_ERROR_DIR_NOTFOUND, outputDir.c_str());
 			RAISE_EXCEPTION((const wchar_t*)strErr);
 		}
 		}
