@@ -92,3 +92,6 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* l
 std::wstring LF_sanitize_pathname(const std::wstring &rawPath);
 
 void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files);
+
+const char* LF_passphrase_callback(struct archive *,void *_client_data);
+

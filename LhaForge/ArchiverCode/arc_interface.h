@@ -261,9 +261,9 @@ struct LF_ARCHIVE_ENTRY {
 	const char* get_mode_name()const { return _mode_name.c_str(); }
 	bool is_dir()const { return (_filemode & S_IFDIR) != 0; }
 
-	void copy_file_stat(const std::wstring& path) {
-		_pathname = path;
-		_la_internal.set_pathname(path);
+	void copy_file_stat(const std::wstring& path, const std::wstring& stored_as) {
+		_pathname = stored_as;
+		_la_internal.set_pathname(stored_as);
 		struct __stat64 st;
 		if (0 != _wstat64(path.c_str(), &st)) {
 			ARCHIVE_EXCEPTION(L"Failed to stat file");
@@ -307,8 +307,13 @@ struct ARCHIVE_FILE_TO_READ
 	virtual ~ARCHIVE_FILE_TO_READ() {
 		close();
 	}
-	void read_open(const std::wstring& arcname) {
+	void read_open(const std::wstring& arcname,
+		archive_passphrase_callback passphrase_callback) {
 		int r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
+		if (r < ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
+		}
+		r = archive_read_set_passphrase_callback(_arc, nullptr, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -363,13 +368,13 @@ enum LF_ARCHIVE_FORMAT {
 	LF_FMT_BZ2,
 	LF_FMT_LZMA,
 	LF_FMT_XZ,
-	LF_FMT_Z,
+	LF_FMT_ZSTD,
 	LF_FMT_TAR,
 	LF_FMT_TAR_GZ,
 	LF_FMT_TAR_BZ2,
 	LF_FMT_TAR_LZMA,
 	LF_FMT_TAR_XZ,
-	LF_FMT_TAR_Z,
+	LF_FMT_TAR_ZSTD,
 	LF_FMT_UUE,
 
 	//---following are decompress only
@@ -399,13 +404,14 @@ enum LF_ARCHIVE_FORMAT {
 struct LF_ARCHIVE_CAPABILITY {
 	LF_ARCHIVE_FORMAT format;
 	int mapped_libarchive_format;
+	bool need_original_ext;
 	const std::wstring extension;
 	bool multi_file_archive;	//true if archive can contain multiple files.
 	std::vector<int> allowed_combinations;	//empty if read only
 };
 
 WEAK_SYMBOL std::vector<LF_ARCHIVE_CAPABILITY> g_capabilities = {
-	{LF_FMT_ZIP, ARCHIVE_FORMAT_ZIP, L".zip", true, {
+	{LF_FMT_ZIP, ARCHIVE_FORMAT_ZIP, false, L".zip", true, {
 	//TODO
 	LF_WOPT_STANDARD,
 	LF_WOPT_SFX,
@@ -413,7 +419,7 @@ WEAK_SYMBOL std::vector<LF_ARCHIVE_CAPABILITY> g_capabilities = {
 	LF_WOPT_HEADER_ENCRYPTION,
 	LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION,
 	LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION}},
-	{LF_FMT_7Z, ARCHIVE_FORMAT_7ZIP, L".7z", true, {
+	{LF_FMT_7Z, ARCHIVE_FORMAT_7ZIP, false, L".7z", true, {
 		//TODO
 		LF_WOPT_STANDARD,
 		LF_WOPT_SFX,
@@ -421,41 +427,41 @@ WEAK_SYMBOL std::vector<LF_ARCHIVE_CAPABILITY> g_capabilities = {
 		LF_WOPT_HEADER_ENCRYPTION,
 		LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION,
 		LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION}},
-	{LF_FMT_GZ, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_GZIP, L".gz", false, {LF_WOPT_STANDARD}},	//archive_compressor_gzip_options
-	{LF_FMT_BZ2, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_BZIP2, L".bz2", false, {LF_WOPT_STANDARD}},	//archive_compressor_bzip2_options
-	{LF_FMT_LZMA, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZMA, L".lzma", false, {LF_WOPT_STANDARD}},		//archive_compressor_xz_options
-	{LF_FMT_XZ, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_XZ, L".xz", false, {LF_WOPT_STANDARD}},	//archive_compressor_xz_options
-	{LF_FMT_Z, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_ZSTD, L".z", false, {LF_WOPT_STANDARD}},	//archive_compressor_zstd_options
-	{LF_FMT_TAR, ARCHIVE_FORMAT_TAR, L".tar", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_TAR_GZ, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_GZIP, L".tar.gz", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_TAR_BZ2, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_BZIP2, L".tar.bz2", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_TAR_LZMA, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZMA, L".tar.lzma", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_TAR_XZ, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_XZ, L".tar.xz", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_TAR_Z, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_ZSTD, L".tar.z", true, {LF_WOPT_STANDARD}},
-	{LF_FMT_CPIO, ARCHIVE_FORMAT_CPIO, L".cpio", true, {LF_WOPT_STANDARD}},
-	/*{LF_FMT_CPIO_GZ, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_GZIP, L".cpio.gz", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_GZ, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_GZIP, true, L".gz", false, {LF_WOPT_STANDARD}},	//archive_compressor_gzip_options
+	{LF_FMT_BZ2, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_BZIP2, true, L".bz2", false, {LF_WOPT_STANDARD}},	//archive_compressor_bzip2_options
+	{LF_FMT_LZMA, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZMA, true, L".lzma", false, {LF_WOPT_STANDARD}},		//archive_compressor_xz_options
+	{LF_FMT_XZ, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_XZ, true, L".xz", false, {LF_WOPT_STANDARD}},	//archive_compressor_xz_options
+	{LF_FMT_ZSTD, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_ZSTD, true, L".zst", false, {LF_WOPT_STANDARD}},	//archive_compressor_zstd_options
+	{LF_FMT_TAR, ARCHIVE_FORMAT_TAR_GNUTAR, false, L".tar", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_TAR_GZ, ARCHIVE_FORMAT_TAR_GNUTAR | ARCHIVE_FILTER_GZIP, false, L".tar.gz", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_TAR_BZ2, ARCHIVE_FORMAT_TAR_GNUTAR | ARCHIVE_FILTER_BZIP2, false, L".tar.bz2", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_TAR_LZMA, ARCHIVE_FORMAT_TAR_GNUTAR | ARCHIVE_FILTER_LZMA, false, L".tar.lzma", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_TAR_XZ, ARCHIVE_FORMAT_TAR_GNUTAR | ARCHIVE_FILTER_XZ, false, L".tar.xz", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_TAR_ZSTD, ARCHIVE_FORMAT_TAR_GNUTAR | ARCHIVE_FILTER_ZSTD, false, L".tar.zst", true, {LF_WOPT_STANDARD}},
+	/*{LF_FMT_CPIO, ARCHIVE_FORMAT_CPIO, false, L".cpio", true, {LF_WOPT_STANDARD}},
+	{LF_FMT_CPIO_GZ, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_GZIP, L".cpio.gz", true, {LF_WOPT_STANDARD}},
 	{LF_FMT_CPIO_BZ2, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_BZIP2, L".cpio.bz2", true, {LF_WOPT_STANDARD}},
 	{LF_FMT_CPIO_LZMA, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_LZMA, L".cpio.lzma", true, {LF_WOPT_STANDARD}},
 	{LF_FMT_CPIO_XZ, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_XZ, L".cpio.xz", true, {LF_WOPT_STANDARD}},
 	{LF_FMT_CPIO_Z, ARCHIVE_FORMAT_CPIO | ARCHIVE_FILTER_ZSTD, L".cpio.zstd", true, {LF_WOPT_STANDARD}},*/
-	{LF_FMT_UUE, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_UU, L".uue", false, {LF_WOPT_STANDARD}},
+	{LF_FMT_UUE, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_UU, false, L".uue", false, {LF_WOPT_STANDARD}},
 
 	//---following are decompress only
-	{LF_FMT_LZH, ARCHIVE_FORMAT_LHA, L".lzh", true, {}},
-	{LF_FMT_CAB, ARCHIVE_FORMAT_CAB, L".cab", true, {}},
-	{LF_FMT_RAR, ARCHIVE_FORMAT_RAR, L".rar", true, {}},
-	{LF_FMT_ISO, ARCHIVE_FORMAT_ISO9660, L".iso", true, {}},	//create is supported, but disabled intentionally; lhaforge is not designed as a iso file writer
+	{LF_FMT_LZH, ARCHIVE_FORMAT_LHA, false, L".lzh", true, {}},
+	{LF_FMT_CAB, ARCHIVE_FORMAT_CAB, false, L".cab", true, {}},
+	{LF_FMT_RAR, ARCHIVE_FORMAT_RAR, false, L".rar", true, {}},
+	{LF_FMT_ISO, ARCHIVE_FORMAT_ISO9660, false, L".iso", true, {}},	//create is supported, but disabled intentionally; lhaforge is not designed as a iso file writer
 	//{ARCHIVE_FORMAT_SHAR},	disabled because it is irrelevant to windows users
-	{LF_FMT_AR, ARCHIVE_FORMAT_AR, L".ar", true, {}},
+	{LF_FMT_AR, ARCHIVE_FORMAT_AR, false, L".ar", true, {}},
 	//{ARCHIVE_FORMAT_MTREE},	disabled because it contains only metadata, i.e., no actual data
-	{LF_FMT_XAR, ARCHIVE_FORMAT_XAR, L".xar", true, {}},	// create is supported, but disabled intentionally; xar is not popular on windows
-	{LF_FMT_WARC, ARCHIVE_FORMAT_WARC, L".warc", true, {}},	//create is supported, but disabled intentionally; lhaforge is not designed as a web archive writer
+	{LF_FMT_XAR, ARCHIVE_FORMAT_XAR, false, L".xar", true, {}},	// create is supported, but disabled intentionally; xar is not popular on windows
+	{LF_FMT_WARC, ARCHIVE_FORMAT_WARC, false, L".warc", true, {}},	//create is supported, but disabled intentionally; lhaforge is not designed as a web archive writer
 	//---following are extracted other than libarchive
-	{LF_FMT_ACE, NOT_BY_LIBARCHIVE, L".ace", true, {}},
-	{LF_FMT_JAK, NOT_BY_LIBARCHIVE, L".jak", true, {}},
-	{LF_FMT_BZA, NOT_BY_LIBARCHIVE, L".bza", true, {}},
-	{LF_FMT_GZA, NOT_BY_LIBARCHIVE, L".gza", true, {}},
-	{LF_FMT_ISH, NOT_BY_LIBARCHIVE, L".ish", false, {}},
+	{LF_FMT_ACE, NOT_BY_LIBARCHIVE, false, L".ace", true, {}},
+	{LF_FMT_JAK, NOT_BY_LIBARCHIVE, false, L".jak", true, {}},
+	{LF_FMT_BZA, NOT_BY_LIBARCHIVE, false, L".bza", true, {}},
+	{LF_FMT_GZA, NOT_BY_LIBARCHIVE, false, L".gza", true, {}},
+	{LF_FMT_ISH, NOT_BY_LIBARCHIVE, false, L".ish", false, {}},
 };
 
 
@@ -481,30 +487,39 @@ struct ARCHIVE_FILE_TO_WRITE
 		close();
 	}
 
-	void write_open(const std::wstring& arcname, LF_ARCHIVE_FORMAT fmt, LF_WRITE_OPTIONS opts) {
+	void write_open(const std::wstring& arcname,
+		LF_ARCHIVE_FORMAT fmt,
+		const std::map<std::string, std::string> &archive_options,
+		archive_passphrase_callback passphrase_callback) {
 		close();
 		_arc = archive_write_new();
 		const auto& cap = get_archive_capability(fmt);
-		if (cap.allowed_combinations.empty()) {
-			ASSERT(!"tried to write read only format");
-			throw ARCHIVE_EXCEPTION(L"tried to write read only format");
-		} else if (!isIn(cap.allowed_combinations, opts)) {
-			ASSERT(!"combination not allowed");
-			throw ARCHIVE_EXCEPTION(L"combination not allowed");
-		}
 
 		int la_filter = cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK;
 		if (la_filter != ARCHIVE_FILTER_NONE) {
-			archive_write_add_filter(_arc, la_filter);
+			int r = archive_write_add_filter(_arc, la_filter);
+			if (r < ARCHIVE_OK) {
+				throw ARCHIVE_EXCEPTION(_arc);
+			}
 		}
 
 		int la_fmt = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
-		archive_write_set_format(_arc, la_fmt);
-		int ret = archive_write_set_option(_arc, nullptr, "encryption", "aes256");
-		printf("%d\n", ret);
-		archive_write_set_passphrase(_arc, "test");
-		//TODO	archive_write_set_option(_arc, nullptr/*to all modules*/, opt, value);
-		int r = archive_write_open_filename_w(_arc, arcname.c_str());
+		int r = archive_write_set_format(_arc, la_fmt);
+		if (r < ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
+		}
+
+		for(auto &ite: archive_options){
+			int r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
+			if (r < ARCHIVE_OK) {
+				throw ARCHIVE_EXCEPTION(_arc);
+			}
+		}
+		r = archive_write_open_filename_w(_arc, arcname.c_str());
+		if (r < ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
+		}
+		r = archive_write_set_passphrase_callback(_arc, nullptr, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -531,6 +546,14 @@ struct ARCHIVE_FILE_TO_WRITE
 			} else {
 				archive_write_data(_arc, ibi.buffer, ibi.size);
 			}
+		}
+		//archive_write_finish_entry(_arc);	Ordinarily, clients never need to call this
+		//, as it is called automatically by archive_write_next_header() and archive_write_close() as needed. 
+	}
+	void add_directory(LF_ARCHIVE_ENTRY& entry) {
+		int r = archive_write_header(_arc, entry.la_entry());
+		if (r < ARCHIVE_OK) {
+			throw ARCHIVE_EXCEPTION(_arc);
 		}
 		//archive_write_finish_entry(_arc);	Ordinarily, clients never need to call this
 		//, as it is called automatically by archive_write_next_header() and archive_write_close() as needed. 

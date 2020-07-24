@@ -377,3 +377,20 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 	}
 }
 
+#include "Dialogs/TextInputDlg.h"
+
+const char* LF_passphrase_callback(struct archive *, void *_client_data)
+{
+	static std::wstring passphrase;
+	static std::string passphrase_utf8;
+	//TODO: use more sophisticated dialog
+	CTextInputDialog dlg(L"Enter passphrase");
+	dlg.SetInputText(passphrase.c_str());
+	if (IDOK == dlg.DoModal()) {
+		passphrase = dlg.GetInputText();
+		passphrase_utf8 = UtilToUTF8(passphrase);
+		return passphrase_utf8.c_str();
+	} else {
+		return nullptr;	//give up
+	}
+}

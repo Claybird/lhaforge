@@ -43,7 +43,7 @@ bool LF_isExtractable(const wchar_t* fname)
 {
 	ARCHIVE_FILE_TO_READ f;
 	try {
-		f.read_open(fname);
+		f.read_open(fname,nullptr);
 		return true;
 	} catch (const ARCHIVE_EXCEPTION& ) {
 		return false;

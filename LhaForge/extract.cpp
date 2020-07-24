@@ -145,7 +145,7 @@ std::wstring determineExtractDir(
 	case CREATE_OUTPUT_DIR_SINGLE:
 		if (args.extract.CreateNoFolderIfSingleFileOnly) {
 			ARCHIVE_FILE_TO_READ a;
-			a.read_open(archive_path);	//TODO: exception
+			a.read_open(archive_path, LF_passphrase_callback);	//TODO: exception
 			PRE_EXTRACT_CHECK result;
 			result.check(a);
 			if (result.allInOneDir) {
@@ -236,7 +236,7 @@ void extractOneArchive(
 ){
 	auto defaultDecision = overwrite_options::abort;
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path);
+	arc.read_open(archive_path, LF_passphrase_callback);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
@@ -537,7 +537,7 @@ void testOneArchive(
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 ) {
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path);
+	arc.read_open(archive_path, LF_passphrase_callback);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name

@@ -55,5 +55,6 @@ public:
 		EndDialog(nID);
 	}
 	LPCWSTR GetInputText()const { return strInput; }
+	void SetInputText(LPCWSTR input) { strInput = input; }
 };
 
