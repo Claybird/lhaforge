@@ -323,34 +323,6 @@ std::wstring determineDefaultArchiveDir(
 		fileCallback);
 }
 
-struct RAW_FILE_READER {
-	CAutoFile fp;
-	LF_BUFFER_INFO ibi;
-	std::vector<unsigned char> buffer;
-	RAW_FILE_READER() {
-		ibi.make_eof();
-		buffer.resize(1024 * 1024 * 32);	//32MB cache
-	}
-	virtual ~RAW_FILE_READER() {}
-	const LF_BUFFER_INFO& operator()() {
-		if (!fp || feof(fp)) {
-			ibi.make_eof();
-		} else {
-			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
-			ibi.buffer = &buffer[0];
-			ibi.offset = _ftelli64(fp);
-		}
-		return ibi;
-	}
-	void open(const std::wstring& path) {
-		close();
-		fp.open(path, L"rb");
-	}
-	void close() {
-		fp.close();
-	}
-};
-
 
 void compressOneArchive(
 	LF_ARCHIVE_FORMAT format,
