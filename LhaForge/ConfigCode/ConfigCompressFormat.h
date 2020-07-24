@@ -29,7 +29,7 @@ struct CConfigCompressFormatBase :public IConfigConverter {
 public:
 	const std::wstring section_name;
 	//stores key values; default is the first item
-	const std::map<std::string, std::vector<std::string>>& key_and_valid_values;
+	const std::map<std::string, std::vector<std::string>> key_and_valid_values;
 	std::map<std::string, std::string> params;
 protected:
 	virtual void load(CONFIG_SECTION& config) override {
