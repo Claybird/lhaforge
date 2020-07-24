@@ -86,6 +86,19 @@ std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcC
 	return wstr.c_str();
 }
 
+std::string UtilToUTF8(const std::wstring& unicode_string)
+{
+	int bufSize = ::WideCharToMultiByte(CP_UTF8, 0,
+		unicode_string.c_str(), -1,
+		nullptr, 0, nullptr, nullptr);
+
+	std::string utf8;
+	utf8.resize(bufSize);
+
+	::WideCharToMultiByte(CP_UTF8, 0, unicode_string.c_str(), -1, &utf8[0], bufSize, nullptr, nullptr);
+	return utf8.c_str();
+}
+
 UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length)
 {
 	const unsigned char* pByte = (const unsigned char*)lpSrc;

@@ -40,8 +40,10 @@ enum class UTIL_CODEPAGE {
 
 std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 inline std::wstring UtilUTF8toUNICODE(const char* utf8, size_t length) { return UtilToUNICODE(utf8, length, UTIL_CODEPAGE::UTF8); }
+inline std::wstring UtilUTF8toUNICODE(const std::string& utf8) { return UtilToUNICODE(utf8.c_str(), utf8.length(), UTIL_CODEPAGE::UTF8); }
 inline std::wstring UtilCP932toUNICODE(const char* cp932, size_t length) { return UtilToUNICODE(cp932, length, UTIL_CODEPAGE::CP932); }
 inline std::wstring UtilUTF16toUNICODE(const char* utf16, size_t length) { return UtilToUNICODE(utf16, length, UTIL_CODEPAGE::UTF16); }
+std::string UtilToUTF8(const std::wstring& unicode_string);
 
 UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
 //checks if the code page is correct for the given string

@@ -37,7 +37,10 @@ TEST(StringUtil, Encodings) {
 	const char utf8_bom[] = "\xef\xbb\xbf\xe3\x81\x82\xe3\x81\x84\xe3\x81\x86\x75\x74\x66\x38\x5f\x62\x6f\x6d";
 	const wchar_t* utf8_bom_ans = L"あいうutf8_bom";
 
+	EXPECT_EQ(std::string(utf8), UtilToUTF8(utf8_ans));
+
 	EXPECT_EQ(utf8_ans, UtilUTF8toUNICODE(utf8, sizeof(utf8)));
+	EXPECT_EQ(utf8_ans, UtilUTF8toUNICODE(std::string(utf8)));
 	//with BOM
 	EXPECT_EQ(utf8_bom_ans, UtilUTF8toUNICODE(utf8_bom, sizeof(utf8_bom)));
 
