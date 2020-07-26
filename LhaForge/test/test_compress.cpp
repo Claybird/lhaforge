@@ -104,16 +104,14 @@ TEST(compress, isAllowedCombination)
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_SFX));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_HEADER_ENCRYPTION));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_ZIP, LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION));
 
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_SFX));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_DATA_ENCRYPTION));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_HEADER_ENCRYPTION));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION));
-	EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION));
+	//EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_DATA_ENCRYPTION));
+	//EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_HEADER_ENCRYPTION));
+	//EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION));
+	//EXPECT_TRUE(isAllowedCombination(LF_FMT_7Z, LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION));
 
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_GZ, LF_WOPT_STANDARD));
 	EXPECT_TRUE(isAllowedCombination(LF_FMT_BZ2, LF_WOPT_STANDARD));
@@ -342,9 +340,67 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 TEST(compress, getLAOptionsFromConfig)
 {
 	LF_COMPRESS_ARGS fake_args;
-	auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
-	EXPECT_EQ(5, la_options.size());
-	EXPECT_EQ("deflate", la_options.at("compression"));
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+		EXPECT_EQ(4, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+		EXPECT_EQ(5, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_7Z, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_TAR, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_GZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_BZ2, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_XZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("0", la_options.at("threads"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_LZMA, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZSTD, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("3", la_options.at("compression-level"));
+	}
 }
 
 TEST(compress, compressOneArchive)
