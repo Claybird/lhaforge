@@ -82,6 +82,7 @@ extern CAppModule _Module;
 #include <map>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
 #include <regex>
 
