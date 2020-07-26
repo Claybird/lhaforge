@@ -397,6 +397,9 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 		CConfigCompressFormatZIP conf;
 		conf.load(args.mngr);
 		params.merge(conf.params);
+		if (!(options & LF_WOPT_DATA_ENCRYPTION)) {
+			params.erase("encryption");
+		}
 	}
 	break;
 	case ARCHIVE_FORMAT_7ZIP:
