@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include "compress.h"
 #include "Utilities/FileOperation.h"
+#include "extract.h"	//for extract test
 
 TEST(compress, getSourcesBasePath)
 {
@@ -405,6 +406,8 @@ TEST(compress, getLAOptionsFromConfig)
 
 TEST(compress, compressOneArchive)
 {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
 	COMPRESS_SOURCES buildCompressSources(
 		const LF_COMPRESS_ARGS &args,
 		const std::vector<std::wstring> &givenFiles
@@ -422,23 +425,23 @@ TEST(compress, compressOneArchive)
 		archive_passphrase_callback passphrase_callback
 	);
 	//delete directory
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/compress";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-	std::filesystem::create_directories(dir / L"a");
-	std::filesystem::create_directories(dir / L"b/c");
+	std::filesystem::path source_dir = UtilGetTempPath() + L"lhaforge_test/compress";
+	UtilDeletePath(source_dir);
+	EXPECT_FALSE(std::filesystem::exists(source_dir));
+	std::filesystem::create_directories(source_dir);
+	std::filesystem::create_directories(source_dir / L"a");
+	std::filesystem::create_directories(source_dir / L"b/c");
 
 	std::vector<std::wstring> givenFiles;
-	givenFiles.push_back(dir / L"a");
-	givenFiles.push_back(dir / L"b");
+	givenFiles.push_back(source_dir / L"a");
+	givenFiles.push_back(source_dir / L"b");
 	for (int i = 0; i < 3; i++) {
-		touchFile(dir / Format(L"a/a%03d.txt", i));
-		touchFile(dir / Format(L"b/c/b%03d.txt", i));
+		touchFile(source_dir / Format(L"a/a%03d.txt", i));
+		touchFile(source_dir / Format(L"b/c/b%03d.txt", i));
 	}
 	{
 		CAutoFile fp;
-		fp.open(dir / L"a/test.txt", L"w");
+		fp.open(source_dir / L"a/test.txt", L"w");
 		EXPECT_TRUE(fp.is_opened());
 		fprintf(fp, "abcde");
 	}
@@ -448,20 +451,53 @@ TEST(compress, compressOneArchive)
 	fake_args.compress.IgnoreTopDirectoryRecursively = false;
 	auto sources = buildCompressSources(fake_args, givenFiles);
 
+	{
+		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output.zip";
+		ARCLOG arcLog;
 
-	std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output.zip";
-	ARCLOG arcLog;
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+		EXPECT_NO_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
+			const std::wstring&,
+			const std::wstring&,
+			UINT64,
+			UINT64) {},
+			nullptr));
 
-	auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
-	compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
-		const std::wstring&,
-		const std::wstring&,
-		UINT64,
-		UINT64) {},
-		nullptr);
+		{
+			ASSERT_TRUE(std::filesystem::exists(archive));
+			EXPECT_NO_THROW(
+				testOneArchive(archive, arcLog,
+					[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+					nullptr
+			));
+		}
 
-	UtilDeletePath(dir);
-	UtilDeletePath(archive);
+		UtilDeletePath(archive);
+	}
+	{
+		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output_enc.zip";
+		ARCLOG arcLog;
+
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+		EXPECT_NO_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
+			const std::wstring&,
+			const std::wstring&,
+			UINT64,
+			UINT64) {},
+			[](struct archive *, void *_client_data) {return "password"; }));
+
+		{
+			ASSERT_TRUE(std::filesystem::exists(archive));
+			EXPECT_NO_THROW(
+				testOneArchive(archive, arcLog,
+					[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+				[](struct archive *, void *_client_data) {return "password"; }
+			));
+		}
+
+		UtilDeletePath(archive);
+	}
+	UtilDeletePath(source_dir);
 }
 
 /*TEST(compress, compress_helper)
