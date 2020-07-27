@@ -329,6 +329,9 @@ void extractOneArchive(
 			ut.modtime = entry->get_mtime();
 			ut.actime = entry->get_mtime();
 			_wutime64(outputPath.c_str(), &ut);
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			arcLog(originalPath, e.what());
+			throw e;
 		} catch (LF_EXCEPTION &e) {
 			arcLog(originalPath, e.what());
 			throw e;
@@ -565,6 +568,9 @@ void testOneArchive(
 				}
 				arcLog(originalPath, L"OK");
 			}
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			arcLog(originalPath, e.what());
+			throw e;
 		} catch (LF_EXCEPTION &e) {
 			arcLog(originalPath, e.what());
 			throw e;

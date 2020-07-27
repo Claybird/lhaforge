@@ -371,6 +371,9 @@ void compressOneArchive(
 				archive.add_directory(entry);
 			}
 			arcLog(output_archive, L"OK");
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			arcLog(output_archive, e.what());
+			throw e;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog(output_archive, e.what());
 			throw e;

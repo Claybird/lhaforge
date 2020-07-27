@@ -293,8 +293,30 @@ struct LF_BUFFER_INFO {
 };
 
 struct LF_PASSPHRASE {
-	std::wstring raw;
-	std::string utf8;
+	struct{
+		std::wstring raw;
+		std::string utf8;
+	}_storage;
+	std::function<const char*(struct archive * arc, void *_client_data)> _callback;
+
+	LF_PASSPHRASE() : _callback(nullptr) {}
+	virtual ~LF_PASSPHRASE() {}
+	void setCallback(archive_passphrase_callback callback) { _callback = callback; }
+
+	static const char* wrapper(struct archive * arc, void *_client_data) {
+		//when callback returns nullptr, it should be handled as "user cancel"
+		LF_PASSPHRASE *pf = (LF_PASSPHRASE*)_client_data;
+		if (pf && pf->_callback) {
+			auto out = pf->_callback(arc, _client_data);
+			if (out) {
+				return out;
+			} else {
+				CANCEL_EXCEPTION();
+			}
+		} else {
+			CANCEL_EXCEPTION();
+		}
+	}
 };
 
 struct ARCHIVE_FILE_TO_READ
@@ -315,7 +337,8 @@ struct ARCHIVE_FILE_TO_READ
 	}
 	void read_open(const std::wstring& arcname,
 		archive_passphrase_callback passphrase_callback) {
-		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, passphrase_callback);
+		_passphrase.setCallback(passphrase_callback);
+		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -515,7 +538,8 @@ struct ARCHIVE_FILE_TO_WRITE
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 
-		r = archive_write_set_passphrase_callback(_arc, &_passphrase, passphrase_callback);
+		_passphrase.setCallback(passphrase_callback);
+		r = archive_write_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}

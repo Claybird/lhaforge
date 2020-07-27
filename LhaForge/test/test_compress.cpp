@@ -478,7 +478,21 @@ TEST(compress, compressOneArchive)
 		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output_enc.zip";
 		ARCLOG arcLog;
 
+
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+
+		//expect user cancel
+		EXPECT_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
+			const std::wstring&,
+			const std::wstring&,
+			UINT64,
+			UINT64) {},
+			[](struct archive *, void *_client_data)->const char* {return nullptr; }),
+			LF_USER_CANCEL_EXCEPTION);
+
+		UtilDeletePath(archive);
+
+		//expect successful encryption
 		EXPECT_NO_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
 			const std::wstring&,
 			const std::wstring&,
