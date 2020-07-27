@@ -511,6 +511,7 @@ TEST(compress, compressOneArchive)
 
 		UtilDeletePath(archive);
 	}
+	//TODO: add tests for other formats
 	UtilDeletePath(source_dir);
 }
 
@@ -531,9 +532,9 @@ TEST(compress, compressOneArchive)
 	TODO;
 }
 
-TEST(compress, GUI_compress_multiple_archives)
+TEST(compress, GUI_compress_multiple_files)
 {
-	bool GUI_compress_multiple_archives(
+	bool GUI_compress_multiple_files(
 		const std::vector<std::wstring> &givenFiles,
 		LF_ARCHIVE_FORMAT format,
 		LF_WRITE_OPTIONS options,

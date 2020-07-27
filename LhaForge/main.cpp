@@ -80,16 +80,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 	/*
 	オプション指定形式:
 
-	/b2e		B2E32.dllを使用
 	/c:???		???形式で指定されたファイルを圧縮(???=lzh,zip,etc...)
 	/method:???	???メソッドを使って圧縮(B2Eのみ)
-	/b2esfx		自己解凍形式で圧縮(B2Eのみ)
 	/e			ファイルを解凍
 	/o:[dir]	出力先ディレクトリ指定
 	/l			アーカイブファイルのリスト表示(単一)
 	/f:[file]	圧縮時出力ファイル名の指定(パス指定は無視される)
-	/xacrett	XacRett.DLLを強制的に使用(解凍/閲覧)
-	/!			/xacrettと同等
 	/m			ファイルを解凍もしくはリスト表示(設定により変更)
 	/s			ファイル・フォルダを一つずつ圧縮
 	/t			アーカイブファイルの完全性をテスト
@@ -276,9 +272,11 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 
 		return bRet;
 	}else{	//通常圧縮
-#pragma message("FIXME!")
-		//return Compress(cli.FileList,cli.CompressType,ConfigManager,cli);
-		return FALSE;
+		return GUI_compress_multiple_files(
+			cli.FileList,
+			cli.CompressType,
+			(LF_WRITE_OPTIONS)cli.Options,
+			cli);
 	}
 }
 

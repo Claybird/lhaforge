@@ -67,8 +67,11 @@ struct RAW_FILE_READER {
 
 struct CMDLINEINFO;
 
-//圧縮を行う。引数には必ずフルパスを渡すこと
-bool Compress(const std::vector<std::wstring>&,LF_ARCHIVE_FORMAT, LF_WRITE_OPTIONS options, CConfigManager&,CMDLINEINFO&);
+bool GUI_compress_multiple_files(
+	const std::vector<std::wstring> &givenFiles,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	CMDLINEINFO& CmdLineInfo);
 
 //コマンドラインパラメータとCompressに渡るパラメータの対応表
 struct COMPRESS_COMMANDLINE_PARAMETER{

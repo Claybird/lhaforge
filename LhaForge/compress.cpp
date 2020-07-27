@@ -618,7 +618,7 @@ void compress_helper(
 }
 
 
-bool GUI_compress_multiple_archives(
+bool GUI_compress_multiple_files(
 	const std::vector<std::wstring> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
@@ -727,8 +727,6 @@ bool GUI_compress_multiple_archives(
 
 	return bAllOK;
 }
-
-//-----not updated hereafter
 
 
 const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
