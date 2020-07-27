@@ -292,10 +292,16 @@ struct LF_BUFFER_INFO {
 	}
 };
 
+struct LF_PASSPHRASE {
+	std::wstring raw;
+	std::string utf8;
+};
+
 struct ARCHIVE_FILE_TO_READ
 {
 	struct archive *_arc;
 	LF_ARCHIVE_ENTRY _entry;
+	LF_PASSPHRASE _passphrase;
 	const ARCHIVE_FILE_TO_READ& operator=(const ARCHIVE_FILE_TO_READ&) = delete;
 
 	ARCHIVE_FILE_TO_READ() {
@@ -309,7 +315,7 @@ struct ARCHIVE_FILE_TO_READ
 	}
 	void read_open(const std::wstring& arcname,
 		archive_passphrase_callback passphrase_callback) {
-		int r = archive_read_set_passphrase_callback(_arc, nullptr, passphrase_callback);
+		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
@@ -478,6 +484,7 @@ struct ARCHIVE_FILE_TO_WRITE
 {
 	struct archive *_arc;
 	LF_ARCHIVE_ENTRY _entry;
+	LF_PASSPHRASE _passphrase;
 	const ARCHIVE_FILE_TO_WRITE& operator=(const ARCHIVE_FILE_TO_WRITE&) = delete;
 
 	ARCHIVE_FILE_TO_WRITE() :_arc(nullptr) {}
@@ -508,7 +515,7 @@ struct ARCHIVE_FILE_TO_WRITE
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 
-		r = archive_write_set_passphrase_callback(_arc, nullptr, passphrase_callback);
+		r = archive_write_set_passphrase_callback(_arc, &_passphrase, passphrase_callback);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
