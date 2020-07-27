@@ -1,7 +1,7 @@
-#pragma code_page(65001)
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+#pragma code_page(65001)
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -1644,6 +1644,7 @@ STRINGTABLE
 BEGIN
     IDS_MESSAGE_CAPTION     "LhaForge"
     IDS_UNTITLED            "無題"
+    IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
     IDS_ERROR_EXAMINEARCHIVE "圧縮ファイルの検査に失敗しました。"
     IDS_ICON_FILE_NAME_DEFAULT "LFIcons.DLL"
     IDS_ERROR_DISABLED_DLL  "このDLLを使用しない設定になっているため、いくつかの機能が使用不能です。"
@@ -1666,6 +1667,7 @@ BEGIN
     IDS_ERROR_CANT_COMPRESS_FOLDER "この形式ではフォルダを圧縮することは出来ません。"
     IDS_FILELIST_ITEMCOUNT  "%d 項目"
     IDS_FILELIST_SUBITEM    "フォルダ内項目数"
+    IDS_FORMAT_NAME_ZSTD    "ZSTD"
     IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE "LhaForgeで%sに個別圧縮"
     IDS_TESTARCHIVE_UNAVAILABLE 
                             "ファイル '%s' は '%s' が扱えるファイルのようですが、このDLLではアーカイブの完全性チェックを行うことは出来ません。"
