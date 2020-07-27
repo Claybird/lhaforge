@@ -175,7 +175,8 @@ TEST(extract, testOneArchive) {
 	ARCLOG arcLog;
 	EXPECT_NO_THROW(
 	testOneArchive(archiveFile, arcLog,
-		[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {}
+		[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+		nullptr
 	));
 }
 
@@ -191,7 +192,8 @@ TEST(extract, testOneArchive_broken_files) {
 		ARCLOG arcLog;
 		EXPECT_THROW(
 			testOneArchive(archiveFile, arcLog,
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {}
+				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+				nullptr
 		), LF_EXCEPTION);
 	}
 }

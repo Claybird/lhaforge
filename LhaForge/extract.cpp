@@ -534,10 +534,11 @@ bool GUI_extract_multiple_files(
 void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
+	archive_passphrase_callback passphrase_callback
 ) {
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path, LF_passphrase_callback);
+	arc.read_open(archive_path, passphrase_callback);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
 		//original file name
@@ -625,7 +626,7 @@ bool GUI_test_multiple_files(
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
-			testOneArchive(archive_path, arcLog, progressHandler);
+			testOneArchive(archive_path, arcLog, progressHandler, LF_passphrase_callback);
 			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
