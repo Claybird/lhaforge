@@ -338,13 +338,27 @@ struct ARCHIVE_FILE_TO_READ
 	void read_open(const std::wstring& arcname,
 		archive_passphrase_callback passphrase_callback) {
 		_passphrase.setCallback(passphrase_callback);
+
 		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 		r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
 		if (r < ARCHIVE_OK) {
-			throw ARCHIVE_EXCEPTION(_arc);
+			//retry enabling archive_read_support_format_raw
+			close();
+			_arc = archive_read_new();
+			r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
+			if (r < ARCHIVE_OK) {
+				throw ARCHIVE_EXCEPTION(_arc);
+			}
+
+			archive_read_support_filter_all(_arc);
+			archive_read_support_format_raw(_arc);
+			r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
+			if (r < ARCHIVE_OK) {
+				throw ARCHIVE_EXCEPTION(_arc);
+			}
 		}
 	}
 	void close() {

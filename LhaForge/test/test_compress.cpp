@@ -449,69 +449,84 @@ TEST(compress, compressOneArchive)
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.compress.IgnoreTopDirectory = false;
 	fake_args.compress.IgnoreTopDirectoryRecursively = false;
+
 	auto sources = buildCompressSources(fake_args, givenFiles);
+	auto single_source = buildCompressSources(fake_args, { source_dir / L"a/test.txt" });
 
-	{
-		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output.zip";
+	struct PATTERN {
+		std::wstring archive_name;
+		LF_ARCHIVE_FORMAT format;
+		LF_WRITE_OPTIONS options;
+	};
+	const std::vector<PATTERN> patterns = {
+		{L"output.zip",	LF_FMT_ZIP, LF_WOPT_STANDARD},	//zip
+		{L"enc.zip",	LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION},	//zip, encrypted
+		{L"output.7z",	LF_FMT_7Z,	LF_WOPT_STANDARD},
+		{L"output.tar",	LF_FMT_TAR, LF_WOPT_STANDARD},
+		{L"output.tar.gz",	LF_FMT_TAR_GZ, LF_WOPT_STANDARD},
+		{L"output.tar.bz2",	LF_FMT_TAR_BZ2, LF_WOPT_STANDARD},
+		{L"output.tar.lzma",	LF_FMT_TAR_LZMA, LF_WOPT_STANDARD},
+		{L"output.tar.xz",	LF_FMT_TAR_XZ, LF_WOPT_STANDARD},
+		{L"output.tar.zstd",	LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD},
+
+		//not an archive, single file only
+		{L"output.gz",	LF_FMT_GZ,	LF_WOPT_STANDARD},
+		{L"output.bz2",	LF_FMT_BZ2,	LF_WOPT_STANDARD},
+		{L"output.lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD },
+		{L"output.xz",	LF_FMT_XZ,	LF_WOPT_STANDARD},
+		{L"output.zst",	LF_FMT_ZSTD, LF_WOPT_STANDARD},
+		{L"output.uue",	LF_FMT_UUE, LF_WOPT_STANDARD},
+	};
+	for(const auto &p: patterns){
+		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/" + p.archive_name;
 		ARCLOG arcLog;
 
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
-		EXPECT_NO_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
+		const auto& cap = get_archive_capability(p.format);
+
+		auto la_options = getLAOptionsFromConfig(fake_args, p.format, p.options);
+
+		auto null_passphrase_callback = [](struct archive *, void *_client_data) ->const char* {
+			return nullptr;
+		};
+		auto passphrase_callback = [](struct archive *, void *_client_data) ->const char* {
+			return "password";
+		};
+
+		if (p.options & LF_WOPT_DATA_ENCRYPTION) {
+			//expect user cancel
+			EXPECT_THROW(compressOneArchive(p.format, la_options, archive, 
+				(cap.multi_file_archive ? sources : single_source), arcLog, [](
+				const std::wstring&,
+				const std::wstring&,
+				UINT64,
+				UINT64) {},
+				null_passphrase_callback),
+				LF_USER_CANCEL_EXCEPTION);
+
+			UtilDeletePath(archive);
+		}
+
+		//expect successful compression
+		EXPECT_NO_THROW(compressOneArchive(p.format, la_options, archive,
+			(cap.multi_file_archive ? sources : single_source), arcLog, [&](
 			const std::wstring&,
 			const std::wstring&,
 			UINT64,
 			UINT64) {},
-			nullptr));
+			passphrase_callback));
 
+		//expect readable archive
 		{
 			ASSERT_TRUE(std::filesystem::exists(archive));
 			EXPECT_NO_THROW(
 				testOneArchive(archive, arcLog,
 					[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
-					nullptr
-			));
+					passphrase_callback));
 		}
 
 		UtilDeletePath(archive);
 	}
-	{
-		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/output_enc.zip";
-		ARCLOG arcLog;
 
-
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
-
-		//expect user cancel
-		EXPECT_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
-			const std::wstring&,
-			const std::wstring&,
-			UINT64,
-			UINT64) {},
-			[](struct archive *, void *_client_data)->const char* {return nullptr; }),
-			LF_USER_CANCEL_EXCEPTION);
-
-		UtilDeletePath(archive);
-
-		//expect successful encryption
-		EXPECT_NO_THROW(compressOneArchive(LF_FMT_ZIP, la_options, archive, sources, arcLog, [](
-			const std::wstring&,
-			const std::wstring&,
-			UINT64,
-			UINT64) {},
-			[](struct archive *, void *_client_data) {return "password"; }));
-
-		{
-			ASSERT_TRUE(std::filesystem::exists(archive));
-			EXPECT_NO_THROW(
-				testOneArchive(archive, arcLog,
-					[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
-				[](struct archive *, void *_client_data) {return "password"; }
-			));
-		}
-
-		UtilDeletePath(archive);
-	}
-	//TODO: add tests for other formats
 	UtilDeletePath(source_dir);
 }
 
