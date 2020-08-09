@@ -49,14 +49,22 @@ void parseCompressOption(LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInf
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
-		if (-1 != lpCmdLineInfo->OutputToOverride) {
+		if (OUTPUT_TO_DEFAULT != lpCmdLineInfo->OutputToOverride) {
 			args.compress.OutputDirType = lpCmdLineInfo->OutputToOverride;
 		}
-		if (-1 != lpCmdLineInfo->DeleteAfterProcess) {
-			args.compress.DeleteAfterCompress = lpCmdLineInfo->DeleteAfterProcess;
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {
+				args.compress.DeleteAfterCompress = false;
+			} else {
+				args.compress.DeleteAfterCompress = true;
+			}
 		}
-		if (-1 != lpCmdLineInfo->IgnoreTopDirOverride) {
-			args.compress.IgnoreTopDirectory = lpCmdLineInfo->IgnoreTopDirOverride;
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->IgnoreTopDirOverride) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->IgnoreTopDirOverride) {
+				args.compress.IgnoreTopDirectory = false;
+			} else {
+				args.compress.IgnoreTopDirectory = true;
+			}
 		}
 	}
 }
@@ -507,11 +515,11 @@ void compress_helper(
 
 	//output directory
 	std::filesystem::path pathOutputDir;
-	if (!CmdLineInfo.OutputDir.IsEmpty()) {
-		pathOutputDir = CmdLineInfo.OutputDir.operator LPCWSTR();
+	if (!CmdLineInfo.OutputDir.empty()) {
+		pathOutputDir = CmdLineInfo.OutputDir;
 	} else {
-		auto p = std::filesystem::path(CmdLineInfo.OutputFileName.operator LPCWSTR()).filename();
-		if (!CmdLineInfo.OutputFileName.IsEmpty() && p.has_parent_path()) {
+		auto p = std::filesystem::path(CmdLineInfo.OutputFileName).filename();
+		if (!CmdLineInfo.OutputFileName.empty() && p.has_parent_path()) {
 			pathOutputDir = p.parent_path();
 		} else {
 			pathOutputDir = determineDefaultArchiveDir(
@@ -546,11 +554,11 @@ void compress_helper(
 
 	//archive file title
 	std::wstring defaultArchiveTitle;
-	if (CmdLineInfo.OutputFileName.IsEmpty()) {
+	if (CmdLineInfo.OutputFileName.empty()) {
 		defaultArchiveTitle = determineDefaultArchiveTitle(format, options, givenFiles.front());
 	} else {
 		//only filenames
-		defaultArchiveTitle = std::filesystem::path(CmdLineInfo.OutputFileName.operator LPCWSTR()).filename();
+		defaultArchiveTitle = std::filesystem::path(CmdLineInfo.OutputFileName).filename();
 	}
 
 	//confirm
@@ -730,33 +738,33 @@ bool GUI_compress_multiple_files(
 
 
 const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
-	{L"/c:zip",		LF_FMT_ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
-	{L"/c:zippass",	LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
-//	{L"/c:zipsfx",	LF_FMT_ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
-//	{L"/c:zippasssfx",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
-//	{L"/c:zipsplit",	LF_FMT_ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
-//	{L"/c:zippasssplit",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
-	{L"/c:7z",		LF_FMT_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
-//	{L"/c:7zpass",	LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
-//	{L"/c:7zsfx",	LF_FMT_7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
-//	{L"/c:7zsplit",	LF_FMT_7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
-//	{L"/c:7zpasssplit",LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
-	{L"/c:gz",		LF_FMT_GZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_GZ},
-	{L"/c:bz2",		LF_FMT_BZ2,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_BZ2},
-	{L"/c:lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
-	{L"/c:xz",		LF_FMT_XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
-	{L"/c:zstd",	LF_FMT_ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
-	{L"/c:tar",		LF_FMT_TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
-	{L"/c:tgz",		LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
-	{L"/c:tar+gz",	LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
-	{L"/c:tbz",		LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
-	{L"/c:tar+bz2",	LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
-	{L"/c:tlz",		LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
-	{L"/c:tar+lzma",LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
-	{L"/c:txz",		LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
-	{L"/c:tar+xz",	LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
-	{L"/c:tar+zstd",LF_FMT_TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
-	{L"/c:uue",		LF_FMT_UUE,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_UUE},
+	{L"zip",		LF_FMT_ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
+	{L"zippass",	LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
+//	{L"zipsfx",	LF_FMT_ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
+//	{L"zippasssfx",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
+//	{L"zipsplit",	LF_FMT_ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
+//	{L"zippasssplit",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
+	{L"7z",		LF_FMT_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
+//	{L"7zpass",	LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
+//	{L"7zsfx",	LF_FMT_7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
+//	{L"7zsplit",	LF_FMT_7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
+//	{L"7zpasssplit",LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
+	{L"gz",		LF_FMT_GZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_GZ},
+	{L"bz2",		LF_FMT_BZ2,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_BZ2},
+	{L"lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
+	{L"xz",		LF_FMT_XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
+	{L"zstd",	LF_FMT_ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
+	{L"tar",		LF_FMT_TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
+	{L"tgz",		LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
+	{L"tar+gz",	LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
+	{L"tbz",		LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
+	{L"tar+bz2",	LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
+	{L"tlz",		LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
+	{L"tar+lzma",LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
+	{L"txz",		LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
+	{L"tar+xz",	LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
+	{L"tar+zstd",LF_FMT_TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
+	{L"uue",		LF_FMT_UUE,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_UUE},
 };
 
 

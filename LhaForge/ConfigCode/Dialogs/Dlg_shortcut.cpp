@@ -195,7 +195,7 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 			}
 			PathAppend(Path, Buf);
 			//パラメータ
-			Param = args.arg;
+			Param = L"/c:" + CString(args.name);
 			if (bSingleCompression) {
 				//一つずつ圧縮
 				Param += _T(" /s");

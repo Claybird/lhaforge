@@ -1833,7 +1833,7 @@ BEGIN
     IDS_FILELIST_COLUMN_METHOD "メソッド"
     IDS_ASK_CONTINUE_EXTRACT 
                             "ファイル '%s' には不正なパス指定が含まれている可能性があります。無視して解凍を続けますか？"
-    IDS_ERROR_READ_RESPONCEFILE "レスポンスファイルからの読み込みに失敗しました。"
+    IDS_ERROR_READ_RESPONSEFILE "レスポンスファイルからの読み込みに失敗しました。"
     IDS_ERROR_INVALID_COMPRESS_PARAMETER 
                             "'%s' は不正な圧縮オプションです。B2Eを使用する場合には/cスイッチより先に/b2eスイッチを指定してください"
     IDS_FORMAT_NAME_B2E     "B2Eを使用して[%s形式][%sメソッド]"

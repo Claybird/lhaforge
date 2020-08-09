@@ -36,6 +36,9 @@
 #include "Utilities/StringUtil.h"
 #include "CmdLineInfo.h"
 
+#include "ConfigCode/ConfigOpenAction.h"
+#include "ConfigCode/ConfigGeneral.h"
+
 CAppModule _Module;
 
 
@@ -50,6 +53,36 @@ bool LF_isExtractable(const wchar_t* fname)
 	}
 }
 
+
+PROCESS_MODE selectOpenAction()
+{
+	class COpenActionDialog : public CDialogImpl<COpenActionDialog> {
+	public:
+		enum { IDD = IDD_DIALOG_OPENACTION_SELECT };
+		BEGIN_MSG_MAP_EX(COpenActionDialog)
+			COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_EXTRACT, OnButton)
+			COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_LIST, OnButton)
+			COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_TEST, OnButton)
+			COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
+			END_MSG_MAP()
+
+		void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl) {
+			EndDialog(nID);
+		}
+	};
+
+	COpenActionDialog Dialog;
+	switch (Dialog.DoModal()) {
+	case IDC_BUTTON_OPENACTION_EXTRACT:
+		return PROCESS_EXTRACT;
+	case IDC_BUTTON_OPENACTION_LIST:
+		return PROCESS_LIST;
+	case IDC_BUTTON_OPENACTION_TEST:
+		return PROCESS_TEST;
+	default:
+		return PROCESS_INVALID;
+	}
+}
 
 //---------------------------------------------
 
@@ -94,10 +127,70 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 
 	*/
 
-	CMDLINEINFO cli;	//CommandLineInfo
+	struct KEY_MOD {	//true if these keys are pressed
+		bool shift;
+		bool control;
+		KEY_MOD() {
+			shift = GetKeyState(VK_SHIFT) < 0;
+			control = GetKeyState(VK_CONTROL) < 0;
+		}
+	}key_modifier;
+
+	auto [ProcessMode, cli] = ParseCommandLine(GetCommandLineW());
 
 	CConfigManager ConfigManager;
-	PROCESS_MODE ProcessMode=ParseCommandLine(ConfigManager,cli);
+	if (cli.ConfigPath.empty()) {
+		ConfigManager.SetConfigFile(nullptr);
+		CString strErr;
+		ConfigManager.LoadConfig(strErr);	//default config file
+	} else {
+		ConfigManager.SetConfigFile(cli.ConfigPath.c_str());
+		CString strErr;
+		//user specified, show message if error
+		if (!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
+	}
+
+	if (ProcessMode == PROCESS_COMPRESS) {
+		//single compression if ctrl is pressed
+		if (key_modifier.control) {
+			cli.bSingleCompression = true;
+		}
+	} else if (ProcessMode == PROCESS_EXTRACT) {
+		if (key_modifier.shift) {
+			ProcessMode = PROCESS_LIST;	//list mode if shift is pressed
+		} else if (key_modifier.control) {
+			ProcessMode = PROCESS_TEST;	//test mode if ctrl is pressed
+		}
+	} else if (ProcessMode == PROCESS_MANUAL) {
+		CConfigOpenAction ConfOpenAction;
+		ConfOpenAction.load(ConfigManager);
+		OPENACTION OpenAction;
+		if (key_modifier.shift) {	//---when shift is pressed
+			OpenAction = ConfOpenAction.OpenAction_Shift;
+		} else if (key_modifier.control) {	//---when ctrl is pressed
+			OpenAction = ConfOpenAction.OpenAction_Ctrl;
+		} else {	//---default
+			OpenAction = ConfOpenAction.OpenAction;
+		}
+		switch (OpenAction) {
+		case OPENACTION_EXTRACT:
+			ProcessMode = PROCESS_EXTRACT;
+			break;
+		case OPENACTION_LIST:
+			ProcessMode = PROCESS_LIST;
+			break;
+		case OPENACTION_TEST:
+			ProcessMode = PROCESS_TEST;
+			break;
+		case OPENACTION_ASK:
+		default:
+			ProcessMode = selectOpenAction();
+			if (ProcessMode == PROCESS_INVALID) {
+				return PROCESS_INVALID;
+			}
+			break;
+		}
+	}
 
 	{
 		//優先度設定
@@ -237,7 +330,11 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 			}else{
 				cli.Options=SelDlg.GetOptions();
 				cli.bSingleCompression=SelDlg.IsSingleCompression();
-				cli.DeleteAfterProcess=SelDlg.GetDeleteAfterCompress() ? 1 : 0;
+				if (SelDlg.GetDeleteAfterCompress()) {
+					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::True;
+				} else {
+					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::False;
+				}
 				break;
 			}
 		}

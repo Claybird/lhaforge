@@ -178,6 +178,9 @@
     <ClCompile Include="test\test_compress.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
+    <ClCompile Include="test\test_cmdlineinfo.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">

@@ -179,14 +179,18 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLI
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
-		if (-1 != lpCmdLineInfo->OutputToOverride) {
+		if (OUTPUT_TO_DEFAULT != lpCmdLineInfo->OutputToOverride) {
 			args.extract.OutputDirType = lpCmdLineInfo->OutputToOverride;
 		}
-		if (-1 != lpCmdLineInfo->CreateDirOverride) {
+		if (CREATE_OUTPUT_DIR_DEFAULT != lpCmdLineInfo->CreateDirOverride) {
 			args.extract.CreateDir = lpCmdLineInfo->CreateDirOverride;
 		}
-		if (-1 != lpCmdLineInfo->DeleteAfterProcess) {
-			args.extract.DeleteArchiveAfterExtract = lpCmdLineInfo->DeleteAfterProcess;
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {
+				args.extract.DeleteArchiveAfterExtract = false;
+			} else {
+				args.extract.DeleteArchiveAfterExtract = true;
+			}
 		}
 	}
 

@@ -23,391 +23,256 @@
 */
 
 #include "stdafx.h"
-#include "ConfigCode/ConfigManager.h"
 #include "CmdLineInfo.h"
+#include "CommonUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
 #include "Utilities/StringUtil.h"
 #include "compress.h"
-#include "extract.h"
-#include "ConfigCode/ConfigOpenAction.h"
-#include "ConfigCode/ConfigGeneral.h"
-
-
-
-class COpenActionDialog : public CDialogImpl<COpenActionDialog>
-{
-public:
-	enum {IDD = IDD_DIALOG_OPENACTION_SELECT};
-	// メッセージマップ
-	BEGIN_MSG_MAP_EX(COpenActionDialog)
-		COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_EXTRACT, OnButton)
-		COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_LIST, OnButton)
-		COMMAND_ID_HANDLER_EX(IDC_BUTTON_OPENACTION_TEST, OnButton)
-		COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
-	END_MSG_MAP()
-
-	void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl){
-		EndDialog(nID);
-	}
-};
-
-
-//開く動作を選択
-PROCESS_MODE SelectOpenAction()
-{
-	COpenActionDialog Dialog;
-	switch(Dialog.DoModal()){
-	case IDC_BUTTON_OPENACTION_EXTRACT:
-		return PROCESS_EXTRACT;
-	case IDC_BUTTON_OPENACTION_LIST:
-		return PROCESS_LIST;
-	case IDC_BUTTON_OPENACTION_TEST:
-		return PROCESS_TEST;
-	default:
-		return PROCESS_INVALID;
-	}
-}
 
 //-----------
 
-std::vector<std::wstring> GetCommandLineArgs()
+struct RAW_CMDLINE{
+	std::vector<std::pair<std::wstring, std::wstring>> switches;
+	std::vector<std::wstring> files;
+};
+
+RAW_CMDLINE getCommandLineArgs(const wchar_t* cmdline)
 {
-	std::vector<std::wstring> args;
+	std::wregex re_switches(L"^(/.+?)(\\:(.*))?$");
+	RAW_CMDLINE result;
+
 	int nArgc = 0;
-	LPWSTR *lplpArgs = CommandLineToArgvW(GetCommandLine(), &nArgc);
-	args.resize(nArgc);
-	for (int i = 1; i < nArgc; i++) {	//lplpArgs[0] is executable name
-		args[i] = lplpArgs[i];
+	LPWSTR *lplpArgs = CommandLineToArgvW(cmdline, &nArgc);
+	std::vector<std::pair<std::wstring, std::wstring> > args;
+	for (int i = 1; i < nArgc; i++) {
+		//lplpArgs[0] is executable name
+		std::wcmatch results;
+		if (std::regex_search(lplpArgs[i], results, re_switches)) {
+			std::wstring key, value;
+			if (results.size() > 1) {
+				key = results[1];
+			}
+			if (results.size() > 3) {
+				value = results[3];
+			}
+			result.switches.push_back(std::make_pair<>(key, value));
+		} else {
+			result.files.push_back(lplpArgs[i]);
+		}
 	}
 	LocalFree(lplpArgs);
-	return args;
+	return result;
 }
 
-//コマンドラインを解釈しファイルの処理方法を決定する
-PROCESS_MODE ParseCommandLine(CConfigManager &ConfigManager,CMDLINEINFO &cli)
+struct LF_INVALID_PARAMETER : LF_EXCEPTION {
+	std::wstring _parameter;
+	LF_INVALID_PARAMETER(const std::wstring& key, const std::wstring& value) :LF_EXCEPTION(L"Invalid") {
+		if (value.empty()) {
+			_parameter = key;
+		} else {
+			_parameter = key + L":" + value;
+		}
+	}
+	virtual ~LF_INVALID_PARAMETER() {}
+};
+
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 {
-	std::vector<std::wstring> args = GetCommandLineArgs();
+	PROCESS_MODE ProcessMode = PROCESS_AUTOMATIC;
 
-	const bool bPressedShift=GetKeyState(VK_SHIFT)<0;	//SHIFTが押されているかどうか
-	const bool bPressedControl=GetKeyState(VK_CONTROL)<0;	//CONTROLが押されているかどうか
-	PROCESS_MODE ProcessMode=PROCESS_AUTOMATIC;
+	UTIL_CODEPAGE uCodePage = UTIL_CODEPAGE::UTF8;	//default encoding for response file
 
-	//デフォルト値読み込み
-	CString strErr;
-	if(!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
+	CMDLINEINFO cli;
+	auto args = getCommandLineArgs(cmdline);
+	cli.FileList = args.files;
 
-	UTIL_CODEPAGE uCodePage= UTIL_CODEPAGE::CP932;	//レスポンスファイルのコードページ指定
-
-	for(const auto& arg: args){
-		if (arg.empty())continue;
-		if (L'/' != arg[0]) {//オプションではない
-			//ファイルとみなし、処理対象ファイルのリストに詰め込む
-			cli.FileList.push_back(arg);
-		}else{
-			//------------------
-			// オプションの解析
-			//------------------
-			CString Parameter(arg.c_str());
-			//小文字に変換
-			Parameter.MakeLower();
-			if(0==_tcsncmp(_T("/cfg"),Parameter,4)){//設定ファイル名指定
-				if(0==_tcsncmp(_T("/cfg:"),Parameter,5)){
-					//出力ファイル名の切り出し;この時点で""は外れている
-					cli.ConfigPath= arg.c_str() +5;
-
-					//---環境変数(LhaForge独自定義変数)展開
-					//パラメータ展開に必要な情報
+	try{
+		for (const auto& arg : args.switches) {
+			//---------------
+			// parse options
+			//---------------
+			std::wstring key = toLower(arg.first);
+			std::wstring value = toLower(arg.second);
+			if (L"/cfg" == key) {	//configuration file
+				if (value.empty()) {
+					cli.ConfigPath.clear();
+				} else {
 					auto envInfo = LF_make_expand_information(nullptr, nullptr);
-
-					//コマンド・パラメータ展開
-					cli.ConfigPath = UtilExpandTemplateString((const wchar_t*)cli.ConfigPath, envInfo).c_str();
-				}else if(_T("/cfg")==Parameter){
-					cli.ConfigPath.Empty();
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
+					cli.ConfigPath = UtilExpandTemplateString(value, envInfo).c_str();
 				}
-				//設定ファイルの指定が有ればセットする;無ければデフォルトに戻す
-				if(cli.ConfigPath.IsEmpty()){
-					ConfigManager.SetConfigFile(NULL);
-				}else{
-					ConfigManager.SetConfigFile(cli.ConfigPath);
-				}
-				//変更後の値読み込み
-				if(!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
-				TRACE(_T("ConfigPath=%s\n"),cli.ConfigPath);
-			}else if(0==_tcsncmp(_T("/cp"),Parameter,3)){//レスポンスファイルのコードページ指定
-				if(0==_tcsncmp(_T("/cp:"),Parameter,4)){
-					CString cp((LPCTSTR)Parameter+4);
-					cp.MakeLower();
-					if(cp==_T("utf8")||cp==_T("utf-8")){
-						uCodePage= UTIL_CODEPAGE::UTF8;
-					}else if(cp==_T("utf16")||cp==_T("utf-16")||cp==_T("unicode")){
-						uCodePage= UTIL_CODEPAGE::UTF16;
-					}else if(cp==_T("sjis")||cp==_T("shiftjis")||cp==_T("s-jis")||cp==_T("s_jis")){
-						uCodePage= UTIL_CODEPAGE::CP932;
-					}else{
-						CString msg;
-						msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str() +4);
-						ErrorMessage((const wchar_t*)msg);
-						return PROCESS_INVALID;
+			} else if (L"/cp" == key) {//code page for response file
+				if (value.empty()) {
+					uCodePage = UTIL_CODEPAGE::UTF8;	//default
+				} else {
+					auto cp = toLower(value);
+					if (cp == L"utf8" || cp == L"utf-8") {
+						uCodePage = UTIL_CODEPAGE::UTF8;
+					} else if (cp == L"utf16" || cp == L"utf-16" || cp == L"unicode") {
+						uCodePage = UTIL_CODEPAGE::UTF16;
+					} else if (cp == L"sjis" || cp == L"shiftjis" || cp == L"s-jis" || cp == L"s_jis" || cp == L"cp932") {
+						uCodePage = UTIL_CODEPAGE::CP932;
+					} else {
+						throw LF_INVALID_PARAMETER(arg.first, arg.second);
 					}
-				}else if(_T("/cp")==Parameter){
-					uCodePage= UTIL_CODEPAGE::CP932;	//デフォルトに戻す
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
 				}
-			}else if(0==_tcsncmp(_T("/c"),Parameter,2)){//圧縮を指示されている
-				ProcessMode=PROCESS_COMPRESS;
-				//----------------
-				// 圧縮形式の解読
-				//----------------
-				if(_T("/c")==Parameter){	//形式が指定されていない場合
-					cli.CompressType= LF_FMT_INVALID;
-				}else if(0!=_tcsncmp(_T("/c:"),Parameter,3)){
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
-				}else{
-					cli.CompressType= LF_FMT_INVALID;
-					//コマンドラインパラメータと形式の対応表から探す
-					for(const auto &p: g_CompressionCmdParams){
-						if(p.Options==Parameter){
-							cli.CompressType=p.Type;
-							cli.Options=p.Options;
+			} else if (L"/c" == key) {//compress
+				ProcessMode = PROCESS_COMPRESS;
+				cli.CompressType = LF_FMT_INVALID;	//format not specified
+				if (!value.empty()) {
+					//lookup table
+					for (const auto &p : g_CompressionCmdParams) {
+						if (value == p.name) {
+							cli.CompressType = p.Type;
+							cli.Options = p.Options;
 							break;
 						}
 					}
-					if(-1 ==cli.CompressType){
-						CString msg;
-						msg.Format(IDS_ERROR_INVALID_COMPRESS_PARAMETER,Parameter);
-						ErrorMessage((const wchar_t*)msg);
-						return PROCESS_INVALID;
-					}
-
-					//CONTROLキーが押されているなら、個別圧縮
-					if(bPressedControl){
-						cli.bSingleCompression=true;
+					if (-1 == cli.CompressType) {
+						throw LF_INVALID_PARAMETER(arg.first, arg.second);
 					}
 				}
-			}else if(_T("/e")==Parameter){//解凍を指示されている
-				if(bPressedShift){
-					ProcessMode=PROCESS_LIST;	//SHIFTキーが押されていたら閲覧モード
-				}else if(bPressedControl){
-					ProcessMode=PROCESS_TEST;	//CTRLキーが押されていたら検査モード
+			} else if (L"/e" == key) {//extract
+				ProcessMode = PROCESS_EXTRACT;
+			} else if (L"/l" == key) {//list mode
+				ProcessMode = PROCESS_LIST;
+			} else if (L"/t" == key) {//test mode
+				ProcessMode = PROCESS_TEST;
+			} else if (L"/m" == key) {//select mode
+				ProcessMode = PROCESS_MANUAL;
+			} else if (L"/s" == key) {//single compression
+				cli.bSingleCompression = true;
+			} else if (L"/o" == key) {//output directory
+				cli.OutputToOverride = OUTPUT_TO_DEFAULT;
+				if (value.empty()) {
+					cli.OutputDir.clear();
 				}else{
-					ProcessMode=PROCESS_EXTRACT;
+					cli.OutputDir = value;
 				}
-			}else if(_T("/l")==Parameter){//ファイル一覧表示
-				ProcessMode=PROCESS_LIST;
-			}else if(_T("/t")==Parameter){//アーカイブテスト
-				ProcessMode=PROCESS_TEST;
-			}else if(_T("/m")==Parameter){//処理方法選択
-				CConfigOpenAction ConfOpenAction;
-				ConfOpenAction.load(ConfigManager);
-				OPENACTION OpenAction;
-				if(bPressedShift){	//---Shift押下時
-					OpenAction=ConfOpenAction.OpenAction_Shift;
-				}else if(bPressedControl){	//---Ctrl押下時
-					OpenAction=ConfOpenAction.OpenAction_Ctrl;
-				}else{	//---通常時
-					OpenAction=ConfOpenAction.OpenAction;
-				}
-				switch(OpenAction){
-				case OPENACTION_EXTRACT://解凍
-					ProcessMode=PROCESS_EXTRACT;
-					break;
-				case OPENACTION_LIST:	//閲覧
-					ProcessMode=PROCESS_LIST;
-					break;
-				case OPENACTION_TEST:	//検査
-					ProcessMode=PROCESS_TEST;
-					break;
-				case OPENACTION_ASK:	//毎回確認
-					ProcessMode=SelectOpenAction();
-					if(ProcessMode==PROCESS_INVALID){
-						return PROCESS_INVALID;
+			}else if (L"/od" == key) {	//to desktop
+				cli.OutputDir.clear();
+				cli.OutputToOverride = OUTPUT_TO_DESKTOP;
+			} else if (L"/os" == key) {	//same directory as input files
+				cli.OutputDir.clear();
+				cli.OutputToOverride = OUTPUT_TO_SAME_DIR;
+			} else if (L"/oa" == key) {	//ask everytime
+				cli.OutputDir.clear();
+				cli.OutputToOverride = OUTPUT_TO_ALWAYS_ASK_WHERE;
+			} else if (L"/@" == key) {//file listed in response file
+				if (value.empty()) {
+					throw LF_INVALID_PARAMETER(arg.first, L"(empty)");
+				} else {
+					try {
+						auto strFile = UtilGetCompletePathName(value);
+						cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
+					} catch (LF_EXCEPTION) {
+						ErrorMessage(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
+						return std::make_pair(PROCESS_INVALID, cli);
 					}
-					break;
-				default:
-					ASSERT(!"This code must not be run");
-					return PROCESS_INVALID;
 				}
-			}else if(_T("/s")==Parameter){//ファイルを一つずつ圧縮
-				cli.bSingleCompression=true;
-			}else if(0==_tcsncmp(_T("/o"),Parameter,2)){//出力先フォルダ指定
-				if(0==_tcsncmp(_T("/o:"),Parameter,3)){
-					//出力先フォルダの切り出し;この時点で""は外れている
-					cli.OutputDir=(LPCTSTR)Parameter+3;
-					cli.OutputToOverride=(OUTPUT_TO)-1;
-				}else if(_T("/o")==Parameter){
-					cli.OutputDir.Empty();
-					cli.OutputToOverride=(OUTPUT_TO)-1;
-				}else if(_T("/od")==Parameter){
-					//デスクトップに出力
-					cli.OutputDir.Empty();
-					cli.OutputToOverride=OUTPUT_TO_DESKTOP;
-				}else if(_T("/os")==Parameter){
-					//同一ディレクトリに出力
-					cli.OutputDir.Empty();
-					cli.OutputToOverride=OUTPUT_TO_SAME_DIR;
-				}else if(_T("/oa")==Parameter){
-					//毎回聞く
-					cli.OutputDir.Empty();
-					cli.OutputToOverride=OUTPUT_TO_ALWAYS_ASK_WHERE;
+			} else if (L"/$"==key) {//file listed in response file; delete after read
+				if (value.empty()) {
+					throw LF_INVALID_PARAMETER(arg.first, L"(empty)");
 				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
+					try {
+						auto strFile = UtilGetCompletePathName(value);
+						cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
+						DeleteFileW(strFile.c_str());
+					} catch (LF_EXCEPTION) {
+						ErrorMessage(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
+						return std::make_pair(PROCESS_INVALID, cli);
+					}
 				}
-				TRACE(_T("OutputDir=%s\n"),cli.OutputDir);
-			}else if(0==_tcsncmp(_T("/@"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定
-				try{
-					auto strFile = UtilGetCompletePathName((LPCTSTR)Parameter + 2);
-					cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
-				}catch(LF_EXCEPTION){
-					//読み込み失敗
-					ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
-					return PROCESS_INVALID;
+			} else if (L"/f" == key) {//output file name
+				cli.OutputFileName = value;
+			} else if (L"/mkdir" == key) {//output directory control
+				if (L"no" == value) {
+					cli.CreateDirOverride = CREATE_OUTPUT_DIR_NEVER;
+				} else if (L"single" == value) {
+					cli.CreateDirOverride = CREATE_OUTPUT_DIR_SINGLE;
+				} else if (L"always" == value) {
+					cli.CreateDirOverride = CREATE_OUTPUT_DIR_ALWAYS;
+				} else {
+					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			}else if(0==_tcsncmp(_T("/$"),Parameter,2)&&Parameter.GetLength()>2){//レスポンスファイル指定(読み取り後削除)
-				try {
-					auto strFile = UtilGetCompletePathName((LPCTSTR)Parameter + 2);
-					cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
-					DeleteFileW(strFile.c_str());	//削除
-				} catch (LF_EXCEPTION) {
-					//読み込み失敗
-					ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_READ_RESPONCEFILE)));
-					return PROCESS_INVALID;
+			} else if (L"/popdir"==key) {//ignore top directory on extract
+				if (L"no" == value) {
+					cli.IgnoreTopDirOverride = CMDLINEINFO::ACTION::False;
+				} else if (L"yes" == value || value.empty()) {
+					cli.IgnoreTopDirOverride = CMDLINEINFO::ACTION::True;
+				} else {
+					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			}else if(0==_tcsncmp(_T("/f"),Parameter,2)){//出力ファイル名指定
-				if(0==_tcsncmp(_T("/f:"),Parameter,3)){
-					//出力ファイル名の切り出し;この時点で""は外れている
-					cli.OutputFileName=(LPCTSTR)Parameter+3;
-				}else if(_T("/f")==Parameter){
-					cli.OutputFileName.Empty();
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
+			} else if (L"/delete") {//delete source file after process
+				if (L"no" == value) {
+					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::False;
+				} else if (L"yes" == value || value.empty()) {
+					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::True;
+				} else {
+					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-				TRACE(_T("OutputFileName=%s\n"),cli.OutputFileName);
-			}else if(0==_tcsncmp(_T("/mkdir:"),Parameter,7)){//解凍時の出力ディレクトリ制御
-				CString mode=(LPCTSTR)Parameter+7;
-				if(_T("no")==mode){
-					cli.CreateDirOverride=CREATE_OUTPUT_DIR_NEVER;
-				}else if(_T("single")==mode){
-					cli.CreateDirOverride=CREATE_OUTPUT_DIR_SINGLE;
-				}else if(_T("always")==mode){
-					cli.CreateDirOverride=CREATE_OUTPUT_DIR_ALWAYS;
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
+			} else if (L"/priority" == key) {	//process priority
+				if (L"low" == value) {
+					cli.PriorityOverride = LFPRIOTITY_LOW;
+				} else if (L"lower" == value){
+					cli.PriorityOverride = LFPRIOTITY_LOWER;
+				} else if (L"normal" == value) {
+					cli.PriorityOverride = LFPRIOTITY_NORMAL;
+				} else if (L"higher" == value) {
+					cli.PriorityOverride = LFPRIOTITY_HIGHER;
+				} else if (L"high" == value) {
+					cli.PriorityOverride = LFPRIOTITY_HIGH;
+				} else {
+					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			}else if(0==_tcsncmp(_T("/popdir:"),Parameter,8)){//解凍時の出力ディレクトリ制御
-				CString mode=(LPCTSTR)Parameter+8;
-				if(_T("no")==mode){
-					cli.IgnoreTopDirOverride=0;
-				}else if(_T("yes")==mode){
-					cli.IgnoreTopDirOverride=1;
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
-				}
-			}else if(_T("/popdir")==Parameter){//解凍時の出力ディレクトリ制御
-				cli.IgnoreTopDirOverride=1;
-			}else if(0==_tcsncmp(_T("/delete:"),Parameter,8)){//処理後にソースを削除するか
-				CString mode=(LPCTSTR)Parameter+8;
-				if(_T("no")==mode){
-					cli.DeleteAfterProcess=0;
-				}else if(_T("yes")==mode){
-					cli.DeleteAfterProcess=1;
-				}else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
-				}
-			}else if(_T("/delete")==Parameter){//処理後に削除
-				cli.DeleteAfterProcess=1;
-			}else if(0==_tcsncmp(_T("/priority:"),Parameter,10)){	//プロセス優先度
-				CString mode=(LPCTSTR)Parameter+10;
-					 if(_T("low")==mode)	cli.PriorityOverride=LFPRIOTITY_LOW;
-				else if(_T("lower")==mode)	cli.PriorityOverride=LFPRIOTITY_LOWER;
-				else if(_T("normal")==mode)	cli.PriorityOverride=LFPRIOTITY_NORMAL;
-				else if(_T("higher")==mode)	cli.PriorityOverride=LFPRIOTITY_HIGHER;
-				else if(_T("high")==mode)	cli.PriorityOverride=LFPRIOTITY_HIGH;
-				else{
-					CString msg;
-					msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-					ErrorMessage((const wchar_t*)msg);
-					return PROCESS_INVALID;
-				}
-			}else{	//未知のオプション
-				CString msg;
-				msg.Format(IDS_ERROR_INVALID_PARAMETER, arg.c_str());
-				ErrorMessage((const wchar_t*)msg);
-				return PROCESS_INVALID;
+			} else {	//unknown parameter
+				throw LF_INVALID_PARAMETER(arg.first, arg.second);
 			}
 		}
-	}
-	if(cli.FileList.empty()){
-		//スイッチのみが指定されていた場合には設定画面を表示させる
-		//------
-		// 存在しないファイルが指定されていた場合にはエラーが返っているので、
-		// ここでファイルリストが空であればファイルが指定されていないと判断できる。
-		//return PROCESS_CONFIGURE;
-	}else{
-		//expand filename pattern
-		std::vector<std::wstring> tmp;
-		for (const auto& item : cli.FileList) {
-			auto out = UtilPathExpandWild(item.c_str());
-			tmp.insert(tmp.end(), out.begin(), out.end());
+		if (cli.FileList.empty()) {
+			//no files, then go to configuration
+			return std::make_pair(PROCESS_CONFIGURE, cli);
+		} else {
+			//expand filename pattern
+			std::vector<std::wstring> tmp;
+			for (const auto& item : cli.FileList) {
+				auto out = UtilPathExpandWild(item.c_str());
+				tmp.insert(tmp.end(), out.begin(), out.end());
+			}
+			cli.FileList = tmp;
 		}
-		cli.FileList = tmp;
-	}
-	//---ファイル名のフルパスなどチェック
-	for(auto &item: cli.FileList){
-		CPath strAbsPath;
-		try {
-			strAbsPath = UtilGetCompletePathName(item.c_str()).c_str();
-		} catch (LF_EXCEPTION) {
-			//絶対パスの取得に失敗
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
-			return PROCESS_INVALID;
+		//---get absolute path
+		for (auto &item : cli.FileList) {
+			std::wstring path;
+			try {
+				path = UtilGetCompletePathName(item);
+			} catch (LF_EXCEPTION) {
+				//failed to get absolute path
+				ErrorMessage(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
+				return std::make_pair(PROCESS_INVALID, cli);
+			}
+
+			//remove last separator
+			UtilPathRemoveLastSeparator(path);
+
+			//update
+			item = path;
 		}
-
-		//パス名の最後が\で終わっていたら\を取り除く
-		strAbsPath.RemoveBackslash();
-		TRACE(L"%s\n", (const wchar_t*)strAbsPath);
-
-		//値更新
-		item = (const wchar_t*)strAbsPath;
-	}
-	//出力フォルダが指定されていたら、それを絶対パスに変換
-	if(!cli.OutputDir.IsEmpty()){
-		try{
-			cli.OutputDir = UtilGetCompletePathName((const wchar_t*)cli.OutputDir).c_str();
-		} catch (LF_EXCEPTION) {
-			//絶対パスの取得に失敗
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FAIL_GET_ABSPATH)));
-			return PROCESS_INVALID;
+		//get absolute path of output directory
+		if (!cli.OutputDir.empty()) {
+			try {
+				cli.OutputDir = UtilGetCompletePathName(cli.OutputDir);
+			} catch (LF_EXCEPTION) {
+				ErrorMessage(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
+				return std::make_pair(PROCESS_INVALID, cli);
+			}
 		}
+	} catch (const LF_INVALID_PARAMETER &e) {
+		auto msg = Format(UtilLoadString(IDS_ERROR_INVALID_PARAMETER), e._parameter.c_str());
+		ErrorMessage(msg);
+		return std::make_pair(PROCESS_INVALID, cli);
 	}
 
-	return ProcessMode;
+	return std::make_pair(ProcessMode, cli);
 }
 

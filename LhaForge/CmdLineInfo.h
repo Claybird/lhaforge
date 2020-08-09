@@ -24,54 +24,54 @@
 
 #pragma once
 
-//LhaForgeでのファイル処理の方法
+//LhaForge mode
 enum PROCESS_MODE{
 	PROCESS_INVALID,
 	PROCESS_CONFIGURE,
 	PROCESS_COMPRESS,
 	PROCESS_EXTRACT,
-	PROCESS_AUTOMATIC,
+	PROCESS_AUTOMATIC,	//extract if possible, compress otherwise
 	PROCESS_LIST,
 	PROCESS_TEST,
+	PROCESS_MANUAL,	//depends on users' keyboard state
 };
 
-
-
-class CConfigManager;
-enum OUTPUT_TO;
-enum CREATE_OUTPUT_DIR;
-enum LFPROCESS_PRIORITY;
-enum LF_ARCHIVE_FORMAT;
 
 #include "ArchiverCode/arc_interface.h"
 #include "Utilities/OSUtil.h"
 
 // command line arguments
 struct CMDLINEINFO{
+	enum class ACTION{
+		Default=-1,
+		False,
+		True,
+	};
 	CMDLINEINFO() :
 		CompressType(LF_FMT_INVALID),
 		Options(0),
 		bSingleCompression(false),
-		OutputToOverride((OUTPUT_TO)-1),
-		CreateDirOverride((CREATE_OUTPUT_DIR)-1),
-		IgnoreTopDirOverride(-1),
-		DeleteAfterProcess(-1),
+		OutputToOverride(OUTPUT_TO_DEFAULT),
+		CreateDirOverride(CREATE_OUTPUT_DIR_DEFAULT),
+		IgnoreTopDirOverride(ACTION::Default),
+		DeleteAfterProcess(ACTION::Default),
 		PriorityOverride(LFPRIOTITY_DEFAULT) {}
 
-	std::vector<std::wstring> FileList;	//ファイル名リスト
-	CString OutputDir;				//出力先フォルダ
-	CString OutputFileName;			//出力先ファイル名
+	std::vector<std::wstring> FileList;
+	std::wstring OutputDir;
+	std::wstring OutputFileName;
 	LF_ARCHIVE_FORMAT CompressType;
-	int Options;				//圧縮オプション
-	bool bSingleCompression;	//ファイルを一つずつ圧縮するならtrue
-	CString ConfigPath;			//設定ファイルのパス
+	int Options;
+	bool bSingleCompression;
+	std::wstring ConfigPath;
 	OUTPUT_TO OutputToOverride;
 	CREATE_OUTPUT_DIR CreateDirOverride;
-	int IgnoreTopDirOverride;	//-1:default,0:false,1:true
-	int DeleteAfterProcess;	//-1:default,0:false, other:true
-	LFPROCESS_PRIORITY PriorityOverride;	//default:no change, other:change priority
+	ACTION IgnoreTopDirOverride;
+	ACTION DeleteAfterProcess;
+	LFPROCESS_PRIORITY PriorityOverride;
 };
 
-//コマンドラインを解釈する
-PROCESS_MODE ParseCommandLine(CConfigManager&,CMDLINEINFO&);
+
+//Parse command line
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline);
 

@@ -73,9 +73,9 @@ bool GUI_compress_multiple_files(
 	LF_WRITE_OPTIONS options,
 	CMDLINEINFO& CmdLineInfo);
 
-//コマンドラインパラメータとCompressに渡るパラメータの対応表
+//command line parameter table
 struct COMPRESS_COMMANDLINE_PARAMETER{
-	const wchar_t* arg;
+	const wchar_t* name;
 	LF_ARCHIVE_FORMAT Type;
 	int Options;
 	WORD FormatName;
