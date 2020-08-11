@@ -192,14 +192,14 @@ std::basic_string<CharT> util_regex_replace(BidirIt first, BidirIt last,
 	return s;
 }
 
-//expand variables, "{foo}" for process specific variables, and "%bar" for OS environment variables
+//expand variables, "{foo}" for process specific variables, and "%bar%" for OS environment variables
 std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars)
 {
 	auto fmt = format;
 	return util_regex_replace(fmt.cbegin(), fmt.cend(), std::wregex(L"\\{([^;]*?)\\}|%([^;]*?)%"),
 		[&](const std::wsmatch& m) {
 		auto key = m.str(0);
-		auto found = envVars.find(key.substr(1, key.length() - 2));
+		auto found = envVars.find(toLower(key.substr(1, key.length() - 2)));
 		if (found==envVars.end()) {
 			return key;
 		} else {

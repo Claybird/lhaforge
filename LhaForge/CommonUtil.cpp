@@ -272,24 +272,24 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* l
 	auto envs = UtilGetEnvInfo();
 	for (auto item : envs) {
 		//%ENVIRONMENT%=value
-		templateParams[L'%' + item.first + L'%'] = item.second;
+		templateParams[toLower(item.first)] = item.second;
 	}
 
 	//---about myself
-	templateParams[L"ProgramPath"] = UtilGetModulePath();
-	templateParams[L"ProgramFileName"] = std::filesystem::path(UtilGetModulePath()).filename();
-	templateParams[L"ProgramDir"] = UtilGetModuleDirectoryPath();
-	templateParams[L"ProgramDrive"] = std::filesystem::path(UtilGetModuleDirectoryPath()).root_name();
+	templateParams[toLower(L"ProgramPath")] = UtilGetModulePath();
+	templateParams[toLower(L"ProgramFileName")] = std::filesystem::path(UtilGetModulePath()).filename();
+	templateParams[toLower(L"ProgramDir")] = UtilGetModuleDirectoryPath();
+	templateParams[toLower(L"ProgramDrive")] = std::filesystem::path(UtilGetModuleDirectoryPath()).root_name();
 
 	if (lpOpenDir) {
-		templateParams[L"dir"] = lpOpenDir;
-		templateParams[L"OutputDir"] = lpOpenDir;
-		templateParams[L"OutputDrive"] = std::filesystem::path(lpOpenDir).root_name();
+		templateParams[toLower(L"dir")] = lpOpenDir;
+		templateParams[toLower(L"OutputDir")] = lpOpenDir;
+		templateParams[toLower(L"OutputDrive")] = std::filesystem::path(lpOpenDir).root_name();
 	}
 
 	if (lpOutputFile) {
-		templateParams[L"OutputFile"] = lpOutputFile;
-		templateParams[L"OutputFileName"] = std::filesystem::path(lpOutputFile).filename();
+		templateParams[toLower(L"OutputFile")] = lpOutputFile;
+		templateParams[toLower(L"OutputFileName")] = std::filesystem::path(lpOutputFile).filename();
 	}
 	return templateParams;
 }

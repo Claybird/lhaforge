@@ -98,8 +98,8 @@ TEST(StringUtil, UtilExpandTemplateString) {
 	envVars[L"abc"] = L"123";
 	envVars[L"def"] = L"{abc}";
 	EXPECT_EQ(
-		L"123;123;{abc};{ghi};%jkl%;%F;%mnopq{}",
-		UtilExpandTemplateString(L"%abc%;{abc};{def};{ghi};%jkl%;%F;%mnopq{}", envVars));
+		L"123;123;{abc};{ghi};%jkl%;%F;%mnopq{};123",
+		UtilExpandTemplateString(L"%abc%;{abc};{def};{ghi};%jkl%;%F;%mnopq{};%ABC%", envVars));
 }
 
 TEST(StringUtil, UtilSplitString) {

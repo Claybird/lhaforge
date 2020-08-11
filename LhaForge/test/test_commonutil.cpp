@@ -42,16 +42,17 @@ TEST(CommonUtil, LF_make_expand_information) {
 	const auto open_dir = LR"(C:\test\)";
 	const auto output_path = LR"(D:\test\output.ext)";
 	auto envInfo = LF_make_expand_information(open_dir, output_path);
-	EXPECT_TRUE(has_key(envInfo, L"%PATH%"));
-	EXPECT_EQ(UtilGetModulePath(), envInfo[L"ProgramPath"]);
-	EXPECT_EQ(std::filesystem::path(UtilGetModulePath()).parent_path().wstring(), envInfo[L"ProgramDir"]);
+	EXPECT_TRUE(has_key(envInfo, toLower(L"PATH")));
+	EXPECT_TRUE(has_key(envInfo, toLower(L"tmp")));
+	EXPECT_EQ(UtilGetModulePath(), envInfo[toLower(L"ProgramPath")]);
+	EXPECT_EQ(std::filesystem::path(UtilGetModulePath()).parent_path().wstring(), envInfo[toLower(L"ProgramDir")]);
 
-	EXPECT_EQ(open_dir, envInfo[L"dir"]);
-	EXPECT_EQ(open_dir, envInfo[L"OutputDir"]);
-	EXPECT_EQ(L"C:", envInfo[L"OutputDrive"]);
+	EXPECT_EQ(open_dir, envInfo[toLower(L"dir")]);
+	EXPECT_EQ(open_dir, envInfo[toLower(L"OutputDir")]);
+	EXPECT_EQ(L"C:", envInfo[toLower(L"OutputDrive")]);
 
-	EXPECT_EQ(output_path, envInfo[L"OutputFile"]);
-	EXPECT_EQ(L"output.ext", envInfo[L"OutputFileName"]);
+	EXPECT_EQ(output_path, envInfo[toLower(L"OutputFile")]);
+	EXPECT_EQ(L"output.ext", envInfo[toLower(L"OutputFileName")]);
 }
 
 TEST(CommonUtil, LF_sanitize_pathname) {
