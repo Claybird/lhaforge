@@ -37,13 +37,13 @@ struct RAW_CMDLINE{
 	std::vector<std::wstring> files;
 };
 
-RAW_CMDLINE getCommandLineArgs(const wchar_t* cmdline)
+RAW_CMDLINE getCommandLineArgs(const std::wstring& cmdline)
 {
 	std::wregex re_switches(L"^(/.+?)(\\:(.*))?$");
 	RAW_CMDLINE result;
 
 	int nArgc = 0;
-	LPWSTR *lplpArgs = CommandLineToArgvW(cmdline, &nArgc);
+	LPWSTR *lplpArgs = CommandLineToArgvW(cmdline.c_str(), &nArgc);
 	std::vector<std::pair<std::wstring, std::wstring> > args;
 	for (int i = 1; i < nArgc; i++) {
 		//lplpArgs[0] is executable name
@@ -77,7 +77,9 @@ struct LF_INVALID_PARAMETER : LF_EXCEPTION {
 	virtual ~LF_INVALID_PARAMETER() {}
 };
 
-std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
+	const std::wstring& cmdline,
+	std::function<void(const std::wstring& msg)> errorHandler)
 {
 	PROCESS_MODE ProcessMode = PROCESS_AUTOMATIC;
 
@@ -99,7 +101,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 					cli.ConfigPath.clear();
 				} else {
 					auto envInfo = LF_make_expand_information(nullptr, nullptr);
-					cli.ConfigPath = UtilExpandTemplateString(value, envInfo).c_str();
+					cli.ConfigPath = UtilExpandTemplateString(value, envInfo);
 				}
 			} else if (L"/cp" == key) {//code page for response file
 				if (value.empty()) {
@@ -139,7 +141,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 			} else if (L"/t" == key) {//test mode
 				ProcessMode = PROCESS_TEST;
 			} else if (L"/m" == key) {//select mode
-				ProcessMode = PROCESS_MANUAL;
+				ProcessMode = PROCESS_MANAGED;
 			} else if (L"/s" == key) {//single compression
 				cli.bSingleCompression = true;
 			} else if (L"/o" == key) {//output directory
@@ -158,28 +160,19 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 			} else if (L"/oa" == key) {	//ask everytime
 				cli.OutputDir.clear();
 				cli.OutputToOverride = OUTPUT_TO_ALWAYS_ASK_WHERE;
-			} else if (L"/@" == key) {//file listed in response file
+			} else if (L"/@" == key || L"/$" == key) {//file listed in file
 				if (value.empty()) {
 					throw LF_INVALID_PARAMETER(arg.first, L"(empty)");
 				} else {
 					try {
 						auto strFile = UtilGetCompletePathName(value);
-						cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
+						auto files = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
+						cli.FileList.insert(cli.FileList.end(), files.begin(), files.end());
+						if (L"/$" == key) {	//file listed in file; delete after read
+							DeleteFileW(strFile.c_str());
+						}
 					} catch (LF_EXCEPTION) {
-						ErrorMessage(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
-						return std::make_pair(PROCESS_INVALID, cli);
-					}
-				}
-			} else if (L"/$"==key) {//file listed in response file; delete after read
-				if (value.empty()) {
-					throw LF_INVALID_PARAMETER(arg.first, L"(empty)");
-				}else{
-					try {
-						auto strFile = UtilGetCompletePathName(value);
-						cli.FileList = UtilReadFromResponseFile(strFile.c_str(), uCodePage);
-						DeleteFileW(strFile.c_str());
-					} catch (LF_EXCEPTION) {
-						ErrorMessage(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
+						errorHandler(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
 						return std::make_pair(PROCESS_INVALID, cli);
 					}
 				}
@@ -195,7 +188,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 				} else {
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			} else if (L"/popdir"==key) {//ignore top directory on extract
+			} else if (L"/popdir" == key) {//ignore top directory on extract
 				if (L"no" == value) {
 					cli.IgnoreTopDirOverride = CMDLINEINFO::ACTION::False;
 				} else if (L"yes" == value || value.empty()) {
@@ -203,7 +196,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 				} else {
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			} else if (L"/delete") {//delete source file after process
+			} else if (L"/delete" == key) {//delete source file after process
 				if (L"no" == value) {
 					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::False;
 				} else if (L"yes" == value || value.empty()) {
@@ -229,26 +222,36 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 				throw LF_INVALID_PARAMETER(arg.first, arg.second);
 			}
 		}
-		if (cli.FileList.empty()) {
-			//no files, then go to configuration
-			return std::make_pair(PROCESS_CONFIGURE, cli);
-		} else {
-			//expand filename pattern
-			std::vector<std::wstring> tmp;
-			for (const auto& item : cli.FileList) {
-				auto out = UtilPathExpandWild(item.c_str());
-				tmp.insert(tmp.end(), out.begin(), out.end());
+		//get absolute path of output directory
+		if (!cli.OutputDir.empty()) {
+			try {
+				cli.OutputDir = UtilGetCompletePathName(cli.OutputDir);
+			} catch (LF_EXCEPTION) {
+				errorHandler(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
+				return std::make_pair(PROCESS_INVALID, cli);
 			}
-			cli.FileList = tmp;
+		}
+	} catch (const LF_INVALID_PARAMETER &e) {
+		auto msg = Format(UtilLoadString(IDS_ERROR_INVALID_PARAMETER), e._parameter.c_str());
+		errorHandler(msg);
+		return std::make_pair(PROCESS_INVALID, cli);
+	}
+
+	{
+		//expand filename pattern
+		std::vector<std::wstring> tmp;
+		for (const auto& item : cli.FileList) {
+			auto out = UtilPathExpandWild(item.c_str());
+			tmp.insert(tmp.end(), out.begin(), out.end());
 		}
 		//---get absolute path
-		for (auto &item : cli.FileList) {
+		for (auto &item : tmp) {
 			std::wstring path;
 			try {
 				path = UtilGetCompletePathName(item);
 			} catch (LF_EXCEPTION) {
 				//failed to get absolute path
-				ErrorMessage(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
+				errorHandler(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
 				return std::make_pair(PROCESS_INVALID, cli);
 			}
 
@@ -258,19 +261,11 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline)
 			//update
 			item = path;
 		}
-		//get absolute path of output directory
-		if (!cli.OutputDir.empty()) {
-			try {
-				cli.OutputDir = UtilGetCompletePathName(cli.OutputDir);
-			} catch (LF_EXCEPTION) {
-				ErrorMessage(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
-				return std::make_pair(PROCESS_INVALID, cli);
-			}
-		}
-	} catch (const LF_INVALID_PARAMETER &e) {
-		auto msg = Format(UtilLoadString(IDS_ERROR_INVALID_PARAMETER), e._parameter.c_str());
-		ErrorMessage(msg);
-		return std::make_pair(PROCESS_INVALID, cli);
+		cli.FileList = tmp;
+	}
+	if (cli.FileList.empty()) {
+		//no files, then go to configuration
+		return std::make_pair(PROCESS_CONFIGURE, cli);
 	}
 
 	return std::make_pair(ProcessMode, cli);

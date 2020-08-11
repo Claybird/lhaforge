@@ -33,7 +33,7 @@ enum PROCESS_MODE{
 	PROCESS_AUTOMATIC,	//extract if possible, compress otherwise
 	PROCESS_LIST,
 	PROCESS_TEST,
-	PROCESS_MANUAL,	//depends on users' keyboard state
+	PROCESS_MANAGED,	//depends on users' keyboard state
 };
 
 
@@ -73,5 +73,7 @@ struct CMDLINEINFO{
 
 
 //Parse command line
-std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(const wchar_t* cmdline);
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
+	const std::wstring& cmdline,
+	std::function<void(const std::wstring& msg)> errorHandler);
 

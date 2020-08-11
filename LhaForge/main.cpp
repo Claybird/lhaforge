@@ -136,7 +136,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 		}
 	}key_modifier;
 
-	auto [ProcessMode, cli] = ParseCommandLine(GetCommandLineW());
+	auto [ProcessMode, cli] = ParseCommandLine(GetCommandLineW(), ErrorMessage);
 
 	CConfigManager ConfigManager;
 	if (cli.ConfigPath.empty()) {
@@ -161,7 +161,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdSh
 		} else if (key_modifier.control) {
 			ProcessMode = PROCESS_TEST;	//test mode if ctrl is pressed
 		}
-	} else if (ProcessMode == PROCESS_MANUAL) {
+	} else if (ProcessMode == PROCESS_MANAGED) {
 		CConfigOpenAction ConfOpenAction;
 		ConfOpenAction.load(ConfigManager);
 		OPENACTION OpenAction;
