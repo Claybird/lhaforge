@@ -95,7 +95,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			// parse options
 			//---------------
 			std::wstring key = toLower(arg.first);
-			std::wstring value = toLower(arg.second);
+			std::wstring value = arg.second;
 			if (L"/cfg" == key) {	//configuration file
 				if (value.empty()) {
 					cli.ConfigPath.clear();
@@ -104,6 +104,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 					cli.ConfigPath = UtilExpandTemplateString(value, envInfo);
 				}
 			} else if (L"/cp" == key) {//code page for response file
+				value = toLower(value);
 				if (value.empty()) {
 					uCodePage = UTIL_CODEPAGE::UTF8;	//default
 				} else {
@@ -119,6 +120,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 					}
 				}
 			} else if (L"/c" == key) {//compress
+				value = toLower(value);
 				ProcessMode = PROCESS_COMPRESS;
 				cli.CompressType = LF_FMT_INVALID;	//format not specified
 				if (!value.empty()) {
@@ -145,10 +147,11 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			} else if (L"/s" == key) {//single compression
 				cli.bSingleCompression = true;
 			} else if (L"/o" == key) {//output directory
-				cli.OutputToOverride = OUTPUT_TO_DEFAULT;
 				if (value.empty()) {
+					cli.OutputToOverride = OUTPUT_TO_DEFAULT;
 					cli.OutputDir.clear();
 				}else{
+					cli.OutputToOverride = OUTPUT_TO_SPECIFIC_DIR;
 					cli.OutputDir = value;
 				}
 			}else if (L"/od" == key) {	//to desktop
@@ -179,16 +182,18 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			} else if (L"/f" == key) {//output file name
 				cli.OutputFileName = value;
 			} else if (L"/mkdir" == key) {//output directory control
+				value = toLower(value);
 				if (L"no" == value) {
 					cli.CreateDirOverride = CREATE_OUTPUT_DIR_NEVER;
 				} else if (L"single" == value) {
 					cli.CreateDirOverride = CREATE_OUTPUT_DIR_SINGLE;
-				} else if (L"always" == value) {
+				} else if (L"always" == value || value.empty()) {
 					cli.CreateDirOverride = CREATE_OUTPUT_DIR_ALWAYS;
 				} else {
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
 			} else if (L"/popdir" == key) {//ignore top directory on extract
+				value = toLower(value);
 				if (L"no" == value) {
 					cli.IgnoreTopDirOverride = CMDLINEINFO::ACTION::False;
 				} else if (L"yes" == value || value.empty()) {
@@ -197,6 +202,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
 			} else if (L"/delete" == key) {//delete source file after process
+				value = toLower(value);
 				if (L"no" == value) {
 					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::False;
 				} else if (L"yes" == value || value.empty()) {
@@ -205,11 +211,12 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
 			} else if (L"/priority" == key) {	//process priority
+				value = toLower(value);
 				if (L"low" == value) {
 					cli.PriorityOverride = LFPRIOTITY_LOW;
 				} else if (L"lower" == value){
 					cli.PriorityOverride = LFPRIOTITY_LOWER;
-				} else if (L"normal" == value) {
+				} else if (L"normal" == value || value.empty()) {
 					cli.PriorityOverride = LFPRIOTITY_NORMAL;
 				} else if (L"higher" == value) {
 					cli.PriorityOverride = LFPRIOTITY_HIGHER;
