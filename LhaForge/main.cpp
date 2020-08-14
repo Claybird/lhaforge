@@ -24,7 +24,6 @@
 
 #include "stdafx.h"
 #include "resource.h"
-#include "main.h"
 #include "ConfigCode/configwnd.h"
 #include "compress.h"
 #include "extract.h"
@@ -42,15 +41,46 @@
 CAppModule _Module;
 
 
-bool LF_isExtractable(const wchar_t* fname)
+bool isArchive(const std::wstring& fname)
 {
-	ARCHIVE_FILE_TO_READ f;
+	ARCHIVE_FILE_TO_READ arc;
 	try {
-		f.read_open(fname,nullptr);
+		arc.read_open(fname, nullptr);
+		for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+			continue;
+		}
 		return true;
 	} catch (const ARCHIVE_EXCEPTION& ) {
 		return false;
 	}
+}
+
+//enumerates files, removes directory
+std::vector<std::wstring> enumerateFiles(const std::vector<std::wstring>& input, const std::vector<std::wstring>& denyExts)
+{
+	std::vector<std::wstring> out;
+	for (const auto &item: input) {
+		std::vector<std::wstring> children;
+		if (std::filesystem::is_directory(item)) {
+			children = UtilRecursiveEnumFile(item);
+		} else {
+			children = { item };
+		}
+		for (const auto &subItem : children) {
+			bool bDenied = false;
+			for (const auto& deny : denyExts) {
+				if (UtilExtMatchSpec(subItem, deny)) {
+					bDenied = true;
+					break;
+				}
+			}
+			//finally
+			if (!bDenied) {
+				out.push_back(subItem);
+			}
+		}
+	}
+	return out;
 }
 
 
@@ -86,246 +116,22 @@ PROCESS_MODE selectOpenAction()
 
 //---------------------------------------------
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int nCmdShow)
-{
-#if defined(_DEBUG)
-	// detect memory leaks
-	_CrtSetDbgFlag(
-		_CRTDBG_ALLOC_MEM_DF
-		| _CRTDBG_LEAK_CHECK_DF
-		);
-#endif
-	_tsetlocale(LC_ALL,L"");	//default locale
-
-	HRESULT hRes = ::CoInitialize(NULL);
-	ATLASSERT(SUCCEEDED(hRes));
-	OleInitialize(NULL);
-
-	// support control flags
-	AtlInitCommonControls(ICC_WIN95_CLASSES|ICC_COOL_CLASSES | ICC_BAR_CLASSES);
-	_Module.Init(NULL,hInstance);
-	CMessageLoop theLoop;
-	_Module.AddMessageLoop(&theLoop);
-
-	//*********************************
-	// コマンドラインパラメータの解析
-	//*********************************
-	/*
-	オプション指定形式:
-
-	/c:???		???形式で指定されたファイルを圧縮(???=lzh,zip,etc...)
-	/method:???	???メソッドを使って圧縮(B2Eのみ)
-	/e			ファイルを解凍
-	/o:[dir]	出力先ディレクトリ指定
-	/l			アーカイブファイルのリスト表示(単一)
-	/f:[file]	圧縮時出力ファイル名の指定(パス指定は無視される)
-	/m			ファイルを解凍もしくはリスト表示(設定により変更)
-	/s			ファイル・フォルダを一つずつ圧縮
-	/t			アーカイブファイルの完全性をテスト
-	/@[file]	レスポンスファイル指定
-	/$[file]	レスポンスファイル指定:レスポンスファイルは読み取り完了後削除
-
-	*/
-
-	struct KEY_MOD {	//true if these keys are pressed
-		bool shift;
-		bool control;
-		KEY_MOD() {
-			shift = GetKeyState(VK_SHIFT) < 0;
-			control = GetKeyState(VK_CONTROL) < 0;
-		}
-	}key_modifier;
-
-	auto [ProcessMode, cli] = ParseCommandLine(GetCommandLineW(), ErrorMessage);
-
-	CConfigManager ConfigManager;
-	if (cli.ConfigPath.empty()) {
-		ConfigManager.SetConfigFile(nullptr);
-		CString strErr;
-		ConfigManager.LoadConfig(strErr);	//default config file
-	} else {
-		ConfigManager.SetConfigFile(cli.ConfigPath.c_str());
-		CString strErr;
-		//user specified, show message if error
-		if (!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
-	}
-
-	if (ProcessMode == PROCESS_COMPRESS) {
-		//single compression if ctrl is pressed
-		if (key_modifier.control) {
-			cli.bSingleCompression = true;
-		}
-	} else if (ProcessMode == PROCESS_EXTRACT) {
-		if (key_modifier.shift) {
-			ProcessMode = PROCESS_LIST;	//list mode if shift is pressed
-		} else if (key_modifier.control) {
-			ProcessMode = PROCESS_TEST;	//test mode if ctrl is pressed
-		}
-	} else if (ProcessMode == PROCESS_MANAGED) {
-		CConfigOpenAction ConfOpenAction;
-		ConfOpenAction.load(ConfigManager);
-		OPENACTION OpenAction;
-		if (key_modifier.shift) {	//---when shift is pressed
-			OpenAction = ConfOpenAction.OpenAction_Shift;
-		} else if (key_modifier.control) {	//---when ctrl is pressed
-			OpenAction = ConfOpenAction.OpenAction_Ctrl;
-		} else {	//---default
-			OpenAction = ConfOpenAction.OpenAction;
-		}
-		switch (OpenAction) {
-		case OPENACTION_EXTRACT:
-			ProcessMode = PROCESS_EXTRACT;
-			break;
-		case OPENACTION_LIST:
-			ProcessMode = PROCESS_LIST;
-			break;
-		case OPENACTION_TEST:
-			ProcessMode = PROCESS_TEST;
-			break;
-		case OPENACTION_ASK:
-		default:
-			ProcessMode = selectOpenAction();
-			if (ProcessMode == PROCESS_INVALID) {
-				return PROCESS_INVALID;
-			}
-			break;
-		}
-	}
-
-	{
-		//優先度設定
-		CConfigGeneral ConfGeneral;
-		ConfGeneral.load(ConfigManager);
-		LFPROCESS_PRIORITY priority=(LFPROCESS_PRIORITY)ConfGeneral.ProcessPriority;
-		//コマンドラインオプションで上書き?
-		if(cli.PriorityOverride!=LFPRIOTITY_DEFAULT){
-			priority=cli.PriorityOverride;
-		}
-		switch(priority){
-		case LFPRIOTITY_LOW:
-			UtilSetPriorityClass(IDLE_PRIORITY_CLASS);break;
-		case LFPRIOTITY_LOWER:
-			UtilSetPriorityClass(BELOW_NORMAL_PRIORITY_CLASS);break;
-		case LFPRIOTITY_NORMAL:
-			UtilSetPriorityClass(NORMAL_PRIORITY_CLASS);break;
-		case LFPRIOTITY_HIGHER:
-			UtilSetPriorityClass(ABOVE_NORMAL_PRIORITY_CLASS);break;
-		case LFPRIOTITY_HIGH:
-			UtilSetPriorityClass(HIGH_PRIORITY_CLASS);break;
-		case LFPRIOTITY_DEFAULT:
-		default:
-			//nothing to do
-			break;
-		}
-
-		//To use custom temporary directory, if necessary
-		CString strPath=ConfGeneral.TempPath;
-		if(!strPath.IsEmpty()){
-			//パラメータ展開に必要な情報
-			auto envInfo = LF_make_expand_information(nullptr, nullptr);
-			//環境変数展開
-			strPath = UtilExpandTemplateString((const wchar_t*)strPath, envInfo).c_str();
-
-			//絶対パスに変換
-			if(PathIsRelative(strPath)){
-				CPath tmp=UtilGetModuleDirectoryPath().c_str();
-				tmp.AddBackslash();
-				tmp+=strPath;
-				strPath=(LPCTSTR)tmp;
-			}
-			try {
-				auto buf = UtilGetCompletePathName((const wchar_t*)strPath);
-				strPath = buf.c_str();
-			} catch (LF_EXCEPTION) {
-				//do nothing
-			}
-
-			//環境変数設定
-			SetEnvironmentVariableW(L"TEMP",strPath);
-			SetEnvironmentVariableW(L"TMP",strPath);
-		}
-	}
-
-	CString strErr;
-	if(PROCESS_LIST!=ProcessMode && cli.FileList.empty()){
-		//ファイル一覧ウィンドウを出す場合以外は、ファイル指定が無いときは設定ダイアログを出す
-		ProcessMode=PROCESS_CONFIGURE;
-	}
-
-	switch(ProcessMode){
-	case PROCESS_COMPRESS://圧縮
-		DoCompress(ConfigManager,cli);
-		break;
-	case PROCESS_EXTRACT://解凍
-		DoExtract(ConfigManager,cli);
-		break;
-	case PROCESS_AUTOMATIC://お任せ判定
-		if(PathIsDirectory(cli.FileList.front().c_str())){
-			DoCompress(ConfigManager,cli);
-		}else{
-			CConfigExtract ConfExtract;
-			ConfExtract.load(ConfigManager);
-			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(CString(PathFindExtension(cli.FileList.front().c_str())).MakeLower()) == -1;
-			if(!isDenied && LF_isExtractable(cli.FileList.front().c_str())){	//解凍可能な形式かどうか
-				DoExtract(ConfigManager,cli);
-			}else{
-				DoCompress(ConfigManager,cli);
-			}
-		}
-		break;
-	case PROCESS_LIST://リスト表示
-		DoList(ConfigManager,cli);
-		break;
-	case PROCESS_TEST://アーカイブファイルのテスト
-		DoTest(ConfigManager,cli);
-		break;
-	case PROCESS_CONFIGURE://設定画面表示
-		{
-			//ダイアログ表示
-			CConfigDialog confdlg(ConfigManager);
-			if(IDOK==confdlg.DoModal()){
-				if(!ConfigManager.SaveConfig(strErr)){
-					ErrorMessage((const wchar_t*)strErr);
-				}
-			}
-		}
-		break;
-	case PROCESS_INVALID:
-		TRACE(_T("Process Mode Undefined\n"));
-		break;
-	default:
-		ASSERT(!"Unexpected Process Mode");
-	}
-
-	TRACE(_T("Terminating...\n"));
-	_Module.RemoveMessageLoop();
-	_Module.Term();
-	OleUninitialize();
-	::CoUninitialize();
-	TRACE(_T("Exit main()\n"));
-	return 0;
-}
-
-/*
-formatの指定は、B2E32.dllでのみ有効
-levelの指定は、B2E32.dll以外で有効
-*/
-bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
+bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 {
 	CConfigCompress ConfCompress;
 	CConfigGeneral ConfGeneral;
 	ConfCompress.load(ConfigManager);
 	ConfGeneral.load(ConfigManager);
 
-	while(LF_FMT_INVALID == cli.CompressType){	//---使用DLLを決定
-		if(ConfCompress.UseDefaultParameter){	//デフォルトパラメータを使うならデータ取得
+	while(LF_FMT_INVALID == cli.CompressType){
+		if(ConfCompress.UseDefaultParameter){
 			cli.CompressType = ConfCompress.DefaultType;
 			cli.Options = ConfCompress.DefaultOptions;
-		}else{	//入力を促す
+		}else{	//not default parameter
 			CSelectDialog SelDlg;
 			SelDlg.SetDeleteAfterCompress(BOOL2bool(ConfCompress.DeleteAfterCompress));
-			cli.CompressType=(LF_ARCHIVE_FORMAT)SelDlg.DoModal();
-			if(LF_FMT_INVALID ==cli.CompressType){	//キャンセルの場合
+			cli.CompressType = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+			if(LF_FMT_INVALID ==cli.CompressType){	//cancel
 				return false;
 			}else{
 				cli.Options=SelDlg.GetOptions();
@@ -341,34 +147,26 @@ bool DoCompress(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	}
 
 	//--------------------
-	// 圧縮作業
-
-	if(cli.bSingleCompression){	//ファイルを一つずつ圧縮
-		//プログレスバー
+	if(cli.bSingleCompression){
+		//TODO:progress dialog should be handled as callbacks
 		CProgressDialog dlg;
 		int nFiles=cli.FileList.size();
-		dlg.Create(NULL);
+		dlg.Create(nullptr);
 		dlg.ShowWindow(SW_SHOW);
 		bool bRet=true;
 		int count = 0;
 		for(const auto &filename: cli.FileList){
-			//プログレスバーを進める
-			if (dlg.IsWindow())dlg.SetProgress(filename.c_str(), count, nFiles, L"*prepare*", 0, 0);
+			if (dlg.IsWindow())dlg.SetProgress(filename, count, nFiles, L"*prepare*", 0, 0);
 			while(UtilDoMessageLoop())continue;
 
-			//圧縮作業
-			std::list<CString> TempList;
-			TempList.push_back(filename.c_str());
-
-#pragma message("FIXME!")
-			//bRet=bRet && Compress(TempList,cli.CompressType,ConfigManager,cli);
+			bool result = GUI_compress_multiple_files({filename}, cli.CompressType, (LF_WRITE_OPTIONS)cli.Options, cli);
+			bRet = bRet && result;
 			count += 1;
 		}
-		//プログレスバーを閉じる
 		if(dlg.IsWindow())dlg.DestroyWindow();
 
 		return bRet;
-	}else{	//通常圧縮
+	}else{
 		return GUI_compress_multiple_files(
 			cli.FileList,
 			cli.CompressType,
@@ -381,127 +179,265 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
 
-	std::list<CString> tmp;
-	for (const auto& item : cli.FileList) {
-		tmp.push_back(item.c_str());
-	}
+	auto tmp = enumerateFiles(cli.FileList, denyList);
+	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
 
-	MakeListFilesOnly(tmp,ConfExtract.DenyExt,true);
-
-	cli.FileList.clear();
-	for (const auto& item : tmp) {
-		cli.FileList.push_back((const wchar_t*)item);
-	}
-
-	if(cli.FileList.empty()){
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+	if(tmp.empty()){
+		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
 		return false;
 	}
-	return GUI_extract_multiple_files(cli.FileList, &cli);
+	return GUI_extract_multiple_files(tmp, &cli);
 }
 
 bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	bool bSpecified=!cli.FileList.empty();
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
 
-	std::list<CString> tmp;
-	for (const auto& item : cli.FileList) {
-		tmp.push_back(item.c_str());
+	auto tmp = enumerateFiles(cli.FileList, denyList);
+	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
+
+	if(!cli.FileList.empty() && tmp.empty()){
+		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
+		return false;
 	}
 
-	MakeListFilesOnly(tmp, ConfExtract.DenyExt, true);
-
-	cli.FileList.clear();
-	for (const auto& item : tmp) {
-		cli.FileList.push_back((const wchar_t*)item);
-	}
-
-	//ファイルリストに何も残らなかったらエラーメッセージ表示
-	if(bSpecified && cli.FileList.empty()){
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
-	//	return false;
-	}
-
-//==========
-// 閲覧開始
-//==========
 	CFileListFrame ListWindow(ConfigManager);
 	ListWindow.CreateEx();
 	ListWindow.ShowWindow(SW_SHOW);
 	ListWindow.UpdateWindow();
-	//ListWindow.AddArchiveFile(*cli.FileList.begin());
-	if(!cli.FileList.empty()){
-		bool bAllFailed=true;
-		for(const auto& item: cli.FileList){
-			HRESULT hr = ListWindow.OpenArchiveFile(item.c_str());
-			if(SUCCEEDED(hr)){
-				if(hr!=S_FALSE)bAllFailed=false;
-			}else if(hr==E_ABORT){
-				break;
-			}
+	bool bAllFailed = !tmp.empty();
+	for (const auto& item : tmp) {
+		HRESULT hr = ListWindow.OpenArchiveFile(item.c_str());
+		if (SUCCEEDED(hr)) {
+			if (hr != S_FALSE)bAllFailed = false;
+		} else if (hr == E_ABORT) {
+			break;
 		}
-		if(bAllFailed)ListWindow.DestroyWindow();
 	}
+	if(bAllFailed)ListWindow.DestroyWindow();
 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->Run();
-	TRACE(_T("Loop End\n"));
 	return true;
 }
 
-//アーカイブのテスト
 bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	//全てのファイルを検査対象にする
-	std::list<CString> tmp;
-	for (const auto& item : cli.FileList) {
-		tmp.push_back(item.c_str());
-	}
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
 
-	MakeListFilesOnly(tmp, ConfExtract.DenyExt, false);
+	auto tmp = enumerateFiles(cli.FileList, denyList);
 
-	cli.FileList.clear();
-	for (const auto& item : tmp) {
-		cli.FileList.push_back((const wchar_t*)item);
-	}
-	//ファイルリストに何も残らなかったらエラーメッセージ表示
-	if(cli.FileList.empty()){
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
+	if(tmp.empty()){
+		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
 		return false;
 	}
 
-	//テスト
-	return GUI_test_multiple_files(cli.FileList, &cli);
+	return GUI_test_multiple_files(tmp, &cli);
 }
 
-//リストからフォルダを削除し、サブフォルダのファイルを追加
-void MakeListFilesOnly(std::list<CString> &FileList,LPCTSTR lpDenyExt,bool bArchivesOnly)
+void procMain()
 {
-	for(auto ite=FileList.begin();ite!=FileList.end();){
-		if(PathIsDirectory(*ite)){
-			//---解凍対象がフォルダなら再帰解凍する
-			auto subFileList = UtilRecursiveEnumFile((const wchar_t*)*ite);
+	auto[ProcessMode, cli] = ParseCommandLine(GetCommandLineW(), ErrorMessage);
+	if (PROCESS_INVALID == ProcessMode) {
+		return;
+	}
 
-			for(const auto& subFile: subFileList){
-				bool isDenied = CString(lpDenyExt).MakeLower().Find(CString(PathFindExtension(subFile.c_str())).MakeLower()) == -1;
+	CConfigManager ConfigManager;
+	if (cli.ConfigPath.empty()) {
+		ConfigManager.SetConfigFile(nullptr);
+	} else {
+		ConfigManager.SetConfigFile(cli.ConfigPath.c_str());
+	}
+	{
+		CString strErr;
+		//user specified, show message if error
+		if (!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
+	}
 
-				if(!bArchivesOnly|| (!isDenied && LF_isExtractable(subFile.c_str()))){
-					//対応している形式のみ追加する必要がある時は、解凍可能な形式かどうか判定する
-					FileList.push_back(subFile.c_str());	//TODO
-				}
+	//key modifier
+	{
+		bool shift = GetKeyState(VK_SHIFT) < 0;
+		bool control = GetKeyState(VK_CONTROL) < 0;
+
+		switch (ProcessMode) {
+		case PROCESS_COMPRESS:
+			if (control) {
+				//single compression if ctrl is pressed
+				cli.bSingleCompression = true;
 			}
-			//自分は削除
-			ite=FileList.erase(ite);
+			break;
+		case PROCESS_EXTRACT:
+			if (shift) {
+				ProcessMode = PROCESS_LIST;	//list mode if shift is pressed
+			} else if (control) {
+				ProcessMode = PROCESS_TEST;	//test mode if ctrl is pressed
+			}
+			break;
+		case PROCESS_MANAGED:
+		{
+			CConfigOpenAction ConfOpenAction;
+			ConfOpenAction.load(ConfigManager);
+			OPENACTION OpenAction;
+			if (shift) {	//---when shift is pressed
+				OpenAction = ConfOpenAction.OpenAction_Shift;
+			} else if (control) {	//---when ctrl is pressed
+				OpenAction = ConfOpenAction.OpenAction_Ctrl;
+			} else {	//---default
+				OpenAction = ConfOpenAction.OpenAction;
+			}
+			switch (OpenAction) {
+			case OPENACTION_EXTRACT:
+				ProcessMode = PROCESS_EXTRACT;
+				break;
+			case OPENACTION_LIST:
+				ProcessMode = PROCESS_LIST;
+				break;
+			case OPENACTION_TEST:
+				ProcessMode = PROCESS_TEST;
+				break;
+			case OPENACTION_ASK:
+			default:
+				ProcessMode = selectOpenAction();
+				if (ProcessMode == PROCESS_INVALID) {
+					return;
+				}
+				break;
+			}
 		}
-		else{
-			++ite;
+		break;
 		}
 	}
+
+	CConfigGeneral ConfGeneral;
+	ConfGeneral.load(ConfigManager);
+	{
+		//process priority
+		LFPROCESS_PRIORITY priority = (LFPROCESS_PRIORITY)ConfGeneral.ProcessPriority;
+		//override
+		if (cli.PriorityOverride != LFPRIOTITY_DEFAULT) {
+			priority = cli.PriorityOverride;
+		}
+		switch (priority) {
+		case LFPRIOTITY_LOW:
+			UtilSetPriorityClass(IDLE_PRIORITY_CLASS); break;
+		case LFPRIOTITY_LOWER:
+			UtilSetPriorityClass(BELOW_NORMAL_PRIORITY_CLASS); break;
+		case LFPRIOTITY_NORMAL:
+			UtilSetPriorityClass(NORMAL_PRIORITY_CLASS); break;
+		case LFPRIOTITY_HIGHER:
+			UtilSetPriorityClass(ABOVE_NORMAL_PRIORITY_CLASS); break;
+		case LFPRIOTITY_HIGH:
+			UtilSetPriorityClass(HIGH_PRIORITY_CLASS); break;
+		case LFPRIOTITY_DEFAULT:
+		default:
+			//nothing to do
+			break;
+		}
+	}
+
+	{
+		//To use custom temporary directory, if necessary
+		std::wstring strPath = ConfGeneral.TempPath;
+		if (!strPath.empty()) {
+			auto envInfo = LF_make_expand_information(nullptr, nullptr);
+			strPath = UtilExpandTemplateString(strPath, envInfo);
+
+			//get absolute path
+			if (std::filesystem::path(strPath).is_relative()) {
+				auto tmp = std::filesystem::path(UtilGetModuleDirectoryPath()) / strPath;
+				strPath = tmp.lexically_normal();
+			}
+			try {
+				auto buf = UtilGetCompletePathName(strPath);
+				strPath = buf;
+			} catch (LF_EXCEPTION) {
+				//do nothing
+			}
+
+			//set environment
+			SetEnvironmentVariableW(L"TEMP", strPath.c_str());
+			SetEnvironmentVariableW(L"TMP", strPath.c_str());
+		}
+	}
+
+	switch (ProcessMode) {
+	case PROCESS_COMPRESS:
+		DoCompress(ConfigManager, cli);
+		break;
+	case PROCESS_EXTRACT:
+		DoExtract(ConfigManager, cli);
+		break;
+	case PROCESS_AUTOMATIC:
+		if (std::filesystem::is_directory(cli.FileList.front())) {
+			DoCompress(ConfigManager, cli);
+		} else {
+			CConfigExtract ConfExtract;
+			ConfExtract.load(ConfigManager);
+			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(toLower(std::filesystem::path(cli.FileList.front()).extension()).c_str()) == -1;
+			if (!isDenied && isArchive(cli.FileList.front())) {
+				DoExtract(ConfigManager, cli);
+			} else {
+				DoCompress(ConfigManager, cli);
+			}
+		}
+		break;
+	case PROCESS_LIST:
+		DoList(ConfigManager, cli);
+		break;
+	case PROCESS_TEST:
+		DoTest(ConfigManager, cli);
+		break;
+	case PROCESS_CONFIGURE:
+	default:
+	{
+		CConfigDialog confdlg(ConfigManager);
+		if (IDOK == confdlg.DoModal()) {
+			CString strErr;
+			if (!ConfigManager.SaveConfig(strErr)) {
+				ErrorMessage(strErr.operator LPCWSTR());
+			}
+		}
+		break;
+	}
+	}
+}
+
+
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
+{
+#if defined(_DEBUG)
+	// detect memory leaks
+	_CrtSetDbgFlag(
+		_CRTDBG_ALLOC_MEM_DF
+		| _CRTDBG_LEAK_CHECK_DF
+	);
+#endif
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	HRESULT hRes = ::CoInitialize(nullptr);
+	ATLASSERT(SUCCEEDED(hRes));
+	OleInitialize(nullptr);
+
+	// support control flags
+	AtlInitCommonControls(ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES);
+	_Module.Init(nullptr, hInstance);
+	CMessageLoop theLoop;
+	_Module.AddMessageLoop(&theLoop);
+
+	procMain();
+
+	_Module.RemoveMessageLoop();
+	_Module.Term();
+	OleUninitialize();
+	::CoUninitialize();
+	return 0;
 }
 
 

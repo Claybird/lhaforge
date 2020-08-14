@@ -15,6 +15,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ArchiverCode\test\test_arc_interface.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -74,6 +75,7 @@
     <ClCompile Include="test\test_commonutil.cpp" />
     <ClCompile Include="test\test_compress.cpp" />
     <ClCompile Include="test\test_extract.cpp" />
+    <ClCompile Include="test\test_main.cpp" />
     <ClCompile Include="Utilities\ConfigFile.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -146,7 +148,6 @@
     <ClInclude Include="FileListWindow\OLE\EnumFORMATETC.h" />
     <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h" />
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Utilities\ConfigFile.h" />
@@ -299,6 +300,7 @@
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\WTL\include;$(SolutionDir)\dependency\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
