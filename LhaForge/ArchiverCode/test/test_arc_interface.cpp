@@ -19,6 +19,7 @@ TEST(ARCHIVE_FILE_TO_READ, isKnownFormat)
 	EXPECT_TRUE(ARCHIVE_FILE_TO_READ::isKnownFormat(dir / L"abcde.zst"));
 
 	EXPECT_FALSE(ARCHIVE_FILE_TO_READ::isKnownFormat(__FILEW__));
+	EXPECT_FALSE(ARCHIVE_FILE_TO_READ::isKnownFormat(L"some_non_existing_file"));
 }
 
 #endif

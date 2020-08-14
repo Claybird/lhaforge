@@ -400,7 +400,11 @@ struct ARCHIVE_FILE_TO_READ
 	}
 	static bool isKnownFormat(const std::wstring &arcname) {
 		const size_t readSize = 10;
-		if (std::filesystem::file_size(arcname) < readSize)return false;
+		try {
+			if (std::filesystem::file_size(arcname) < readSize)return false;
+		} catch(...) {
+			return false;
+		}
 
 		CAutoFile fp;
 		fp.open(arcname);
