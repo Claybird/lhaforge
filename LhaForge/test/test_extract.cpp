@@ -168,22 +168,25 @@ TEST(extract, enumerateOriginalArchives)
 
 TEST(extract, testOneArchive) {
 	_wsetlocale(LC_ALL, L"");	//default locale
+	auto files = { L"test_extract.zip", L"test_gzip.gz"};
 
-	auto archiveFile = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
-	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+	for (const auto &file : files) {
+		auto archiveFile = std::filesystem::path(__FILEW__).parent_path() / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
-	ARCLOG arcLog;
-	EXPECT_NO_THROW(
-	testOneArchive(archiveFile, arcLog,
-		[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
-		nullptr
-	));
+		ARCLOG arcLog;
+		EXPECT_NO_THROW(
+			testOneArchive(archiveFile, arcLog,
+				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+				nullptr
+			));
+	}
 }
 
 TEST(extract, testOneArchive_broken_files) {
 	_wsetlocale(LC_ALL, L"");	//default locale
 
-	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
+	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip",__FILEW__ };
 
 	for (const auto& file : files) {
 		auto archiveFile = std::filesystem::path(__FILEW__).parent_path() / file;

@@ -349,17 +349,20 @@ struct ARCHIVE_FILE_TO_READ
 		if (r < ARCHIVE_OK) {
 			//retry enabling archive_read_support_format_raw
 			close();
-			_arc = archive_read_new();
-			r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
-			if (r < ARCHIVE_OK) {
-				throw ARCHIVE_EXCEPTION(_arc);
-			}
-
-			archive_read_support_filter_all(_arc);
-			archive_read_support_format_raw(_arc);
-			r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
-			if (r < ARCHIVE_OK) {
-				throw ARCHIVE_EXCEPTION(_arc);
+			if (isKnownFormat(arcname)) {
+				_arc = archive_read_new();
+				r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
+				if (r < ARCHIVE_OK) {
+					throw ARCHIVE_EXCEPTION(_arc);
+				}
+				archive_read_support_filter_all(_arc);
+				archive_read_support_format_raw(_arc);
+				r = archive_read_open_filename_w(_arc, arcname.c_str(), 10240);
+				if (r < ARCHIVE_OK) {
+					throw ARCHIVE_EXCEPTION(_arc);
+				}
+			} else {
+				throw ARCHIVE_EXCEPTION(L"Invalid format");
 			}
 		}
 	}
@@ -394,6 +397,57 @@ struct ARCHIVE_FILE_TO_READ
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
 		return ibi;
+	}
+	static bool isKnownFormat(const std::wstring &arcname) {
+		const size_t readSize = 10;
+		if (std::filesystem::file_size(arcname) < readSize)return false;
+
+		CAutoFile fp;
+		fp.open(arcname);
+		if (!fp.is_opened())return false;
+		std::vector<unsigned char> header(readSize);
+		if (readSize != fread(&header[0], 1, readSize, fp)) {
+			return false;
+		}
+
+		//check header for known format
+		//gzip: RFC 1952
+		if (header[0] == 0x1f && header[1] == 0x8b) {
+			return true;
+		}
+		//bz2: https://github.com/dsnet/compress/blob/master/doc/bzip2-format.pdf
+		if (header[0]=='B' && header[1]=='Z' && header[2]=='h' &&
+			'0'<=header[3] && header[3]<= '9' &&
+			(
+				//compressed_magic
+				(header[4] == 0x31 && header[5] == 0x41 && header[6] == 0x59 && 
+					header[7] == 0x26 && header[8] == 0x53 && header[9] == 0x59) ||
+				//eos_magic
+				(header[4] == 0x17 && header[5] == 0x72 && header[6] == 0x45 && 
+					header[7] == 0x38 && header[8] == 0x50 && header[9] == 0x90)
+				)
+			) {
+			return true;
+		}
+		//lzma: lzma-file-format.txt in XZ Utils[https://tukaani.org/xz/]
+		{
+			uint8_t prop = header[0];
+			if (prop <= (4 * 5 + 4) * 9 + 8) {
+				return true;
+			}
+		}
+		//xz: xz-file-format.txt in XZ Utils[https://tukaani.org/xz/]
+		if (header[0] == 0xFD && header[1] == '7' && header[2] == 'z' && 
+			header[3] == 'X' && header[4] == 'Z' && header[5] == 0x00) {
+			return true;
+		}
+
+		//zstd: https://tools.ietf.org/id/draft-kucherawy-dispatch-zstd-00.html
+		if (header[0] == 0xFD && header[1] == 0x2F && header[2] == 0xB5 && header[3] == 0x28) {
+			return true;
+		}
+
+		return false;
 	}
 };
 
