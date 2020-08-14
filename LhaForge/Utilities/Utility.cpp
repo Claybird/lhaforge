@@ -123,8 +123,8 @@ bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_stri
 	if (regex_str.empty())return false;
 	regex_str += L"$";
 
-	std::wregex re(toLower(regex_str));
-	return std::regex_search(toLower(path), re);
+	std::wregex re(regex_str, std::regex_constants::icase);
+	return std::regex_search(path, re);
 }
 
 //checks if path matches specific patterns
