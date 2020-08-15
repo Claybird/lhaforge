@@ -24,15 +24,47 @@
 
 #pragma once
 
-enum DLL_ID;
-class CConfigManager;
-struct CConfigGeneral;
-struct CConfigExtract;
-enum OUTPUT_TO;
-class CMDLINEINFO;
-//解凍を行う
-bool Extract(std::list<CString>&,CConfigManager&,DLL_ID,LPCTSTR lpSpecificOutputDir=NULL,const CMDLINEINFO* lpCmdLineInfo=NULL);
-//出力先のディレクトリを取得し、カレントディレクトリにセットする。
-HRESULT GetExtractDestDir(LPCTSTR,const CConfigGeneral&,const CConfigExtract&,LPCTSTR,bool,CPath&,const int,LPCTSTR,CPath&,bool &r_bUseForAll,CString &strErr);
+#include "CmdLineInfo.h"
+#include "CommonUtil.h"
 
-const LPCTSTR LHAFORGE_EXTRACT_SEMAPHORE_NAME=_T("LhaForgeExtractLimitSemaphore");
+#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigGeneral.h"
+#include "ConfigCode/ConfigExtract.h"
+
+struct LF_EXTRACT_ARGS {
+	//	std::wstring outputPath;
+	//	std::wstring pathToOpen;
+	CConfigGeneral general;
+	CConfigExtract extract;
+	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
+};
+
+enum class overwrite_options {
+	overwrite,
+	overwrite_all,
+	skip,
+	skip_all,
+	abort,
+};
+
+void extractOneArchive(
+	const std::wstring& archive_path,
+	const std::wstring& output_dir,
+	ARCLOG &arcLog,
+	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+);
+bool GUI_extract_multiple_files(
+	const std::vector<std::wstring> &archive_files,
+	const CMDLINEINFO* lpCmdLineInfo
+);
+void testOneArchive(
+	const std::wstring& archive_path,
+	ARCLOG &arcLog,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
+	archive_passphrase_callback passphrase_callback
+);
+bool GUI_test_multiple_files(
+	const std::vector<std::wstring> &archive_files,
+	const CMDLINEINFO* lpCmdLineInfo
+);

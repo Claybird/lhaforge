@@ -24,6 +24,7 @@
 
 #pragma once
 
+//inter-process lock by semaphore
 class CSemaphoreLocker{
 protected:
 	HANDLE hSemaphore;
@@ -32,16 +33,16 @@ public:
 	virtual ~CSemaphoreLocker(){
 		Release();
 	}
-	virtual bool Lock(LPCTSTR lpName,LONG MaxCount){	//セマフォによるプロセス間排他処理
+	virtual bool Lock(const std::wstring& name, LONG MaxCount){
 		Release();
-		hSemaphore=CreateSemaphore(NULL,MaxCount,MaxCount,lpName);
-		if(ERROR_INVALID_HANDLE==GetLastError()){	//セマフォ確保に失敗
+		hSemaphore = CreateSemaphoreW(NULL, MaxCount, MaxCount, name.c_str());
+		if(ERROR_INVALID_HANDLE==GetLastError()){	//failed to get
 			hSemaphore=NULL;
 			return false;
 		}
 		return WAIT_OBJECT_0==WaitForSingleObject(hSemaphore,INFINITE);
 	}
-	virtual void Release(){		//セマフォのロックを解除
+	virtual void Release(){
 		if(hSemaphore){
 			ReleaseSemaphore(hSemaphore,1,NULL);
 			CloseHandle(hSemaphore);

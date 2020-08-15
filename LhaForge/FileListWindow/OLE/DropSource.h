@@ -27,19 +27,19 @@
 //Original code from http://hp.vector.co.jp/authors/VA016117/
 //Modified by Claybird http://claybird.sakura.ne.jp/
 
-struct ARCHIVE_ENTRY_INFO_TREE;
+struct ARCHIVE_ENTRY_INFO;
 class CFileListModel;
 class CDropSource : public IDropSource
 {
 protected:
 	LONG _RefCount;
 	CFileListModel& _rModel;
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> _items;
+	std::list<ARCHIVE_ENTRY_INFO*> _items;
 	CString _strOutputDir;
-	ARCHIVE_ENTRY_INFO_TREE* _lpBase;
+	ARCHIVE_ENTRY_INFO* _lpBase;
 	DWORD _dwEffect;
 public:
-	CDropSource(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpOutputDir,ARCHIVE_ENTRY_INFO_TREE* lpBase)
+	CDropSource(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpOutputDir,ARCHIVE_ENTRY_INFO* lpBase)
 		:_RefCount(1),_rModel(rModel),_items(items),_strOutputDir(lpOutputDir),_lpBase(lpBase),_dwEffect(0),_bRet(true)
 	{}
 	virtual ~CDropSource(){};

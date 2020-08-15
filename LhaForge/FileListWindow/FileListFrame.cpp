@@ -28,7 +28,7 @@
 #include "../ConfigCode/ConfigManager.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../resource.h"
-#include "../Dialogs/LogDialog.h"
+#include "Dialogs/LogListDialog.h"
 #include "../Utilities/OSUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../CommonUtil.h"
@@ -225,7 +225,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //==============================
 // ウィンドウをアクティブにする
 //==============================
-	UtilSetAbsoluteForegroundWindow(m_hWnd);
+	SetForegroundWindow(m_hWnd);
 	UpdateLayout();
 
 	//DnDによるファイル閲覧を可能に
@@ -304,7 +304,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	if(bSave){
 		CString strErr;
 		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 	}
 
@@ -321,7 +321,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 }
 
 
-HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen)
+HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 {
 	if(m_TabClientWnd.GetPageCount()>0 && !m_TabClientWnd.IsTabEnabled()){
 		//タブ機能が無効なので、自分自身を重複起動し表示させる
@@ -330,7 +330,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 		CPath filePath=fname;
 		filePath.QuoteSpaces();
 		strParam+=(LPCTSTR)filePath;
-		int ret=(int)ShellExecute(NULL,NULL,UtilGetModulePath(),strParam,NULL,SW_RESTORE);
+		int ret=(int)ShellExecute(NULL,NULL,UtilGetModulePath().c_str(),strParam,NULL,SW_RESTORE);
 		if(ret<=32){
 			return E_FAIL;
 		}else return S_OK;
@@ -351,7 +351,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 				 */
 				DWORD dwID=GetCurrentProcessId();
 				::SetProp(g_hFirstWindow,fname,(HANDLE)dwID);
-				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,idForceDLL);
+				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,0);
 				::RemoveProp(g_hFirstWindow,fname);
 				if(SUCCEEDED(hr))return S_FALSE;
 				//else return hr;	拒否されたので自分で開く
@@ -378,13 +378,13 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAl
 
 		//ファイル一覧作成
 		CString strErr;
-		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,idForceDLL,ConfFLW,strMutex,hMutex,strErr);
+		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,ConfFLW,strMutex,hMutex,strErr);
 
 		EnableWindow(TRUE);
 		//SetForegroundWindow(m_hWnd);
 
 		if(FAILED(hr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 			//EnableAll(false);
 		}
 		return hr;
@@ -404,11 +404,10 @@ BOOL CALLBACK CFileListFrame::EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hD
 LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	DWORD dwID=wParam;
-	DLL_ID idForceDLL=(DLL_ID)lParam;
 	g_FileToOpen=_T("");
 	EnumPropsEx(m_hWnd,EnumPropProc,dwID);
 	if(!g_FileToOpen.IsEmpty() && m_TabClientWnd.IsTabEnabled()){
-		return OpenArchiveFile(g_FileToOpen,idForceDLL,false);
+		return OpenArchiveFile(g_FileToOpen,false);
 	}else{
 		return E_FAIL;
 	}
@@ -473,7 +472,7 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 {
 	m_TabClientWnd.SetCurrentTab((HANDLE)wParam);
 	ShowWindow(SW_RESTORE);
-	UtilSetAbsoluteForegroundWindow(m_hWnd);
+	SetForegroundWindow(m_hWnd);
 
 	//点滅
 	FLASHWINFO fi;
@@ -534,7 +533,7 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	CConfigDialog confdlg(mr_Config);
 	if(IDOK==confdlg.DoModal()){
 		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
@@ -554,13 +553,10 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	}else{
 		//念のため再読み込み
 		if(!mr_Config.LoadConfig(strErr)){
-			ErrorMessage(strErr);
+			ErrorMessage((const wchar_t*)strErr);
 		}
 	}
 
-	CArchiverDLLManager::GetInstance().UpdateDLLConfig();
-
-	m_TabClientWnd.ReloadArchiverIfLost();
 /*	else{	別にIDCANCELでもロードし直す必要はない。なぜならデータはダイアログ内で留まり、Config構造体に入らず捨てられているから
 		Config.LoadConfig(CONFIG_LOAD_ALL);
 	}*/
@@ -730,11 +726,12 @@ void CFileListFrame::UpdateStatusBar()
 	if(pTab){
 		CString Text;
 		//---DLL情報
-		const CArchiverDLL *pDLL=pTab->Model.GetArchiver();
+#pragma message("FIXME!")
+		/*const CArchiverDLL *pDLL = pTab->Model.GetArchiver();
 		if(pDLL){
 			Text.Format(IDS_PANE_DLL_NAME,pDLL->GetName());
 			m_StatusBar.SetPaneText(IDS_PANE_DLL_NAME_INITIAL,Text);
-		}
+		}*/
 
 		//---ファイル選択情報
 		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),pTab->ListView.GetSelectedCount());
@@ -786,7 +783,7 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 		bool bSelected=SelCount>0;
 
 		//UI更新
-		EnableEntryExtractOperationMenu(bFileListActive && pTab->Model.IsExtractEachSupported() && bSelected);
+		EnableEntryExtractOperationMenu(bFileListActive && bSelected);
 		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsDeleteItemsSupported() && bSelected);
 		EnableAddItemsMenu(pTab->Model.IsAddItemsSupported());
 
@@ -862,10 +859,9 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//「全てのファイル」のフィルタ文字を作る
 	CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-	std::vector<TCHAR> filter(strAnyFile.GetLength()+1+1);
-	UtilMakeFilterString(strAnyFile,&filter[0],filter.size());
+	auto filter = UtilMakeFilterString((const wchar_t*)strAnyFile);
 	//CFileDialog dlg(TRUE, NULL, NULL, OFN_NOCHANGEDIR|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,&filter[0]);
-	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR|OFN_DONTADDTORECENT|OFN_HIDEREADONLY|OFN_FILEMUSTEXIST|OFN_PATHMUSTEXIST|OFN_ALLOWMULTISELECT,&filter[0]);
+	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_ALLOWMULTISELECT, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
@@ -873,7 +869,7 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	CString tmp;
 	if(dlg.GetFirstPathName(tmp)){
 		do{
-			HRESULT hr=OpenArchiveFile(tmp,DLL_ID_UNKNOWN,false);
+			HRESULT hr=OpenArchiveFile(tmp,false);
 			if(E_ABORT==hr)break;
 		}while(dlg.GetNextPathName(tmp));
 	}
@@ -922,8 +918,7 @@ void CFileListFrame::SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW
 	CFileListModel::SetOpenAssocExtAccept(ConfFLW.OpenAssoc.Accept);
 	if(ConfFLW.DenyPathExt){
 		//環境変数で構築
-		std::map<stdString,stdString> envs;
-		UtilGetEnvInfo(envs);
+		auto envs = UtilGetEnvInfo();
 		for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
 			CFileListModel::SetOpenAssocExtDeny((envs[_T("PATHEXT")]+_T(";")).c_str()+ConfFLW.OpenAssoc.Deny);
 		}
@@ -990,7 +985,7 @@ HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffec
 
 		//開く
 		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			HRESULT hr=OpenArchiveFile(*ite,DLL_ID_UNKNOWN,false);
+			HRESULT hr=OpenArchiveFile(*ite,false);
 			if(E_ABORT==hr)break;
 		}
 
@@ -1083,9 +1078,9 @@ HWND CFileListFrame::CreateToolBarCtrl(HWND hWndParent, UINT nResourceID,HIMAGEL
 	}
 
 	::SendMessage(hWnd, TB_ADDBUTTONS, nItems, (LPARAM)pTBBtn);
-	::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, max(pData->wHeight, cyFontHeight)));
+	::SendMessage(hWnd, TB_SETBITMAPSIZE, 0, MAKELONG(pData->wWidth, std::max(pData->wHeight, cyFontHeight)));
 	const int cxyButtonMargin = 7;
-	::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
+	::SendMessage(hWnd, TB_SETBUTTONSIZE, 0, MAKELONG(pData->wWidth + cxyButtonMargin, std::max(pData->wHeight, cyFontHeight) + cxyButtonMargin));
 
 	return hWnd;
 }

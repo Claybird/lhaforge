@@ -35,6 +35,7 @@
 #define _ATL_NO_OPENGL
 #define ATL_NO_LEAN_AND_MEAN
 #define _ATL_USE_CSTRING_FLOAT	//CStringのFormatで小数が出力できるようになる
+#define NOMINMAX
 
 //#if (defined _DEBUG)||(defined DEBUG)
 //#define _CRTDBG_MAP_ALLOC
@@ -42,11 +43,6 @@
 //#include <crtdbg.h>
 //#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 //#endif
-
-#define _USE_32BIT_TIME_T	//time_tを32bitにする
-
-#define _STLP_USE_NEWALLOC	//STLで標準のアロケータを使う
-//#define _STLP_LEAKS_PEDANTIC	//STLのメモリリークを消す
 
 //ATLのCStringを使う
 //(cf.)http://hp.vector.co.jp/authors/VA022575/c/cstring.html
@@ -78,13 +74,17 @@ extern CAppModule _Module;
 #include <time.h>
 
 #include <algorithm>
+#include <functional>
 #include <list>
 #include <vector>
+#include <array>
 #include <string>
 #include <map>
 #include <stack>
 #include <unordered_map>
+#include <unordered_set>
 #include <set>
+#include <regex>
 
 #include <comcat.h>
 
@@ -120,13 +120,13 @@ typedef std::string stdString;
 #define FILL_ZERO(x)	::ZeroMemory(&x,sizeof(x))
 #define ASSERT(x)	assert(x)
 
+#include "Utilities/StringUtil.h"
 //TRACE
-void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #if defined(_DEBUG) || defined(DEBUG)
-#define TRACE UtilDebugTrace
-#else	// Releaseのとき
+#define TRACE(fmt, ...)	OutputDebugString(Format(fmt, __VA_ARGS__).c_str())
+#else
 #define TRACE
-#endif	//_DEBUG
+#endif
 
 //enum
 #define ENUM_COUNT_AND_LASTITEM(x) x##_ITEM_COUNT,x##_LAST_ITEM=(x##_ITEM_COUNT-1)
@@ -148,5 +148,34 @@ void UtilDebugTrace(LPCTSTR pszFormat, ...);
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+  TypeName(const TypeName&)=delete;        \
+  void operator=(const TypeName&)=delete;
+
+#ifdef _MSC_VER
+ #define WEAK_SYMBOL __declspec(selectany)
+#else
+ #define WEAK_SYMBOL __attribute__((weak))
+#endif
+
+
+struct LF_EXCEPTION {
+	std::wstring _msg;
+	LF_EXCEPTION(const std::wstring &err) {
+		_msg = err;
+	}
+	virtual ~LF_EXCEPTION() {}
+	const wchar_t* what()const { return _msg.c_str(); }
+};
+
+struct LF_USER_CANCEL_EXCEPTION: LF_EXCEPTION {
+	LF_USER_CANCEL_EXCEPTION() :LF_EXCEPTION(L"Cancel") {}
+	virtual ~LF_USER_CANCEL_EXCEPTION() {}
+};
+
+#define RAISE_EXCEPTION(...) throw LF_EXCEPTION(Format(__VA_ARGS__))
+#define CANCEL_EXCEPTION() throw LF_USER_CANCEL_EXCEPTION()
+
+
+#include <filesystem>
+#include <sys/utime.h>
+

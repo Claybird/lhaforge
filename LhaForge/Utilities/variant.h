@@ -27,7 +27,7 @@
 //自由にキャストできる変数
 //Perlのような変数変換を与える
 
-class CVariant{
+class[[deprecated("will be removed")]] CVariant{
 protected:
 	CString m_str;
 public:

@@ -30,7 +30,7 @@
 //Written by Claybird http://claybird.sakura.ne.jp/
 
 class CFileListModel;
-struct ARCHIVE_ENTRY_INFO_TREE;
+struct ARCHIVE_ENTRY_INFO;
 //ドラッグ&ドロップ
 class COLEDnDSource{
 protected:
@@ -40,5 +40,5 @@ protected:
 public:
 	COLEDnDSource(){}
 	virtual ~COLEDnDSource(){}
-	HRESULT DragDrop(CFileListModel&,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,ARCHIVE_ENTRY_INFO_TREE *lpBase,LPCTSTR lpszOutputDir,CString &strLog);
+	HRESULT DragDrop(CFileListModel&,const std::list<ARCHIVE_ENTRY_INFO*>&,ARCHIVE_ENTRY_INFO *lpBase,LPCTSTR lpszOutputDir,CString &strLog);
 };

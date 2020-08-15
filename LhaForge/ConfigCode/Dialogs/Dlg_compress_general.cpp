@@ -52,7 +52,7 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//----------------------------------------------------
 	Edit_CompressOutputDirPath=GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR);
 	Edit_CompressOutputDirPath.SetLimitText(_MAX_PATH);
-	Edit_CompressOutputDirPath.SetWindowText(m_Config.OutputDir);
+	Edit_CompressOutputDirPath.SetWindowText(m_Config.OutputDirUserSpecified);
 
 	Button_CompressToFolder=GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER);
 
@@ -120,7 +120,7 @@ LRESULT CConfigDlgCompressGeneral::OnApply()
 	//----------------------
 	// 出力先フォルダのパス
 	//----------------------
-	Edit_CompressOutputDirPath.GetWindowText(m_Config.OutputDir);
+	Edit_CompressOutputDirPath.GetWindowText(m_Config.OutputDirUserSpecified);
 
 	//--------------------------------
 	// 同時に圧縮するファイル数の上限
@@ -193,32 +193,27 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 		bool bSingleCompression=false;	//無視される
 
 		//形式選択ダイアログ
-		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression);
-		if(CompressType==PARAMETER_UNDEFINED)return 1;	//キャンセル
+		auto format =SelectCompressType(Options,bSingleCompression);
+		if(format == LF_FMT_INVALID)return 1;	//キャンセル
 
-		//通常DLLを使用
 		//選択ダイアログの条件に一致するパラメータを検索
-		int Index=0;
-		for(;Index<COMPRESS_PARAM_COUNT;Index++){
-			if(CompressType==CompressParameterArray[Index].Type){
-				if(Options==CompressParameterArray[Index].Options){
-					break;
-				}
+		try {
+			const auto &caps = get_archive_capability(format);
+			if (!isIn(caps.allowed_combinations, Options)) {
+				throw ARCHIVE_EXCEPTION(EINVAL);
 			}
-		}
-		if(Index>=COMPRESS_PARAM_COUNT){
+		} catch (const ARCHIVE_EXCEPTION& ) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 			return 1;
-		}else{
-			//設定を保存
-			m_Config.DefaultType=CompressType;
-			m_Config.DefaultOptions=Options;
-
-			SetParameterInfo();//Editに現在のパラメータの情報を表示する
-			return 0;
 		}
+		//設定を保存
+		m_Config.DefaultType=format;
+		m_Config.DefaultOptions=Options;
+
+		SetParameterInfo();//Editに現在のパラメータの情報を表示する
+		return 0;
 	}
 	return 0;
 }
@@ -226,27 +221,19 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 
 void CConfigDlgCompressGeneral::SetParameterInfo()//Editに現在のパラメータの情報を表示する
 {
-	if(m_Config.DefaultType==PARAMETER_UNDEFINED){
+	if(LF_FMT_INVALID==m_Config.DefaultType){
 		//未定義
 		Edit_DefaultParameterInfo.SetWindowText(_T(""));
-	}else{	//通常DLLを使用
+	}else{
 		//選択ダイアログの条件に一致するパラメータを検索
-		int Index=0;
-		for(;Index<COMPRESS_PARAM_COUNT;Index++){
-			if(m_Config.DefaultType==CompressParameterArray[Index].Type){
-				if(m_Config.DefaultOptions==CompressParameterArray[Index].Options){
-					break;
-				}
-			}
-		}
-		if(Index>=COMPRESS_PARAM_COUNT){
+		try {
+			const auto &args = get_archive_format_args(m_Config.DefaultType, m_Config.DefaultOptions);
+			//正常な設定
+			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(args.FormatName)));
+		} catch (const ARCHIVE_EXCEPTION&) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
 			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
-		}
-		else{
-			//正常な設定
-			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
 		}
 	}
 }

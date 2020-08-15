@@ -24,7 +24,6 @@
 
 #pragma once
 #include "../resource.h"
-#include "../ArchiverManager.h"
 #include "../ConfigCode/ConfigManager.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"
@@ -212,7 +211,7 @@ public:
 	}
 	BOOL PreTranslateMessage(MSG* pMsg);
 
-	HRESULT OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen=true);
+	HRESULT OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen=true);
 
 	void GetFreeClientRect(CRect &rc){
 		GetClientRect(rc);

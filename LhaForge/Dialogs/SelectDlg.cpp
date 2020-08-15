@@ -25,7 +25,6 @@
 #include "stdafx.h"
 #include "SelectDlg.h"
 #include "../Compress.h"
-#include "../ArchiverManager.h"
 
 LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
@@ -42,7 +41,9 @@ void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 {
 	//DDX情報アップデート
 	DoDataExchange(TRUE);
-	PARAMETER_TYPE Param;
+#pragma message("FIXME!")
+#if 0
+	LF_ARCHIVE_FORMAT format;
 	switch(nID){
 	case IDCANCEL:
 		Param=PARAMETER_UNDEFINED;
@@ -69,6 +70,8 @@ void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
 	default:/*ASSERT(!"Not implemented");*/return;
 	}
 	EndDialog(Param);
+#endif
+	EndDialog(LF_FMT_INVALID);
 }
 
 LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
@@ -96,12 +99,13 @@ LRESULT CSelectDialog::OnSFX(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHa
 int CSelectDialog::GetOptions()
 {
 	int Options=0;
-	if(bSFX)Options|=COMPRESS_SFX;
+#pragma message("FIXME!")
+	/*if(bSFX)Options|=COMPRESS_SFX;
 	if(bSplit)Options|=COMPRESS_SPLIT;
 	if(bPassword){
 		if(bPublicPassword)Options|=COMPRESS_PUBLIC_PASSWORD;
 		else Options|=COMPRESS_PASSWORD;
-	}
+	}*/
 	return Options;
 }
 
@@ -110,21 +114,21 @@ int CSelectDialog::GetOptions()
 
 //---------------------------------------------------------------
 
-//圧縮形式選択:キャンセルでPARAMETER_UNDEFINEDが返る
-PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression)
+//圧縮形式選択:キャンセルでLF_FMT_INVALIDが返る
+LF_ARCHIVE_FORMAT SelectCompressType(int &Options,bool &bSingleCompression)
 {
 	//初期化
-	PARAMETER_TYPE CompressType=PARAMETER_UNDEFINED;
+	LF_ARCHIVE_FORMAT CompressType = LF_FMT_INVALID;
 	bSingleCompression=false;
 	Options=0;
 
 	//OkかCancelまで繰り返し
 	while(true){	//---使用DLLを決定
-		if(PARAMETER_UNDEFINED==CompressType){	//形式が指定されていない場合
+		if(LF_FMT_INVALID == CompressType){	//形式が指定されていない場合
 			CSelectDialog SelDlg;
-			CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
-			if(PARAMETER_UNDEFINED==CompressType){	//キャンセルの場合
-				return PARAMETER_UNDEFINED;
+			CompressType=(LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+			if(LF_FMT_INVALID == CompressType){	//キャンセルの場合
+				return LF_FMT_INVALID;
 			}else{
 				Options=SelDlg.GetOptions();
 				bSingleCompression=SelDlg.IsSingleCompression();

@@ -24,60 +24,70 @@
 
 #pragma once
 
-struct SHORTCUTINFO{
-	CString strTitle;
-	CString strCmd;
-	CString strParam;
-	CString strWorkingDir;
+HRESULT UtilCreateShortcut(
+	const std::wstring& pathLink,
+	const std::wstring& pathTarget,
+	const std::wstring& args,
+	const std::wstring& iconPath,
+	int iIcon,
+	LPCTSTR lpszDescription);
+
+struct UTIL_SHORTCUTINFO {
+	std::wstring title;
+	std::wstring cmd;
+	std::wstring param;
+	std::wstring workingDir;
 	CBitmap cIconBmpSmall;
 };
 
-//ショートカット作成
-HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription);
+HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info);
 
-//ショートカットの情報を取得
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir);
-void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info);
+//Open a folder with explorer
+void UtilNavigateDirectory(const std::wstring& dir);
 
-//ウィンドウを確実にフォアグラウンドにする
-void UtilSetAbsoluteForegroundWindow(HWND);
+//retrieve environment variables as key=value pair
+std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 
-//WoW64(64bit OSでの32bitエミュレーション)で動いていればTRUEを返す関数
-BOOL UtilIsWow64();
-
-//コマンドライン引数を取得(個数を返す)
-int UtilGetCommandLineParams(std::vector<CString>&);
-
-//特定のフォルダをExplorerで開く
-void UtilNavigateDirectory(LPCTSTR lpszDir);
-
-//環境変数を参照し、辞書形式で取得する
-void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo);
-
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo);
-
-//アイコンを透明度付きビットマップに変換する
+//convert icon into bitmap with alpha information
 void UtilMakeDIBFromIcon(CBitmap&,HICON);
 
-//プロセス優先度の設定
+enum LFPROCESS_PRIORITY {
+	LFPRIOTITY_DEFAULT = 0,
+	LFPRIOTITY_LOW = 1,
+	LFPRIOTITY_LOWER = 2,
+	LFPRIOTITY_NORMAL = 3,
+	LFPRIOTITY_HIGHER = 4,
+	LFPRIOTITY_HIGH = 5,
+	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
+};
+
+//Process priority
 void UtilSetPriorityClass(DWORD dwPriorityClass);
 
-//ディレクトリ制御
+//Copy text to clipboard
+void UtilSetTextOnClipboard(const std::wstring& text);
+
+//moves to a directory, and comes back to the previous directory on destructor
 class CCurrentDirManager
 {
 	DISALLOW_COPY_AND_ASSIGN(CCurrentDirManager);
 protected:
-	TCHAR _prevDir[_MAX_PATH+1];
+	std::filesystem::path _prevDir;
 public:
-	CCurrentDirManager(LPCTSTR lpPath){
-		::GetCurrentDirectory(COUNTOF(_prevDir),_prevDir);
-		::SetCurrentDirectory(lpPath);
+	CCurrentDirManager(const std::wstring& chdirTo) {
+		_prevDir = std::filesystem::current_path();
+		try {
+			std::filesystem::current_path(chdirTo);
+		} catch (std::filesystem::filesystem_error) {
+			RAISE_EXCEPTION(L"Failed to chdir to %s", chdirTo);
+		}
 	}
-	virtual ~CCurrentDirManager(){
-		::SetCurrentDirectory(_prevDir);
+	virtual ~CCurrentDirManager() noexcept(false) {
+		try {
+			std::filesystem::current_path(_prevDir);
+		} catch (std::filesystem::filesystem_error) {
+			RAISE_EXCEPTION(L"Failed to chdir to %s", _prevDir.c_str());
+		}
 	}
 };
 
-//クリップボードにテキストを設定
-void UtilSetTextOnClipboard(LPCTSTR lpszText);

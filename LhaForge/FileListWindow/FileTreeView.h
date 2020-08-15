@@ -33,7 +33,7 @@ class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public IDrop
 {
 protected:
 	CImageList	m_ImageList;
-	typedef std::map<ARCHIVE_ENTRY_INFO_TREE*,HTREEITEM> ITEMDICT;
+	typedef std::map<ARCHIVE_ENTRY_INFO*,HTREEITEM> ITEMDICT;
 	ITEMDICT m_TreeItemMap;
 	CFileListModel &mr_Model;
 	bool m_bSelfAction;
@@ -91,7 +91,7 @@ protected:
 	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);
 	bool OnSendToApp(UINT nID);
 	void OnExtractItem(UINT,int nID,HWND);
-	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*> &items);
+	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items);
 	void OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);
@@ -103,7 +103,7 @@ public:
 
 	CFileTreeView(CFileListModel&);
 	virtual ~CFileTreeView(){}
-	bool ConstructTree(HTREEITEM hParentItem=NULL,ARCHIVE_ENTRY_INFO_TREE* lpNode=NULL);
+	bool ConstructTree(HTREEITEM hParentItem=NULL,ARCHIVE_ENTRY_INFO* lpNode=NULL);
 	void Clear();
 	void ExpandTree();
 

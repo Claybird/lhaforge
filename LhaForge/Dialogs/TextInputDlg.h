@@ -24,39 +24,37 @@
 
 #pragma once
 
-class CInputDialog : public CDialogImpl<CInputDialog>,public CWinDataExchange<CInputDialog>
+class CTextInputDialog : public CDialogImpl<CTextInputDialog>,public CWinDataExchange<CTextInputDialog>
 {
 protected:
-	CString &strInput;
+	CString strInput;
 	CString strMessage;
 public:
 	enum {IDD = IDD_DIALOG_INPUT};
-	CInputDialog(LPCTSTR lpszMessage,CString &str):strInput(str),strMessage(lpszMessage){}
+	CTextInputDialog(LPCTSTR lpszMessage):strMessage(lpszMessage){}
 
-	// DDXマップ
-	BEGIN_DDX_MAP(CInputDialog)
+	BEGIN_DDX_MAP(CTextInputDialog)
 		DDX_TEXT(IDC_EDIT_INPUT,strInput)
 	END_DDX_MAP()
 
-	// メッセージマップ
-	BEGIN_MSG_MAP_EX(CInputDialog)
+	BEGIN_MSG_MAP_EX(CTextInputDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDOK, OnButton)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam){
-		//メッセージ設定
 		CStatic cStatic=GetDlgItem(IDC_STATIC_MESSAGE);
 		cStatic.SetWindowText(strMessage);
 
-		//DDX情報設定
 		DoDataExchange(FALSE);
 		return TRUE;
 	}
 	void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl){
-		//DDX情報設定
 		DoDataExchange(TRUE);
 		EndDialog(nID);
 	}
+	LPCWSTR GetInputText()const { return strInput; }
+	void SetInputText(LPCWSTR input) { strInput = input; }
 };
+

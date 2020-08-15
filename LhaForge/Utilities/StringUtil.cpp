@@ -26,240 +26,260 @@
 #include "StringUtil.h"
 #include "Utility.h"
 
-void UtilTrimString(CStringW &strTarget,LPCWSTR lpszSubject)
+std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets)
 {
-	const std::wstring strSubject(lpszSubject);
-	int idx;
-	for(idx=strTarget.GetLength()-1;idx>=0;idx--){
-		wchar_t ch=strTarget.operator[](idx);
-		if(-1==index_of(strSubject,ch))break;
-	}
-	strTarget=strTarget.Left(idx+1);
+	auto idx = target.find_last_not_of(trimTargets);
+	if (idx == std::wstring::npos)return L"";
+	else return target.substr(0, idx + 1);
 }
 
-//MFCスタイルでCFileDialogのフィルター文字列を作る
-void UtilMakeFilterString(LPCTSTR lpszIn,LPTSTR lpszOut,int outSize)
+//builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
+std::wstring UtilMakeFilterString(const std::wstring& filterIn)
 {
-	ASSERT(outSize>=2);
-	if(outSize<2)return;
-	_tcsncpy_s(lpszOut,outSize,lpszIn,outSize);
-	lpszOut[outSize-1]=_T('\0');
-	lpszOut[outSize-2]=_T('\0');
+	std::wstring out = filterIn;
+	out += L"||";
 
-	LPTSTR lpChar=lpszOut;
-	for(;*lpChar!=_T('\0');lpChar++){
-#if !defined(_UNICODE)&&!defined(UNICODE)
-		if(_MBC_SINGLE==_mbsbtype((LPCBYTE)lpChar,0))
-#endif
-			if(*lpChar==_T('|')){
-				*lpChar=_T('\0');
+	for(auto& c:out){
+		if(c==L'|'){
+			c = L'\0';
+		}
+	}
+	return out;
+}
+
+std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage)
+{
+	const unsigned char* pByte = (const unsigned char*)lpSrc;
+	switch (uSrcCodePage) {
+	case UTIL_CODEPAGE::UTF8:
+		if (length >= 3 && pByte[0] == 0xEF && pByte[1] == 0xBB && pByte[2] == 0xBF) {	//BOM check
+			lpSrc += 3;
+			length -= 3;
+		}
+		break;
+	case UTIL_CODEPAGE::UTF16:
+		if (length >= 2 && pByte[0] == 0xFF && pByte[1] == 0xFE) {
+			//UTF-16-LE
+			lpSrc += 2;
+			length -= 2;
+			return (const wchar_t*)lpSrc;
+		} else if (length >= 2 && pByte[0] == 0xFE && pByte[1] == 0xFF) {
+			//UTF-16-BE
+			lpSrc += 2;
+			length -= 2;
+			std::wstring buf = (const wchar_t*)lpSrc;
+			char* p = (char*)&buf[0];
+			for (size_t i = 0; i < buf.length(); i++) {
+				std::swap(p[i * 2], p[i * 2 + 1]);
 			}
+			return buf;
+		} else {
+			return (const wchar_t*)lpSrc;
+		}
 	}
-	*lpChar++;
-	*lpChar=_T('\0');
+	int bufSize = ::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, length, NULL, 0);
+
+	std::wstring wstr;
+	wstr.resize(bufSize);
+
+	::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, length, &wstr[0], bufSize);
+	return wstr.c_str();
 }
 
-//TCHARファイル名がSJISファイル名で表現できるかチェックする
-bool UtilCheckT2A(LPCTSTR lpPath)
+std::string UtilToUTF8(const std::wstring& unicode_string)
 {
-#if defined(_UNICODE)||defined(UNICODE)
-	//欠損無く変換できているかどうかチェックする
-	CStringA strTempA(lpPath);
-	CStringW strTempW(strTempA);
-	return (strTempW==lpPath);
-#else//defined(_UNICODE)||defined(UNICODE)
-	//SJISそのまま
-	return true;
-#endif//defined(_UNICODE)||defined(UNICODE)
+	int bufSize = ::WideCharToMultiByte(CP_UTF8, 0,
+		unicode_string.c_str(), -1,
+		nullptr, 0, nullptr, nullptr);
+
+	std::string utf8;
+	utf8.resize(bufSize);
+
+	::WideCharToMultiByte(CP_UTF8, 0, unicode_string.c_str(), -1, &utf8[0], bufSize, nullptr, nullptr);
+	return utf8.c_str();
 }
 
-//複数ファイルのうち、一つでもUNICODE専用ファイル名があればfalse
-bool UtilCheckT2AList(const std::list<CString> &strList)
+UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length)
 {
-	for(std::list<CString>::const_iterator ite=strList.begin();ite!=strList.end();++ite){
-		if(!UtilCheckT2A(*ite))return false;
+	const unsigned char* pByte = (const unsigned char*)lpSrc;
+	if (length >= 2 && (
+		(pByte[0] == 0xFE && pByte[1] == 0xFF) ||
+		(pByte[0] == 0xFF && pByte[1] == 0xFE))) {
+		return UTIL_CODEPAGE::UTF16;
+	} else if (length >= 3 && pByte[0] == 0xEF && pByte[1] == 0xBB && pByte[2] == 0xBF) {	//BOM check
+		return UTIL_CODEPAGE::UTF8;
+	} else {
+		if (UtilVerityGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF8)) {
+			return UTIL_CODEPAGE::UTF8;
+		} else if (UtilVerityGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF16)) {
+			return UTIL_CODEPAGE::UTF16;
+		}else{
+			return UTIL_CODEPAGE::CP932;
+		}
 	}
-	return true;
 }
 
-
-//適当な文字コード->UNICODE
-bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage)
+//NOTE: this function should work for relatively long string, but not reliable for short string
+//checks if the code page is correct for the given string
+bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage)
 {
-#if defined(_UNICODE)||defined(UNICODE)
-	switch(uSrcCodePage){
-	case UTILCP_SJIS:
-		strRet=CStringA((LPCSTR)lpcByte);
-		return true;
-	case UTILCP_UTF16:
-		if(*((LPCWSTR)lpcByte)==0xFEFF){
-			//UTF16LE
-			strRet=((LPCWSTR)lpcByte)+1;
-		}else if(*((LPCWSTR)lpcByte)==0xFFFE){
-			//UTF16BE
-			//エンディアン変換
-			std::vector<BYTE> cArray(dwSize-2);
-			_swab((char*)const_cast<LPBYTE>(lpcByte+2),(char*)&cArray[0],dwSize-2);
-			strRet=(LPCWSTR)&cArray[0];
+	const unsigned char* pByte = (const unsigned char*)lpSrc;
+	if (length>=3 && pByte[0] == 0xEF && pByte[1] == 0xBB && pByte[2] == 0xBF) {	//BOM check
+		if (UTIL_CODEPAGE::UTF8 == uSrcCodePage) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	if (length >= 2 && (
+		(pByte[0] == 0xFE && pByte[1] == 0xFF) ||
+		(pByte[0] == 0xFF && pByte[1] == 0xFE))) {
+		if (UTIL_CODEPAGE::UTF16 == uSrcCodePage) {
 			return true;
 		}
-		else{
-			strRet=(LPCWSTR)lpcByte;
-		}
-		return true;
-	case UTILCP_UTF8:
-		{
-			if(lpcByte[0]==0xEF && lpcByte[1]==0xBB && lpcByte[2]==0xBF){	//BOM check
-				lpcByte+=3;
-			}
-			std::vector<wchar_t> buf(::MultiByteToWideChar(CP_UTF8,0,(LPCSTR)lpcByte,-1,NULL,0));	//バッファ確保
-			//変換
-			if(!::MultiByteToWideChar(CP_UTF8,0,(LPCSTR)lpcByte,-1,&buf[0],buf.size())){
-				TRACE(_T("文字コード変換失敗(UTF8->UTF16)"));
-				return false;
-			}
-			strRet=(LPCWSTR)&buf[0];
-			return true;
-		}
-	default:
-		ASSERT(!"This code cannot be run");
-		return false;
 	}
-#else//defined(_UNICODE)||defined(UNICODE)
-#error("not implemented")
-	return false;
-#endif//defined(_UNICODE)||defined(UNICODE)
+
+	auto decoded = UtilToUNICODE(lpSrc, length, uSrcCodePage);
+
+	std::string encoded;
+	BOOL fallBack = FALSE;
+	if (uSrcCodePage == UTIL_CODEPAGE::UTF16) {
+		encoded.assign((const char*)&decoded[0], (const char*)(&decoded[0] + decoded.size() + 1));
+	} else {
+		int bufSize = ::WideCharToMultiByte((int)uSrcCodePage, 0, decoded.c_str(), -1, NULL, 0, "?", NULL);
+		encoded.resize(bufSize);
+
+		::WideCharToMultiByte((int)uSrcCodePage, 0, decoded.c_str(), -1, &encoded[0], bufSize, "?", &fallBack);
+	}
+	return !fallBack && std::string(lpSrc, lpSrc + length) == encoded;
 }
 
-//適当な入力文字の文字コードを推定し、UNICODE(UTF16)に変換
-void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize)
+//https://stackoverflow.com/questions/22617209/regex-replace-with-callback-in-c11
+template<class BidirIt, class Traits, class CharT, class UnaryFunction>
+std::basic_string<CharT> util_regex_replace(BidirIt first, BidirIt last,
+	const std::basic_regex<CharT, Traits>& re, UnaryFunction f)
 {
-#if defined(_UNICODE)||defined(UNICODE)
-	if(*((LPCWSTR)lpcByte)==0xFEFF){
-		//UTF16LE
-		TRACE(_T("入力テキストはUTF-16LEと推定される\n"));
-		strRet=((LPCWSTR)lpcByte)+1;
-	}else if(*((LPCWSTR)lpcByte)==0xFFFE){
-		//UTF16BE
-		//エンディアン変換
-		TRACE(_T("入力テキストはUTF-16BEと推定される\n"));
-		std::vector<BYTE> cArray(dwSize-2);
-		_swab((char*)const_cast<LPBYTE>(lpcByte+2),(char*)&cArray[0],dwSize-2);
-		strRet=(LPCWSTR)&cArray[0];
-	}else if(lpcByte[0]==0xEF && lpcByte[1]==0xBB && lpcByte[2]==0xBF){	//BOM check
-		TRACE(_T("入力テキストはUTF-8 with BOMと推定される\n"));
-		UtilToUNICODE(strRet,lpcByte,dwSize,UTILCP_UTF8);
-	}else{
-		TRACE(_T("入力テキストは非UNICODE(UTF16)と推定される\n"));
-		strRet=CStringA((LPCSTR)lpcByte);
-	}
-#else//defined(_UNICODE)||defined(UNICODE)
-#error("not implemented")
-	return false;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
+	std::basic_string<CharT> s;
 
-//UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	cArray.resize(::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,NULL,0,NULL,NULL));	//バッファ確保
-	//変換
-	if(!::WideCharToMultiByte(CP_UTF8,0,strSrc,-1,(LPSTR)&cArray[0],cArray.size(),NULL,NULL)){
-		TRACE(_T("文字コード変換失敗(UTF16->UTF8)"));
-		return false;
-	}
-	return true;
-#else//defined(_UNICODE)||defined(UNICODE)
-#error("not implemented")
-	return false;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
+	typename std::match_results<BidirIt>::difference_type
+		positionOfLastMatch = 0;
+	auto endOfLastMatch = first;
 
-inline bool between(WCHAR a,WCHAR begin,WCHAR end){
-	return (begin<=a && a<=end);
-}
+	auto callback = [&](const std::match_results<BidirIt>& match)
+	{
+		auto positionOfThisMatch = match.position(0);
+		auto diff = positionOfThisMatch - positionOfLastMatch;
 
-//UNICODEとして安全ならtrue
-bool UtilIsSafeUnicode(LPCTSTR lpChar)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	ASSERT(lpChar);
-	if(!lpChar){
-		return true;
-	}
-	const static WCHAR chars[]={
-		0x001e,
-		0x001f,
-		0x00ad,
-		0xFEFF,
-		0xFFF9,
-		0xFFFA,
-		0xFFFB,
-		0xFFFE,
+		auto startOfThisMatch = endOfLastMatch;
+		std::advance(startOfThisMatch, diff);
+
+		s.append(endOfLastMatch, startOfThisMatch);
+		s.append(f(match));
+
+		auto lengthOfMatch = match.length(0);
+
+		positionOfLastMatch = positionOfThisMatch + lengthOfMatch;
+
+		endOfLastMatch = startOfThisMatch;
+		std::advance(endOfLastMatch, lengthOfMatch);
 	};
-	const static UINT len=COUNTOF(chars);
-	for(;*lpChar!=L'\0';lpChar++){
-		WCHAR c=*lpChar;
-		//単独文字との比較
-		for(UINT i=0;i<len;i++){
-			if(c==chars[i])return false;
+
+	std::regex_iterator<BidirIt> begin(first, last, re), end;
+	std::for_each(begin, end, callback);
+
+	s.append(endOfLastMatch, last);
+
+	return s;
+}
+
+//expand variables, "{foo}" for process specific variables, and "%bar%" for OS environment variables
+std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars)
+{
+	auto fmt = format;
+	return util_regex_replace(fmt.cbegin(), fmt.cend(), std::wregex(L"\\{([^;]*?)\\}|%([^;]*?)%"),
+		[&](const std::wsmatch& m) {
+		auto key = m.str(0);
+		auto found = envVars.find(toLower(key.substr(1, key.length() - 2)));
+		if (found==envVars.end()) {
+			return key;
+		} else {
+			return (*found).second;
 		}
-
-		//範囲のある文字との比較
-		if(between(c,0x200b,0x200f))return false;
-		if(between(c,0x202a,0x202e))return false;
-		if(between(c,0x2060,0x2063))return false;
-		if(between(c,0x206a,0x206f))return false;
-	}
-	return true;
-
-#else//defined(_UNICODE)||defined(UNICODE)
-	return true;
-#endif//defined(_UNICODE)||defined(UNICODE)
+	});
 }
 
 
-//指定されたフォーマットで書かれた文字列を展開する
-void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env)
+std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std::wstring& separator)
 {
-	strOut=lpszFormat;
-	for(std::map<stdString,CString>::const_iterator ite=env.begin();ite!=env.end();++ite){
-		//%で始まるブロックは環境変数と見なすので{}による修飾は行わない
-		stdString strKey=( (*ite).first[0]==L'%' ? (*ite).first : _T("{")+(*ite).first+_T("}") );
-		strOut.Replace(strKey.c_str(),(*ite).second);
-	}
-}
-
-void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd)
-{
-	ASSERT(lpStart);
-	ASSERT(lpEnd);
-	strOut=_T("");
-	for(;lpStart!=lpEnd;++lpStart){
-		strOut+=*lpStart;
-	}
-}
-
-
-//文字列を分解し数値配列として取得
-void UtilStringToIntArray(LPCTSTR str, std::vector<int>& numArr)
-{
-	numArr.clear();
-
-	for(;_T('\0')!=*str;){
-		CString Temp;
-		for(;;){
-			if(_T(',')==*str||_T('\0')==*str){
-				str++;
+	std::vector<std::wstring> splitted;
+	if (separator.empty()) {
+		splitted.push_back(target);
+	} else {
+		std::wstring::size_type first = 0;
+		while (true) {
+			auto pos = target.find(separator, first);
+			if (std::wstring::npos == pos) {
+				splitted.push_back(target.substr(first));
 				break;
-			}else{
-				Temp += *str;
-				str++;
+			} else {
+				splitted.push_back(target.substr(first, pos - first));
+				first = pos + separator.length();
 			}
 		}
-		int num = _ttoi(Temp);
-		numArr.push_back(num);
+	}
+	return splitted;
+}
+
+//split string into number array
+std::vector<int> UtilStringToIntArray(const std::wstring& str)
+{
+	std::vector<int> numArr;
+	for(const auto& sub: UtilSplitString(str, L",")){
+		numArr.push_back(_wtoi(sub.c_str()));
+	}
+	return numArr;
+}
+
+
+std::wstring UtilFormatSize(UINT64 size)
+{
+	if (-1 == size) {
+		return L"---";
+	}
+	const std::vector<std::pair<UINT64, std::wstring> > units = {
+		{1, L"Bytes"},
+		{1024, L"KB"},
+		{1024 * 1024, L"MB"},
+		{1024 * 1024 * 1024, L"GB" },
+		{1024 * 1024 * 1024 * 1024ull, L"TB"},
+		{1024 * 1024 * 1024 * 1024ull * 1024ull, L"PB"},
+	};
+
+	for (const auto &unit : units) {
+		if (size / unit.first < 1024) {
+			return Format(L"%llu %s", size / unit.first, unit.second.c_str());
+		}
+	}
+
+	return Format(L"%llu %s", size / units.back().first, units.back().second.c_str());
+}
+
+std::wstring UtilFormatTime(__time64_t timer)
+{
+	std::wstring buf;
+	buf.resize(64);
+	struct tm localtime;
+	_localtime64_s(&localtime, &timer);
+	for (;;buf.resize(buf.size()*2)) {
+		auto ret = wcsftime(&buf[0], buf.size(), L"%c", &localtime);
+		if (0 != ret)return buf.c_str();
 	}
 }
 
+//loads string from resource
+std::wstring UtilLoadString(UINT uID)
+{
+	wchar_t buf[256];
+	LoadStringW(GetModuleHandleW(nullptr), uID, buf, 256);
+	return buf;
+}

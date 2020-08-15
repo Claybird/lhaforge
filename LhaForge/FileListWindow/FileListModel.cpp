@@ -23,7 +23,6 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverManager.h"
 #include "FileListModel.h"
 #include "../ConfigCode/ConfigManager.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
@@ -32,7 +31,6 @@
 #include "../Utilities/FileOperation.h"
 #include "../CommonUtil.h"
 #include "../Extract.h"
-#include "../TestArchive.h"
 #include "FileListMessages.h"
 
 CString CFileListModel::ms_strExtAccept;
@@ -43,9 +41,7 @@ CFileListModel::CFileListModel(CConfigManager &conf):
 	m_lpCurrentNode(NULL),
 	m_bSortDescending(true),
 	m_nSortKeyType(FILEINFO_INVALID),
-	m_TempDirManager(_T("lhaf")),
-	m_Mode(FILELIST_TREE),
-	m_idForceDLL(DLL_ID_UNKNOWN)
+	m_Mode(FILELIST_TREE)
 {
 }
 
@@ -53,12 +49,11 @@ CFileListModel::~CFileListModel()
 {
 }
 
-HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
+HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
 	CString strArchive=lpszArchive;	//次のClearでlpszArchveが破壊されるため、ここで保持
 	Clear();
 	m_Mode=flMode;
-	m_idForceDLL=idForceDLL;
 
 	if(!PathFileExists(strArchive)){	//存在しないならエラー
 		strErr.Format(IDS_ERROR_FILE_NOT_FOUND,(LPCTSTR)strArchive);
@@ -67,22 +62,15 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
-	HRESULT hr;
-	//解析
-	if(flMode==FILELIST_TREE){
-		CConfigFileListWindow ConfFLW;
-		ConfFLW.load(mr_Config);
-		hr=m_Content.ConstructTree(strArchive,mr_Config,idForceDLL,ConfExtract.DenyExt,BOOL2bool(ConfFLW.IgnoreMeaninglessPath),strErr,lpHandler);
-	}else{
-		hr=m_Content.ConstructFlat(strArchive,mr_Config,idForceDLL,ConfExtract.DenyExt,(flMode==FILELIST_FLAT_FILESONLY),strErr,lpHandler);
+	//if (flMode == FILELIST_TREE) {
+	try {
+		//解析
+		m_Content.inspectArchiveStruct((LPCTSTR)strArchive, lpHandler);
+	}catch(LF_EXCEPTION&){
+		return E_FAIL;	//TODO
 	}
 
-	if(FAILED(hr)){
-		m_Content.SetArchiveFileName(strArchive);
-		return hr;
-	}
-
-	m_lpCurrentNode=m_Content.GetRootNode();
+	m_lpCurrentNode = m_Content.getRootNode();
 	dispatchEvent(WM_FILELIST_ARCHIVE_LOADED);
 
 	//ソートしておく
@@ -92,31 +80,26 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,DLL_ID idForceDLL,FI
 
 HRESULT CFileListModel::ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
 {
-	return OpenArchiveFile(GetArchiveFileName(),m_idForceDLL,flMode,strErr,lpHandler);
+	return OpenArchiveFile(GetArchiveFileName(),flMode,strErr,lpHandler);
 }
 
 void CFileListModel::Clear()
 {
-	m_Content.Clear();
+	m_Content.clear();
 	m_lpCurrentNode=NULL;
 	m_SortedChildren.clear();
-	//m_nSortKeyType=FILEINFO_INVALID;
 
-	m_FoundItems.Clear();
-	m_FoundItems.bDir=true;
-	m_FoundItems.bSafe=true;
-
-	//dispatchEvent(WM_FILELIST_NEWCONTENT);
+	m_FoundItems.clear();
 }
 
 void CFileListModel::GetDirStack(std::stack<CString> &dirStack)
 {
 	//カレントディレクトリの保存
 	if(m_lpCurrentNode){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=m_lpCurrentNode;
-		ARCHIVE_ENTRY_INFO_TREE* lpRoot=m_Content.GetRootNode();
-		for(;lpNode!=lpRoot;lpNode=lpNode->lpParent){
-			dirStack.push(lpNode->strTitle);
+		ARCHIVE_ENTRY_INFO* lpNode=m_lpCurrentNode;
+		ARCHIVE_ENTRY_INFO* lpRoot=m_Content.getRootNode();
+		for(;lpNode!=lpRoot;lpNode=lpNode->_parent){
+			dirStack.push(lpNode->_entryName.c_str());
 		}
 	}
 }
@@ -127,10 +110,10 @@ bool CFileListModel::SetDirStack(const std::stack<CString> &_dirStack)
 	//カレントディレクトリの復元
 	while(!dirStack.empty()){
 		TRACE(_T("SetDirStack:%s\n"),(LPCTSTR)dirStack.top());
-		m_lpCurrentNode=m_lpCurrentNode->GetChild(dirStack.top());
+		m_lpCurrentNode=m_lpCurrentNode->getChild((LPCTSTR)dirStack.top());
 		dirStack.pop();
 		if(!m_lpCurrentNode){
-			m_lpCurrentNode=m_Content.GetRootNode();
+			m_lpCurrentNode=m_Content.getRootNode();
 			dispatchEvent(WM_FILELIST_NEWCONTENT);
 			SortCurrentEntries();
 			return false;
@@ -141,7 +124,7 @@ bool CFileListModel::SetDirStack(const std::stack<CString> &_dirStack)
 	return true;
 }
 
-void CFileListModel::SetCurrentNode(ARCHIVE_ENTRY_INFO_TREE* lpN)
+void CFileListModel::SetCurrentNode(ARCHIVE_ENTRY_INFO* lpN)
 {
 	ASSERT(lpN);
 	m_lpCurrentNode=lpN;
@@ -150,7 +133,7 @@ void CFileListModel::SetCurrentNode(ARCHIVE_ENTRY_INFO_TREE* lpN)
 }
 
 //ディレクトリを掘り下げる
-bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO_TREE* lpNode)
+bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO* lpNode)
 {
 	//階層構造を無視する場合には、この動作は無視される
 	//if(Config.FileListWindow.FileListMode!=FILELIST_TREE)return false;
@@ -158,7 +141,7 @@ bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO_TREE* lpNode)
 	if(!lpNode){
 		return false;
 	}
-	if(!lpNode->bDir){
+	if(!lpNode->isDirectory()){
 		//ディレクトリでなければ帰ってもらう
 		return false;
 	}
@@ -171,15 +154,15 @@ bool CFileListModel::MoveDownDir(ARCHIVE_ENTRY_INFO_TREE* lpNode)
 
 bool CFileListModel::MoveUpDir()
 {
-	TRACE(_T("UpDir\n"));
+	TRACE(L"UpDir\n");
 	ASSERT(m_lpCurrentNode);
 	if(!m_lpCurrentNode)return false;
 
-	ARCHIVE_ENTRY_INFO_TREE* lpNode=m_lpCurrentNode->lpParent;
+	ARCHIVE_ENTRY_INFO* lpNode=m_lpCurrentNode->_parent;
 	if(!lpNode){
 		return false;
 	}
-	TRACE(_T("%s==>%s\n"),(LPCTSTR)m_lpCurrentNode->strTitle,(LPCTSTR)lpNode->strTitle);
+	TRACE(L"%s==>%s\n", m_lpCurrentNode->_entryName.c_str(), lpNode->_entryName.c_str());
 	m_lpCurrentNode=lpNode;
 
 	SortCurrentEntries();
@@ -191,23 +174,23 @@ bool CFileListModel::MoveUpDir()
 
 
 //リストビューでのアイテム番号に対応するファイルアイテムを取得
-ARCHIVE_ENTRY_INFO_TREE* CFileListModel::GetFileListItemByIndex(long iIndex)
+ARCHIVE_ENTRY_INFO* CFileListModel::GetFileListItemByIndex(long iIndex)
 {
 	ASSERT(m_lpCurrentNode);
 	if(!m_lpCurrentNode)return NULL;
 
-	size_t numChildren=m_lpCurrentNode->GetNumChildren();
+	size_t numChildren=m_lpCurrentNode->getNumChildren();
 
 	//ASSERT(iIndex>=0 && numChildren>(unsigned)iIndex);
 	if(iIndex<0 || numChildren<=(unsigned)iIndex)return NULL;
 
 	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//非ソート状態
-		return m_lpCurrentNode->GetChild(iIndex);
+		return m_lpCurrentNode->getChild(iIndex);
 	}else{
 		if(m_bSortDescending){
-			return m_SortedChildren[iIndex];
+			return m_SortedChildren[iIndex].get();
 		}else{
-			return m_SortedChildren[numChildren-1-iIndex];
+			return m_SortedChildren[numChildren-1-iIndex].get();
 		}
 	}
 }
@@ -233,93 +216,76 @@ void CFileListModel::SetSortMode(bool bSortDescending)
 struct COMP{
 	FILEINFO_TYPE Type;
 	bool bReversed;
-	bool operator()(const ARCHIVE_ENTRY_INFO_TREE* x, const ARCHIVE_ENTRY_INFO_TREE* y)const{
+	bool operator()(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
+		return compare_no_reversed(x, y) ^ bReversed;
+	}
+	bool compare_no_reversed(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
 		switch(Type){
 		case FILEINFO_FILENAME:
 			{
 				//ディレクトリが上に来るようにする
-				if(x->bDir){
-					if(!y->bDir){
+				if(x->isDirectory()){
+					if(!y->isDirectory()){
 						return true;
 					}
-				}else if(y->bDir){
+				}else if(y->isDirectory()){
 					return false;
 				}
-				int result = _tcsicmp(x->strTitle , y->strTitle);
+				int result = _tcsicmp(x->_entryName.c_str(), y->_entryName.c_str());
 				if(result == 0){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 				}else{
 					return (result<0);
 				}
 			}
 		case FILEINFO_FULLPATH:
-			return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
+			return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 		case FILEINFO_ORIGINALSIZE:
-			if(x->llOriginalSize.QuadPart == y->llOriginalSize.QuadPart){
+			if(x->_originalSize == y->_originalSize){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 			}else{
-				return (x->llOriginalSize.QuadPart < y->llOriginalSize.QuadPart);
+				return (x->_originalSize < y->_originalSize);
 			}
 		case FILEINFO_TYPENAME:
 			{
-				int result = _tcsicmp(x->strExt , y->strExt);
+				int result = _tcsicmp(x->getExt().c_str(), y->getExt().c_str());
 				if(result == 0){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 				}else{
 					return (result < 0);
 				}
 			}
 		case FILEINFO_FILETIME:
 			{
-				int result = CompareFileTime(&x->cFileTime , &y->cFileTime);
-				if(result == 0){
+				if(x->_st_mtime == y->_st_mtime){
 					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 				}else{
-					return (result < 0);
+					return (x->_st_mtime < y->_st_mtime);
 				}
 			}
 		case FILEINFO_ATTRIBUTE:
-			if(x->nAttribute == y->nAttribute){
+			if(x->_nAttribute == y->_nAttribute){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
 			}else{
-				return (x->nAttribute < y->nAttribute);
+				return (x->_nAttribute < y->_nAttribute);
 			}
 		case FILEINFO_COMPRESSEDSIZE://圧縮後ファイルサイズ
-			if(x->llCompressedSize.QuadPart == y->llCompressedSize.QuadPart){
-				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-			}else{
-				return (x->llCompressedSize.QuadPart < y->llCompressedSize.QuadPart);
-			}
 		case FILEINFO_METHOD:			//圧縮メソッド
-			{
-				int result = _tcsicmp(x->strMethod , y->strMethod);;
-				if(result == 0){
-					//同じならパス名でソート
-					return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-				}else{
-					return (result < 0);
-				}
-			}
 		case FILEINFO_RATIO:			//圧縮率
-			if(x->wRatio == y->wRatio){
-				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
-			}else{
-				return (x->wRatio < y->wRatio);
-			}
 		case FILEINFO_CRC:			//CRC
-			if(x->dwCRC < y->dwCRC){
+			/*if(x->llCompressedSize == y->llCompressedSize){
 				//同じならパス名でソート
-				return (_tcsicmp(x->strFullPath , y->strFullPath)<0) ^ bReversed;
+				return (_tcsicmp(x->strFullPath , y->strFullPath)<0);
 			}else{
-				return (x->dwCRC < y->dwCRC);
-			}
+				return (x->llCompressedSize < y->llCompressedSize);
+			}*/
+#pragma message("FIXME!")
+			return false;
 		}
 		return false;
 	}
@@ -334,7 +300,7 @@ void CFileListModel::SortCurrentEntries()
 		if(FILEINFO_INVALID==Type){		//ソート解除
 			return;
 		}
-		m_SortedChildren=m_lpCurrentNode->childrenArray;
+		m_SortedChildren = m_lpCurrentNode->_children;
 
 		if(Type<FILEINFO_INVALID||Type>FILEINFO_LAST_ITEM)return;
 		COMP Comp;
@@ -346,20 +312,12 @@ void CFileListModel::SortCurrentEntries()
 }
 
 
-//lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFO_TREEのポインタを返す
-ARCHIVE_ENTRY_INFO_TREE* CFileListModel::FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO_TREE *lpTop)
+//lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFOのポインタを返す
+ARCHIVE_ENTRY_INFO* CFileListModel::FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO *lpTop)
 {
-	m_FoundItems.childrenArray.clear();
+	m_FoundItems._children = m_Content.findItem(lpszMask, lpTop);
 
-	m_Content.FindItem(lpszMask,lpTop,m_FoundItems.childrenArray);
-
-	m_FoundItems.lpParent=lpTop;
-	m_FoundItems.childrenDict.clear();
-
-	for(size_t i=0;i<m_FoundItems.childrenArray.size();i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=m_FoundItems.childrenArray[i];
-		m_FoundItems.childrenDict[(LPCTSTR)lpNode->strTitle]=lpNode;
-	}
+	m_FoundItems._parent = nullptr;
 
 	return &m_FoundItems;
 }
@@ -367,21 +325,16 @@ ARCHIVE_ENTRY_INFO_TREE* CFileListModel::FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY
 void CFileListModel::EndFindItem()
 {
 	if(IsFindMode()){
-		SetCurrentNode(m_FoundItems.lpParent);
+		SetCurrentNode(m_FoundItems._parent);
 	}
 }
 
-bool CFileListModel::ReloadArchiverIfLost(CString &strErr)
-{
-	return m_Content.ReloadArchiverIfLost(mr_Config,strErr);
-}
-
-bool CFileListModel::ExtractItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)
+bool CFileListModel::ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
 {
 	return m_Content.ExtractItems(mr_Config,items,lpszDir,lpBase,bCollapseDir,strLog);
 }
 
-HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,const ARCHIVE_ENTRY_INFO_TREE* lpBase,CString &strLog)
+HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
@@ -394,7 +347,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	if(bSameDir){
 		destType=OUTPUT_TO_SAME_DIR;
 	}
-	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDir,pathOutputBaseDir,bTmp,strLog);
+	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDirUserSpecified,pathOutputBaseDir,bTmp,strLog);
 	if(FAILED(hr)){
 		return hr;
 	}
@@ -426,12 +379,12 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	}
 }
 
-bool CFileListModel::MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
+bool CFileListModel::MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
 {
 	if(lpOutputDir){
 		return m_Content.MakeSureItemsExtracted(mr_Config,lpOutputDir,lpBase,items,r_filesList,bOverwrite,strLog);
 	}else{
-		return m_Content.MakeSureItemsExtracted(mr_Config,m_TempDirManager.GetDirPath(),lpBase,items,r_filesList,bOverwrite,strLog);
+		return m_Content.MakeSureItemsExtracted(mr_Config,m_TempDirManager.path(),lpBase,items,r_filesList,bOverwrite,strLog);
 	}
 }
 
@@ -440,7 +393,7 @@ HRESULT CFileListModel::AddItem(const std::list<CString> &fileList,LPCTSTR lpDes
 	return m_Content.AddItem(fileList,lpDestDir,mr_Config,strLog);
 }
 
-bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &fileList,CString &strLog)
+bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
 {
 	return m_Content.DeleteItems(mr_Config,fileList,strLog);
 }
@@ -448,21 +401,20 @@ bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &file
 //::Extract()を呼ぶ
 bool CFileListModel::ExtractArchive()
 {
-	//解凍
-	std::list<CString> archiveList;
+	std::vector<std::wstring> archiveList;
 	archiveList.push_back(GetArchiveFileName());
-	return ::Extract(archiveList,mr_Config,m_idForceDLL,NULL);
+	return GUI_extract_multiple_files(archiveList, NULL);
 }
 
-void CFileListModel::TestArchive()
+bool CFileListModel::TestArchive()
 {
 	//検査
-	std::list<CString> archiveList;
+	std::vector<std::wstring> archiveList;
 	archiveList.push_back(GetArchiveFileName());
-	::TestArchive(archiveList,mr_Config);
+	return GUI_test_multiple_files(archiveList, NULL);
 }
 
 void CFileListModel::ClearTempDir()
 {
-	m_TempDirManager.ClearSubDir();
+	UtilDeleteDir(m_TempDirManager.path(), false);
 }

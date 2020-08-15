@@ -26,68 +26,70 @@
 #include "Utilities/Utility.h"
 #include "ArchiverCode/arc_interface.h"
 
-class CMDLINEINFO;
+#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigGeneral.h"
+#include "ConfigCode/ConfigCompress.h"
 
-//アーカイブファイル名決定
-struct CConfigCompress;
-struct CConfigGeneral;
-HRESULT GetArchiveName(CPath &r_pathArcFileName,const std::list<CString> &,const PARAMETER_TYPE,const int,const CConfigCompress&,const CConfigGeneral&,CMDLINEINFO &,bool bUnicodeCapable,CString &strErr);
+struct LF_COMPRESS_ARGS {
+	CConfigManager mngr;
+	CConfigGeneral general;
+	CConfigCompress compress;
+};
 
-//圧縮対象のファイルを探す;戻り値は
-//0:ファイルは含まれていない
-//1:単一ファイルのみが含まれている
-//2:複数ファイルが含まれている
-int FindFileToCompress(LPCTSTR lpszPath,CPath &);
+struct RAW_FILE_READER {
+	CAutoFile fp;
+	LF_BUFFER_INFO ibi;
+	std::vector<unsigned char> buffer;
+	RAW_FILE_READER() {
+		ibi.make_eof();
+		buffer.resize(1024 * 1024 * 32);	//32MB cache
+	}
+	virtual ~RAW_FILE_READER() {}
+	const LF_BUFFER_INFO& operator()() {
+		if (!fp || feof(fp)) {
+			ibi.make_eof();
+		} else {
+			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
+			ibi.buffer = &buffer[0];
+			ibi.offset = _ftelli64(fp);
+		}
+		return ibi;
+	}
+	void open(const std::wstring& path) {
+		close();
+		fp.open(path, L"rb");
+	}
+	void close() {
+		fp.close();
+	}
+};
 
-//圧縮を行う。引数には必ずフルパスを渡すこと
-bool Compress(const std::list<CString>&,const PARAMETER_TYPE,CConfigManager&,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CMDLINEINFO&);
 
-const LPCTSTR LHAFORGE_COMPRESS_SEMAPHORE_NAME=_T("LhaForgeCompressLimitSemaphore");
+struct CMDLINEINFO;
 
-//コマンドラインパラメータとCompressに渡るパラメータの対応表
-const struct COMPRESS_COMMANDLINE_PARAMETER{
-	LPCTSTR Param;
-	LPCTSTR Ext;
-	PARAMETER_TYPE Type;
+bool GUI_compress_multiple_files(
+	const std::vector<std::wstring> &givenFiles,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	CMDLINEINFO& CmdLineInfo);
+
+//command line parameter table
+struct COMPRESS_COMMANDLINE_PARAMETER{
+	const wchar_t* name;
+	LF_ARCHIVE_FORMAT Type;
 	int Options;
 	WORD FormatName;
-}CompressParameterArray[]={
-	{_T("/c:lzh"),		_T(".lzh"),		PARAMETER_LZH,		0					,IDS_FORMAT_NAME_LZH},
-	{_T("/c:lzhsfx"),	_T(".exe"),		PARAMETER_LZH,		COMPRESS_SFX		,IDS_FORMAT_NAME_LZH_SFX},
-	{_T("/c:zip"),		_T(".zip"),		PARAMETER_ZIP,		0					,IDS_FORMAT_NAME_ZIP},
-	{_T("/c:zippass"),	_T(".zip"),		PARAMETER_ZIP,		COMPRESS_PASSWORD	,IDS_FORMAT_NAME_ZIP_PASS},
-	{_T("/c:zipsfx"),	_T(".exe"),		PARAMETER_ZIP,		COMPRESS_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
-	{_T("/c:zippasssfx"),_T(".exe"),	PARAMETER_ZIP,		COMPRESS_PASSWORD|COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
-	{_T("/c:zipsplit"),	_T(".zip"),		PARAMETER_ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
-	{_T("/c:zippasssplit"),_T(".zip"),	PARAMETER_ZIP,		COMPRESS_PASSWORD|COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
-	{_T("/c:cab"),		_T(".cab"),		PARAMETER_CAB,		0					,IDS_FORMAT_NAME_CAB},
-	{_T("/c:cabsfx"),	_T(".exe"),		PARAMETER_CAB,		COMPRESS_SFX		,IDS_FORMAT_NAME_CAB_SFX},
-	{_T("/c:7z"),		_T(".7z"),		PARAMETER_7Z,		0					,IDS_FORMAT_NAME_7Z},
-	{_T("/c:7zpass"),	_T(".7z"),		PARAMETER_7Z,		COMPRESS_PASSWORD	,IDS_FORMAT_NAME_7Z_PASS},
-	{_T("/c:7zsfx"),	_T(".exe"),		PARAMETER_7Z,		COMPRESS_SFX		,IDS_FORMAT_NAME_7Z_SFX},
-	{_T("/c:7zsplit"),	_T(".7z"),		PARAMETER_7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
-	{_T("/c:7zpasssplit"),_T(".7z"),	PARAMETER_7Z,		COMPRESS_PASSWORD|COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
-	{_T("/c:tar"),		_T(".tar"),		PARAMETER_TAR,		0					,IDS_FORMAT_NAME_TAR},
-	{_T("/c:gz"),		_T(".gz"),		PARAMETER_GZ,		0					,IDS_FORMAT_NAME_GZ},
-	{_T("/c:bz2"),		_T(".bz2"),		PARAMETER_BZ2,		0					,IDS_FORMAT_NAME_BZ2},
-	{_T("/c:xz"),		_T(".xz"),		PARAMETER_XZ,		0					,IDS_FORMAT_NAME_XZ},
-	{_T("/c:lzma"),		_T(".lzma"),	PARAMETER_LZMA,		0					,IDS_FORMAT_NAME_LZMA},
-	{_T("/c:tgz"),		_T(".tgz"),		PARAMETER_TAR_GZ,	0					,IDS_FORMAT_NAME_TGZ},
-	{_T("/c:tbz"),		_T(".tbz"),		PARAMETER_TAR_BZ2,	0					,IDS_FORMAT_NAME_TBZ},
-	{_T("/c:txz"),		_T(".tar.xz"),	PARAMETER_TAR_XZ,	0					,IDS_FORMAT_NAME_TAR_XZ},
-	{_T("/c:tlz"),		_T(".tar.lzma"),PARAMETER_TAR_LZMA,	0					,IDS_FORMAT_NAME_TAR_LZMA},
-	{_T("/c:jak"),		_T(".jak"),		PARAMETER_JACK,		0					,IDS_FORMAT_NAME_JACK},
-	{_T("/c:jaksfx"),	_T(".exe"),		PARAMETER_JACK,		COMPRESS_SFX		,IDS_FORMAT_NAME_JACK_SFX},
-	{_T("/c:hki"),		_T(".hki"),		PARAMETER_HKI,		0					,IDS_FORMAT_NAME_HKI},
-	{_T("/c:hkipass"),	_T(".hki"),		PARAMETER_HKI,		COMPRESS_PASSWORD	,IDS_FORMAT_NAME_HKI_PASS},
-	{_T("/c:hkisfx"),	_T(".exe"),		PARAMETER_HKI,		COMPRESS_SFX		,IDS_FORMAT_NAME_HKI_SFX},
-//	{_T("/c:hkipasssfx"),_T(".exe"),	PARAMETER_HKI,		COMPRESS_PASSWORD|COMPRESS_SFX,IDS_FORMAT_NAME_HKI}, Not Supported by WinHKI v 1.61
-	{_T("/c:bza"),		_T(".bza"),		PARAMETER_BZA,		0					,IDS_FORMAT_NAME_BZA},
-	{_T("/c:bzasfx"),	_T(".exe"),		PARAMETER_BZA,		COMPRESS_SFX		,IDS_FORMAT_NAME_BZA_SFX},
-	{_T("/c:gza"),		_T(".gza"),		PARAMETER_GZA,		0					,IDS_FORMAT_NAME_GZA},
-	{_T("/c:gzasfx"),	_T(".exe"),		PARAMETER_GZA,		COMPRESS_SFX		,IDS_FORMAT_NAME_GZA_SFX},
-	{_T("/c:ish"),		_T(".ish"),		PARAMETER_ISH,		0					,IDS_FORMAT_NAME_ISH},
-	{_T("/c:uue"),		_T(".uue"),		PARAMETER_UUE,		0					,IDS_FORMAT_NAME_UUE},
 };
-const int COMPRESS_PARAM_COUNT=COUNTOF(CompressParameterArray);
-
+extern const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams;
+const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT fmt, int opts);
+struct COMPRESS_SOURCES {
+	COMPRESS_SOURCES() : total_filesize(0) {}
+	virtual ~COMPRESS_SOURCES() {}
+	struct PATH_PAIR {
+		std::wstring originalFullPath;
+		std::wstring entryPath;
+	};
+	std::wstring basePath;
+	std::vector<PATH_PAIR> pathPair;
+	std::uintmax_t total_filesize;
+};

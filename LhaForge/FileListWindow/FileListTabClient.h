@@ -29,14 +29,13 @@
 #define FILELISTWINDOW_DEFAULT_TREE_WIDTH	175
 
 class CFileListFrame;
-enum DLL_ID;
 struct CConfigFileListWindow;
 class CFileListTabClient:public CTabView,public CEventDispatcher
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 protected:
-	CSmartPtrCollection<CFileListTabItem> m_GC;
+	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
 	CConfigManager&		m_rConfig;
@@ -111,9 +110,7 @@ public:
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	void ReloadArchiverIfLost();
-
-	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
+	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
 	HRESULT ReopenArchiveFile(FILELISTMODE,int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);
 	bool ReopenArchiveFileAll();

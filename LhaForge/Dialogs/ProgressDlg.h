@@ -28,26 +28,76 @@
 class CProgressDialog:public CDialogImpl<CProgressDialog>,public CMessageFilter
 {
 protected:
-	CProgressBarCtrl m_Progress;
-	CStatic m_Info;
-	CString m_strInfo;	//進行情報文字列
-	CString m_strTitle;
-	int m_TotalFiles;	//合計ファイル数
-	int m_CurrentIndex;	//現在の処理中ファイルインデックス
+	CProgressBarCtrl m_fileProgress, m_entryProgress;
+	CStatic m_fileInfo, m_entryInfo;
+	bool m_bAbort;
 public:
 	enum{IDD=IDD_DIALOG_PROGRESS};
 
-	BEGIN_MSG_MAP_EX(CMainDlg)
+	BEGIN_MSG_MAP_EX(CProgressDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
+		COMMAND_HANDLER(IDC_BUTTON_ABORT, BN_CLICKED, OnAbortBtn)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	void SetTotalFileCount(int nFiles);	//トータルのファイル数を設定
-	void SetNextState(LPCTSTR lpszFile);	//処理中ファイル名を指定してプログレスバーを進める
-	void OnDestroy();
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		m_fileProgress = GetDlgItem(IDC_PROGRESS_FILE);
+		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
+		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
+		m_entryInfo = GetDlgItem(IDC_STATIC_ENTRY);
+		m_fileProgress.SetRange32(0, 100);
+		m_fileProgress.SetPos(0);
+		m_entryProgress.SetRange32(0, 100);
+		m_entryProgress.SetPos(0);
+		m_bAbort = false;
+
+		//SetWindowPos(NULL, 100, 100, 0, 0, SWP_NOSIZE);
+		CenterWindow();
+
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->AddMessageFilter(this);
+		return TRUE;
+	}
+	void SetProgress(
+		const std::wstring& archivePath,
+		UINT64 fileIndex,
+		UINT64 totalFiles, 
+		const std::wstring& originalPath,
+		UINT64 currentSize,
+		UINT64 totalSize
+		) {
+		auto str = Format(L"%s\n%I64d / %I64d",
+			archivePath.c_str(),
+			fileIndex,
+			totalFiles
+		);
+		m_fileInfo.SetWindowTextW(
+			str.c_str());
+		m_fileProgress.SetPos(INT32(fileIndex * 100ull / totalFiles));
+
+		str = Format(L"%s\n%s / %s",
+			originalPath.c_str(),
+			UtilFormatSize(currentSize).c_str(),
+			UtilFormatSize(totalSize).c_str()
+		);
+		m_entryInfo.SetWindowTextW(
+			str.c_str());
+		m_entryProgress.SetPos(INT32(currentSize * 100ull / std::max(1ull, totalSize)));
+	}
+	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+		m_bAbort = true;
+		DestroyWindow();
+		return 0;
+	}
+	void OnDestroy() {
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->RemoveMessageFilter(this);
+	}
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
+	}
+	bool isAborted()const {
+		return m_bAbort;
 	}
 };

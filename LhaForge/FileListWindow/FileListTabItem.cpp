@@ -117,11 +117,10 @@ bool CFileListTabItem::CreateTabItem(HWND hParentWnd,HWND hFrameWnd,const CConfi
 }
 
 
-HRESULT CFileListTabItem::OpenArchive(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr)
+HRESULT CFileListTabItem::OpenArchive(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr)
 {
 	//---解析
-	idForceDLL=forceID;
-	HRESULT hr=Model.OpenArchiveFile(lpszArc,forceID,flMode,strErr,lpHandler);
+	HRESULT hr=Model.OpenArchiveFile(lpszArc,flMode,strErr,lpHandler);
 
 	if(SUCCEEDED(hr)){
 		//ツリー構築

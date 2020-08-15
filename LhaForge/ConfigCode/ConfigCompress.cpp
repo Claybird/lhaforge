@@ -34,10 +34,14 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
 	//出力先のパス
 	CString Buffer=Config.Data[_T("OutputDir")];
-	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
-	}else{
-		OutputDir=_T("");
+	try {
+		if (!Buffer.IsEmpty()) {
+			OutputDirUserSpecified = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
+		} else {
+			OutputDirUserSpecified = _T("");
+		}
+	} catch (LF_EXCEPTION) {
+		OutputDirUserSpecified = _T("");
 	}
 	//圧縮後フォルダを開くかどうか
 	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
@@ -49,13 +53,14 @@ void CConfigCompress::load(CONFIG_SECTION &Config)
 	LimitCompressFileCount=Config.Data[_T("LimitCompressFileCount")].GetNParam(FALSE);
 
 	//同時に圧縮するファイル数の上限
-	MaxCompressFileCount=max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
+	MaxCompressFileCount=std::max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
 
 	//デフォルト圧縮パラメータを使用するならtrue
 	UseDefaultParameter=Config.Data[_T("UseDefaultParameter")].GetNParam(FALSE);
 
 	//デフォルト圧縮パラメータ(形式指定)
-	DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
+	//TODO DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
+	DefaultType = LF_FMT_INVALID;
 
 	//デフォルト圧縮パラメータのオプション
 	DefaultOptions=Config.Data[_T("DefaultOptions")].GetNParam(0);
@@ -78,7 +83,7 @@ void CConfigCompress::store(CONFIG_SECTION &Config)const
 	//出力先の種類
 	Config.Data[_T("OutputDirType")]=OutputDirType;
 	//出力先のパス
-	Config.Data[_T("OutputDir")]=OutputDir;
+	Config.Data[_T("OutputDir")]= OutputDirUserSpecified;
 	//圧縮後フォルダを開くかどうか
 	Config.Data[_T("OpenFolder")]=OpenDir;
 

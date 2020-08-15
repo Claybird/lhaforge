@@ -1,66 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ArchiverCode">
-      <UniqueIdentifier>{854a309e-3c50-48db-8a1c-ebe02ad50151}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ArchiverCode\Source Files">
-      <UniqueIdentifier>{29d6c73e-1a60-4659-b47a-ca7972bbeb45}</UniqueIdentifier>
-      <Extensions>.cpp</Extensions>
-    </Filter>
-    <Filter Include="ArchiverCode\Header Files">
-      <UniqueIdentifier>{7e6da0fd-6b93-439b-b7ba-be5b81826355}</UniqueIdentifier>
-      <Extensions>.h</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{1de02a92-b5f1-439d-b9c7-1d870925f473}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{2bbbb0d2-f097-43d8-843d-50108f3abeb3}</UniqueIdentifier>
-      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
-    </Filter>
-    <Filter Include="Configs">
-      <UniqueIdentifier>{5f7d4963-3589-4da1-8e8c-240a806f4dbc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configs\Other">
-      <UniqueIdentifier>{317dc2b9-abfd-4965-b6d1-412b4d1f4264}</UniqueIdentifier>
-      <Extensions>.cpp</Extensions>
-    </Filter>
-    <Filter Include="Configs\Dialogs">
-      <UniqueIdentifier>{1e13e5a8-b299-456d-8349-0ddf1e23b77a}</UniqueIdentifier>
-      <Extensions>.h</Extensions>
-    </Filter>
-    <Filter Include="Configs\ConfigStruct">
-      <UniqueIdentifier>{2eab1dc2-f3fd-44ab-a6c6-eee37ac8bdcc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FileListWindow">
-      <UniqueIdentifier>{ef8895f9-d308-4373-b694-bbdbcb6ad6bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FileListWindow\OLE">
-      <UniqueIdentifier>{f5409c56-6d61-4bf9-8915-a1a1a8c60345}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Util">
-      <UniqueIdentifier>{74a56a36-853b-4ece-b6b4-ba8aa4ba5b06}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{3d054644-5ed2-43de-a36c-a5345d54efbc}</UniqueIdentifier>
-      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
-    </Filter>
-    <Filter Include="Dialogs">
-      <UniqueIdentifier>{d5a42a43-1394-4109-a1a5-515e28f65d71}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp">
-      <Filter>ArchiverCode</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\arc_interface.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp">
-      <Filter>ArchiverCode\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\AssocSettings.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -70,9 +10,6 @@
     <ClCompile Include="ConfigCode\Configwnd.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_7z.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -80,12 +17,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_DLL.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_dll_update.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp">
@@ -109,16 +40,7 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_zip.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Config7Z.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\ConfigCompress.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigDLL.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigExtract.cpp">
@@ -136,11 +58,11 @@
     <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
       <Filter>Configs\ConfigStruct</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigUpdate.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
+    <ClCompile Include="Dialogs\SelectDlg.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigZIP.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
+    <ClCompile Include="Dialogs\WaitDialog.cpp">
+      <Filter>Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="FileListWindow\ArcFileContent.cpp">
       <Filter>FileListWindow</Filter>
@@ -187,33 +109,6 @@
     <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\ConfigFile.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\FileOperation.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\OSUtil.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\shellmanager.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\StringUtil.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\TemporaryDirMgr.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\Utility.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\variant.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
-    <ClCompile Include="ArchiverManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Association.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -235,70 +130,117 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestArchive.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Utilities\ConfigFile.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Update.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Utilities\FileOperation.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\LogDialog.cpp">
-      <Filter>Dialogs</Filter>
+    <ClCompile Include="Utilities\OSUtil.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\LogListDialog.cpp">
-      <Filter>Dialogs</Filter>
+    <ClCompile Include="Utilities\shellmanager.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\ProgressDlg.cpp">
-      <Filter>Dialogs</Filter>
+    <ClCompile Include="Utilities\StringUtil.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\SelectDlg.cpp">
-      <Filter>Dialogs</Filter>
+    <ClCompile Include="Utilities\Utility.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\WaitDialog.cpp">
-      <Filter>Dialogs</Filter>
+    <ClCompile Include="Utilities\variant.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_extract.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_commonutil.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_StringUtil.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Utility.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_FileOperation.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_OSUtil.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Semaphore.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
+      <Filter>FileListWindow\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_compress.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_cmdlineinfo.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_main.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_arc_interface.cpp">
+      <Filter>ArchiverCode\test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArchiverCode\ArcEntryInfo.h">
-      <Filter>ArchiverCode</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\arc_interface.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\Archiver7ZIP.h">
-      <Filter>ArchiverCode\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Association.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CmdLineInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="compress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extract.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TestArchive.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Update.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{798c5c6f-32f7-4319-b1a6-feceb2350b0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ArchiverCode">
+      <UniqueIdentifier>{75c02246-c7b2-4859-8638-cebe46257450}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs">
+      <UniqueIdentifier>{af5df1ea-27c6-4389-848c-2787bdc38e46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\Other">
+      <UniqueIdentifier>{f01c2b13-faaf-453e-99bb-1befa1c0861c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\Dialogs">
+      <UniqueIdentifier>{e97a000f-93fd-4e94-8e9a-7fcfa1eaae8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\ConfigStruct">
+      <UniqueIdentifier>{075126cd-09f9-47ed-9488-33fa983864e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs">
+      <UniqueIdentifier>{6bc9c884-90de-4427-96fb-d273e9957aa2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow">
+      <UniqueIdentifier>{1aae091b-6fc8-4171-bb0f-a9a5a3a900b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow\OLE">
+      <UniqueIdentifier>{bdac2e86-f9b0-455c-b380-48edc9b5605e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ad63b314-6e29-434f-9089-61d3aca1e0a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\test">
+      <UniqueIdentifier>{3559a591-0f4f-4924-b151-8a73952c5604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities\test">
+      <UniqueIdentifier>{4e1f840c-e4d7-48ff-b12a-722ae5cac635}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow\test">
+      <UniqueIdentifier>{12106ed9-2803-4993-b85e-f05a1976e42c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ArchiverCode\test">
+      <UniqueIdentifier>{9f3bc7a5-b028-417f-b3a7-18b3199f7edd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\arc_interface.h">
+      <Filter>ArchiverCode</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\AssocSettings.h">
       <Filter>Configs\Other</Filter>
@@ -308,9 +250,6 @@
     </ClInclude>
     <ClInclude Include="ConfigCode\Configwnd.h">
       <Filter>Configs\Other</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_7z.h">
-      <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h">
       <Filter>Configs\Dialogs</Filter>
@@ -322,12 +261,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_DLL.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_dll_update.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h">
@@ -351,16 +284,7 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_zip.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Config7Z.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
     <ClInclude Include="ConfigCode\ConfigCompress.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigDLL.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigExtract.h">
@@ -378,11 +302,23 @@
     <ClInclude Include="ConfigCode\ConfigShellExt.h">
       <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigUpdate.h">
-      <Filter>Configs\ConfigStruct</Filter>
+    <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h">
+      <Filter>Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigZIP.h">
-      <Filter>Configs\ConfigStruct</Filter>
+    <ClInclude Include="Dialogs\LogListDialog.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\ProgressDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\SelectDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\TextInputDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\WaitDialog.h">
+      <Filter>Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="FileListWindow\AnimationUpdater.h">
       <Filter>FileListWindow</Filter>
@@ -436,65 +372,63 @@
       <Filter>FileListWindow\OLE</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\ConfigFile.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\DummyWindow.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\EventDispatcher.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\FileOperation.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\OSUtil.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\PtrCollection.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Semaphore.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\shellmanager.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\StringUtil.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\TemporaryDirMgr.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Utility.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\variant.h">
-      <Filter>Util</Filter>
+      <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\JackVolumeSizeDlg.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="Association.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\LogDialog.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="CmdLineInfo.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\LogListDialog.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="CommonUtil.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\ProgressDlg.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="compress.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\SelectDlg.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="extract.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\SevenZipVolumeSizeDlg.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="stdafx.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\TextInputDlg.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="FileListWindow\EventDispatcher.h">
+      <Filter>FileListWindow</Filter>
     </ClInclude>
-    <ClInclude Include="Dialogs\WaitDialog.h">
-      <Filter>Dialogs</Filter>
+    <ClInclude Include="ConfigCode\ConfigCompressFormat.h">
+      <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="manifest.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <Image Include="animation.bmp">
@@ -521,15 +455,5 @@
     <Image Include="toolbar.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="manifest.xml">
-      <Filter>Resource Files</Filter>
-    </Xml>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resource.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -93,6 +93,32 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 	}
 }
 
+//returns output directory that corresponds to outputDirType
+std::wstring LF_get_output_dir(
+	OUTPUT_TO outputDirType,
+	const std::wstring& original_file_path,
+	const wchar_t* user_specified_path,
+	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback)
+{
+	switch (outputDirType) {
+	case OUTPUT_TO_SAME_DIR:
+		//directory is same as the original file path
+		return std::filesystem::path(original_file_path).parent_path().generic_wstring();
+	case OUTPUT_TO_ALWAYS_ASK_WHERE:
+		return ask_callback();
+	case OUTPUT_TO_SPECIFIC_DIR:	//use provided path
+		if (user_specified_path && wcslen(user_specified_path) > 0) {
+			return user_specified_path;
+		} else {
+			//user did not provide a valid path; fall back to desktop
+		}
+		//FALLTHROUGH
+	case OUTPUT_TO_DESKTOP:
+	default:
+		return UtilGetDesktopPath();
+	}
+}
+
 
 //S_FALSEが返ったときには、「名前をつけて保存」ダイアログを開く
 HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CString &strErr)
@@ -108,7 +134,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		case DRIVE_REMOVABLE://ドライブからディスクを抜くことができます。
 		case DRIVE_CDROM://CD-ROM
 			if(Conf.WarnRemovable){
-				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+				if(IDNO== UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),MB_YESNO|MB_ICONQUESTION)){
 					return S_FALSE;
 				}
 			}
@@ -116,7 +142,7 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		case DRIVE_REMOTE://リモート (ネットワーク) ドライブです。
 		case DRIVE_NO_ROOT_DIR:
 			if(Conf.WarnNetwork){
-				if(IDNO==MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+				if(IDNO== UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),MB_YESNO|MB_ICONQUESTION)){
 					return S_FALSE;
 				}
 			}
@@ -132,12 +158,14 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 		switch(Conf.OnDirNotFound){
 		case LOSTDIR_ASK_TO_CREATE:	//作成するかどうか聞く
 			strMsg.Format(IDS_ASK_CREATE_DIR,lpszOutputDir);
-			if(IDNO==MessageBox(NULL,strMsg,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+			if(IDNO== UtilMessageBox(NULL, (const wchar_t*)strMsg,MB_YESNO|MB_ICONQUESTION)){
 				return E_ABORT;
 			}
 			//FALLTHROUGH
 		case LOSTDIR_FORCE_CREATE:	//ディレクトリ作成
-			if(!UtilMakeSureDirectoryPathExists(lpszOutputDir)){
+			try {
+				std::filesystem::create_directories(lpszOutputDir);
+			} catch (std::filesystem::filesystem_error) {
 				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR,lpszOutputDir);
 				//ErrorMessage(strMsg);
 				return E_FAIL;
@@ -152,27 +180,216 @@ HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CStrin
 	return S_OK;
 }
 
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void MakeExpandInformationEx(std::map<stdString,CString> &envInfo,LPCTSTR lpOpenDir,LPCTSTR lpOutputFile)
+//check and ask for user options in case output dir is not suitable; true if user confirms to go
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn)
 {
-	//環境変数で構築
-	UtilMakeExpandInformation(envInfo);
+	auto outputDir = std::filesystem::path(outputDirIn) / L"/";
 
-	//変数登録
-	if(lpOpenDir){
-		envInfo[_T("dir")]=lpOpenDir;
-		envInfo[_T("OutputDir")]=lpOpenDir;
+	for (;;) {
+		auto status = std::filesystem::status(outputDir);
+		if (status.type() != std::filesystem::file_type::not_found &&
+			status.type() != std::filesystem::file_type::directory) {
+			//file with same name as the output directory already exists
+			return false;	//no need to confirm
+		}
 
-		//出力ドライブ名
-		TCHAR szBuffer[MAX_PATH+1];
-		_tcsncpy_s(szBuffer,lpOpenDir,COUNTOF(szBuffer)-1);
-		PathStripToRoot(szBuffer);
-		if(szBuffer[_tcslen(szBuffer)-1]==L'\\')szBuffer[_tcslen(szBuffer)-1]=L'\0';
-		envInfo[_T("OutputDrive")]=(LPCTSTR)szBuffer;
+		switch (GetDriveType(outputDir.c_str())) {
+		case DRIVE_REMOVABLE://removable
+		case DRIVE_CDROM://CD-ROM
+			if (Conf.WarnRemovable) {
+				if (IDNO == UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)), MB_YESNO | MB_ICONQUESTION)) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			break;
+		case DRIVE_REMOTE://remote
+		case DRIVE_NO_ROOT_DIR:
+			if (Conf.WarnNetwork) {
+				if (IDNO == UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)), MB_YESNO | MB_ICONQUESTION)) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+			break;
+		}
+
+		if (outputDir.has_parent_path()) {
+			auto parent = outputDir.parent_path();
+			if (outputDir == parent) {
+				return true;
+			} else {
+				outputDir = parent;
+			}
+		} else {
+			return true;
+		}
+	}
+}
+
+void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound)
+{
+	auto status = std::filesystem::status(outputDir);
+	if (status.type() == std::filesystem::file_type::not_found) {
+		//destination does not exist
+		switch (OnDirNotFound) {
+		case LOSTDIR_ASK_TO_CREATE:
+		{
+			CString strMsg;
+			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir.c_str());
+			if (IDNO == UtilMessageBox(NULL, (const wchar_t*)strMsg, MB_YESNO | MB_ICONQUESTION)) {
+				CANCEL_EXCEPTION();
+			}
+		}
+			//FALLTHROUGH
+		case LOSTDIR_FORCE_CREATE:
+			try {
+				std::filesystem::create_directories(outputDir);
+			} catch (const std::filesystem::filesystem_error) {
+				CString strErr;
+				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir.c_str());
+				RAISE_EXCEPTION((const wchar_t*)strErr);
+			}
+			break;
+		default://treat as error
+		{
+			CString strErr;
+			strErr.Format(IDS_ERROR_DIR_NOTFOUND, outputDir.c_str());
+			RAISE_EXCEPTION((const wchar_t*)strErr);
+		}
+		}
+	}
+}
+
+//prepare envInfo map for UtilExpandTemplateString()
+std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* lpOpenDir, const wchar_t* lpOutputFile)
+{
+	std::map<std::wstring, std::wstring> templateParams;
+
+	//environment variables
+	auto envs = UtilGetEnvInfo();
+	for (auto item : envs) {
+		//%ENVIRONMENT%=value
+		templateParams[toLower(item.first)] = item.second;
 	}
 
-	if(lpOutputFile){
-		envInfo[_T("OutputFile")]=lpOutputFile;
-		envInfo[_T("OutputFileName")]=PathFindFileName(lpOutputFile);
+	//---about myself
+	templateParams[toLower(L"ProgramPath")] = UtilGetModulePath();
+	templateParams[toLower(L"ProgramFileName")] = std::filesystem::path(UtilGetModulePath()).filename();
+	templateParams[toLower(L"ProgramDir")] = UtilGetModuleDirectoryPath();
+	templateParams[toLower(L"ProgramDrive")] = std::filesystem::path(UtilGetModuleDirectoryPath()).root_name();
+
+	if (lpOpenDir) {
+		templateParams[toLower(L"dir")] = lpOpenDir;
+		templateParams[toLower(L"OutputDir")] = lpOpenDir;
+		templateParams[toLower(L"OutputDrive")] = std::filesystem::path(lpOpenDir).root_name();
+	}
+
+	if (lpOutputFile) {
+		templateParams[toLower(L"OutputFile")] = lpOutputFile;
+		templateParams[toLower(L"OutputFileName")] = std::filesystem::path(lpOutputFile).filename();
+	}
+	return templateParams;
+}
+
+//replace filenames that could be harmful
+std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
+{
+	const std::pair<std::wregex, wchar_t*> pattern[] = {
+		//backslashes "\\" -> "/" ; libarchive will use only "/" for directory separator
+		{std::wregex(L"\\\\"),L"/"},
+		//---potential directory traversals are not harmful if properly replaced
+		//more than two directory separators, e.g., "//" -> "/"
+		{std::wregex(L"/{2,}"),L"/"},
+		//dot directory name, e.g., "/./" -> "/"
+		{std::wregex(L"(^|/)\\.(/|$)"),L"/"},
+		//parent directory name, e.g., "/../" -> "/_@@@_/"
+		{std::wregex(L"(^|/)(\\.){2,}(/|$)"),L"$1_@@@_$3"},
+		//root directory, e.g., "/abc" -> "abc"
+		{std::wregex(L"^/"),L""},
+		//unavailabre letters
+		{std::wregex(LR"((:|\*|\?|"|<|>|\|))"),L"_"},
+		//reserved names
+		{std::wregex(LR"((^|/)(aux|com\d+|con|lpt\d+|nul|prn)(\.|/|$))", std::regex_constants::icase),L"$1$2_$3"},
+
+		//unicode control characters
+		{std::wregex(L"("
+			L"[\u0001-\u001f]"	//ISO 6429 C0 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+			L"|\u007F"	//DEL
+			L"|[\u0080-\u009F]"	//ISO 6429 C1 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+			L"|[\u200b-\u200d]"	//zero-width spaces
+
+			//https://en.wikipedia.org/wiki/Bidirectional_text
+			L"|\u200e|\u200f|\u061C"	//LRM,RLM,ALM
+			L"|[\u202a-\u202e]"	//RLE,LRO,PDF,RLE,RLO,
+			L"|[\u2066-\u2069]"	//LRI,RLI,FSI,PDI
+			L")"),
+			L"_(UNICODE_CTRL)_"},
+	};
+
+	auto buf = rawPath;
+	for (;;) {
+		bool modified = false;
+		for (const auto &p : pattern) {
+			auto updated = std::regex_replace(buf, p.first, p.second);
+			if ((!modified) && (updated != buf)) {
+				modified = true;
+			}
+			buf = updated;
+		}
+		if (!modified)break;
+	}
+	return buf;
+}
+
+void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files)
+{
+	const size_t max_limit = 10;
+	std::wstring files;
+	if (!noConfirm) {
+		files = join(L"\n", original_files, max_limit);
+		if (original_files.size() > max_limit) {
+			files += Format(UtilLoadString(IDS_NUM_EXTRA_FILES), original_files.size() - max_limit);
+		}
+
+		std::wstring msg;
+		if (moveToRecycleBin) {
+			msg = UtilLoadString(IDS_ASK_MOVE_PROCESSED_FILES_TO_RECYCLE_BIN);
+		} else {
+			msg = UtilLoadString(IDS_ASK_DELETE_PROCESSED_FILE);
+		}
+		msg += files;
+
+		if (IDYES != UtilMessageBox(NULL, msg, MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2)) {
+			return;
+		}
+	}
+
+	//---
+	if (moveToRecycleBin) {
+		UtilMoveFileToRecycleBin(original_files);
+	} else {
+		for (const auto &item : original_files) {
+			UtilDeletePath(item);
+		}
+	}
+}
+
+#include "Dialogs/TextInputDlg.h"
+
+const char* LF_passphrase_callback(struct archive *, void *_client_data)
+{
+	LF_PASSPHRASE* passphrase = static_cast<LF_PASSPHRASE*>(_client_data);
+	//TODO: use more sophisticated dialog
+	CTextInputDialog dlg(L"Enter passphrase");
+	dlg.SetInputText(passphrase->_storage.raw.c_str());
+	if (IDOK == dlg.DoModal()) {
+		passphrase->_storage.raw = dlg.GetInputText();
+		passphrase->_storage.utf8 = UtilToUTF8(passphrase->_storage.raw);
+		return passphrase->_storage.utf8.c_str();
+	} else {
+		return nullptr;	//give up
 	}
 }

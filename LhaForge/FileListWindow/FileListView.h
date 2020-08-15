@@ -27,7 +27,6 @@
 #include "ShellDataManager.h"
 #include "OLE/DnDSource.h"
 #include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "../Utilities/TemporaryDirMgr.h"
 #include "../resource.h"
 #include "FileListMessages.h"
 #include "../Utilities/OSUtil.h"
@@ -136,12 +135,8 @@ public:
 protected:
 	//---internal functions
 	//ファイル情報取得
-	static void FormatFileSizeInBytes(CString&,const LARGE_INTEGER&);
-	void FormatFileSize(CString&,const LARGE_INTEGER&);
-	static void FormatFileTime(CString&,const FILETIME&);
-	static void FormatAttribute(CString&,int);
-	static void FormatCRC(CString &strBuffer,DWORD dwCRC);
-	static void FormatRatio(CString &strBuffer,WORD wRatio);
+	static void FormatFileSizeInBytes(CString&, UINT64);
+	void FormatFileSize(CString&, UINT64);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	void OpenAssociation(const std::list<CString> &filesList);
 	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)
@@ -157,7 +152,7 @@ public:
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}
 
-	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*>&);
+	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*>&);
 	void EnableDropTarget(bool bEnable);
 	void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 };

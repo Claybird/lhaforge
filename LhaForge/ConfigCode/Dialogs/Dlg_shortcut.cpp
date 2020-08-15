@@ -26,7 +26,6 @@
 #include "Dlg_shortcut.h"
 #include "../../Compress.h"
 #include "../../Dialogs/SelectDlg.h"
-#include "../../ArchiverManager.h"
 #include "../../Utilities/OSUtil.h"
 
 //========================
@@ -85,7 +84,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP:
 			// デスクトップに作成
 			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_DESKTOPDIRECTORY,FALSE)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
+				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
 				return 0;
 			}
 			break;
@@ -96,7 +95,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
 			// 「送る」フォルダに作成
 			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_SENDTO,FALSE)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_GET_SENDTO)));
+				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_SENDTO)));
 				return 0;
 			}
 			break;
@@ -159,8 +158,8 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		//拡張子
 		_tcsncat_s(ShortcutFileName,_T(".lnk"),_MAX_PATH);
 
-		if(FAILED(UtilCreateShortcut(ShortcutFileName,ExePath,Param,ExePath,IconIndex,CString(MAKEINTRESOURCE(DescriptionID))))){
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
+		if(FAILED(UtilCreateShortcut((const wchar_t*)ShortcutFileName, (const wchar_t*)ExePath, (const wchar_t*)Param, (const wchar_t*)ExePath,IconIndex, (const wchar_t*)CString(MAKEINTRESOURCE(DescriptionID))))){
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
 		}else{
 			//作成成功で音を鳴らす
 			MessageBeep(MB_ICONASTERISK);
@@ -174,46 +173,38 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 {
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
-	if(IDYES==MessageBox(CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION)){
+	if(IDYES== UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
 		int Options=-1;
 		bool bSingleCompression=false;
 
 		//形式選択ダイアログ
-		PARAMETER_TYPE CompressType=SelectCompressType(Options,bSingleCompression);
-		if(CompressType==PARAMETER_UNDEFINED)return false;	//キャンセル
+		auto format = SelectCompressType(Options,bSingleCompression);
+		if(format==LF_FMT_INVALID)return false;	//キャンセル
 
-		//通常DLLを使用
 		//選択ダイアログの条件に一致するパラメータを検索
-		int Index=0;
-		for(;Index<COMPRESS_PARAM_COUNT;Index++){
-			if(CompressType==CompressParameterArray[Index].Type){
-				if(Options==CompressParameterArray[Index].Options){
-					break;
-				}
+		try {
+			const auto &args = get_archive_format_args(format, Options);
+			//ショートカット名取得
+			CString Buf;
+			if (bSingleCompression) {
+				//一つずつ圧縮
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, CString(MAKEINTRESOURCE(args.FormatName)));
+			} else {
+				//通常
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX, CString(MAKEINTRESOURCE(args.FormatName)));
 			}
-		}
-		if(Index>=COMPRESS_PARAM_COUNT){
+			PathAppend(Path, Buf);
+			//パラメータ
+			Param = L"/c:" + CString(args.name);
+			if (bSingleCompression) {
+				//一つずつ圧縮
+				Param += _T(" /s");
+			}
+		} catch (const ARCHIVE_EXCEPTION&) {
 			//一覧に指定された圧縮方式がない
 			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
 			return false;
-		}
-		//ショートカット名取得
-		CString Buf;
-		if(bSingleCompression){
-			//一つずつ圧縮
-			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-		}
-		else{
-			//通常
-			Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX,CString(MAKEINTRESOURCE(CompressParameterArray[Index].FormatName)));
-		}
-		PathAppend(Path,Buf);
-		//パラメータ
-		Param=CompressParameterArray[Index].Param;
-		if(bSingleCompression){
-			//一つずつ圧縮
-			Param+=_T(" /s");
 		}
 	}
 	else{

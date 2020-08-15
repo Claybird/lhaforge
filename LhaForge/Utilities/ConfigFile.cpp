@@ -28,6 +28,57 @@
 #include "Utility.h"
 #include "StringUtil.h"
 
+struct FILELINECONTAINER {
+	virtual ~FILELINECONTAINER() {}
+	std::vector<WCHAR> data;
+	std::vector<LPCWSTR> lines;
+};
+[[deprecated("will be removed")]]
+bool UtilReadFileSplitted(LPCTSTR lpFile, FILELINECONTAINER &container)
+{
+	//行バッファをクリア
+	container.data.clear();
+	container.lines.clear();
+
+	//---読み込み
+	std::vector<BYTE> cReadBuffer;
+	try {
+		cReadBuffer = UtilReadFile(lpFile);
+	} catch (LF_EXCEPTION) {
+		return false;
+	}
+	//終端の0追加
+	cReadBuffer.resize(cReadBuffer.size() + 2);
+	cReadBuffer[cReadBuffer.size() - 1] = 0;
+	cReadBuffer[cReadBuffer.size() - 2] = 0;
+
+	{
+		auto cp = UtilGuessCodepage((const char*)&cReadBuffer[0], cReadBuffer.size());
+		CStringW strData = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), cp).c_str();
+		container.data.assign((LPCWSTR)strData, (LPCWSTR)strData + strData.GetLength());
+		container.data.push_back(L'\0');
+	}
+
+
+	LPWSTR p = &container.data[0];
+	const LPCWSTR end = p + container.data.size();
+	LPCWSTR lastHead = p;
+
+	//解釈
+	for (; p != end && *p != L'\0'; p++) {
+		if (*p == _T('\n') || *p == _T('\r')) {
+			if (lastHead < p) {	//空行は飛ばす
+				container.lines.push_back(lastHead);
+			}
+			lastHead = p + 1;
+			*p = L'\0';
+		}
+	}
+	return true;
+}
+
+
+
 //マップファイルなど設定ファイルの読み込み:Pythonのように辞書のリストでデータを返す
 bool UtilReadSectionedConfig(LPCTSTR lpFile,std::list<CONFIG_SECTION> &r_Sections,CString &strErr)
 {
@@ -113,7 +164,7 @@ bool UtilWriteSectionedConfig(LPCTSTR lpFile,const std::list<CONFIG_SECTION> &r_
 {
 	HANDLE hFile=CreateFile(lpFile,GENERIC_WRITE,FILE_SHARE_READ,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 	if(INVALID_HANDLE_VALUE==hFile){
-		UtilGetLastErrorMessage(strErr);
+		strErr = UtilGetLastErrorMessage().c_str();
 		return false;
 	}
 
@@ -124,14 +175,14 @@ bool UtilWriteSectionedConfig(LPCTSTR lpFile,const std::list<CONFIG_SECTION> &r_
 	DWORD toWrite=sizeof(BOM);
 	if(!WriteFile(hFile,&BOM[0],toWrite,&dwWritten,NULL) || (toWrite!=dwWritten)){
 		CloseHandle(hFile);
-		UtilGetLastErrorMessage(strErr);
+		strErr = UtilGetLastErrorMessage().c_str();
 		return false;
 	}
 
 	bool bRet=true;
 	for(std::list<CONFIG_SECTION>::const_iterator ite=r_Sections.begin();ite!=r_Sections.end();++ite){
 		if(!UtilWriteSection(hFile,*ite)){
-			UtilGetLastErrorMessage(strErr);
+			strErr = UtilGetLastErrorMessage().c_str();
 			bRet=false;
 			break;
 		}
@@ -152,3 +203,13 @@ void UtilDumpFlatConfig(const FLATCONFIG &conf)
 		OutputDebugString(_T("\n"));
 	}
 }
+
+
+//INIに数字を文字列として書き込む
+BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, LONG nData, LPCTSTR lpFileName)
+{
+	TCHAR Buffer[32] = { 0 };
+	wsprintf(Buffer, _T("%ld"), nData);
+	return ::WritePrivateProfileString(lpAppName, lpKeyName, Buffer, lpFileName);
+}
+

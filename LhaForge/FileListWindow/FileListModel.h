@@ -25,11 +25,8 @@
 #pragma once
 //ファイル一覧構造を保持する
 #include "ArcFileContent.h"
-#include "../Utilities/EventDispatcher.h"
-#include "../Utilities/TemporaryDirMgr.h"
-
-class CArchiverDLL;
-enum DLL_ID;
+#include "EventDispatcher.h"
+#include "Utilities/FileOperation.h"
 
 enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
 	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示
@@ -61,10 +58,10 @@ class CFileListModel:public CEventDispatcher
 {
 protected:
 	CArchiveFileContent			m_Content;
-	ARCHIVE_ENTRY_INFO_TREE*	m_lpCurrentNode;
-	ARCHIVE_ENTRY_INFO_TREE		m_FoundItems;
+	ARCHIVE_ENTRY_INFO*	m_lpCurrentNode;
+	ARCHIVE_ENTRY_INFO		m_FoundItems;
 	//ソート済みのカレントノード状態
-	std::vector<ARCHIVE_ENTRY_INFO_TREE*>	m_SortedChildren;
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> >	m_SortedChildren;
 	CTemporaryDirectoryManager	m_TempDirManager;	//一時フォルダ管理
 
 	CConfigManager&				mr_Config;
@@ -73,7 +70,6 @@ protected:
 	int		m_nSortKeyType;
 
 	FILELISTMODE m_Mode;
-	DLL_ID	m_idForceDLL;
 	//openassoc
 	static CString ms_strExtAccept,ms_strExtDeny;
 protected:
@@ -83,16 +79,16 @@ public:
 	CFileListModel(CConfigManager&);
 	virtual ~CFileListModel();
 
-	HRESULT OpenArchiveFile(LPCTSTR,DLL_ID idForceDLL,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
+	HRESULT OpenArchiveFile(LPCTSTR,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
 	HRESULT ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
 	void Clear();
 
 	void GetDirStack(std::stack<CString>&);
 	bool SetDirStack(const std::stack<CString>&);
 
-	ARCHIVE_ENTRY_INFO_TREE* GetCurrentNode(){return m_lpCurrentNode;}
-	const ARCHIVE_ENTRY_INFO_TREE* GetCurrentNode()const{return m_lpCurrentNode;}
-	void SetCurrentNode(ARCHIVE_ENTRY_INFO_TREE* lpN);
+	ARCHIVE_ENTRY_INFO* GetCurrentNode(){return m_lpCurrentNode;}
+	const ARCHIVE_ENTRY_INFO* GetCurrentNode()const{return m_lpCurrentNode;}
+	void SetCurrentNode(ARCHIVE_ENTRY_INFO* lpN);
 
 	void SetSortKeyType(int nSortKeyType);
 	void SetSortMode(bool bSortDescending);
@@ -100,39 +96,34 @@ public:
 	bool GetSortMode()const{return m_bSortDescending;}
 
 	bool MoveUpDir();
-	bool MoveDownDir(ARCHIVE_ENTRY_INFO_TREE*);
+	bool MoveDownDir(ARCHIVE_ENTRY_INFO*);
 
-	bool IsRoot()const{return (GetCurrentNode()==m_Content.GetRootNode());}
-	bool IsOK()const{return m_Content.GetArchiver()!=NULL;}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
+	bool IsRoot()const{return (GetCurrentNode()==m_Content.getRootNode());}
+	bool IsOK()const{return m_Content.IsOK();}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
 	bool IsFindMode()const{return m_lpCurrentNode==&m_FoundItems;}
 
-	ARCHIVE_ENTRY_INFO_TREE* GetFileListItemByIndex(long iIndex);
+	ARCHIVE_ENTRY_INFO* GetFileListItemByIndex(long iIndex);
 
-	//lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFO_TREEのポインタを返す
-	ARCHIVE_ENTRY_INFO_TREE* FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO_TREE *lpTop);
+	//lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFOのポインタを返す
+	ARCHIVE_ENTRY_INFO* FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO *lpTop);
 	void EndFindItem();
 
-	bool ReloadArchiverIfLost(CString &strErr);
-
 	//処理対象アーカイブ名を取得
-	LPCTSTR GetArchiveFileName()const{return m_Content.GetArchiveFileName();}
-	const CArchiverDLL* GetArchiver()const{return m_Content.GetArchiver();}
-	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return m_Content.GetRootNode();}
-	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return m_Content.GetRootNode();}
+	LPCTSTR GetArchiveFileName()const{return m_Content.getArchivePath();}
+	ARCHIVE_ENTRY_INFO* GetRootNode(){return m_Content.getRootNode();}
+	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.getRootNode();}
 
-	bool IsExtractEachSupported()const{return m_Content.IsExtractEachSupported();}
-	bool IsDeleteItemsSupported()const{return m_Content.IsDeleteItemsSupported();}
-	bool IsAddItemsSupported()const{return m_Content.IsAddItemsSupported();}
-	bool IsUnicodeCapable()const{return m_Content.IsUnicodeCapable();}
-	bool IsArchiveEncrypted()const{return m_Content.IsArchiveEncrypted();}
-	BOOL CheckArchiveExists()const{return m_Content.CheckArchiveExists();}
+	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
+	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
+	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
+	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog);
-	HRESULT ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,const ARCHIVE_ENTRY_INFO_TREE* lpBase,CString &strLog);
+	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);
+	HRESULT ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
-	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
+	bool MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
+	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
 
 	static void SetOpenAssocExtDeny(LPCTSTR lpExtDeny){ms_strExtDeny=lpExtDeny;}
 	static LPCTSTR GetOpenAssocExtDeny(){return ms_strExtDeny;}
@@ -142,7 +133,30 @@ public:
 	FILELISTMODE GetListMode()const{return m_Mode;}
 
 	bool ExtractArchive();	//::Extract()を呼ぶ
-	void TestArchive();
+	bool TestArchive();
 
 	void ClearTempDir();
+
+	//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
+	bool IsPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const {
+		const auto denyList = UtilSplitString(GetOpenAssocExtDeny(), L";");
+		const auto acceptList = UtilSplitString(GetOpenAssocExtAccept(), L";");
+		for (const auto& deny : denyList) {
+			if (UtilExtMatchSpec(lpszPath, deny)) {
+				return false;
+			}
+		}
+		if (bDenyOnly) {
+			return true;
+		} else {
+			for (const auto& accept : acceptList) {
+				if (UtilExtMatchSpec(lpszPath, accept)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 };
+
+

@@ -24,72 +24,105 @@
 
 #pragma once
 
-LPCTSTR UtilGetTempPath();
-bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix);
-bool UtilDeletePath(LPCTSTR PathName);
-bool UtilDeleteDir(LPCTSTR Path,bool);
-int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);
-void UtilModifyPath(CString&);	//DTVを起こす可能性のあるパスを修正する
+std::wstring UtilGetDesktopPath();
 
-BOOL UtilMoveFileToRecycleBin(LPCTSTR);	//ファイルをごみ箱に移動
-BOOL UtilMoveFileToRecycleBin(const std::list<CString>&);	//ファイルをごみ箱に移動
+//returns a temp dir exclusive use of lhaforge
+std::wstring UtilGetTempPath();
+std::wstring UtilGetTemporaryFileName();
+bool UtilDeletePath(const std::wstring& path);
 
-//フォルダ内ファイル(ディレクトリは除く)を再帰検索
-bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString>&);
+//bDeleteParent=true: delete Path itself
+//bDeleteParent=false: delete only children of Path
+bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent);
 
-//フルパスかつ絶対パスの取得
-enum PATHERROR{
-	PATHERROR_NONE,		//成功
-	PATHERROR_INVALID,	//パラメータ指定が不正
-	PATHERROR_ABSPATH,	//絶対パスの取得に失敗
-	PATHERROR_NOTFOUND,	//ファイルもしくはフォルダが見つからない
-	PATHERROR_LONGNAME,	//ロングファイル名取得失敗
+
+//delete temporary directory automatically
+class CTemporaryDirectoryManager
+{
+	enum { NUM_DIR_LIMIT = 10000 };
+protected:
+	std::wstring m_path;
+public:
+	CTemporaryDirectoryManager(){
+		//%TEMP%/tmp%05d/filename...
+		std::filesystem::path base = UtilGetTempPath();
+		for (int count = 0; count < NUM_DIR_LIMIT; count++) {
+			auto name = Format(L"tmp%05d", count);
+			if(!std::filesystem::exists(base / name)){
+				try {
+					std::filesystem::create_directories(base / name);
+					m_path = base / name;
+					return;
+				} catch (std::filesystem::filesystem_error) {
+					RAISE_EXCEPTION(L"Failed to create directory");
+				}
+			}
+		}
+		RAISE_EXCEPTION(L"Failed to create directory");
+	}
+	virtual ~CTemporaryDirectoryManager() {
+		UtilDeleteDir(m_path, true);
+	}
+
+	const wchar_t* path()const {
+		return m_path.c_str();
+	}
 };
-PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName);
-//絶対パスの取得
-bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName);
 
-//ワイルドカードの展開
-bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList);
-bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam);
 
-//パスのディレクトリ部分だけを取り出す
-void UtilPathGetDirectoryPart(CString&);
+bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
 
-//自分のプログラムのファイル名を返す
-LPCTSTR UtilGetModulePath();
+//recursively enumerates files (no directories) in specified directory
+std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root);
 
-//自分のプログラムのおいてあるディレクトリのパス名を返す
-LPCTSTR UtilGetModuleDirectoryPath();
+//recursively enumerates files and directories in specified directory
+std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& root);
 
-//複数階層のディレクトリを一気に作成する
-BOOL UtilMakeSureDirectoryPathExists(LPCTSTR lpszPath);
+bool UtilPathIsRoot(const std::wstring& path);
+std::wstring UtilPathAddLastSeparator(const std::wstring& path);
+std::wstring UtilPathRemoveLastSeparator(const std::wstring& path);
 
-//TCHARファイル名をSJISファイル名に変換する。正しく変換できない場合には、falseを返す
-bool UtilPathT2A(CStringA&,LPCTSTR,bool bOnDisk);
+//get full & absolute path
+std::wstring UtilGetCompletePathName(const std::wstring& filePath);
 
-//パスに共通する部分を取り出し、基底パスを取り出す
-void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList);
+//returns filenames that matches to the given pattern
+std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern);
 
-//ファイル名に使えない文字列を置き換える
-void UtilFixFileName(CString &,LPCTSTR lpszOrg,TCHAR replace);
+//executable name
+std::wstring UtilGetModulePath();
+std::wstring UtilGetModuleDirectoryPath();
 
-LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr);
-bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,bool bSkipMeaningless);
-//Pathが'/'もしくは'\\'で終わっているならtrue
-bool UtilPathEndWithSeparator(LPCTSTR lpPath);
-void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath);
+//read whole file
+std::vector<BYTE> UtilReadFile(const std::wstring& filePath);
 
-//ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
-bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit=-1);
 
-struct FILELINECONTAINER{
-	virtual ~FILELINECONTAINER(){}
-	std::vector<WCHAR> data;
-	std::vector<LPCWSTR> lines;
+class CAutoFile {
+protected:
+	FILE *_fp;
+	CAutoFile(const CAutoFile&) = delete;
+	const CAutoFile& operator=(const CAutoFile&) = delete;
+public:
+	CAutoFile() :_fp(NULL){}
+	virtual ~CAutoFile() {
+		close();
+	}
+	operator FILE*() { return _fp; }
+	bool is_opened() const { return _fp != NULL; }
+	void close() {
+		if (_fp) {
+			fclose(_fp);
+			_fp = NULL;
+		}
+	}
+	void open(const std::wstring& fname, const std::wstring& mode = L"r") {
+		close();
+		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
+		if (err==0 && _fp) {
+			//set buffer size
+			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024);
+		}
+	}
 };
-bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER&);
 
-//https://support.microsoft.com/ja-jp/help/167296/how-to-convert-a-unix-time-t-to-a-win32-filetime-or-systemtime
-void UtilUnixTimeToFileTime(time_t t, LPFILETIME pft);
 
+void touchFile(const std::wstring& path);

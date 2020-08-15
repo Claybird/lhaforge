@@ -24,8 +24,8 @@
 
 #include "stdafx.h"
 #include "Dlg_filelistwindow.h"
-#include "../../Utilities/TemporaryDirMgr.h"
-#include "../../Utilities/StringUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
 
 //================================
 // ファイル一覧ウィンドウ設定画面
@@ -104,7 +104,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 void CConfigDlgFileListWindow::OnClearTemporary(UINT,int,HWND)
 {
 	//残ってしまったテンポラリディレクトリを削除
-	if(!CTemporaryDirectoryManager::DeleteAllTemporaryDir(_T("lhaf")))MessageBeep(MB_ICONHAND);
+	if(!UtilDeleteDir(UtilGetTempPath().c_str(), false))MessageBeep(MB_ICONHAND);
 }
 
 void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
@@ -122,17 +122,15 @@ void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
 //プログラムの場所を参照
 void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 {
-	TCHAR filter[_MAX_PATH+2]={0};
-	UtilMakeFilterString(
+	auto filter = UtilMakeFilterString(
 		_T("Program(*.exe;*.com;*.bat;*.cmd)|")
 		_T("*.exe;*.com;*.bat;*.cmd|")
 		_T("All Files(*.*)|")
-		_T("*.*"),
-		filter,_MAX_PATH+2);
+		_T("*.*"));
 
 	TCHAR szPath[_MAX_PATH+1];
 	Edit_Path.GetWindowText(szPath,_MAX_PATH);
-	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
+	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
@@ -156,17 +154,15 @@ void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 //カスタムツールバー画像を参照
 void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 {
-	TCHAR filter[_MAX_PATH+2]={0};
-	UtilMakeFilterString(
+	auto filter = UtilMakeFilterString(
 		_T("Bitmap(*.bmp)|")
 		_T("*.bmp|")
 		_T("All Files(*.*)|")
-		_T("*.*"),
-		filter,_MAX_PATH+2);
+		_T("*.*"));
 
 	TCHAR szPath[_MAX_PATH+1];
 	::GetWindowText(GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE),szPath,_MAX_PATH);
-	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
+	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}

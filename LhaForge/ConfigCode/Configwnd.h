@@ -31,16 +31,12 @@
 #include "./Dialogs/Dlg_general.h"
 #include "./Dialogs/Dlg_compress_general.h"
 #include "./Dialogs/Dlg_extract_general.h"
-#include "./Dialogs/Dlg_zip.h"
-#include "./Dialogs/Dlg_7z.h"
-#include "./Dialogs/Dlg_dll_update.h"
 #include "./Dialogs/Dlg_assoc.h"
 #include "./Dialogs/Dlg_detail.h"
 #include "./Dialogs/Dlg_shortcut.h"
 #include "./Dialogs/Dlg_filelistwindow.h"
 #include "./Dialogs/Dlg_openaction.h"
 #include "./Dialogs/Dlg_shellext.h"
-#include "./Dialogs/Dlg_DLL.h"
 
 //====================================
 // 設定項目をまとめる
@@ -53,15 +49,11 @@ protected:
 	CConfigDlgVersion				PageVersion;
 	CConfigDlgCompressGeneral		PageCompressGeneral;
 	CConfigDlgExtractGeneral		PageExtractGeneral;
-	CConfigDlgZIP					PageZIP;
-	CConfigDlg7Z					Page7Z;
-	CConfigDlgDLLUpdate				PageDLLUpdate;
 	CConfigDlgAssociation			PageAssociation;
 	CConfigDlgOpenAction			PageOpenAction;
 	CConfigDlgDetail				PageDetail;
 	CConfigDlgShortcut				PageShortcut;
 	CConfigDlgFileListWindow		PageFileListWindow;
-	CConfigDlgDLL					PageDLL;
 
 	HWND						hActiveDialogWnd;	//アクティブなダイアログ
 	CTreeViewCtrl				SelectTreeView;

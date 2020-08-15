@@ -24,50 +24,56 @@
 
 #pragma once
 
-//LhaForgeでのファイル処理の方法
+//LhaForge mode
 enum PROCESS_MODE{
 	PROCESS_INVALID,
 	PROCESS_CONFIGURE,
 	PROCESS_COMPRESS,
 	PROCESS_EXTRACT,
-	PROCESS_AUTOMATIC,
+	PROCESS_AUTOMATIC,	//extract if possible, compress otherwise
 	PROCESS_LIST,
 	PROCESS_TEST,
+	PROCESS_MANAGED,	//depends on users' keyboard state
 };
 
 
+#include "ArchiverCode/arc_interface.h"
+#include "Utilities/OSUtil.h"
 
-class CConfigManager;
-enum DLL_ID;
-enum OUTPUT_TO;
-enum CREATE_OUTPUT_DIR;
-enum LFPROCESS_PRIORITY;
-//コマンドライン解釈の結果を格納するためのクラス
-class CMDLINEINFO{
-public:
-	CMDLINEINFO();
-	virtual ~CMDLINEINFO(){}
-	std::list<CString> FileList;	//ファイル名リスト
-	CString OutputDir;				//出力先フォルダ
-	CString OutputFileName;			//出力先ファイル名
-	PARAMETER_TYPE CompressType;
-	int Options;				//圧縮オプション
-	DLL_ID idForceDLL;			//使用を強制するDLL
-	bool bSingleCompression;	//ファイルを一つずつ圧縮するならtrue
-	CString ConfigPath;			//設定ファイルのパス
+// command line arguments
+struct CMDLINEINFO{
+	enum class ACTION{
+		Default=-1,
+		False,
+		True,
+	};
+	CMDLINEINFO() :
+		CompressType(LF_FMT_INVALID),
+		Options(0),
+		bSingleCompression(false),
+		OutputToOverride(OUTPUT_TO_DEFAULT),
+		CreateDirOverride(CREATE_OUTPUT_DIR_DEFAULT),
+		IgnoreTopDirOverride(ACTION::Default),
+		DeleteAfterProcess(ACTION::Default),
+		PriorityOverride(LFPRIOTITY_DEFAULT) {}
+
+	std::vector<std::wstring> FileList;
+	std::wstring OutputDir;
+	std::wstring OutputFileName;
+	LF_ARCHIVE_FORMAT CompressType;
+	int Options;
+	bool bSingleCompression;
+	std::wstring ConfigPath;
 	OUTPUT_TO OutputToOverride;
 	CREATE_OUTPUT_DIR CreateDirOverride;
-	int IgnoreTopDirOverride;	//-1:default,0:false,1:true
-	int DeleteAfterProcess;	//-1:default,0:false, other:true
-	LFPROCESS_PRIORITY PriorityOverride;	//default:no change, other:change priority
-
-	CString strMethod;
-	CString strFormat;
-	CString strLevel;
-
-	CString strSplitSize;	//分割ボリュームサイズ
+	ACTION IgnoreTopDirOverride;
+	ACTION DeleteAfterProcess;
+	LFPROCESS_PRIORITY PriorityOverride;
 };
 
-//コマンドラインを解釈する
-PROCESS_MODE ParseCommandLine(CConfigManager&,CMDLINEINFO&);
+
+//Parse command line
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
+	const std::wstring& cmdline,
+	std::function<void(const std::wstring& msg)> errorHandler);
 

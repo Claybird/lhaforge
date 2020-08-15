@@ -23,55 +23,137 @@
 */
 
 #pragma once
-//---文字列処理
+//---string operations
 
-//文字コード
-enum UTIL_CODEPAGE{
-	UTILCP_SJIS,
-	UTILCP_UTF8,
-	UTILCP_UTF16
+//trim trailing symbols
+std::wstring UtilTrimString(const std::wstring &target, const std::wstring &trimTargets);
+
+//builds filter string for CFileDialog from MFC style string, i.e., "*.txt|*.doc||"
+std::wstring UtilMakeFilterString(const std::wstring& filterIn);
+
+enum class UTIL_CODEPAGE {
+	CP932 = 932,
+	UTF8 = CP_UTF8,
+	UTF16 = 1200,
+	//UTF16BE = 1201,
 };
 
+std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
+inline std::wstring UtilUTF8toUNICODE(const char* utf8, size_t length) { return UtilToUNICODE(utf8, length, UTIL_CODEPAGE::UTF8); }
+inline std::wstring UtilUTF8toUNICODE(const std::string& utf8) { return UtilToUNICODE(utf8.c_str(), utf8.length(), UTIL_CODEPAGE::UTF8); }
+inline std::wstring UtilCP932toUNICODE(const char* cp932, size_t length) { return UtilToUNICODE(cp932, length, UTIL_CODEPAGE::CP932); }
+inline std::wstring UtilUTF16toUNICODE(const char* utf16, size_t length) { return UtilToUNICODE(utf16, length, UTIL_CODEPAGE::UTF16); }
+std::string UtilToUTF8(const std::wstring& unicode_string);
 
-//MFCスタイルでCFileDialogのフィルター文字列を作る
-void UtilMakeFilterString(LPCTSTR,LPTSTR,int);
+UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
+//checks if the code page is correct for the given string
+bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 
 
-//適当な文字コード->UNICODE
-//dwSizeはUTILCP_UTF16のときのみ必要
-bool UtilToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize,UTIL_CODEPAGE uSrcCodePage);
-//UTF16-BE/UTF16-LE/SJISを自動判定してUNICODEに
-void UtilGuessToUNICODE(CString &strRet,LPCBYTE lpcByte,DWORD dwSize);
-//UNICODE->UTF8
-bool UtilToUTF8(std::vector<BYTE> &cArray,LPCWSTR strSrc);
+//expand variables placed in braces, such as "{foo}"
+std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars);
 
-//UNICODEをUTF8に変換するためのアダプタクラス
-class C2UTF8{
-protected:
-	std::vector<BYTE> m_cArray;
-public:
-	C2UTF8(LPCWSTR str){
-		UtilToUTF8(m_cArray,str);
+std::vector<std::wstring> UtilSplitString(const std::wstring& target, const std::wstring& separator);
+//split string into number array
+std::vector<int> UtilStringToIntArray(const std::wstring&);
+
+// (size in bytes) to (size in suitable unit)
+std::wstring UtilFormatSize(UINT64 size);
+
+std::wstring UtilFormatTime(__time64_t timer);
+
+template <typename ...Args>
+std::wstring Format(const std::wstring& fmt, Args && ...args)
+{
+	//snprintf_s will not return the required buffer size
+	std::wstring work;
+#pragma warning(push)
+#pragma warning(disable:4996)
+	auto size = _snwprintf(nullptr, 0, fmt.c_str(), std::forward<Args>(args)...);
+	work.resize(size + 1);
+	_snwprintf(&work[0], work.size(), fmt.c_str(), std::forward<Args>(args)...);
+#pragma warning(pop)
+	return work.c_str();
+}
+
+//https://marycore.jp/prog/cpp/std-string-replace-first-all/
+template<class T, class U>
+std::wstring replace(const std::wstring &_s, const T& target, const U& replacement, bool replace_first = 0, bool replace_empty = 0)
+{
+	auto s = _s;
+	using S = std::wstring;
+	using C = S::value_type;
+	using N = S::size_type;
+	struct {
+		N len(const S& s) { return s.size(); }
+		N len(const C* p) { return std::char_traits<C>::length(p); }
+		N len(const C  c) { return 1; }
+		void sub(S* s, const S& t, N pos, N len) { s->replace(pos, len, t); }
+		void sub(S* s, const C* t, N pos, N len) { s->replace(pos, len, t); }
+		void sub(S* s, const C  t, N pos, N len) { s->replace(pos, len, 1, t); }
+		void ins(S* s, const S& t, N pos) { s->insert(pos, t); }
+		void ins(S* s, const C* t, N pos) { s->insert(pos, t); }
+		void ins(S* s, const C  t, N pos) { s->insert(pos, 1, t); }
+	} util;
+
+	N target_length = util.len(target);
+	N replacement_length = util.len(replacement);
+	if (target_length == 0) {
+		if (!replace_empty || replacement_length == 0) return s;
+		N n = s.size() + replacement_length * (1 + s.size());
+		s.reserve(!replace_first ? n : s.size() + replacement_length);
+		for (N i = 0; i < n; i += 1 + replacement_length) {
+			util.ins(&s, replacement, i);
+			if (replace_first) break;
+		}
+		return s;
 	}
-	virtual ~C2UTF8(){}
-	operator LPCSTR(){return (LPCSTR)&m_cArray[0];}
-};
 
-//UNICODEとして安全ならtrue
-bool UtilIsSafeUnicode(LPCTSTR);
+	N pos = 0;
+	while ((pos = s.find(target, pos)) != std::string::npos) {
+		util.sub(&s, replacement, pos, target_length);
+		if (replace_first) return s;
+		pos += replacement_length;
+	}
+	return s;
+}
 
-//TCHARファイル名がSJISファイル名で表現できるならtrue
-bool UtilCheckT2A(LPCTSTR);
-bool UtilCheckT2AList(const std::list<CString>&);	//複数ファイルのうち、一つでもUNICODE専用ファイル名があればfalse
+inline std::wstring toLower(const std::wstring& input) {
+	std::wstring output;
+	std::transform(input.begin(), input.end(), std::back_inserter(output),
+		[](wchar_t c) {
+		return towlower(c);
+	});
+	return output;
+}
 
-//末尾から指定された文字を削る
-void UtilTrimString(CStringW&,LPCWSTR lpszSubject);
+inline std::wstring toUpper(const std::wstring& input) {
+	std::wstring output;
+	std::transform(input.begin(), input.end(), std::back_inserter(output),
+		[](wchar_t c) {
+		return towupper(c);
+	});
+	return output;
+}
 
-//指定されたフォーマットで書かれた文字列を展開する
-void UtilExpandTemplateString(CString &strOut,LPCTSTR lpszFormat,const std::map<stdString,CString> &env);
+//join array into one string as list[0]+separator+list[1]+separator...+list[N]
+//in the same way as the join() in python
+inline std::wstring join(const std::wstring& separator, const std::vector<std::wstring>& list, size_t max_limit = -1) {
+	std::wstring out;
+	if (-1 == max_limit) {
+		max_limit = list.size();
+	} else {
+		max_limit = std::min(max_limit, list.size());
+	}
 
-void UtilAssignSubString(CString &strOut,LPCTSTR lpStart,LPCTSTR lpEnd);
+	for (size_t i = 0; i < max_limit; i++) {
+		out += list[i];
+		if (i + 1 != max_limit) {
+			out += separator;
+		}
+	}
+	return out;
+}
 
-//文字列を分解し数値配列として取得
-void UtilStringToIntArray(LPCTSTR, std::vector<int>&);
-
+//loads string from resource
+std::wstring UtilLoadString(UINT uID);

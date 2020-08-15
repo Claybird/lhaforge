@@ -38,13 +38,11 @@ CConfigDialog::CConfigDialog(CConfigManager &cfg)
 	TRACE(_T("CConfigDialog()\n"));
 
 	//テンポラリINIファイル名取得
-	TCHAR szIniName[_MAX_PATH+1]={0};
-	UtilGetTemporaryFileName(szIniName,_T("lhf"));
-	m_strAssistINI=szIniName;
+	m_strAssistINI = UtilGetTemporaryFileName().c_str();
 
 	//設定読み込み
 	CString strErr;
-	if(!mr_Config.LoadConfig(strErr))ErrorMessage(strErr);
+	if(!mr_Config.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
 }
 
 CConfigDialog::~CConfigDialog()
@@ -100,7 +98,6 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(PageAssociation,TVI_ROOT);
 	ADD_PAGE(PageOpenAction,TVI_ROOT);
 //	ADD_PAGE(PageAssociation2,TVI_ROOT);
-	ADD_PAGE(PageDLLUpdate,TVI_ROOT);
 	ADD_PAGE(PageVersion,TVI_ROOT);
 
 	//----------------
@@ -118,8 +115,8 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	}
 	SelectTreeView.SetItemData(hItemDetail,(DWORD_PTR)PageDetail.m_hWnd);
 
-	ADD_PAGE(PageZIP,hItemDetail);
-	ADD_PAGE(Page7Z,hItemDetail);
+	//ADD_PAGE(PageZIP,hItemDetail);
+	//ADD_PAGE(Page7Z,hItemDetail);
 
 	//------------------------
 	// はじめに表示するページ
@@ -161,10 +158,12 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 	//UAC回避のアシスタントが要請されている
 	if(m_nAssistRequireCount>0){
 		//64bitなら64bit専用処理を先に走らせる
-		if(UtilIsWow64()){
+		BOOL iswow64 = FALSE;
+		IsWow64Process(GetCurrentProcess(), &iswow64);
+		if(iswow64){
 			//先にLFAssist(64bit)に処理を渡す。ただしINI削除は行わない。
 			//---アシスタント(64bit)のパスを取得
-			CPath strExePath(UtilGetModuleDirectoryPath());
+			CPath strExePath(UtilGetModuleDirectoryPath().c_str());
 			strExePath+=_T("LFAssist64.exe");
 			if(strExePath.FileExists()){	//ファイルが存在するときのみ
 				strExePath.QuoteSpaces();
@@ -178,13 +177,12 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 				shei.nShow=SW_SHOW;
 				if(!ShellExecuteEx(&shei)){
 					//実行エラー
-					CString strLastError;
-					UtilGetLastErrorMessage(strLastError);
+					auto strLastError = UtilGetLastErrorMessage();
 
 					CString msg;
-					msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,(LPCTSTR)strLastError);
+					msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
-					ErrorMessage(msg);
+					ErrorMessage((const wchar_t*)msg);
 				}
 			}
 		}
@@ -194,7 +192,7 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 		//変更を実行
 		//---アシスタントのパスを取得
-		CPath strExePath(UtilGetModuleDirectoryPath());
+		CPath strExePath(UtilGetModuleDirectoryPath().c_str());
 		strExePath+=_T("LFAssist.exe");
 		strExePath.QuoteSpaces();
 
@@ -207,13 +205,12 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 		shei.nShow=SW_SHOW;
 		if(!ShellExecuteEx(&shei)){
 			//実行エラー
-			CString strLastError;
-			UtilGetLastErrorMessage(strLastError);
+			auto strLastError = UtilGetLastErrorMessage();
 
 			CString msg;
-			msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,(LPCTSTR)strLastError);
+			msg.Format(IDS_ERROR_CANNOT_EXECUTE,strExePath,strLastError.c_str());
 
-			ErrorMessage(msg);
+			ErrorMessage((const wchar_t*)msg);
 		}else{
 			Sleep(100);
 			::SHChangeNotify(SHCNE_ASSOCCHANGED,SHCNF_FLUSH,NULL,NULL);	//関連付けの変更をシェルに通知(変更されていないかもしれないが簡便のため)

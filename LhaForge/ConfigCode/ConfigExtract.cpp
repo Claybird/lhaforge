@@ -33,10 +33,14 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
 
 	CString Buffer=Config.Data[_T("OutputDir")];
-	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
-	}else{
-		OutputDir=_T("");
+	try{
+		if(!Buffer.IsEmpty()){
+			OutputDirUserSpecified = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
+		}else{
+			OutputDirUserSpecified = L"";
+		}
+	} catch (LF_EXCEPTION) {
+		OutputDirUserSpecified = L"";
 	}
 
 	//解凍後フォルダを開くかどうか
@@ -58,7 +62,7 @@ void CConfigExtract::load(CONFIG_SECTION &Config)
 	LimitExtractFileCount=Config.Data[_T("LimitExtractFileCount")].GetNParam(FALSE);
 
 	//同時に解凍するファイル数の上限
-	MaxExtractFileCount=max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
+	MaxExtractFileCount=std::max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
 
 	//正常に解凍できた圧縮ファイルを削除
 	DeleteArchiveAfterExtract=Config.Data[_T("DeleteArchiveAfterExtract")].GetNParam(FALSE);
@@ -90,7 +94,7 @@ void CConfigExtract::store(CONFIG_SECTION &Config)const
 {
 	Config.Data[_T("OutputDirType")]=OutputDirType;
 
-	Config.Data[_T("OutputDir")]=OutputDir;
+	Config.Data[_T("OutputDir")]= OutputDirUserSpecified;
 
 	//解凍後フォルダを開くかどうか
 	Config.Data[_T("OpenFolder")]=OpenDir;

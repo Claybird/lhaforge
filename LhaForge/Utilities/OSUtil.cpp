@@ -27,274 +27,120 @@
 #include "Utility.h"
 #include "FileOperation.h"
 
-//=======================================================
-//From http://www.athomejp.com/goldfish/api/shortcut.asp
-//=======================================================
-HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription)
+HRESULT UtilCreateShortcut(
+	const std::wstring& pathLink,
+	const std::wstring& pathTarget,
+	const std::wstring& args,
+	const std::wstring& iconPath,
+	int iIcon,
+	LPCTSTR lpszDescription)
 {
-	HRESULT hRes;
-	IShellLink* psl =NULL;
-
-	// IShellLink インターフェイスを取得
-	hRes = CoCreateInstance(
-		CLSID_ShellLink,NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IShellLink,
-		(LPVOID *)&psl);
-
-	if(FAILED(hRes)){
-		//失敗
-		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
-		return hRes;
-	}
-
-	IPersistFile* ppf=NULL;
-	// Linkオブジェクトのパスを設定(たとえば、C:\Windows\notepad.exeなど)
-	psl->SetPath(lpszPathTarget);
-	//引数設定
-	psl->SetArguments(lpszArgs);
-	//アイコン設定
-	psl->SetIconLocation(lpszIconPath,iIcon);
-	//説明文設定
-	psl->SetDescription(lpszDescription);
-	// IPersistFileインターフェイスを取得後Linkパスファイル名を保存
-	hRes =psl->QueryInterface( IID_IPersistFile,(void**)&ppf);
-	if(FAILED(hRes)){
-		//ppfの取得に失敗
-		psl->Release();
-		return hRes;
-	}
-
-#if defined(_UNICODE)||defined(UNICODE)
-	hRes = ppf->Save(lpszPathLink, TRUE);
-#else
-	WCHAR wsz[_MAX_PATH+1];
-
-	MultiByteToWideChar(CP_ACP, 0,lpszPathLink, -1,wsz, _MAX_PATH);
-	// ディスクに保存する
-	hRes = ppf->Save(wsz, TRUE);
-#endif
-	ppf->Release();
-	psl->Release();
-	return hRes;
-}
-
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir)
-{
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
+	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
 
-	if(SUCCEEDED(hr)){
-		pLink->SetPath(lpPath);
-		CComQIPtr<IPersistFile> pFile=pLink;
-		if(pFile){
-			hr=pFile->Load(lpPath,STGM_READ);
-			if(SUCCEEDED(hr)){
-				{
-					WCHAR szBuffer[_MAX_PATH+1];
-					hr=pLink->GetPath(szBuffer,COUNTOF(szBuffer),NULL,0);
-					if(FAILED(hr))return hr;
-					strTargetPath=szBuffer;
-				}
-
-				{
-					WCHAR szArg[INFOTIPSIZE+1];
-					hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-					if(FAILED(hr))return hr;
-					strParam=szArg;
-				}
-
-				{
-					WCHAR szDir[_MAX_PATH+1];
-					hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-					if(FAILED(hr))return hr;
-					strWorkingDir=szDir;
-				}
-			}
-		}
+	// such as C:\Windows\notepad.exe
+	pLink->SetPath(pathTarget.c_str());
+	pLink->SetArguments(args.c_str());
+	pLink->SetIconLocation(iconPath.c_str(),iIcon);
+	pLink->SetDescription(lpszDescription);
+	//save to file
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if (pFile) {
+		return pFile->Save(pathLink.c_str(), TRUE);
+	} else {
+		return E_FAIL;
 	}
-	return hr;
 }
 
-void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info)
+HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 {
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
+	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
 
-	info.clear();
-	if(SUCCEEDED(hr)){
-		size_t size=files.size();
-		info.resize(size);
-		for(size_t i=0;i<size;i++){
-			pLink->SetPath(files[i]);
-			CComQIPtr<IPersistFile> pFile=pLink;
-			if(pFile){
-				hr=pFile->Load(files[i],STGM_READ);
-				if(FAILED(hr))continue;
+	pLink->SetPath(path.c_str());
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if(pFile){
+		hr = pFile->Load(path.c_str(), STGM_READ);
+		if (FAILED(hr))return hr;
+		info.title = std::filesystem::path(path).stem().c_str();
 
-				WCHAR szTarget[_MAX_PATH+1];
-				hr=pLink->GetPath(szTarget,COUNTOF(szTarget),NULL,0);
-				if(FAILED(hr))continue;
+		{
+			wchar_t szTarget[_MAX_PATH + 1] = {};
+			hr = pLink->GetPath(szTarget, COUNTOF(szTarget), NULL, 0);
+			if (FAILED(hr))return hr;
+			info.cmd = szTarget;
+		}
 
-				WCHAR szArg[INFOTIPSIZE+1];
-				hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-				if(FAILED(hr))continue;
+		{
+			wchar_t szArg[INFOTIPSIZE + 1] = {};
+			hr = pLink->GetArguments(szArg, COUNTOF(szArg));
+			if (FAILED(hr))return hr;
+			info.param = szArg;
+		}
 
-				WCHAR szDir[_MAX_PATH+1];
-				hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-				if(FAILED(hr))continue;
+		{
+			wchar_t szDir[_MAX_PATH + 1] = {};
+			hr = pLink->GetWorkingDirectory(szDir, COUNTOF(szDir));
+			if (FAILED(hr))return hr;
+			info.workingDir = szDir;
+		}
 
-				//通常の情報
-				CPath title=files[i];
-				title.StripPath();
-				title.RemoveExtension();
-				info[i].strTitle=(LPCTSTR)title;
-				info[i].strCmd=szTarget;
-				info[i].strParam=szArg;
-				info[i].strWorkingDir=szDir;
+		//get icon and convert to bitmap
+		SHFILEINFO sfi={0};
+		SHGetFileInfoW(path.c_str(), 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
+		UtilMakeDIBFromIcon(info.cIconBmpSmall, sfi.hIcon);
+		DestroyIcon(sfi.hIcon);
+	}
+	return S_OK;
+}
 
-				//アイコン情報:アイコンを取得し、ビットマップに変換
-				SHFILEINFO sfi={0};
-				SHGetFileInfo(files[i],0,&sfi,sizeof(sfi),SHGFI_ICON | SHGFI_SMALLICON);
-				UtilMakeDIBFromIcon(info[i].cIconBmpSmall,sfi.hIcon);
-				DestroyIcon(sfi.hIcon);
-			}
+
+void UtilNavigateDirectory(const std::wstring& dir)
+{
+	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs. This value should be set to MAX_PATH.
+	ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+}
+
+//retrieve environment variables as key=value pair
+std::map<std::wstring, std::wstring> UtilGetEnvInfo()
+{
+	/*
+	https://docs.microsoft.com/ja-jp/windows/win32/procthread/environment-variables
+	Var1=Value1\0
+	Var2=Value2\0
+	Var3=Value3\0
+	...
+	VarN=ValueN\0\0
+
+	The name of an environment variable cannot include an equal sign (=).
+	*/
+
+	std::map<std::wstring, std::wstring> envInfo;
+	wchar_t* lpRaw = GetEnvironmentStringsW();
+	const wchar_t* lpEnvStr = lpRaw;
+	if (!lpEnvStr) {
+		return envInfo;
+	}
+
+	for (; *lpEnvStr != L'\0'; ) {
+		std::wstring block = lpEnvStr;
+		//TRACE(L"%s\n", block.c_str());
+		lpEnvStr += block.length()+1;
+
+		auto pos = block.find_first_of(L'=');
+		if (pos == std::wstring::npos) continue;	//mis-formatted string
+		
+		auto key = block.substr(0, pos);
+		auto value = block.substr(pos+1);
+		if (!key.empty()) {
+			envInfo[toUpper(key)] = value;
 		}
 	}
-}
 
-
-//From http://techtips.belution.com/ja/vc/0012/
-void UtilSetAbsoluteForegroundWindow(HWND hWnd)
-{
-	int nTargetID, nForegroundID;
-	DWORD sp_time;
-
-	// フォアグラウンドウィンドウを作成したスレッドのIDを取得
-	nForegroundID = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
-	// 目的のウィンドウを作成したスレッドのIDを取得
-	nTargetID = GetWindowThreadProcessId(hWnd, NULL );
-
-	// スレッドのインプット状態を結び付ける
-	AttachThreadInput(nTargetID, nForegroundID, TRUE );  // TRUE で結び付け
-
-	// 現在の設定を sp_time に保存
-	SystemParametersInfo( SPI_GETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
-	// ウィンドウの切り替え時間を 0ms にする
-	SystemParametersInfo( SPI_SETFOREGROUNDLOCKTIMEOUT,0,(LPVOID)0,0);
-
-	// ウィンドウをフォアグラウンドに持ってくる
-	SetForegroundWindow(hWnd);
-
-	// 設定を元に戻す
-	SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
-
-	// スレッドのインプット状態を切り離す
-	AttachThreadInput(nTargetID, nForegroundID, FALSE );  // FALSE で切り離し
-}
-
-
-BOOL UtilIsWow64()
-{
-	typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-
-	BOOL bIsWow64 = FALSE;
-
-	LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(_T("kernel32")),"IsWow64Process");
-
-	if(fnIsWow64Process){
-		if(!fnIsWow64Process(GetCurrentProcess(),&bIsWow64)){
-			return FALSE;
-		}
-	}
-	return bIsWow64;
-}
-
-
-//コマンドライン引数を取得(個数を返す)
-int UtilGetCommandLineParams(std::vector<CString> &rParams)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	int nArgc=0;
-	LPWSTR *lplpArgs=CommandLineToArgvW(GetCommandLine(), &nArgc);
-	rParams.resize(nArgc);
-	for(int i=0;i<nArgc;i++){
-		rParams[i]=lplpArgs[i];
-	}
-	LocalFree(lplpArgs);
-	return nArgc;
-#else//defined(_UNICODE)||defined(UNICODE)
-	rParams.resize(__argc);
-	for(int i=0;i<__argc;i++){
-		rParams[i]=__argv[i];
-	}
-	return __argc;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
-
-void UtilNavigateDirectory(LPCTSTR lpszDir)
-{
-	//Explorerで開く
-	TCHAR szExplorerPath[_MAX_PATH+1];
-	FILL_ZERO(szExplorerPath);
-	GetWindowsDirectory(szExplorerPath,_MAX_PATH);
-	PathAppend(szExplorerPath,_T("Explorer.exe"));
-	ShellExecute(NULL, _T("open"), szExplorerPath, lpszDir, NULL, SW_SHOWNORMAL);
-}
-
-//環境変数を参照し、辞書形式で取得する
-void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo)
-{
-	LPTSTR lpEnvStr = GetEnvironmentStrings();
-	LPCTSTR lpStr    = lpEnvStr;
-
-	for(;*lpStr!='\0';){
-		LPCTSTR lpSplit=lpStr+1;	//環境変数名の先頭が'='だった場合に備える
-		for(;*lpSplit!=L'\0' && *lpSplit != L'=';lpSplit++)continue;
-
-		//---環境変数名
-		stdString strKey(lpStr,lpSplit);
-		//大文字に正規化
-		std::transform(strKey.begin(), strKey.end(), strKey.begin(), std::toupper);
-		//---環境変数の値
-		CString strValue=lpSplit+1;
-		envInfo[strKey]=strValue;
-
-		for(lpStr=lpSplit;*lpStr!=L'\0';lpStr++)continue;
-		lpStr++;
-	}
-
-	FreeEnvironmentStrings(lpEnvStr);
-}
-
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
-{
-	//環境変数で構築
-	std::map<stdString,stdString> envs;
-	UtilGetEnvInfo(envs);
-	for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
-		//%ENVIRONMENT%の形式に変換
-		envInfo[L'%'+(*ite).first+L'%']=(*ite).second.c_str();
-	}
-
-	//---LhaForge本体の情報
-	envInfo[_T("ProgramPath")]=UtilGetModulePath();
-	envInfo[_T("ProgramFileName")]=PathFindFileName(UtilGetModulePath());
-
-	CPath dir=UtilGetModuleDirectoryPath();
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDir")]=(LPCTSTR)dir;
-
-	dir.StripToRoot();
-	//末尾のBackslashを取り除く;RemoveBackslashではドライブ名直後のBackslashが取り除けない
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDrive")]=(LPCTSTR)dir;
+	FreeEnvironmentStringsW(lpRaw);
+	return envInfo;
 }
 
 void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
@@ -332,7 +178,7 @@ void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
 }
 
 
-//プロセス優先度の設定
+//Process priority
 void UtilSetPriorityClass(DWORD dwPriorityClass)
 {
 	HANDLE hProcess=GetCurrentProcess();
@@ -340,17 +186,17 @@ void UtilSetPriorityClass(DWORD dwPriorityClass)
 }
 
 
-//クリップボードにテキストを設定
-void UtilSetTextOnClipboard(LPCTSTR lpszText)
+//Copy text to clipboard
+void UtilSetTextOnClipboard(const std::wstring& text)
 {
 	HGLOBAL hMem;
-	LPTSTR lpBuff;
+	wchar_t* lpBuff;
 
-	hMem = GlobalAlloc((GHND|GMEM_SHARE),(_tcslen(lpszText) + 1) * sizeof(TCHAR));
+	hMem = GlobalAlloc((GHND|GMEM_SHARE),(text.length() + 1) * sizeof(wchar_t));
 	if(hMem){
-		lpBuff = (LPTSTR)GlobalLock(hMem);
+		lpBuff = (wchar_t*)GlobalLock(hMem);
 		if (lpBuff){
-			_tcscpy_s(lpBuff, _tcslen(lpszText)+1, lpszText);
+			wcscpy_s(lpBuff, text.length() + 1, text.c_str());
 			GlobalUnlock( hMem );
 
 			if ( OpenClipboard(NULL) ){

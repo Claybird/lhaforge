@@ -37,7 +37,7 @@ struct less_ignorecase {
 //---セクション構造のない設定;データは「Key=Value」
 typedef std::map<stdString,CVariant,less_ignorecase> FLATCONFIG;
 //---セクションごとに分かれたデータ
-struct CONFIG_SECTION{	//設定ファイルのセクションのデータ
+struct[[deprecated("will be replaced")]] CONFIG_SECTION{	//設定ファイルのセクションのデータ
 	virtual ~CONFIG_SECTION(){}
 	stdString SectionName;	//セクションの名前
 	FLATCONFIG Data;
@@ -50,3 +50,8 @@ bool UtilReadSectionedConfig(LPCTSTR,std::list<CONFIG_SECTION>&,CString &strErr)
 bool UtilWriteSectionedConfig(LPCTSTR,const std::list<CONFIG_SECTION>&,CString &strErr);
 
 void UtilDumpFlatConfig(const FLATCONFIG&);
+
+//INIに数字を文字列として書き込む
+[[deprecated("will be removed")]]
+BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, LONG nData, LPCTSTR lpFileName);
+

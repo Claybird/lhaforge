@@ -71,7 +71,11 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 		TCHAR szModule[_MAX_PATH+1];
 		GetModuleFileName(GetModuleHandle(NULL), szModule, _MAX_PATH);	//本体のパス取得
 		CPath fullPath;
-		UtilGetCompletePathName(fullPath,szModule);	//パスを正規化
+		try {
+			fullPath = UtilGetCompletePathName(szModule).c_str();	//パスを正規化
+		} catch (LF_EXCEPTION) {
+			fullPath = szModule;
+		}
 		fullPath.QuoteSpaces();
 		m_strAssocDesired=(LPCTSTR)fullPath;
 		//m_strAssocDesired.MakeLower();	//小文字に正規化
@@ -210,7 +214,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 	for(int i=0;i<COUNTOF(AssocSettings);i++){
 		switch(wID){
 		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:	//標準の関連付け
-			if(-1==UtilCheckNumberArray(NO_DEFAULT_ASSOCS,COUNTOF(NO_DEFAULT_ASSOCS),i)){
+			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), i)){
 				AssocSettings[i].Button_SetIcon.EnableWindow(TRUE);
 				AssocSettings[i].Check_SetAssoc.SetCheck(TRUE);
 			}
@@ -295,7 +299,7 @@ CIconSelectDialog::CIconSelectDialog(ASSOCINFO &ai)
 	AssocInfo=&ai;
 	if(AssocInfo->IconFile.IsEmpty()){
 		//EXEのパスを元にDLLのファイル名を組み立てる
-		CPath strResourcePath(UtilGetModuleDirectoryPath());
+		CPath strResourcePath(UtilGetModuleDirectoryPath().c_str());
 		strResourcePath+=CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT));
 		IconPath=(CString)strResourcePath;
 		TRACE(_T("Set Default Icon Path\n"));
@@ -337,14 +341,12 @@ void CIconSelectDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	TCHAR filter[_MAX_PATH+2]={0};
-	UtilMakeFilterString(
-		_T("Icon File|*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl|")
-		_T("All Files|*.*||")
-		,filter,_MAX_PATH+2);
+	auto filter = UtilMakeFilterString(
+		L"Icon File|*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl|"
+		L"All Files|*.*");
 
 	if(!DoDataExchange(TRUE))return;
-	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY|OFN_NOCHANGEDIR,filter);
+	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
