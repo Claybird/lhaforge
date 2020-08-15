@@ -147,32 +147,11 @@ bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 	}
 
 	//--------------------
-	if(cli.bSingleCompression){
-		//TODO:progress dialog should be handled as callbacks
-		CProgressDialog dlg;
-		int nFiles=cli.FileList.size();
-		dlg.Create(nullptr);
-		dlg.ShowWindow(SW_SHOW);
-		bool bRet=true;
-		int count = 0;
-		for(const auto &filename: cli.FileList){
-			if (dlg.IsWindow())dlg.SetProgress(filename, count, nFiles, L"*prepare*", 0, 0);
-			while(UtilDoMessageLoop())continue;
-
-			bool result = GUI_compress_multiple_files({filename}, cli.CompressType, (LF_WRITE_OPTIONS)cli.Options, cli);
-			bRet = bRet && result;
-			count += 1;
-		}
-		if(dlg.IsWindow())dlg.DestroyWindow();
-
-		return bRet;
-	}else{
-		return GUI_compress_multiple_files(
-			cli.FileList,
-			cli.CompressType,
-			(LF_WRITE_OPTIONS)cli.Options,
-			cli);
-	}
+	return GUI_compress_multiple_files(
+		cli.FileList,
+		cli.CompressType,
+		(LF_WRITE_OPTIONS)cli.Options,
+		cli);
 }
 
 bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)

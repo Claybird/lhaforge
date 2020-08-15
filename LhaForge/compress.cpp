@@ -281,7 +281,7 @@ std::wstring confirmOutputFile(
 		sourceFiles.insert(toLower(src.originalFullPath));
 	}
 
-	auto archive_path = default_archive_path;
+	auto archive_path = std::filesystem::path(default_archive_path).make_preferred();
 	bool bForceOverwrite = false;
 	
 	//if file exists
@@ -562,6 +562,7 @@ void compress_helper(
 	}
 
 	//confirm
+	arcLog.setArchivePath(pathOutputDir / defaultArchiveTitle);
 	auto archivePath = confirmOutputFile(
 		pathOutputDir / defaultArchiveTitle,
 		sources,
@@ -638,20 +639,6 @@ bool GUI_compress_multiple_files(
 	CProgressDialog dlg;
 	dlg.Create(nullptr);
 	dlg.ShowWindow(SW_SHOW);
-	std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
-		[&](const std::wstring& archivePath,
-			const std::wstring& path_on_disk,
-			UINT64 currentSize,
-			UINT64 totalSize)->void {
-		dlg.SetProgress(
-			archivePath,
-			1,
-			1,
-			path_on_disk,
-			currentSize,
-			totalSize);
-		while (UtilDoMessageLoop())continue;
-	};
 
 	//do compression
 	if (0 != CmdLineInfo.Options) {
@@ -660,13 +647,27 @@ bool GUI_compress_multiple_files(
 
 	std::vector<ARCLOG> logs;
 	if (CmdLineInfo.bSingleCompression) {
+		size_t idxFile = 0;
+		std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
+			[&](const std::wstring& archivePath,
+				const std::wstring& path_on_disk,
+				UINT64 currentSize,
+				UINT64 totalSize)->void {
+			dlg.SetProgress(
+				archivePath,
+				idxFile,
+				givenFiles.size(),
+				path_on_disk,
+				currentSize,
+				totalSize);
+			while (UtilDoMessageLoop())continue;
+		};
 		for (const auto &file : givenFiles) {
+			idxFile++;
 			try {
 				logs.resize(logs.size() + 1);
-				std::vector<std::wstring> tempFileList;
-				tempFileList.push_back(file);
 				compress_helper(
-					tempFileList,
+					{ file },
 					format,
 					options,
 					CmdLineInfo,
@@ -686,6 +687,20 @@ bool GUI_compress_multiple_files(
 			}
 		}
 	} else {
+		std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
+			[&](const std::wstring& archivePath,
+				const std::wstring& path_on_disk,
+				UINT64 currentSize,
+				UINT64 totalSize)->void {
+			dlg.SetProgress(
+				archivePath,
+				1,
+				1,
+				path_on_disk,
+				currentSize,
+				totalSize);
+			while (UtilDoMessageLoop())continue;
+		};
 		try {
 			logs.resize(logs.size() + 1);
 			compress_helper(
