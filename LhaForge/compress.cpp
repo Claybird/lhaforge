@@ -322,7 +322,7 @@ std::wstring determineDefaultArchiveDir(
 		virtual ~FILE_CALLBACK() {}
 	};
 	FILE_CALLBACK fileCallback;
-	fileCallback.defaultPath= std::filesystem::path(original_file_path).parent_path().generic_wstring();
+	fileCallback.defaultPath= std::filesystem::path(original_file_path).parent_path().make_preferred();
 
 	return LF_get_output_dir(
 		outputDirType,
@@ -645,23 +645,28 @@ bool GUI_compress_multiple_files(
 		options = (LF_WRITE_OPTIONS)CmdLineInfo.Options;
 	}
 
+	size_t idxFile = 0, totalFiles = 1;
+	std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
+		[&](const std::wstring& archivePath,
+			const std::wstring& path_on_disk,
+			UINT64 currentSize,
+			UINT64 totalSize)->void {
+		dlg.SetProgress(
+			archivePath,
+			idxFile,
+			totalFiles,
+			path_on_disk,
+			currentSize,
+			totalSize);
+		while (UtilDoMessageLoop())continue;
+		if (dlg.isAborted()) {
+			CANCEL_EXCEPTION();
+		}
+	};
+
 	std::vector<ARCLOG> logs;
 	if (CmdLineInfo.bSingleCompression) {
-		size_t idxFile = 0;
-		std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
-			[&](const std::wstring& archivePath,
-				const std::wstring& path_on_disk,
-				UINT64 currentSize,
-				UINT64 totalSize)->void {
-			dlg.SetProgress(
-				archivePath,
-				idxFile,
-				givenFiles.size(),
-				path_on_disk,
-				currentSize,
-				totalSize);
-			while (UtilDoMessageLoop())continue;
-		};
+		totalFiles = givenFiles.size();
 		for (const auto &file : givenFiles) {
 			idxFile++;
 			try {
@@ -676,6 +681,9 @@ bool GUI_compress_multiple_files(
 					progressHandler,
 					LF_passphrase_callback
 				);
+				if (dlg.isAborted()) {
+					CANCEL_EXCEPTION();
+				}
 			} catch (const LF_USER_CANCEL_EXCEPTION&) {
 				ARCLOG &arcLog = logs.back();
 				arcLog.overallResult = LF_RESULT::CANCELED;
@@ -687,20 +695,7 @@ bool GUI_compress_multiple_files(
 			}
 		}
 	} else {
-		std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
-			[&](const std::wstring& archivePath,
-				const std::wstring& path_on_disk,
-				UINT64 currentSize,
-				UINT64 totalSize)->void {
-			dlg.SetProgress(
-				archivePath,
-				1,
-				1,
-				path_on_disk,
-				currentSize,
-				totalSize);
-			while (UtilDoMessageLoop())continue;
-		};
+		idxFile++;
 		try {
 			logs.resize(logs.size() + 1);
 			compress_helper(
@@ -743,7 +738,7 @@ bool GUI_compress_multiple_files(
 	if (dlg.IsWindow())dlg.DestroyWindow();
 
 	if (displayLog) {
-		CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_EXTRACT)));
+		CLogListDialog LogDlg(UtilLoadString(IDS_LOGINFO_OPERATION_EXTRACT).c_str());
 		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal(::GetDesktopWindow());
 	}

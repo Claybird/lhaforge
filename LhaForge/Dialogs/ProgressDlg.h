@@ -30,6 +30,7 @@ class CProgressDialog:public CDialogImpl<CProgressDialog>,public CMessageFilter
 protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
+	bool m_bAbort;
 public:
 	enum{IDD=IDD_DIALOG_PROGRESS};
 
@@ -48,6 +49,7 @@ public:
 		m_fileProgress.SetPos(0);
 		m_entryProgress.SetRange32(0, 100);
 		m_entryProgress.SetPos(0);
+		m_bAbort = false;
 
 		//SetWindowPos(NULL, 100, 100, 0, 0, SWP_NOSIZE);
 		CenterWindow();
@@ -83,7 +85,8 @@ public:
 		m_entryProgress.SetPos(INT32(currentSize * 100ull / std::max(1ull, totalSize)));
 	}
 	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
-		CANCEL_EXCEPTION();
+		m_bAbort = true;
+		DestroyWindow();
 		return 0;
 	}
 	void OnDestroy() {
@@ -93,5 +96,8 @@ public:
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
+	}
+	bool isAborted()const {
+		return m_bAbort;
 	}
 };

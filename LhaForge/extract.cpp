@@ -457,6 +457,9 @@ bool GUI_extract_multiple_files(
 					currentSize,
 					totalSize);
 				while (UtilDoMessageLoop())continue;
+				if (dlg.isAborted()) {
+					CANCEL_EXCEPTION();
+				}
 			};
 
 			logs.resize(logs.size() + 1);
@@ -630,6 +633,9 @@ bool GUI_test_multiple_files(
 					currentSize,
 					totalSize);
 				while (UtilDoMessageLoop())continue;
+				if (dlg.isAborted()) {
+					CANCEL_EXCEPTION();
+				}
 			};
 
 			logs.resize(logs.size() + 1);
