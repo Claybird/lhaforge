@@ -100,10 +100,7 @@ HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 void UtilNavigateDirectory(const std::wstring& dir)
 {
 	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs. This value should be set to MAX_PATH.
-	wchar_t systemDir[_MAX_PATH + 1] = {};
-	GetWindowsDirectoryW(systemDir, _MAX_PATH);
-	auto explorerPath = std::filesystem::path(systemDir) / L"explorer.exe";
-	ShellExecuteW(NULL, L"open", explorerPath.c_str(), dir.c_str(), NULL, SW_SHOWNORMAL);
+	ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 //retrieve environment variables as key=value pair
