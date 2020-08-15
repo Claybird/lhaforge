@@ -37,25 +37,6 @@ LRESULT CConfigDlgShortcut::OnInitDialog(HWND hWnd, LPARAM lParam)
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
-	//Windows2000以前ならショートカットに引数がつけられない
-	//自動のショートカット以外は無効に
-	if(AtlIsOldWindows()){
-		//解凍のショートカット
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_DESKTOP),false);
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO),false);
-
-		//圧縮のショートカット
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_DESKTOP),false);
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_SENDTO),false);
-
-		//閲覧のショートカット
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP),false);
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO),false);
-
-		//検査のショートカット
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP),false);
-		::EnableWindow(GetDlgItem(IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO),false);
-	}
 	return TRUE;
 }
 

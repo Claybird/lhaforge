@@ -31,7 +31,6 @@
 //#define _ATL_NO_COM
 //#define _WTL_NO_WTYPES
 #define _WTL_NO_UNION_CLASSES
-#define _ATL_NO_MSIMG
 #define _ATL_NO_OPENGL
 #define ATL_NO_LEAN_AND_MEAN
 #define _ATL_USE_CSTRING_FLOAT	//CStringのFormatで小数が出力できるようになる

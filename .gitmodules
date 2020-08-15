@@ -1,0 +1,4 @@
+[submodule "dependency/WTL"]
+	path = dependency/WTL
+	url = https://git.code.sf.net/p/wtl/git
+	branch = master
