@@ -201,13 +201,13 @@ TEST(compress, getRelativePathList)
 		const std::vector<std::wstring>& sourcePathList);
 	auto result = getRelativePathList(L"/path/to/base/",
 		{ L"/path/to/base/", L"/path/to/base/file1.txt", L"/path/to/base/dir1/file2.txt", });
-	EXPECT_EQ(3, result.size());
-	EXPECT_EQ(L".", result[0].entryPath);
-	EXPECT_EQ(L"/path/to/base/", result[0].originalFullPath);
-	EXPECT_EQ(L"file1.txt", result[1].entryPath);
-	EXPECT_EQ(L"/path/to/base/file1.txt", result[1].originalFullPath);
-	EXPECT_EQ(std::filesystem::path(L"dir1/file2.txt").make_preferred(), result[2].entryPath);
-	EXPECT_EQ(L"/path/to/base/dir1/file2.txt", result[2].originalFullPath);
+	EXPECT_EQ(2, result.size());
+	if (result.size() >= 2) {
+		EXPECT_EQ(L"file1.txt", result[0].entryPath);
+		EXPECT_EQ(L"/path/to/base/file1.txt", result[0].originalFullPath);
+		EXPECT_EQ(std::filesystem::path(L"dir1/file2.txt").make_preferred(), result[1].entryPath);
+		EXPECT_EQ(L"/path/to/base/dir1/file2.txt", result[1].originalFullPath);
+	}
 }
 
 TEST(compress, getAllSourceFiles)

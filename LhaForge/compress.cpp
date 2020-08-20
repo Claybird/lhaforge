@@ -196,13 +196,16 @@ std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
 	const std::wstring& basePath,
 	const std::vector<std::wstring>& sourcePathList)
 {
+	auto base = std::filesystem::path(basePath);
 	std::vector<COMPRESS_SOURCES::PATH_PAIR> out;
 	for (const auto& path : sourcePathList) {
-		COMPRESS_SOURCES::PATH_PAIR rp;
-		rp.originalFullPath = path;
-		rp.entryPath = std::filesystem::relative(path, basePath);
-		rp.entryPath = replace(rp.entryPath, L"\\", L"/");
-		out.push_back(rp);
+		if (base != path) {
+			COMPRESS_SOURCES::PATH_PAIR rp;
+			rp.originalFullPath = path;
+			rp.entryPath = std::filesystem::relative(path, basePath);
+			rp.entryPath = replace(rp.entryPath, L"\\", L"/");
+			out.push_back(rp);
+		}
 	}
 	return out;
 }
@@ -232,16 +235,18 @@ COMPRESS_SOURCES buildCompressSources(
 	std::vector<std::wstring> sourcePathList = getAllSourceFiles(givenFiles);
 	targets.basePath = getSourcesBasePath(givenFiles);
 	try {
-		if (args.compress.IgnoreTopDirectory && givenFiles.size() == 1) {
-			if (args.compress.IgnoreTopDirectoryRecursively) {
-				targets.basePath = getSourcesBasePath(sourcePathList);
-			} else {
-				if (std::filesystem::is_directory(givenFiles.front())) {
+		if (givenFiles.size() == 1 && std::filesystem::is_directory(givenFiles[0])) {
+			if (args.compress.IgnoreTopDirectory) {
+				if (args.compress.IgnoreTopDirectoryRecursively) {
+					targets.basePath = getSourcesBasePath(sourcePathList);
+				} else {
 					auto di = std::filesystem::directory_iterator(givenFiles.front());
 					if (std::filesystem::begin(di) != std::filesystem::end(di)) {
 						targets.basePath = givenFiles.front();
 					}
 				}
+			} else {
+				targets.basePath = std::filesystem::path(targets.basePath).parent_path();
 			}
 		}
 
@@ -365,6 +370,7 @@ void compressOneArchive(
 							processed+data.offset,
 							source_files.total_filesize);
 					}
+					while (UtilDoMessageLoop())continue;
 					return data;
 				});
 
