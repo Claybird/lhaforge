@@ -238,10 +238,24 @@ COMPRESS_SOURCES buildCompressSources(
 		if (givenFiles.size() == 1 && std::filesystem::is_directory(givenFiles[0])) {
 			if (args.compress.IgnoreTopDirectory) {
 				if (args.compress.IgnoreTopDirectoryRecursively) {
-					targets.basePath = getSourcesBasePath(sourcePathList);
+					auto parent = givenFiles[0];
+					auto files = UtilEnumSubFileAndDirectory(parent);
+					for (;;) {
+						if (files.size() == 1 && std::filesystem::is_directory(files[0])) {
+							parent = files[0];
+							auto files_sub = UtilEnumSubFileAndDirectory(parent);
+							if (!files_sub.empty()) {
+								files = files_sub;
+								continue;
+							}
+						}
+						sourcePathList = getAllSourceFiles(files);
+						targets.basePath = getSourcesBasePath(sourcePathList);
+						break;
+					}
 				} else {
 					auto di = std::filesystem::directory_iterator(givenFiles.front());
-					if (std::filesystem::begin(di) != std::filesystem::end(di)) {
+					if (std::filesystem::begin(di) != std::filesystem::end(di)) {	//not an empty dir
 						targets.basePath = givenFiles.front();
 					}
 				}
