@@ -173,6 +173,23 @@ std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& 
 	return files;
 }
 
+//enumerates files and directories in specified directory
+std::vector<std::wstring> UtilEnumSubFileAndDirectory(const std::wstring& root)
+{
+	CFindFile cFindFile;
+
+	std::vector<std::wstring> files;
+	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			files.push_back((const wchar_t*)cFindFile.GetFilePath());
+		}
+		bContinue = cFindFile.FindNextFile();
+	}
+
+	return files;
+}
+
 bool UtilPathIsRoot(const std::wstring& path)
 {
 	auto p = std::filesystem::path(path);

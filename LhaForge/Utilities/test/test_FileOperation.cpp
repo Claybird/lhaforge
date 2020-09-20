@@ -121,6 +121,17 @@ TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 			}
 		}
 	}
+	{
+		auto enumerated = UtilEnumSubFileAndDirectory(dir);
+		EXPECT_EQ(4, enumerated.size());
+		if (4 == enumerated.size()) {
+			for (size_t i = 0; i < enumerated.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			}
+		}
+	}
 
 	//expand wild
 	{

@@ -78,6 +78,9 @@ std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root);
 //recursively enumerates files and directories in specified directory
 std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& root);
 
+std::vector<std::wstring> UtilEnumSubFileAndDirectory(const std::wstring& root);
+
+
 bool UtilPathIsRoot(const std::wstring& path);
 std::wstring UtilPathAddLastSeparator(const std::wstring& path);
 std::wstring UtilPathRemoveLastSeparator(const std::wstring& path);
