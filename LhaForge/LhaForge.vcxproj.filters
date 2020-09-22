@@ -61,9 +61,6 @@
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="Dialogs\WaitDialog.cpp">
-      <Filter>Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\ArcFileContent.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
@@ -320,9 +317,6 @@
     <ClInclude Include="Dialogs\WaitDialog.h">
       <Filter>Dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="FileListWindow\AnimationUpdater.h">
-      <Filter>FileListWindow</Filter>
-    </ClInclude>
     <ClInclude Include="FileListWindow\ArcFileContent.h">
       <Filter>FileListWindow</Filter>
     </ClInclude>
@@ -431,9 +425,6 @@
     </Xml>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="animation.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="app_test.ico">
       <Filter>Resource Files</Filter>
     </Image>

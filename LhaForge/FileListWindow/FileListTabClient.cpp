@@ -26,9 +26,24 @@
 #include "FileListTabClient.h"
 #include "FileTreeView.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
-#include "../resource.h"
-#include "AnimationUpdater.h"
+#include "resource.h"
 #include "FileListFrame.h"
+
+#include "Dialogs/WaitDialog.h"
+
+struct AnimationUpdater :public IArchiveContentUpdateHandler {
+	CWaitDialog &_rDialog;
+	AnimationUpdater(CWaitDialog &dlg):_rDialog(dlg) {}
+	virtual ~AnimationUpdater() {}
+	void onUpdated(ARCHIVE_ENTRY_INFO &rInfo)override {
+		_rDialog.SetMessageString(rInfo._fullpath.c_str());
+	}
+	bool isAborted()override {
+		return _rDialog.IsAborted();
+	}
+};
+
+
 
 CFileListTabClient::CFileListTabClient(CConfigManager& rConfig,CFileListFrame& rFrame):
 	m_rConfig(rConfig),
@@ -91,8 +106,7 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileLi
 	//「お待ちください」ダイアログを表示
 	CWaitDialog WaitDialog;
 	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-	AnimationUpdater au;
-	au.lpDialog=&WaitDialog;
+	AnimationUpdater au(WaitDialog);
 
 	m_rFrameWnd.EnableWindow(FALSE);
 	//---解析
@@ -356,8 +370,7 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		//「お待ちください」ダイアログを表示
 		CWaitDialog WaitDialog;
 		WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-		AnimationUpdater au;
-		au.lpDialog=&WaitDialog;
+		AnimationUpdater au(WaitDialog);
 
 		m_rFrameWnd.EnableWindow(FALSE);
 		//---解析
@@ -382,8 +395,7 @@ bool CFileListTabClient::ReopenArchiveFileAll()
 	//「お待ちください」ダイアログを表示
 	CWaitDialog WaitDialog;
 	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-	AnimationUpdater au;
-	au.lpDialog=&WaitDialog;
+	AnimationUpdater au(WaitDialog);
 
 	m_rFrameWnd.EnableWindow(FALSE);
 	int size=GetPageCount();

@@ -881,8 +881,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "しばらくお待ち下さい"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
-    ICON            "",IDC_STATIC_ANIMATION_ICON,7,7,20,20
-    LTEXT           "メッセージ文字列",IDC_STATIC_WAIT_MESSAGE,32,7,124,22,SS_CENTERIMAGE
+    LTEXT           "メッセージ文字列",IDC_STATIC_WAIT_MESSAGE,7,7,149,22,SS_CENTERIMAGE
     PUSHBUTTON      "中止(&A)",IDCANCEL,106,30,50,14
 END
 
@@ -1483,8 +1482,6 @@ END
 // Bitmap
 //
 
-IDB_BITMAP_ANIMATION    BITMAP                  "animation.bmp"
-
 IDR_MAINFRAME           BITMAP                  "toolbar.bmp"
 
 IDB_BITMAP_SORTMARK     BITMAP                  "sortmark.bmp"
@@ -1565,6 +1562,11 @@ BEGIN
 END
 
 IDD_DIALOG_PROGRESS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_DIALOG_WAIT AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

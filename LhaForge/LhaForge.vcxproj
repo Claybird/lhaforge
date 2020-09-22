@@ -47,7 +47,6 @@
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="Dialogs\WaitDialog.cpp" />
     <ClCompile Include="extract.cpp" />
     <ClCompile Include="FileListWindow\ArcFileContent.cpp" />
     <ClCompile Include="FileListWindow\FileListFrame.cpp" />
@@ -130,7 +129,6 @@
     <ClInclude Include="Dialogs\TextInputDlg.h" />
     <ClInclude Include="Dialogs\WaitDialog.h" />
     <ClInclude Include="extract.h" />
-    <ClInclude Include="FileListWindow\AnimationUpdater.h" />
     <ClInclude Include="FileListWindow\ArcFileContent.h" />
     <ClInclude Include="FileListWindow\EventDispatcher.h" />
     <ClInclude Include="FileListWindow\FileListFrame.h" />
@@ -166,7 +164,6 @@
     <Xml Include="manifest.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="animation.bmp" />
     <Image Include="app_test.ico" />
     <Image Include="compress.ico" />
     <Image Include="extract.ico" />
