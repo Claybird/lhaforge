@@ -28,22 +28,7 @@
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "resource.h"
 #include "FileListFrame.h"
-
 #include "Dialogs/WaitDialog.h"
-
-struct AnimationUpdater :public IArchiveContentUpdateHandler {
-	CWaitDialog &_rDialog;
-	AnimationUpdater(CWaitDialog &dlg):_rDialog(dlg) {}
-	virtual ~AnimationUpdater() {}
-	void onUpdated(ARCHIVE_ENTRY_INFO &rInfo)override {
-		_rDialog.SetMessageString(rInfo._fullpath.c_str());
-	}
-	bool isAborted()override {
-		return _rDialog.IsAborted();
-	}
-};
-
-
 
 CFileListTabClient::CFileListTabClient(CConfigManager& rConfig,CFileListFrame& rFrame):
 	m_rConfig(rConfig),
@@ -104,20 +89,17 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileLi
 	pItem->strMutexName=lpMutexName;
 
 	//「お待ちください」ダイアログを表示
-	CWaitDialog WaitDialog;
-	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-	AnimationUpdater au(WaitDialog);
+	CWaitDialog waitDialog;
+	waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
 
 	m_rFrameWnd.EnableWindow(FALSE);
 	//---解析
-	HRESULT hr=pItem->OpenArchive(lpszArc,ConfFLW,ConfFLW.FileListMode,&au,strErr);
+	HRESULT hr=pItem->OpenArchive(lpszArc,ConfFLW,ConfFLW.FileListMode,&waitDialog,strErr);
+	m_rFrameWnd.EnableWindow(TRUE);
+	waitDialog.DestroyWindow();
 	if(FAILED(hr)){
-		m_rFrameWnd.EnableWindow(TRUE);
-		WaitDialog.DestroyWindow();
 		RemoveTab(idx);
 	}else{
-		m_rFrameWnd.EnableWindow(TRUE);
-		WaitDialog.DestroyWindow();
 		SetPageTitle(idx,PathFindFileName(pItem->Model.GetArchiveFileName()));
 		// ツリービューにフォーカスを持たせる
 		pItem->TreeView.SetFocus();
@@ -368,16 +350,15 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		pItem->Model.GetDirStack(dirStack);
 
 		//「お待ちください」ダイアログを表示
-		CWaitDialog WaitDialog;
-		WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-		AnimationUpdater au(WaitDialog);
+		CWaitDialog waitDialog;
+		waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
 
 		m_rFrameWnd.EnableWindow(FALSE);
 		//---解析
 		CString strErr;
-		HRESULT hr=pItem->Model.ReopenArchiveFile(flMode,strErr,&au);
+		HRESULT hr=pItem->Model.ReopenArchiveFile(flMode,strErr,&waitDialog);
 		m_rFrameWnd.EnableWindow(TRUE);
-		WaitDialog.DestroyWindow();
+		waitDialog.DestroyWindow();
 		if(FAILED(hr)){
 			ErrorMessage((const wchar_t*)strErr);
 			return hr;
@@ -393,9 +374,8 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 bool CFileListTabClient::ReopenArchiveFileAll()
 {
 	//「お待ちください」ダイアログを表示
-	CWaitDialog WaitDialog;
-	WaitDialog.Prepare(m_rFrameWnd,CString(MAKEINTRESOURCE(IDS_FILELIST_SEARCH)));
-	AnimationUpdater au(WaitDialog);
+	CWaitDialog waitDialog;
+	waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
 
 	m_rFrameWnd.EnableWindow(FALSE);
 	int size=GetPageCount();
@@ -411,11 +391,11 @@ bool CFileListTabClient::ReopenArchiveFileAll()
 
 			//---解析
 			CString strErr;
-			HRESULT hr=pItem->Model.ReopenArchiveFile(m_ListMode,strErr,&au);
+			HRESULT hr=pItem->Model.ReopenArchiveFile(m_ListMode,strErr,&waitDialog);
 			if(FAILED(hr)){
 				if(hr==E_ABORT){
 					m_rFrameWnd.EnableWindow(TRUE);
-					WaitDialog.DestroyWindow();
+					waitDialog.DestroyWindow();
 					return false;
 				}
 				//WaitDialog.DestroyWindow();
@@ -426,7 +406,7 @@ bool CFileListTabClient::ReopenArchiveFileAll()
 		}
 	}
 	m_rFrameWnd.EnableWindow(TRUE);
-	WaitDialog.DestroyWindow();
+	waitDialog.DestroyWindow();
 	return true;
 }
 

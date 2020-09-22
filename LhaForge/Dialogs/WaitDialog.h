@@ -25,10 +25,15 @@
 #pragma once
 #include "resource.h"
 
-class CWaitDialog : public CDialogImpl<CWaitDialog>,public CMessageFilter, public CIdleHandler
+class CWaitDialog : 
+	public CDialogImpl<CWaitDialog>,
+	public CMessageFilter,
+	public CIdleHandler,
+	public IArchiveContentUpdateHandler
 {
 protected:
 	CStatic	Static_MessageString;
+	DWORD m_ActiveAfter;	//delay timer
 	bool m_bAborted;
 protected:
 	BEGIN_MSG_MAP_EX(CMainDlg)
@@ -69,14 +74,27 @@ protected:
 	}
 public:
 	enum {IDD = IDD_DIALOG_WAIT};
-	void SetMessageString(LPCTSTR t){Static_MessageString.SetWindowText(t);}
+	void SetMessageString(const std::wstring& t){Static_MessageString.SetWindowTextW(t.c_str());}
 
-	void Prepare(HWND hWndParent, LPCTSTR lpMsg) {
+	void Prepare(HWND hWndParent, const std::wstring& msg, DWORD delay_in_ms) {
+		m_ActiveAfter = timeGetTime() + delay_in_ms;
 		Create(hWndParent);
-		SetMessageString(lpMsg);
-		ShowWindow(SW_SHOW);
+		SetMessageString(msg);
+		if (m_ActiveAfter > timeGetTime()) {
+			ShowWindow(SW_HIDE);
+		} else {
+			ShowWindow(SW_SHOW);
+		}
 		UpdateWindow();
 	}
-	bool IsAborted(){return m_bAborted;}
+	void onUpdated(ARCHIVE_ENTRY_INFO &rInfo)override {
+		if (m_ActiveAfter <= timeGetTime()) {
+			ShowWindow(SW_SHOW);
+		}
+		SetMessageString(rInfo._fullpath.c_str());
+	}
+	bool isAborted()override {
+		return m_bAborted;
+	}
 };
 

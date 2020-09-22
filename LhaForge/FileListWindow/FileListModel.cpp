@@ -66,7 +66,8 @@ HRESULT CFileListModel::OpenArchiveFile(LPCTSTR lpszArchive,FILELISTMODE flMode,
 	try {
 		//解析
 		m_Content.inspectArchiveStruct((LPCTSTR)strArchive, lpHandler);
-	}catch(LF_EXCEPTION&){
+	}catch(const LF_EXCEPTION& e){
+		strErr = e.what();
 		return E_FAIL;	//TODO
 	}
 
