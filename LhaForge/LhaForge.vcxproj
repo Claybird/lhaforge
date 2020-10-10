@@ -75,14 +75,6 @@
     <ClCompile Include="test\test_compress.cpp" />
     <ClCompile Include="test\test_extract.cpp" />
     <ClCompile Include="test\test_main.cpp" />
-    <ClCompile Include="Utilities\ConfigFile.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-    </ClCompile>
     <ClCompile Include="Utilities\FileOperation.cpp" />
     <ClCompile Include="Utilities\OSUtil.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
@@ -93,7 +85,6 @@
     <ClCompile Include="Utilities\test\test_StringUtil.cpp" />
     <ClCompile Include="Utilities\test\test_Utility.cpp" />
     <ClCompile Include="Utilities\Utility.cpp" />
-    <ClCompile Include="Utilities\variant.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArchiverCode\arc_interface.h" />
@@ -148,14 +139,12 @@
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Utilities\ConfigFile.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
     <ClInclude Include="Utilities\Semaphore.h" />
     <ClInclude Include="Utilities\shellmanager.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
     <ClInclude Include="Utilities\Utility.h" />
-    <ClInclude Include="Utilities\variant.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -220,18 +209,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;C:\home\lhaforge\lhaforge\dependency\simpleini</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IntDir>$(SolutionDir)Debug\$(Configuration)\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;C:\home\lhaforge\lhaforge\dependency\simpleini</IncludePath>
     <OutDir>$(SolutionDir)Debug\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental />
     <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\include;$(SolutionDir)\dependency\WTL\include;C:\home\lhaforge\lhaforge\dependency\simpleini</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>

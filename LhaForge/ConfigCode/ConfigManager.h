@@ -23,49 +23,64 @@
 */
 
 #pragma once
-#include "../Utilities/Utility.h"
-#include "../FileListWindow/MenuCommand.h"
-#include "../Utilities/ConfigFile.h"
-
-//----------
-// 設定管理
-//----------
-//INIファイル名
-const LPCTSTR INI_FILE_NAME=_T("LhaForge.ini");
-const LPCTSTR PROGRAMDIR_NAME=_T("LhaForge");	//ApplicationDataに入れるときに必要なディレクトリ名
-
+#include "Utilities/Utility.h"
+#include "FileListWindow/MenuCommand.h"
 
 class CConfigManager;
 struct IConfigConverter{
-protected:
-	virtual void load(CONFIG_SECTION&)=0;	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const=0;	//設定をCONFIG_SECTIONに書き込む
-public:
 	virtual ~IConfigConverter(){}
-	virtual void load(CConfigManager&)=0;
+	virtual void load(const CConfigManager&)=0;
 	virtual void store(CConfigManager&)const=0;
 };
-
-//====================================
-// 設定管理クラス
-//====================================
 
 class CConfigManager
 {
 protected:
-	CString m_strIniPath;
-	bool m_bUserCommon;	//ユーザー間で共通の設定を使う場合はtrue;表示で使うためだけに用意
-	typedef std::map<stdString,CONFIG_SECTION,less_ignorecase> CONFIG_DICT;
-	CONFIG_DICT m_Config;
+	std::filesystem::path m_iniPath;
+	bool m_bUserCommon;	//true to use user common configuration
+	CSimpleIniW m_Config;
+	void setDefaultPath();
 public:
-	CConfigManager();
-	virtual ~CConfigManager();
-	void SetConfigFile(LPCTSTR);	//設定ファイルを指定
-	bool LoadConfig(CString &strErr);
-	bool SaveConfig(CString &strErr);
-	CONFIG_SECTION &GetSection(LPCTSTR lpszSection);
-	void DeleteSection(LPCTSTR lpszSection);
-	bool HasSection(LPCTSTR lpszSection)const;
-	bool IsUserCommon(){return m_bUserCommon;}	//ユーザー間共通設定？
+	CConfigManager() {
+		m_Config.SetUnicode(true);
+		setDefaultPath();
+	}
+	virtual ~CConfigManager() {}
+	void setPath(const std::wstring& path);
+	void load();
+	void save();
+	void deleteSection(const std::wstring& section) {
+		m_Config.Delete(section.c_str(), nullptr);
+	}
+	bool hasSection(const std::wstring& section)const {
+		return nullptr != m_Config.GetSection(section.c_str());
+	}
+	bool isUserCommon()const { return m_bUserCommon; }
+
+	bool getBool(const std::wstring& section, const std::wstring& key, bool defaultValue)const {
+		return m_Config.GetBoolValue(section.c_str(), key.c_str(), defaultValue);
+	}
+	int getInt(const std::wstring& section, const std::wstring& key, int defaultValue)const {
+		return m_Config.GetLongValue(section.c_str(), key.c_str(), defaultValue);
+	}
+	double getDouble(const std::wstring& section, const std::wstring& key, double defaultValue)const {
+		return m_Config.GetDoubleValue(section.c_str(), key.c_str(), defaultValue);
+	}
+	std::wstring getText(const std::wstring& section, const std::wstring& key, const std::wstring& defaultValue)const {
+		return m_Config.GetValue(section.c_str(), key.c_str(), defaultValue.c_str());
+	}
+
+	void setValue(const std::wstring& section, const std::wstring& key, bool value) {
+		m_Config.SetBoolValue(section.c_str(), key.c_str(), value);
+	}
+	void setValue(const std::wstring& section, const std::wstring& key, int value) {
+		m_Config.SetLongValue(section.c_str(), key.c_str(), value);
+	}
+	void setValue(const std::wstring& section, const std::wstring& key, double value) {
+		m_Config.SetDoubleValue(section.c_str(), key.c_str(), value);
+	}
+	void setValue(const std::wstring& section, const std::wstring& key, const std::wstring& value) {
+		m_Config.SetValue(section.c_str(), key.c_str(), value.c_str());
+	}
 };
 

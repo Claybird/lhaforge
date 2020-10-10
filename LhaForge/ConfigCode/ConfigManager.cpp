@@ -24,176 +24,90 @@
 
 #include "stdafx.h"
 #include "ConfigManager.h"
-#include "../Utilities/FileOperation.h"
-//#include "../const.h"
-#include "../resource.h"
-#include "../ArchiverCode/arc_interface.h"
+#include "Utilities/FileOperation.h"
+#include "resource.h"
+#include "ArchiverCode/arc_interface.h"
 
-//標準の設定ファイルのパスを取得
-//bUserCommonはユーザー間で共通設定を使う場合にtrueが代入される
-//lpszDirはApplicationDataに入れるときに必要なディレクトリ名
-//lpszFileは探すファイル名
-void GetDefaultFilePath(CString &strPath, LPCTSTR lpszDir, LPCTSTR lpszFile, bool &bUserCommon)
+void CConfigManager::setDefaultPath()
 {
-	//---ユーザー間で共通の設定を用いる
-	//LhaForgeフォルダと同じ場所にINIがあれば使用する
+	const wchar_t* INI_FILE_NAME = L"LhaForge.ini";
+	const wchar_t* PROGRAMDIR_NAME = L"LhaForge";	//directory name in ApplicationData
+
+	//user common configuration
 	{
-		TCHAR szCommonIniPath[_MAX_PATH + 1] = { 0 };
-		//TODO: pathname might exceed _MAX_PATH
-		_tcsncpy_s(szCommonIniPath, UtilGetModuleDirectoryPath().c_str(), _MAX_PATH);
-		PathAppend(szCommonIniPath, lpszFile);
-		if (PathFileExists(szCommonIniPath)) {
-			//共通設定
-			bUserCommon = true;
-			strPath = szCommonIniPath;
-			TRACE(_T("Common INI(Old Style) '%s' found.\n"), strPath);
+		//.ini file is in same as the executable; for portable usage
+		auto candidate = std::filesystem::path(UtilGetModuleDirectoryPath()) / INI_FILE_NAME;
+		if (std::filesystem::is_regular_file(candidate)) {
+			m_bUserCommon = true;
+			m_iniPath = candidate;
 			return;
 		}
 	}
-	//CSIDL_COMMON_APPDATAにINIがあれば使用する
 	{
-		TCHAR szCommonIniPath[_MAX_PATH + 1] = { 0 };
-		SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, szCommonIniPath);
-		PathAppend(szCommonIniPath, lpszDir);
-		PathAppend(szCommonIniPath, lpszFile);
-		if (PathFileExists(szCommonIniPath)) {
-			//共通設定
-			bUserCommon = true;
-			strPath = szCommonIniPath;
-			TRACE(_T("Common INI '%s' found.\n"), strPath);
-			return;
+		//.ini is in FOLDERID_ProgramData (formerly CSIDL_COMMON_APPDATA)
+		wchar_t* ptr = nullptr;
+		if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_ProgramData, 0, nullptr, &ptr))) {
+			auto candidate = std::filesystem::path(ptr) / PROGRAMDIR_NAME / INI_FILE_NAME;
+			CoTaskMemFree(ptr);
+			if (std::filesystem::is_regular_file(candidate)) {
+				m_bUserCommon = true;
+				m_iniPath = candidate;
+				return;
+			}
 		}
 	}
 
 	//--------------------
-
-	//---ユーザー別設定を用いる
-	//LhaForgeインストールフォルダ以下にファイルが存在する場合、それを使用
+	//user specific configuration
 	{
-		//ユーザー名取得
-		TCHAR UserName[UNLEN + 1] = { 0 };
-		DWORD Length = UNLEN;
-		GetUserName(UserName, &Length);
-
-		TCHAR szIniPath[_MAX_PATH + 1];
-		//TODO: pathname might exceed _MAX_PATH
-		_tcsncpy_s(szIniPath, UtilGetModuleDirectoryPath().c_str(), _MAX_PATH);
-		PathAppend(szIniPath, UserName);
-		PathAddBackslash(szIniPath);
-		//MakeSureDirectoryPathExists(szIniPath);
-
-		PathAppend(szIniPath, lpszFile);
-
-		if (PathFileExists(szIniPath)) {
-			bUserCommon = false;
-			strPath = szIniPath;
-			TRACE(_T("Personal INI(Old Style) '%s' found.\n"), strPath);
+		//.ini is in FOLDERID_RoamingAppData (formerly CSIDL_APPDATA)
+		wchar_t* ptr = nullptr;
+		if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &ptr))) {
+			auto candidate = std::filesystem::path(ptr) / PROGRAMDIR_NAME / INI_FILE_NAME;
+			CoTaskMemFree(ptr);
+			m_bUserCommon = false;
+			m_iniPath = candidate;
 			return;
 		}
 	}
-	//---デフォルト
-	//CSIDL_APPDATAにINIがあれば使用する:Vistaではこれ以外はアクセス権限不足になる可能性がある
-	TCHAR szIniPath[_MAX_PATH + 1] = { 0 };
-	SHGetFolderPath(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, szIniPath);
-	PathAppend(szIniPath, lpszDir);
-	PathAddBackslash(szIniPath);
-	try {
-		std::filesystem::create_directories(szIniPath);
-	} catch (std::filesystem::filesystem_error) {
-		RAISE_EXCEPTION(L"Failed to create directory");
-	}
-	PathAppend(szIniPath, lpszFile);
-	bUserCommon = false;
-	strPath = szIniPath;
-	TRACE(_T("Personal INI '%s' found.\n"), strPath);
-	return;
+
+	//default fallback
+	m_iniPath = UtilGetTemporaryFileName();
+	m_bUserCommon = true;
 }
 
-
-
-CConfigManager::CConfigManager()
+void CConfigManager::setPath(const std::wstring& path)
 {
-	TRACE(_T("CConfigManager()\n"));
-
-	//---LhaForge.iniの場所
-	GetDefaultFilePath(m_strIniPath,PROGRAMDIR_NAME,INI_FILE_NAME,m_bUserCommon);
-}
-
-CConfigManager::~CConfigManager()
-{
-}
-
-
-void CConfigManager::SetConfigFile(LPCTSTR lpszFile)
-{
-	if(!lpszFile){
-		//NULLを渡されたらデフォルト設定に
-		GetDefaultFilePath(m_strIniPath,PROGRAMDIR_NAME,INI_FILE_NAME,m_bUserCommon);
-		return;
-	}
 	m_bUserCommon=false;
 	try {
-		m_strIniPath = UtilGetCompletePathName(lpszFile).c_str();
-	} catch (LF_EXCEPTION) {
-		m_strIniPath = lpszFile;
+		m_iniPath = UtilGetCompletePathName(path);
+	} catch (const LF_EXCEPTION&) {
+		m_iniPath = path;
 	}
-	TRACE(_T("Custom Config Path=%s\n"),m_strIniPath);
 }
 
-bool CConfigManager::LoadConfig(CString &strErr)
+void CConfigManager::load()
 {
-	m_Config.clear();
-	if(PathFileExists(m_strIniPath)){
-		//読み込み
-		std::list<CONFIG_SECTION> sections;
-		if(!UtilReadSectionedConfig(m_strIniPath,sections,strErr))return false;
-
-		for(std::list<CONFIG_SECTION>::iterator ite=sections.begin();ite!=sections.end();++ite){
-			GetSection((*ite).SectionName.c_str())=*ite;
+	if (std::filesystem::is_regular_file(m_iniPath)) {
+		auto rc = m_Config.LoadFile(m_iniPath.c_str());
+		if (rc < 0) {
+			//TODO: resource
+			RAISE_EXCEPTION(L"Failed to load config file %s", m_iniPath.c_str());
 		}
-
-		m_Config.erase(_T("BH"));
-		m_Config.erase(_T("YZ1"));
-	}
-
-	return true;
-}
-
-bool CConfigManager::SaveConfig(CString &strErr)
-{
-	// 自分のバージョンを記述
-	GetSection(_T("LhaForge")).Data[_T("Version")]=CString(MAKEINTRESOURCE(IDS_LHAFORGE_VERSION_STRING));
-
-	//保存
-	std::list<CONFIG_SECTION> tmpList;
-	for(CONFIG_DICT::const_iterator ite=m_Config.begin();ite!=m_Config.end();++ite){
-		tmpList.push_back((*ite).second);
-	}
-	if(!UtilWriteSectionedConfig(m_strIniPath,tmpList,strErr)){
-		return false;
-	}
-	return true;
-}
-
-CONFIG_SECTION &CConfigManager::GetSection(LPCTSTR lpszSection)
-{
-	CONFIG_DICT::iterator ite=m_Config.find(lpszSection);
-	if(ite!=m_Config.end()){
-		return (*ite).second;
-	}else{
-		CONFIG_SECTION &Conf=m_Config[lpszSection];
-		Conf.SectionName=lpszSection;
-		return Conf;
+	} else {
+		m_Config.Reset();
 	}
 }
 
-bool CConfigManager::HasSection(LPCTSTR lpszSection)const
+void CConfigManager::save()
 {
-	CONFIG_DICT::const_iterator ite=m_Config.find(lpszSection);
-	return (ite!=m_Config.end());
-}
+	//version
+	m_Config.SetValue(L"lhaforge", L"version", UtilLoadString(IDS_LHAFORGE_VERSION_STRING).c_str());
 
-void CConfigManager::DeleteSection(LPCTSTR lpszSection)
-{
-	m_Config.erase(lpszSection);
+	//save
+	auto rc = m_Config.SaveFile(m_iniPath.c_str(), false);
+	if (rc < 0) {
+		//TODO: resource
+		RAISE_EXCEPTION(L"Failed to save config file %s", m_iniPath.c_str());
+	}
 }

@@ -2,3 +2,6 @@
 	path = dependency/WTL
 	url = https://git.code.sf.net/p/wtl/git
 	branch = master
+[submodule "dependency/simpleini"]
+	path = dependency/simpleini
+	url = git@github.com:brofield/simpleini.git

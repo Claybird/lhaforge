@@ -127,9 +127,6 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\ConfigFile.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\FileOperation.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -143,9 +140,6 @@
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\Utility.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\variant.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="test\test_extract.cpp">
@@ -365,9 +359,6 @@
     <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h">
       <Filter>FileListWindow\OLE</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\ConfigFile.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\FileOperation.h">
       <Filter>Utilities</Filter>
     </ClInclude>
@@ -384,9 +375,6 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Utility.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\variant.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Association.h">
