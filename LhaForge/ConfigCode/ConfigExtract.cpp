@@ -77,9 +77,6 @@ void CConfigExtract::load(const CConfigManager &Config)
 	//解凍エラーを検知できない場合も削除
 	ForceDelete = Config.getBool(section, L"ForceDelete", false);
 
-	//マルチボリュームも削除
-	DeleteMultiVolume = Config.getBool(section, L"DeleteMultiVolume", false);
-
 	//パスワード入力回数を最小にするならTRUE
 	MinimumPasswordRequest = Config.getBool(section, L"MinimumPasswordRequest", false);
 
@@ -126,9 +123,6 @@ void CConfigExtract::store(CConfigManager &Config)const
 
 	//解凍エラーを検知できない場合も削除
 	Config.setValue(section, L"ForceDelete", ForceDelete);
-
-	//マルチボリュームも削除
-	Config.setValue(section, L"DeleteMultiVolume", DeleteMultiVolume);
 
 	//パスワード入力回数を最小にするならTRUE
 	Config.setValue(section, L"MinimumPasswordRequest", MinimumPasswordRequest);

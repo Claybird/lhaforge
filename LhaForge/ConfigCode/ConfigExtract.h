@@ -41,8 +41,6 @@ public:
 	bool MoveToRecycleBin;			//解凍後ファイルをごみ箱に移動
 	bool DeleteNoConfirm;			//確認せずに削除/ごみ箱に移動
 	bool ForceDelete;				//解凍エラーを検知できない場合も削除
-	[[deprecated("will be removed")]]
-	bool DeleteMultiVolume;			//マルチボリュームもまとめて削除
 	bool MinimumPasswordRequest;	//パスワード入力回数を最小にするならTRUE
 
 	std::wstring DenyExt;		//解凍対象から外す拡張子
