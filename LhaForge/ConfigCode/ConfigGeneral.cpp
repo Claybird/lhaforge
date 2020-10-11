@@ -28,80 +28,72 @@
 #include "ConfigManager.h"
 #include "ConfigGeneral.h"
 
-void CConfigGeneral::loadOutput(CONFIG_SECTION &Config)
+void CConfigGeneral::loadOutput(const CConfigManager &Config)
 {
+	const auto section = L"Output";
 	// 出力先種類に対する警告
-	WarnNetwork=Config.Data[_T("WarnNetwork")].GetNParam(FALSE);
-	WarnRemovable=Config.Data[_T("WarnRemovable")].GetNParam(FALSE);
+	WarnNetwork=Config.getBool(section ,L"WarnNetwork", false);
+	WarnRemovable=Config.getBool(section, L"WarnRemovable", false);
 
 	// 出力先が見つからない場合の設定
-	OnDirNotFound=(LOSTDIR)Config.Data[_T("OnDirNotFound")].GetNParam(0,LOSTDIR_LAST_ITEM,LOSTDIR_ERROR);
+	OnDirNotFound = (LOSTDIR)Config.getIntRange(section, L"OnDirNotFound", 0, LOSTDIR_LAST_ITEM, LOSTDIR_ERROR);
 }
 
-void CConfigGeneral::storeOutput(CONFIG_SECTION &Config)const
+void CConfigGeneral::storeOutput(CConfigManager &Config)const
 {
+	const auto section = L"Output";
 	// 出力先種類に対する警告
-	Config.Data[_T("WarnNetwork")]=WarnNetwork;
-	Config.Data[_T("WarnRemovable")]=WarnRemovable;
+	Config.setValue(section, L"WarnNetwork", WarnNetwork);
+	Config.setValue(section, L"WarnRemovable", WarnRemovable);
 
 	// 出力先が見つからない場合の設定
-	Config.Data[_T("OnDirNotFound")]=OnDirNotFound;
+	Config.setValue(section, L"OnDirNotFound", OnDirNotFound);
 }
 
-void CConfigGeneral::loadLogView(CONFIG_SECTION &Config)
+void CConfigGeneral::loadLogView(const CConfigManager &Config)
 {
-	LogViewEvent=(LOGVIEW)Config.Data[_T("LogViewEvent")].GetNParam(0,LOGVIEW_LAST_ITEM,LOGVIEW_ON_ERROR);
+	const auto section = L"LogView";
+	LogViewEvent = (LOGVIEW)Config.getIntRange(section, L"LogViewEvent", 0, LOGVIEW_LAST_ITEM, LOGVIEW_ON_ERROR);
 }
 
-void CConfigGeneral::storeLogView(CONFIG_SECTION &Config)const
+void CConfigGeneral::storeLogView(CConfigManager &Config)const
 {
-	Config.Data[_T("LogViewEvent")]=LogViewEvent;
+	const auto section = L"LogView";
+	Config.setValue(section, L"LogViewEvent", LogViewEvent);
 }
 
-void CConfigGeneral::loadFiler(CONFIG_SECTION &Config)
+void CConfigGeneral::loadFiler(const CConfigManager &Config)
 {
-	Filer.UseFiler=Config.Data[_T("UseFiler")].GetNParam(FALSE);
+	const auto section = L"Filer";
+	Filer.UseFiler = Config.getBool(section, L"UseFiler", false);
 
-	Filer.FilerPath=Config.Data[_T("FilerPath")];
-	Filer.Param=Config.Data[_T("Param")];
+	Filer.FilerPath = Config.getText(section, L"FilerPath", L"");
+	Filer.Param = Config.getText(section, L"Param", L"");
 }
 
-void CConfigGeneral::storeFiler(CONFIG_SECTION &Config)const
+void CConfigGeneral::storeFiler(CConfigManager &Config)const
 {
-	Config.Data[_T("UseFiler")]=Filer.UseFiler;
+	const auto section = L"Filer";
+	Config.setValue(section, L"UseFiler", Filer.UseFiler);
 
-	Config.Data[_T("FilerPath")]=Filer.FilerPath;
-	Config.Data[_T("Param")]=Filer.Param;
+	Config.setValue(section, L"FilerPath", Filer.FilerPath);
+	Config.setValue(section, L"Param", Filer.Param);
 }
 
-void CConfigGeneral::loadGeneral(CONFIG_SECTION &Config)
+void CConfigGeneral::loadGeneral(const CConfigManager &Config)
 {
-	NotifyShellAfterProcess=Config.Data[_T("NotifyShell")];
-	ProcessPriority=(LFPROCESS_PRIORITY)Config.Data[_T("ProcessPriority")].GetNParam(LFPRIOTITY_DEFAULT,LFPRIOTITY_MAX_NUM,LFPRIOTITY_DEFAULT);
+	const auto section = L"General";
+	NotifyShellAfterProcess=Config.getBool(section, L"NotifyShell", false);
+	ProcessPriority = (LFPROCESS_PRIORITY)Config.getIntRange(section, L"ProcessPriority", LFPRIOTITY_DEFAULT, LFPRIOTITY_MAX_NUM, LFPRIOTITY_DEFAULT);
 
-	TempPath=Config.Data[_T("TempPath")];
+	TempPath = Config.getText(section, L"TempPath", L"");
 }
 
-void CConfigGeneral::storeGeneral(CONFIG_SECTION &Config)const
+void CConfigGeneral::storeGeneral(CConfigManager &Config)const
 {
-	Config.Data[_T("NotifyShell")]=NotifyShellAfterProcess;
-	Config.Data[_T("ProcessPriority")]=ProcessPriority;
+	const auto section = L"General";
+	Config.setValue(section, L"NotifyShell", NotifyShellAfterProcess);
+	Config.setValue(section, L"ProcessPriority", ProcessPriority);
 
-	Config.Data[_T("TempPath")]=TempPath;
-}
-
-void CConfigGeneral::load(CConfigManager &ConfMan)
-{
-	loadOutput(ConfMan.GetSection(_T("Output")));
-	loadLogView(ConfMan.GetSection(_T("LogView")));
-	loadFiler(ConfMan.GetSection(_T("Filer")));
-	loadGeneral(ConfMan.GetSection(_T("General")));
-}
-
-void CConfigGeneral::store(CConfigManager &ConfMan)const
-{
-	storeOutput(ConfMan.GetSection(_T("Output")));
-	storeLogView(ConfMan.GetSection(_T("LogView")));
-	storeFiler(ConfMan.GetSection(_T("Filer")));
-	storeGeneral(ConfMan.GetSection(_T("General")));
+	Config.setValue(section, L"TempPath", TempPath);
 }

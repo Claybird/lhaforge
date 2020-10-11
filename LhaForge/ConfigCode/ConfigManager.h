@@ -23,12 +23,10 @@
 */
 
 #pragma once
-#include "Utilities/Utility.h"
-#include "FileListWindow/MenuCommand.h"
 
 class CConfigManager;
-struct IConfigConverter{
-	virtual ~IConfigConverter(){}
+struct IConfigIO{
+	virtual ~IConfigIO(){}
 	virtual void load(const CConfigManager&)=0;
 	virtual void store(CConfigManager&)const=0;
 };
@@ -62,6 +60,10 @@ public:
 	}
 	int getInt(const std::wstring& section, const std::wstring& key, int defaultValue)const {
 		return m_Config.GetLongValue(section.c_str(), key.c_str(), defaultValue);
+	}
+	int getIntRange(const std::wstring& section, const std::wstring& key, int nMin, int nMax, int defaultValue)const {
+		auto value = getInt(section, key, defaultValue);
+		return std::max(std::min(value, nMax), nMin);
 	}
 	double getDouble(const std::wstring& section, const std::wstring& key, double defaultValue)const {
 		return m_Config.GetDoubleValue(section.c_str(), key.c_str(), defaultValue);

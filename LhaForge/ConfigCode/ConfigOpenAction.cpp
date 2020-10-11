@@ -27,28 +27,20 @@
 #include "ConfigOpenAction.h"
 
 // 関連付け動作設定
-void CConfigOpenAction::load(CONFIG_SECTION &Config)
+void CConfigOpenAction::load(const CConfigManager &Config)
 {
+	const auto section = L"OpenAction";
 	//動作選択
-	OpenAction=(OPENACTION)Config.Data[_T("OpenAction")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_EXTRACT);
-	OpenAction_Shift=(OPENACTION)Config.Data[_T("OpenAction_Shift")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_LIST);
-	OpenAction_Ctrl=(OPENACTION)Config.Data[_T("OpenAction_Ctrl")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_TEST);
+	OpenAction = (OPENACTION)Config.getIntRange(section, L"OpenAction", 0, OPENACTION_LAST_ITEM, OPENACTION_EXTRACT);
+	OpenAction_Shift = (OPENACTION)Config.getIntRange(section, L"OpenAction_Shift", 0, OPENACTION_LAST_ITEM, OPENACTION_LIST);
+	OpenAction_Ctrl = (OPENACTION)Config.getIntRange(section, L"OpenAction_Ctrl", 0, OPENACTION_LAST_ITEM, OPENACTION_TEST);
 }
 
-void CConfigOpenAction::store(CONFIG_SECTION &Config)const
+void CConfigOpenAction::store(CConfigManager &Config)const
 {
+	const auto section = L"OpenAction";
 	//動作選択
-	Config.Data[_T("OpenAction")]=OpenAction;
-	Config.Data[_T("OpenAction_Shift")]=OpenAction_Shift;
-	Config.Data[_T("OpenAction_Ctrl")]=OpenAction_Ctrl;
-}
-
-void CConfigOpenAction::load(CConfigManager &ConfMan)
-{
-	load(ConfMan.GetSection(_T("OpenAction")));
-}
-
-void CConfigOpenAction::store(CConfigManager &ConfMan)const
-{
-	store(ConfMan.GetSection(_T("OpenAction")));
+	Config.setValue(section, L"OpenAction", OpenAction);
+	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
+	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
 }

@@ -26,7 +26,6 @@
 #include "ConfigManager.h"
 #include "Utilities/FileOperation.h"
 #include "resource.h"
-#include "ArchiverCode/arc_interface.h"
 
 void CConfigManager::setDefaultPath()
 {

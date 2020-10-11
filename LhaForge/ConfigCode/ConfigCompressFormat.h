@@ -25,49 +25,43 @@
 #pragma once
 #include "ConfigManager.h"
 
-struct CConfigCompressFormatBase :public IConfigConverter {
+struct CConfigCompressFormatBase :public IConfigIO {
 public:
 	const std::wstring section_name;
 	//stores key values; default is the first item
-	const std::map<std::string, std::vector<std::string>> key_and_valid_values;
+	const std::map<std::wstring, std::vector<std::wstring>> key_and_valid_values;
+
+	//params from config
 	std::map<std::string, std::string> params;
-protected:
-	virtual void load(CONFIG_SECTION& config) override {
-		for (const auto& ite : key_and_valid_values) {
-			auto key = ite.first;
-			auto data_ite = config.Data.find(UtilUTF8toUNICODE(key.c_str(), key.length()));
-			if (data_ite != config.Data.end()) {
-				auto value = UtilToUTF8((const wchar_t*)(*data_ite).second);
-				if (isIn(ite.second, value)) {
-					//invalid
-					params[key] = value;
-				} else {
-					//use default value
-					params[key] = ite.second.front();
-				}
-			} else {
-				//use default value
-				params[key] = ite.second.front();
-			}
-		}
-	}
-	virtual void store(CONFIG_SECTION& config)const override {
-		for (const auto& ite : params) {
-			auto key = ite.first;
-			config.Data[UtilUTF8toUNICODE(key)] = UtilUTF8toUNICODE(ite.second).c_str();
-		}
-	}
 public:
 	CConfigCompressFormatBase(
 		const std::wstring &_section_name,
-		const std::map<std::string, std::vector<std::string>>& _knd
+		const std::map<std::wstring, std::vector<std::wstring>>& _knd
 	) :section_name(_section_name), key_and_valid_values(_knd) {}
 	virtual ~CConfigCompressFormatBase() {}
-	virtual void load(CConfigManager& mngr) override{
-		load(mngr.GetSection(section_name.c_str()));
+	virtual void load(const CConfigManager& Config) override{
+		for (const auto& ite : key_and_valid_values) {
+			const auto &key = ite.first;
+			auto key_utf8 = UtilToUTF8(key);
+
+			const auto &valid_values = ite.second;
+			const auto &defaultValue = valid_values.front();
+			auto value = Config.getText(section_name, key, defaultValue);
+			if (isIn(valid_values, value)) {
+				//valid
+				params[key_utf8] = UtilToUTF8(value);
+			} else {
+				//use default value
+				params[key_utf8] = UtilToUTF8(defaultValue);
+			}
+		}
 	}
-	virtual void store(CConfigManager& mngr)const override {
-		store(mngr.GetSection(section_name.c_str()));
+	virtual void store(CConfigManager& Config)const override {
+		for (const auto& ite : params) {
+			auto key = UtilUTF8toUNICODE(ite.first);
+			auto value = UtilUTF8toUNICODE(ite.second);
+			Config.setValue(section_name, key, value);
+		}
 	}
 };
 
@@ -75,18 +69,18 @@ public:
 class CConfigCompressFormatZIP :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatZIP() :CConfigCompressFormatBase(L"format_zip", {
-		{"compression",{
-			"deflate","store"}},
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
-		{"encryption",{
-			"ZipCrypt","aes128","aes256"}},
+		{L"compression",{
+			L"deflate",L"store"}},
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
+		{L"encryption",{
+			L"ZipCrypt",L"aes128",L"aes256"}},
 		//"experimental"	don't use this
 		//"fakecrc32"	don't use this
-		{"hdrcharset",{
-			"UTF-8","CP_ACP"}},
-		{"zip64",{
-				"enabled"/*any non-empty string*/,""/*empty is to avoid zip64*/}},
+		{L"hdrcharset",{
+			L"UTF-8",L"CP_ACP"}},
+		{L"zip64",{
+				L"enabled"/*any non-empty string*/,L""/*empty is to avoid zip64*/}},
 	}) {}
 	virtual ~CConfigCompressFormatZIP() {}
 };
@@ -94,10 +88,10 @@ public:
 class CConfigCompressFormat7Z :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormat7Z() :CConfigCompressFormatBase(L"format_7z", {
-		{"compression",{
-			"deflate","store","bzip2","lzma1","lzma2","PPMd",}},
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
+		{L"compression",{
+			L"deflate",L"store",L"bzip2",L"lzma1",L"lzma2",L"PPMd",}},
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
 		}) {}
 	virtual ~CConfigCompressFormat7Z() {}
 };
@@ -105,8 +99,8 @@ public:
 class CConfigCompressFormatTAR :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatTAR() :CConfigCompressFormatBase(L"format_tar", {
-		{"hdrcharset",{
-			"UTF-8","CP_ACP"}},
+		{L"hdrcharset",{
+			L"UTF-8",L"CP_ACP"}},
 		}) {}
 	virtual ~CConfigCompressFormatTAR() {}
 };
@@ -114,8 +108,8 @@ public:
 class CConfigCompressFormatGZ :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatGZ() :CConfigCompressFormatBase(L"format_gz", {
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
 		}) {}
 	virtual ~CConfigCompressFormatGZ() {}
 };
@@ -123,8 +117,8 @@ public:
 class CConfigCompressFormatBZ2 :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatBZ2() :CConfigCompressFormatBase(L"format_bz2", {
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
 		}) {}
 	virtual ~CConfigCompressFormatBZ2() {}
 };
@@ -132,10 +126,10 @@ public:
 class CConfigCompressFormatXZ :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatXZ() :CConfigCompressFormatBase(L"format_xz", {
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
-		{"threads",{
-			"0"/*full cpu cores*/,"1"/*single*/}},	//can take arbitrary integer, but might not be necessary
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
+		{L"threads",{
+			L"0"/*full cpu cores*/,L"1"/*single*/}},	//can take arbitrary integer, but might not be necessary
 		}) {}
 	virtual ~CConfigCompressFormatXZ() {}
 };
@@ -143,8 +137,8 @@ public:
 class CConfigCompressFormatLZMA :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatLZMA() :CConfigCompressFormatBase(L"format_lzma", {
-		{"compression-level",{
-			"9","8","7","6","5","4","3","2","1","0"}},
+		{L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
 		}) {}
 	virtual ~CConfigCompressFormatLZMA() {}
 };
@@ -152,8 +146,8 @@ public:
 class CConfigCompressFormatZSTD :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatZSTD() :CConfigCompressFormatBase(L"format_zstd", {
-		{"compression-level",{
-			"3"/*default*/,"1"/*fastest*/,"9"/*high*/,"15"/*even higher*/,"22"/*ultra*/}},
+		{L"compression-level",{
+			L"3"/*default*/,L"1"/*fastest*/,L"9"/*high*/,L"15"/*even higher*/,L"22"/*ultra*/}},
 		}) {}
 	virtual ~CConfigCompressFormatZSTD() {}
 };
@@ -161,7 +155,7 @@ public:
 /*
 is this necessary?
 
-class CConfigCompressFormats :public IConfigConverter
+class CConfigCompressFormats :public IConfigIO
 {
 	CConfigCompressFormat7Z _fmt7z;
 	CConfigCompressFormatBZ2 _fmtbz2;

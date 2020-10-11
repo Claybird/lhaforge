@@ -27,38 +27,45 @@
 enum LOSTDIR;
 enum LOGVIEW;
 
-struct CConfigGeneral:public IConfigConverter{
+struct CConfigGeneral:public IConfigIO{
 public:
 	struct tagFiler{
 		virtual ~tagFiler(){}
-		CString FilerPath;
-		CString Param;
-		BOOL UseFiler;
+		std::wstring FilerPath;
+		std::wstring Param;
+		bool UseFiler;
 	}Filer;
 
-	BOOL WarnNetwork;
-	BOOL WarnRemovable;
-	BOOL NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
+	bool WarnNetwork;
+	bool WarnRemovable;
+	bool NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
 	LOSTDIR OnDirNotFound;
 	LOGVIEW LogViewEvent;
 	int/*LFPROCESS_PRIORITY*/ ProcessPriority;
 
-	CString TempPath;
+	std::wstring TempPath;
 protected:
-	virtual void load(CONFIG_SECTION&){ASSERT(!"This code cannot be run");}	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const{ASSERT(!"This code cannot be run");}	//設定をCONFIG_SECTIONに書き込む
-
-	void loadOutput(CONFIG_SECTION&);
-	void storeOutput(CONFIG_SECTION&)const;
-	void loadFiler(CONFIG_SECTION&);
-	void storeFiler(CONFIG_SECTION&)const;
-	void loadLogView(CONFIG_SECTION&);
-	void storeLogView(CONFIG_SECTION&)const;
-	void loadGeneral(CONFIG_SECTION&);
-	void storeGeneral(CONFIG_SECTION&)const;
+	void loadOutput(const CConfigManager&);
+	void storeOutput(CConfigManager&)const;
+	void loadFiler(const CConfigManager&);
+	void storeFiler(CConfigManager&)const;
+	void loadLogView(const CConfigManager&);
+	void storeLogView(CConfigManager&)const;
+	void loadGeneral(const CConfigManager&);
+	void storeGeneral(CConfigManager&)const;
 public:
 	virtual ~CConfigGeneral(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigManager& Config) {
+		loadOutput(Config);
+		loadLogView(Config);
+		loadFiler(Config);
+		loadGeneral(Config);
+	}
+	virtual void store(CConfigManager& Config)const {
+		storeOutput(Config);
+		storeLogView(Config);
+		storeFiler(Config);
+		storeGeneral(Config);
+	}
 };
 

@@ -33,16 +33,13 @@ enum OPENACTION{
 	ENUM_COUNT_AND_LASTITEM(OPENACTION),
 };
 
-struct CConfigOpenAction:public IConfigConverter{	//関連付けで開いた場合(/m)のデフォルト動作
+struct CConfigOpenAction:public IConfigIO{	//関連付けで開いた場合(/m)のデフォルト動作
 public:
 	OPENACTION OpenAction;
 	OPENACTION OpenAction_Shift;
 	OPENACTION OpenAction_Ctrl;
-protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
 public:
 	virtual ~CConfigOpenAction(){}
-	virtual void load(CConfigManager&);
+	virtual void load(const CConfigManager&);
 	virtual void store(CConfigManager&)const;
 };

@@ -23,107 +23,99 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/arc_interface.h"
 #include "ConfigManager.h"
 #include "ConfigCompress.h"
-#include "../Utilities/FileOperation.h"
+#include "Utilities/FileOperation.h"
 
-void CConfigCompress::load(CONFIG_SECTION &Config)
+void CConfigCompress::load(const CConfigManager &Config)
 {
+	const auto section = L"Compress";
 	//出力先の種類
-	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
+	OutputDirType = (OUTPUT_TO)Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
 	//出力先のパス
-	CString Buffer=Config.Data[_T("OutputDir")];
-	try {
-		if (!Buffer.IsEmpty()) {
-			OutputDirUserSpecified = UtilGetCompletePathName((const wchar_t*)Buffer).c_str();
-		} else {
-			OutputDirUserSpecified = _T("");
+	auto value=Config.getText(section, L"OutputDir", L"");
+	if (value.empty()) {
+		OutputDirUserSpecified = L"";
+	} else {
+		try {
+			OutputDirUserSpecified = UtilGetCompletePathName(value);
+		} catch (const LF_EXCEPTION&) {
+			OutputDirUserSpecified = L"";
 		}
-	} catch (LF_EXCEPTION) {
-		OutputDirUserSpecified = _T("");
 	}
 	//圧縮後フォルダを開くかどうか
-	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
+	OpenDir=Config.getBool(section, L"OpenFolder", true);
 
 	//出力ファイル名を指定するかどうか
-	SpecifyOutputFilename=Config.Data[_T("SpecifyName")].GetNParam(FALSE);
+	SpecifyOutputFilename=Config.getBool(section, L"SpecifyName", false);
 
 	//同時に圧縮するファイル数を制限する
-	LimitCompressFileCount=Config.Data[_T("LimitCompressFileCount")].GetNParam(FALSE);
+	LimitCompressFileCount=Config.getBool(section, L"LimitCompressFileCount", false);
 
 	//同時に圧縮するファイル数の上限
-	MaxCompressFileCount=std::max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
+	MaxCompressFileCount = std::max(1, Config.getInt(section, L"MaxCompressFileCount", 0));
 
 	//デフォルト圧縮パラメータを使用するならtrue
-	UseDefaultParameter=Config.Data[_T("UseDefaultParameter")].GetNParam(FALSE);
+	UseDefaultParameter=Config.getBool(section, L"UseDefaultParameter", false);
 
 	//デフォルト圧縮パラメータ(形式指定)
 	//TODO DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
 	DefaultType = LF_FMT_INVALID;
 
 	//デフォルト圧縮パラメータのオプション
-	DefaultOptions=Config.Data[_T("DefaultOptions")].GetNParam(0);
+	DefaultOptions=Config.getInt(section, L"DefaultOptions", 0);
 
 	//正常に圧縮できたファイルを削除
-	DeleteAfterCompress=Config.Data[_T("DeleteAfterCompress")].GetNParam(FALSE);
+	DeleteAfterCompress=Config.getBool(section, L"DeleteAfterCompress", false);
 	//圧縮後ファイルをごみ箱に移動
-	MoveToRecycleBin=Config.Data[_T("MoveToRecycleBin")].GetNParam(TRUE);
+	MoveToRecycleBin=Config.getBool(section, L"MoveToRecycleBin", true);
 	//確認せずに削除/ごみ箱に移動
-	DeleteNoConfirm=Config.Data[_T("DeleteNoConfirm")].GetNParam(FALSE);
+	DeleteNoConfirm=Config.getBool(section, L"DeleteNoConfirm", false);
 	//正常処理を確認できない形式でも削除
-	ForceDelete=Config.Data[_T("ForceDelete")].GetNParam(FALSE);
+	ForceDelete=Config.getBool(section, L"ForceDelete", false);
 
 	//「フォルダより下のファイルを圧縮」
-	IgnoreTopDirectory=Config.Data[_T("IgnoreTopDirectory")].GetNParam(FALSE);
+	IgnoreTopDirectory=Config.getBool(section, L"IgnoreTopDirectory", false);
 }
 
-void CConfigCompress::store(CONFIG_SECTION &Config)const
+void CConfigCompress::store(CConfigManager &Config)const
 {
+	const auto section = L"Compress";
 	//出力先の種類
-	Config.Data[_T("OutputDirType")]=OutputDirType;
+	Config.setValue(section, L"OutputDirType", OutputDirType);
 	//出力先のパス
-	Config.Data[_T("OutputDir")]= OutputDirUserSpecified;
+	Config.setValue(section, L"OutputDir", OutputDirUserSpecified);
 	//圧縮後フォルダを開くかどうか
-	Config.Data[_T("OpenFolder")]=OpenDir;
+	Config.setValue(section, L"OpenFolder", OpenDir);
 
 	//出力ファイル名を指定するかどうか
-	Config.Data[_T("SpecifyName")]=SpecifyOutputFilename;
+	Config.setValue(section, L"SpecifyName", SpecifyOutputFilename);
 
 	//同時に圧縮するファイル数を制限する
-	Config.Data[_T("LimitCompressFileCount")]=LimitCompressFileCount;
+	Config.setValue(section, L"LimitCompressFileCount", LimitCompressFileCount);
 
 	//同時に圧縮するファイル数の上限
-	Config.Data[_T("MaxCompressFileCount")]=MaxCompressFileCount;
+	Config.setValue(section, L"MaxCompressFileCount", MaxCompressFileCount);
 
 	//デフォルト圧縮パラメータを使用するならtrue
-	Config.Data[_T("UseDefaultParameter")]=UseDefaultParameter;
+	Config.setValue(section, L"UseDefaultParameter", UseDefaultParameter);
 
 	//デフォルト圧縮パラメータ(形式指定)
-	Config.Data[_T("DefaultType")]=DefaultType;
+	Config.setValue(section, L"DefaultType", DefaultType);
 
 	//デフォルト圧縮パラメータのオプション
-	Config.Data[_T("DefaultOptions")]=DefaultOptions;
+	Config.setValue(section, L"DefaultOptions", DefaultOptions);
 
 	//正常に圧縮できたファイルを削除
-	Config.Data[_T("DeleteAfterCompress")]=DeleteAfterCompress;
+	Config.setValue(section, L"DeleteAfterCompress", DeleteAfterCompress);
 	//圧縮後ファイルをごみ箱に移動
-	Config.Data[_T("MoveToRecycleBin")]=MoveToRecycleBin;
+	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
 	//確認せずに削除/ごみ箱に移動
-	Config.Data[_T("DeleteNoConfirm")]=DeleteNoConfirm;
+	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
 	//正常処理を確認できない形式でも削除
-	Config.Data[_T("ForceDelete")]=ForceDelete;
+	Config.setValue(section, L"ForceDelete", ForceDelete);
 
 	//「フォルダより下のファイルを圧縮」
-	Config.Data[_T("IgnoreTopDirectory")]=IgnoreTopDirectory;
-}
-
-void CConfigCompress::load(CConfigManager &ConfMan)
-{
-	load(ConfMan.GetSection(_T("Compress")));
-}
-
-void CConfigCompress::store(CConfigManager &ConfMan)const
-{
-	store(ConfMan.GetSection(_T("Compress")));
+	Config.setValue(section, L"IgnoreTopDirectory", IgnoreTopDirectory);
 }

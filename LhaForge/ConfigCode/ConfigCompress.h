@@ -26,31 +26,28 @@
 
 enum OUTPUT_TO;
 enum LF_ARCHIVE_FORMAT;
-struct CConfigCompress:public IConfigConverter{
+struct CConfigCompress:public IConfigIO{
 public:
 	OUTPUT_TO OutputDirType;
-	CString OutputDirUserSpecified;
-	BOOL OpenDir;
-	BOOL SpecifyOutputFilename;
-	BOOL LimitCompressFileCount;	//同時に圧縮するファイルの数を限定するならtrue
+	std::wstring OutputDirUserSpecified;
+	bool OpenDir;
+	bool SpecifyOutputFilename;
+	bool LimitCompressFileCount;	//同時に圧縮するファイルの数を限定するならtrue
 	int MaxCompressFileCount;		//同時に圧縮するファイルの数の上限
-	BOOL UseDefaultParameter;	//デフォルト圧縮パラメータを使用するならtrue
+	bool UseDefaultParameter;	//デフォルト圧縮パラメータを使用するならtrue
 	LF_ARCHIVE_FORMAT DefaultType;	//デフォルト圧縮パラメータ(形式指定)
 	int DefaultOptions;			//デフォルト圧縮パラメータのオプション
 
-	BOOL DeleteAfterCompress;	//正常に圧縮できたファイルを削除
-	BOOL MoveToRecycleBin;		//圧縮後ファイルをごみ箱に移動
-	BOOL DeleteNoConfirm;		//確認せずに削除/ごみ箱に移動
-	BOOL ForceDelete;			//正常処理を確認できない形式でも削除
+	bool DeleteAfterCompress;	//正常に圧縮できたファイルを削除
+	bool MoveToRecycleBin;		//圧縮後ファイルをごみ箱に移動
+	bool DeleteNoConfirm;		//確認せずに削除/ごみ箱に移動
+	bool ForceDelete;			//正常処理を確認できない形式でも削除
 
-	BOOL IgnoreTopDirectory;	//「フォルダより下のファイルを圧縮」
-	BOOL IgnoreTopDirectoryRecursively;	//「再帰的にフォルダより下のファイルを圧縮」:TODO
-protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
+	bool IgnoreTopDirectory;	//「フォルダより下のファイルを圧縮」
+	bool IgnoreTopDirectoryRecursively;	//「再帰的にフォルダより下のファイルを圧縮」:TODO
 public:
 	virtual ~CConfigCompress(){}
-	virtual void load(CConfigManager&);
+	virtual void load(const CConfigManager&);
 	virtual void store(CConfigManager&)const;
 };
 
