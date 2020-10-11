@@ -27,6 +27,7 @@
 #include "ArcFileContent.h"
 #include "EventDispatcher.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
 
 enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
 	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示

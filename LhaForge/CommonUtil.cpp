@@ -30,6 +30,7 @@
 #include "resource.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/Utility.h"
 
 //設定から出力先フォルダを読み込む
 //r_bUseForAll:今後も同じフォルダ設定を使うならtrue

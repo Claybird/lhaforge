@@ -32,10 +32,10 @@
 
 struct CMenuCommandItem{
 	virtual ~CMenuCommandItem(){}
-	CString Caption;
-	CString Path;
-	CString Param;
-	CString Dir;
+	std::wstring Caption;
+	std::wstring Path;
+	std::wstring Param;
+	std::wstring Dir;
 };
 
 
