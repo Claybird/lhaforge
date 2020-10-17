@@ -27,7 +27,8 @@
 #include "FileListModel.h"
 #include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
 #include "FileListMessages.h"
-#include "../resource.h"
+#include "resource.h"
+#include "MenuCommand.h"
 
 class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public IDropCommunicator//自前のインターフェイス
 {

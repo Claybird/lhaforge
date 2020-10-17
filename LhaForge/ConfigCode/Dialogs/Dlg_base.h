@@ -24,11 +24,66 @@
 
 #pragma once
 
-class CConfigManager;
-class IConfigDlgBase{
+template <class T>
+class LFWinDataExchange :public CWinDataExchange<T>
+{
 public:
-	virtual ~IConfigDlgBase(){}
-	virtual LRESULT OnApply()=0;
-	virtual void LoadConfig(CConfigManager&)=0;
-	virtual void StoreConfig(CConfigManager&)=0;
+	BOOL DDX_Text(UINT nID, ATL::CString& strText, int cbSize, BOOL bSave, BOOL bValidate = FALSE, int nLength = 0) {
+		return __super::DDX_Text(nID, strText, cbSize, bSave, bValidate, nLength);
+	}
+
+	BOOL DDX_Text(UINT nID, std::wstring& strText, int /*cbSize*/, BOOL bSave, BOOL bValidate = FALSE, int nLength = 0)
+	{
+		T* pT = static_cast<T*>(this);
+		BOOL bSuccess = TRUE;
+
+		if (bSave) {
+			HWND hWndCtrl = pT->GetDlgItem(nID);
+			int nLen = ::GetWindowTextLength(hWndCtrl);
+			int nRetLen = -1;
+			std::vector<wchar_t> buf(nLen + 1);
+			LPTSTR lpstr = &buf[0];
+			if (lpstr != NULL) {
+				nRetLen = ::GetWindowText(hWndCtrl, lpstr, nLen + 1);
+			}
+			strText = lpstr;
+			if (nRetLen < nLen)
+				bSuccess = FALSE;
+		} else {
+			bSuccess = pT->SetDlgItemText(nID, strText.c_str());
+		}
+
+		if (!bSuccess) {
+			pT->OnDataExchangeError(nID, bSave);
+		} else if (bSave && bValidate)   // validation
+		{
+			ATLASSERT(nLength > 0);
+			if ((int)strText.length() > nLength) {
+				_XData data = { ddxDataText };
+				data.textData.nLength = strText.length();
+				data.textData.nMaxLength = nLength;
+				pT->OnDataValidateError(nID, bSave, data);
+				bSuccess = FALSE;
+			}
+		}
+		return bSuccess;
+	}
+};
+
+#include "ConfigCode/ConfigManager.h"
+
+class IConfigDlgBase {
+public:
+	virtual ~IConfigDlgBase() {}
+	virtual LRESULT OnApply() = 0;
+	virtual void LoadConfig(CConfigManager&) = 0;
+	virtual void StoreConfig(CConfigManager&) = 0;
+};
+
+
+template <typename T>
+class LFConfigDialogBase : public CDialogImpl<T>, public CMessageFilter, public LFWinDataExchange<T>, public IConfigDlgBase
+{
+public:
+	virtual ~LFConfigDialogBase() {}
 };

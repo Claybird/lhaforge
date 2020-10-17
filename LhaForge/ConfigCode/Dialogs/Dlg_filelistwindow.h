@@ -32,7 +32,7 @@
 //==================================
 // ファイル一覧ウィンドウの設定項目
 //==================================
-class CConfigDlgFileListWindow : public CDialogImpl<CConfigDlgFileListWindow>,public CWinDataExchange<CConfigDlgFileListWindow>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgFileListWindow : public LFConfigDialogBase<CConfigDlgFileListWindow>
 {
 protected:
 	CConfigFileListWindow	m_Config;
@@ -62,6 +62,9 @@ protected:
 	LRESULT OnUserAppNew(WORD,WORD,HWND,BOOL&);
 	LRESULT OnUserAppDelete(WORD,WORD,HWND,BOOL&);
 	LRESULT OnCheckChanged(WORD,WORD,HWND,BOOL&);
+
+	void setUserAppEdit();
+	void getUserAppEdit();
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_FILELISTWINDOW };
 

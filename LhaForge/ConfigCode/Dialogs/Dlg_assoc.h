@@ -83,8 +83,7 @@ const int NO_DEFAULT_ASSOCS[]={
 };
 
 class CConfigDialog;
-class CConfigManager;
-class CConfigDlgAssociation : public CDialogImpl<CConfigDlgAssociation>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgAssociation : public LFConfigDialogBase<CConfigDlgAssociation>
 {
 protected:
 	ASSOC_SETTINGS AssocSettings[ASSOC_TYPE_ITEM_COUNT];
@@ -131,7 +130,7 @@ public:
 };
 
 
-class CIconSelectDialog : public CDialogImpl<CIconSelectDialog>,public CWinDataExchange<CIconSelectDialog>,public CDialogResize<CIconSelectDialog>
+class CIconSelectDialog : public CDialogImpl<CIconSelectDialog>,public LFWinDataExchange<CIconSelectDialog>,public CDialogResize<CIconSelectDialog>
 {
 protected:
 	ASSOCINFO *AssocInfo;

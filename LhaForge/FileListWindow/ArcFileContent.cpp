@@ -26,6 +26,7 @@
 #include "ArcFileContent.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
 #include "ArchiverCode/arc_interface.h"
 #include "CommonUtil.h"
 
@@ -123,11 +124,11 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 }
 
 
-bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
+bool CArchiveFileContent::ExtractItems(CConfigManager &Config,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
-	return false;// return m_lpArchiver->ExtractItems(m_pathArchive, ConfMan, lpBase, items, lpszDir, bCollapseDir, strLog);
+	return false;// return m_lpArchiver->ExtractItems(m_pathArchive, Config, lpBase, items, lpszDir, bCollapseDir, strLog);
 }
 
 void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList)
@@ -152,7 +153,7 @@ void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCH
 
 
 //bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
+bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &Config,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
 {
 	//選択されたアイテムを列挙
 	std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > toExtractList;
@@ -198,7 +199,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR
 	//未解凍の物のみ一時フォルダに解凍
 	for(std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
 		const std::list<ARCHIVE_ENTRY_INFO*> &filesList = (*ite).second;
-		if(!ExtractItems(ConfMan,filesList,lpOutputDir,lpBase,false,strLog)){
+		if(!ExtractItems(Config,filesList,lpOutputDir,lpBase,false,strLog)){
 			for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
 				//失敗したので削除
 				ARCHIVE_ENTRY_INFO* lpNode = *iteRemove;
@@ -236,7 +237,7 @@ HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR 
 	}*/
 }
 
-bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
+bool CArchiveFileContent::DeleteItems(CConfigManager &Config,const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
@@ -246,6 +247,6 @@ bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<AR
 	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
 		(*ite)->EnumFiles(filesToDel);
 	}
-	return m_lpArchiver->DeleteItemFromArchive(m_pathArchive,ConfMan,filesToDel,strLog);*/
+	return m_lpArchiver->DeleteItemFromArchive(m_pathArchive,Config,filesToDel,strLog);*/
 }
 

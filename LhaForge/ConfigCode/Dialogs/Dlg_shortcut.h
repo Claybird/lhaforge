@@ -24,14 +24,13 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../../resource.h"
-#include "../../Utilities/Utility.h"
+#include "resource.h"
+#include "Utilities/Utility.h"
 
 //====================================
 // ショートカット作成
 //====================================
-class CConfigManager;
-class CConfigDlgShortcut : public CDialogImpl<CConfigDlgShortcut>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgShortcut : public LFConfigDialogBase<CConfigDlgShortcut>
 {
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg){

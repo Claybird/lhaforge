@@ -32,7 +32,7 @@
 //====================================
 // 解凍一般設定
 //====================================
-class CConfigDlgExtractGeneral : public CDialogImpl<CConfigDlgExtractGeneral>,public CMessageFilter,public CWinDataExchange<CConfigDlgExtractGeneral>,public IConfigDlgBase
+class CConfigDlgExtractGeneral : public LFConfigDialogBase<CConfigDlgExtractGeneral>
 {
 protected:
 	CConfigExtract m_Config;
@@ -43,6 +43,7 @@ protected:
 	CUpDownCtrl UpDown_MaxExtractFileCount;
 	CButton Check_LimitExtractFileCount;
 	CButton Check_DeleteFileAfterExtract;
+	CString DenyExt;
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
 	}
@@ -61,9 +62,8 @@ public:
 		DDX_CHECK(IDC_CHECK_MOVETO_RECYCLE_BIN,m_Config.MoveToRecycleBin)
 		DDX_CHECK(IDC_CHECK_DELETE_NOCONFIRM,m_Config.DeleteNoConfirm)
 		DDX_CHECK(IDC_CHECK_FORCE_DELETE,m_Config.ForceDelete)
-		DDX_CHECK(IDC_CHECK_DELETE_MULTIVOLUME,m_Config.DeleteMultiVolume)
 		DDX_CHECK(IDC_CHECK_MINIMUM_PASSWORD_REQUEST,m_Config.MinimumPasswordRequest)
-		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT,m_Config.DenyExt)
+		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT,DenyExt)
 	END_DDX_MAP()
 
 	// メッセージマップ
@@ -94,9 +94,11 @@ public:
 
 	void LoadConfig(CConfigManager& Config){
 		m_Config.load(Config);
+		DenyExt = m_Config.DenyExt.c_str();
 	}
 	void StoreConfig(CConfigManager& Config){
 		m_Config.store(Config);
+		m_Config.DenyExt = (const wchar_t*)DenyExt;
 	}
 };
 

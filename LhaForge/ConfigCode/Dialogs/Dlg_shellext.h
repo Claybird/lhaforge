@@ -33,7 +33,7 @@ class CConfigDialog;
 //====================================
 // 一般設定項目
 //====================================
-class CConfigDlgShellExt : public CDialogImpl<CConfigDlgShellExt>,public CMessageFilter,public CWinDataExchange<CConfigDlgShellExt>,public IConfigDlgBase
+class CConfigDlgShellExt : public LFConfigDialogBase<CConfigDlgShellExt>
 {
 protected:
 	CButton Check_ShellExt;

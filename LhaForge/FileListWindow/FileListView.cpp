@@ -1212,9 +1212,9 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	auto envInfo = LF_make_expand_information(nullptr, nullptr);
 
 	//コマンド・パラメータ展開
-	auto strCmd = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Path, envInfo);	//コマンド
-	auto strParam = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Param,envInfo);	//パラメータ
-	auto strDir = UtilExpandTemplateString((const wchar_t*)menuCommandArray[nID].Dir,  envInfo);	//ディレクトリ
+	auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);	//コマンド
+	auto strParam = UtilExpandTemplateString(menuCommandArray[nID].Param,envInfo);	//パラメータ
+	auto strDir = UtilExpandTemplateString(menuCommandArray[nID].Dir,  envInfo);	//ディレクトリ
 
 	//引数置換
 	if(std::wstring::npos!=strParam.find(L"%F")){

@@ -545,7 +545,7 @@ void compress_helper(
 			pathOutputDir = determineDefaultArchiveDir(
 				args.compress.OutputDirType,
 				givenFiles.front(),
-				args.compress.OutputDirUserSpecified);
+				args.compress.OutputDirUserSpecified.c_str());
 		}
 	}
 
@@ -629,8 +629,8 @@ void compress_helper(
 		if (args.general.Filer.UseFiler) {
 			auto envInfo = LF_make_expand_information(pathOpenDir.c_str(), archivePath.c_str());
 
-			auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath.operator LPCWSTR(), envInfo);
-			auto strParam = UtilExpandTemplateString(args.general.Filer.Param.operator LPCWSTR(), envInfo);
+			auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
+			auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
 			ShellExecuteW(nullptr, L"open", strCmd.c_str(), strParam.c_str(), nullptr, SW_SHOWNORMAL);
 		} else {
 			UtilNavigateDirectory(pathOpenDir);

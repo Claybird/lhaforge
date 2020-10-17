@@ -272,7 +272,7 @@ void CConfigFileListWindow::storeMenuCommand(CConfigManager &Config)const
 		}
 	}
 	//---データの上書き
-	for (int iIndex = 0; iIndex < MenuCommandArray.size(); iIndex++) {
+	for (size_t iIndex = 0; iIndex < MenuCommandArray.size(); iIndex++) {
 		auto section = Format(L"UserApp%d", iIndex);
 		const auto& mci = MenuCommandArray[iIndex];
 

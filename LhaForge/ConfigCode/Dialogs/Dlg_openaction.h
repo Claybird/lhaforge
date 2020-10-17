@@ -33,7 +33,7 @@
 // 関連付けでファイルを開いたときの動作
 //======================================
 
-class CConfigDlgOpenAction : public CDialogImpl<CConfigDlgOpenAction>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgOpenAction : public LFConfigDialogBase<CConfigDlgOpenAction>
 {
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg){

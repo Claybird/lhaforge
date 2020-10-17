@@ -158,7 +158,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
 	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
@@ -174,7 +174,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
 	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
@@ -208,7 +208,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
-	const auto denyList = UtilSplitString(ConfExtract.DenyExt.operator LPCWSTR(), L";");
+	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
 
@@ -229,14 +229,14 @@ void procMain()
 
 	CConfigManager ConfigManager;
 	if (cli.ConfigPath.empty()) {
-		ConfigManager.SetConfigFile(nullptr);
+		ConfigManager.setDefaultPath();
 	} else {
-		ConfigManager.SetConfigFile(cli.ConfigPath.c_str());
+		ConfigManager.setPath(cli.ConfigPath.c_str());
 	}
-	{
-		CString strErr;
-		//user specified, show message if error
-		if (!ConfigManager.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
+	try{
+		ConfigManager.load();
+	} catch (const LF_EXCEPTION &e) {
+		ErrorMessage(e.what());
 	}
 
 	//key modifier
@@ -358,7 +358,7 @@ void procMain()
 		} else {
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
-			bool isDenied = ConfExtract.DenyExt.MakeLower().Find(toLower(std::filesystem::path(cli.FileList.front()).extension()).c_str()) == -1;
+			bool isDenied = toLower(ConfExtract.DenyExt).find(toLower(std::filesystem::path(cli.FileList.front()).extension())) == -1;
 			if (!isDenied && isArchive(cli.FileList.front())) {
 				DoExtract(ConfigManager, cli);
 			} else {
@@ -377,9 +377,10 @@ void procMain()
 	{
 		CConfigDialog confdlg(ConfigManager);
 		if (IDOK == confdlg.DoModal()) {
-			CString strErr;
-			if (!ConfigManager.SaveConfig(strErr)) {
-				ErrorMessage(strErr.operator LPCWSTR());
+			try {
+				ConfigManager.save();
+			}catch(const LF_EXCEPTION& e){
+				ErrorMessage(e.what());
 			}
 		}
 		break;

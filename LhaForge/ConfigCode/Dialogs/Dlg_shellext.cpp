@@ -80,14 +80,22 @@ LRESULT CConfigDlgShellExt::OnApply()
 	bool bCurrentStatus=(0!=Check_ShellExt.GetCheck());
 
 	//依頼内容を記述
-	CString strIniName(mr_ConfigDlg.GetAssistantFile());
+	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
 	//---登録or解除
-	if(bCurrentStatus){
-		//登録
-		UtilWritePrivateProfileInt(_T("Shell"),_T("set"),1,strIniName);
-	}else{
-		//解除
-		UtilWritePrivateProfileInt(_T("Shell"),_T("set"),0,strIniName);
+	CConfigManager tmp;
+	tmp.setPath(strIniName);
+	try {
+		tmp.load();
+		if (bCurrentStatus) {
+			//登録
+			tmp.setValue(L"Shell", L"set", 1);
+		} else {
+			//解除
+			tmp.setValue(L"Shell", L"set", 0);
+		}
+		tmp.save();
+	} catch (const LF_EXCEPTION &e) {
+		ErrorMessage(e.what());
 	}
 
 //===============================

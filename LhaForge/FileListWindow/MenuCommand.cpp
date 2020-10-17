@@ -68,7 +68,7 @@ void MenuCommand_MakeUserAppMenu(HMENU hMenu)
 		//LhaForge設定のコマンド
 		for(UINT u=0;u<s_MenuCommandArray.size();u++){
 			UINT nOffset=ID_MENUITEM_USERAPP_BEGIN+u;
-			cSubMenu.InsertMenu(-1,MF_BYPOSITION|MF_STRING,(UINT_PTR)nOffset,s_MenuCommandArray[u].Caption);
+			cSubMenu.InsertMenu(-1,MF_BYPOSITION|MF_STRING,(UINT_PTR)nOffset,s_MenuCommandArray[u].Caption.c_str());
 		}
 	}
 }

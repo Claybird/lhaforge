@@ -126,9 +126,9 @@ public:
 	bool MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
 	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
 
-	static void SetOpenAssocExtDeny(LPCTSTR lpExtDeny){ms_strExtDeny=lpExtDeny;}
+	static void SetOpenAssocExtDeny(const std::wstring &extDeny){ms_strExtDeny=extDeny.c_str();}
 	static LPCTSTR GetOpenAssocExtDeny(){return ms_strExtDeny;}
-	static void SetOpenAssocExtAccept(LPCTSTR lpExtAccept){ms_strExtAccept=lpExtAccept;}
+	static void SetOpenAssocExtAccept(const std::wstring &extAccept){ms_strExtAccept=extAccept.c_str();}
 	static LPCTSTR GetOpenAssocExtAccept(){return ms_strExtAccept;}
 
 	FILELISTMODE GetListMode()const{return m_Mode;}

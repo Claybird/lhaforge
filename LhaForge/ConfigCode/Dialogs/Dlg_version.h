@@ -30,7 +30,7 @@
 //====================================
 // バージョン情報
 //====================================
-class CConfigDlgVersion : public CDialogImpl<CConfigDlgVersion>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgVersion : public LFConfigDialogBase<CConfigDlgVersion>
 {
 protected:
 	CHyperLink link_url;

@@ -348,7 +348,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	if(bSameDir){
 		destType=OUTPUT_TO_SAME_DIR;
 	}
-	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDirUserSpecified,pathOutputBaseDir,bTmp,strLog);
+	HRESULT hr=GetOutputDirPathFromConfig(destType,GetArchiveFileName(),ConfExtract.OutputDirUserSpecified.c_str(),pathOutputBaseDir,bTmp,strLog);
 	if(FAILED(hr)){
 		return hr;
 	}

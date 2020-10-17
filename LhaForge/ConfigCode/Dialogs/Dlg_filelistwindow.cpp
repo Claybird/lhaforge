@@ -92,10 +92,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 	}
 	//「プログラムで開く」コマンドの更新
 	if(m_lpMenuCommandItem){
-		Edit_Path.GetWindowText(m_lpMenuCommandItem->Path);
-		Edit_Param.GetWindowText(m_lpMenuCommandItem->Param);
-		Edit_Dir.GetWindowText(m_lpMenuCommandItem->Dir);
-		Edit_Caption.GetWindowText(m_lpMenuCommandItem->Caption);
+		getUserAppEdit();
 	}
 	m_Config.MenuCommandArray=m_MenuCommandArray;
 	return TRUE;
@@ -178,28 +175,43 @@ LRESULT CConfigDlgFileListWindow::OnGetDispInfo(LPNMHDR pnmh)
 	CMenuCommandItem &mci=m_MenuCommandArray[pstLVDInfo->item.iItem];
 
 	if(pstLVDInfo->item.mask & LVIF_TEXT){
-		_tcsncpy_s(pstLVDInfo->item.pszText,pstLVDInfo->item.cchTextMax,mci.Caption,pstLVDInfo->item.cchTextMax);
+		_tcsncpy_s(pstLVDInfo->item.pszText,pstLVDInfo->item.cchTextMax,mci.Caption.c_str(),pstLVDInfo->item.cchTextMax);
 	}
 	return 0;
+}
+
+void CConfigDlgFileListWindow::setUserAppEdit()
+{
+	Edit_Path.SetWindowText(m_lpMenuCommandItem->Path.c_str());
+	Edit_Param.SetWindowText(m_lpMenuCommandItem->Param.c_str());
+	Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir.c_str());
+	Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption.c_str());
+}
+
+void CConfigDlgFileListWindow::getUserAppEdit()
+{
+	CString buf;
+	Edit_Path.GetWindowText(buf);
+	m_lpMenuCommandItem->Path = buf;
+	Edit_Param.GetWindowText(buf);
+	m_lpMenuCommandItem->Param = buf;
+	Edit_Dir.GetWindowText(buf);
+	m_lpMenuCommandItem->Dir = buf;
+	Edit_Caption.GetWindowText(buf);
+	m_lpMenuCommandItem->Caption = buf;
 }
 
 //アイテム選択変更
 LRESULT CConfigDlgFileListWindow::OnSelect(LPNMHDR pnmh)
 {
 	if(m_lpMenuCommandItem){
-		Edit_Path.GetWindowText(m_lpMenuCommandItem->Path);
-		Edit_Param.GetWindowText(m_lpMenuCommandItem->Param);
-		Edit_Dir.GetWindowText(m_lpMenuCommandItem->Dir);
-		Edit_Caption.GetWindowText(m_lpMenuCommandItem->Caption);
+		getUserAppEdit();
 	}
 
 	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
 	if(-1!=iItem&&iItem<(signed)m_MenuCommandArray.size()){
 		m_lpMenuCommandItem=&m_MenuCommandArray[iItem];
-		Edit_Path.SetWindowText(m_lpMenuCommandItem->Path);
-		Edit_Param.SetWindowText(m_lpMenuCommandItem->Param);
-		Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir);
-		Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption);
+		setUserAppEdit();
 	}
 	return 0;
 }
@@ -217,10 +229,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveUp(WORD,WORD,HWND,BOOL&)
 	m_MenuCommandArray[iItem]=m_MenuCommandArray[iItem-1];
 	m_MenuCommandArray[iItem-1]=mci;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem-1];
-	Edit_Path.SetWindowText(m_lpMenuCommandItem->Path);
-	Edit_Param.SetWindowText(m_lpMenuCommandItem->Param);
-	Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir);
-	Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption);
+	setUserAppEdit();
 
 	List_Command.EnsureVisible(iItem-1,FALSE);
 	List_Command.SetItemState(iItem-1,LVIS_SELECTED, LVIS_SELECTED);
@@ -240,10 +249,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveDown(WORD,WORD,HWND,BOOL&)
 	m_MenuCommandArray[iItem]=m_MenuCommandArray[iItem+1];
 	m_MenuCommandArray[iItem+1]=mci;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem+1];
-	Edit_Path.SetWindowText(m_lpMenuCommandItem->Path);
-	Edit_Param.SetWindowText(m_lpMenuCommandItem->Param);
-	Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir);
-	Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption);
+	setUserAppEdit();
 
 	List_Command.EnsureVisible(iItem+1,FALSE);
 	List_Command.SetItemState(iItem+1,LVIS_SELECTED, LVIS_SELECTED);
@@ -255,10 +261,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 {
 	//旧項目の保存
 	if(m_lpMenuCommandItem){
-		Edit_Path.GetWindowText(m_lpMenuCommandItem->Path);
-		Edit_Param.GetWindowText(m_lpMenuCommandItem->Param);
-		Edit_Dir.GetWindowText(m_lpMenuCommandItem->Dir);
-		Edit_Caption.GetWindowText(m_lpMenuCommandItem->Caption);
+		getUserAppEdit();
 	}
 
 	//新項目の設定
@@ -269,10 +272,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 	int iItem=m_MenuCommandArray.size()-1;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem];
 
-	Edit_Path.SetWindowText(m_lpMenuCommandItem->Path);
-	Edit_Param.SetWindowText(m_lpMenuCommandItem->Param);
-	Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir);
-	Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption);
+	setUserAppEdit();
 	List_Command.SetItemCount(m_MenuCommandArray.size());
 	List_Command.EnsureVisible(iItem,FALSE);
 	List_Command.SetItemState(iItem,LVIS_SELECTED, LVIS_SELECTED);
@@ -298,10 +298,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppDelete(WORD,WORD,HWND,BOOL&)
 	}
 	if(iItem!=0)iItem--;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem];
-	Edit_Path.SetWindowText(m_lpMenuCommandItem->Path);
-	Edit_Param.SetWindowText(m_lpMenuCommandItem->Param);
-	Edit_Dir.SetWindowText(m_lpMenuCommandItem->Dir);
-	Edit_Caption.SetWindowText(m_lpMenuCommandItem->Caption);
+	setUserAppEdit();
 
 	List_Command.EnsureVisible(iItem,FALSE);
 	List_Command.SetItemState(iItem,LVIS_SELECTED, LVIS_SELECTED);

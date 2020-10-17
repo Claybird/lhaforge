@@ -178,6 +178,9 @@
     <ClCompile Include="ArchiverCode\test\test_arc_interface.cpp">
       <Filter>ArchiverCode\test</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_configmanager.cpp">
+      <Filter>Configs\Other\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -224,6 +227,9 @@
     </Filter>
     <Filter Include="ArchiverCode\test">
       <UniqueIdentifier>{9f3bc7a5-b028-417f-b3a7-18b3199f7edd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\Other\test">
+      <UniqueIdentifier>{5ddd1314-39a1-46a4-8078-4cfcc104a9a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

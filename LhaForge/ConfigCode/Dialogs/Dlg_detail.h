@@ -27,7 +27,7 @@
 #include "../../resource.h"
 #include "../../Utilities/Utility.h"
 
-class CConfigDlgDetail : public CDialogImpl<CConfigDlgDetail>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgDetail : public LFConfigDialogBase<CConfigDlgDetail>
 {
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg){

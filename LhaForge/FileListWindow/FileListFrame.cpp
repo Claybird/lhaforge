@@ -99,9 +99,9 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 		// ツールバーを作成してバンドに追加
 		HIMAGELIST hImageList=NULL;
-		if(!ConfFLW.strCustomToolbarImage.IsEmpty()){
+		if(!ConfFLW.strCustomToolbarImage.empty()){
 			//カスタムツールバー
-			hImageList = ImageList_LoadImage(NULL, ConfFLW.strCustomToolbarImage, 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
+			hImageList = ImageList_LoadImage(NULL, ConfFLW.strCustomToolbarImage.c_str(), 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
 		}
 		HWND hWndToolBar=CreateToolBarCtrl(m_hWnd,IDR_MAINFRAME,hImageList);//CreateSimpleToolBarCtrl(m_hWnd,IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 		AddSimpleReBarBand(hWndToolBar);
@@ -302,9 +302,10 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 		bSave=true;
 	}
 	if(bSave){
-		CString strErr;
-		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage((const wchar_t*)strErr);
+		try {
+			mr_Config.save();
+		}catch(const LF_EXCEPTION& e){
+			ErrorMessage(e.what());
 		}
 	}
 
@@ -529,11 +530,12 @@ void CFileListFrame::OnCommandCloseWindow(UINT uNotifyCode, int nID, HWND hWndCt
 void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
 	//mr_Config.SaveConfig();
-	CString strErr;
 	CConfigDialog confdlg(mr_Config);
 	if(IDOK==confdlg.DoModal()){
-		if(!mr_Config.SaveConfig(strErr)){
-			ErrorMessage((const wchar_t*)strErr);
+		try {
+			mr_Config.save();
+		}catch(const LF_EXCEPTION& e){
+			ErrorMessage(e.what());
 		}
 		CConfigFileListWindow ConfFLW;
 		ConfFLW.load(mr_Config);
@@ -552,8 +554,10 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		}
 	}else{
 		//念のため再読み込み
-		if(!mr_Config.LoadConfig(strErr)){
-			ErrorMessage((const wchar_t*)strErr);
+		try {
+			mr_Config.load();
+		}catch(const LF_EXCEPTION& e) {
+			ErrorMessage(e.what());
 		}
 	}
 

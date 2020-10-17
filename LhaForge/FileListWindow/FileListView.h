@@ -27,9 +27,10 @@
 #include "ShellDataManager.h"
 #include "OLE/DnDSource.h"
 #include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "../resource.h"
+#include "resource.h"
 #include "FileListMessages.h"
-#include "../Utilities/OSUtil.h"
+#include "Utilities/OSUtil.h"
+#include "MenuCommand.h"
 
 struct CConfigFileListWindow;
 class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public IDropCommunicator//自前のインターフェイス

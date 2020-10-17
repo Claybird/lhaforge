@@ -32,7 +32,7 @@
 //====================================
 // 一般設定項目
 //====================================
-class CConfigDlgGeneral : public CDialogImpl<CConfigDlgGeneral>,public CMessageFilter,public CWinDataExchange<CConfigDlgGeneral>,public IConfigDlgBase
+class CConfigDlgGeneral : public LFConfigDialogBase<CConfigDlgGeneral>
 {
 protected:
 	CConfigGeneral	m_Config;
@@ -61,7 +61,7 @@ public:
 		DDX_CHECK(IDC_CHECK_WARN_REMOVABLE,m_Config.WarnRemovable)
 		DDX_CHECK(IDC_CHECK_NOTIFY_SHELL,m_Config.NotifyShellAfterProcess)
 		DDX_RADIO(IDC_RADIO_PRIORITY_DEFAULT,m_Config.ProcessPriority)
-		DDX_TEXT_LEN(IDC_EDIT_TEMP_PATH,m_Config.TempPath,_MAX_PATH)
+		DDX_TEXT(IDC_EDIT_TEMP_PATH, m_Config.TempPath)
 	END_DDX_MAP()
 
 	// メッセージマップ

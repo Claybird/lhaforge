@@ -32,7 +32,7 @@
 //====================================
 // 圧縮一般設定
 //====================================
-class CConfigDlgCompressGeneral : public CDialogImpl<CConfigDlgCompressGeneral>,public CMessageFilter,public CWinDataExchange<CConfigDlgCompressGeneral>,public IConfigDlgBase
+class CConfigDlgCompressGeneral : public LFConfigDialogBase<CConfigDlgCompressGeneral>
 {
 protected:
 	CConfigCompress	m_Config;

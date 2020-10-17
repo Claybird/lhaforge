@@ -32,6 +32,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/Utility.h"
 #include "CommonUtil.h"
 
 
@@ -67,7 +68,7 @@ std::wstring determineExtractBaseDir(
 	auto outputDir = LF_get_output_dir(
 		args.extract.OutputDirType,
 		archive_path,
-		args.extract.OutputDirUserSpecified.operator LPCWSTR(),
+		args.extract.OutputDirUserSpecified.c_str(),
 		args.output_dir_callback);
 
 	// Warn if output is on network or on a removable disk
@@ -389,10 +390,7 @@ bool GUI_extract_multiple_files(
 	LF_EXTRACT_ARGS args;
 	CConfigManager mngr;
 	try {
-		CString strErr;	//TODO: remove this
-		if (!mngr.LoadConfig(strErr)) {
-			RAISE_EXCEPTION((const wchar_t*)strErr);
-		}
+		mngr.load();
 		// load configuration, then override them with command line args
 		parseExtractOption(args, mngr, lpCmdLineInfo);
 	} catch (const LF_EXCEPTION& e) {
@@ -489,8 +487,8 @@ bool GUI_extract_multiple_files(
 				auto envInfo = LF_make_expand_information(output_dir.c_str(), nullptr);
 
 				// expand command parameter
-				auto strCmd = UtilExpandTemplateString((const wchar_t*)args.general.Filer.FilerPath, envInfo);
-				auto strParam = UtilExpandTemplateString((const wchar_t*)args.general.Filer.Param, envInfo);
+				auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
+				auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
 				ShellExecuteW(NULL, L"open", strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
 			} else {
 				//open with explorer
@@ -601,10 +599,7 @@ bool GUI_test_multiple_files(
 	LF_EXTRACT_ARGS args;
 	CConfigManager mngr;
 	try {
-		CString strErr;	//TODO: remove this
-		if (!mngr.LoadConfig(strErr)) {
-			RAISE_EXCEPTION((const wchar_t*)strErr);
-		}
+		mngr.load();
 		// load configuration, then override them with command line args
 		parseExtractOption(args, mngr, lpCmdLineInfo);
 	} catch (const LF_EXCEPTION& e) {

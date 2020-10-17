@@ -270,22 +270,30 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 
 LRESULT CConfigDlgAssociation::OnApply()
 {
-	CString strIniName(mr_ConfigDlg.GetAssistantFile());
-	for(int i=0;i<COUNTOF(AssocSettings);i++){
-		//レジストリ変更の必要がある場合
-		bool Checked=(0!=AssocSettings[i].Check_SetAssoc.GetCheck());
-		if((AssocSettings[i].AssocInfo.bOrgStatus^Checked)||AssocSettings[i].bChanged){
-			if(AssocSettings[i].AssocInfo.bOrgStatus&&!Checked){
-				//関連づけ解除要請
-				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("set"),_T("0"),strIniName);
-			}
-			else{
-				//関連づけ要請
-				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("set"),_T("1"),strIniName);
-				WritePrivateProfileString(AssocSettings[i].AssocInfo.Ext,_T("iconfile"),AssocSettings[i].AssocInfo.IconFile,strIniName);
-				UtilWritePrivateProfileInt(AssocSettings[i].AssocInfo.Ext,_T("iconindex"),AssocSettings[i].AssocInfo.IconIndex,strIniName);
+	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
+
+	CConfigManager tmp;
+	tmp.setPath(strIniName);
+	try {
+		tmp.load();
+		for (int i = 0; i < COUNTOF(AssocSettings); i++) {
+			//レジストリ変更の必要がある場合
+			bool Checked = (0 != AssocSettings[i].Check_SetAssoc.GetCheck());
+			if ((AssocSettings[i].AssocInfo.bOrgStatus^Checked) || AssocSettings[i].bChanged) {
+				if (AssocSettings[i].AssocInfo.bOrgStatus && !Checked) {
+					//関連づけ解除要請
+					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"set", 0);
+				} else {
+					//関連づけ要請
+					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"set", L"1");
+					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"iconfile", AssocSettings[i].AssocInfo.IconFile);
+					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"iconindex", AssocSettings[i].AssocInfo.IconIndex);
+				}
 			}
 		}
+		tmp.save();
+	} catch (const LF_EXCEPTION &e) {
+		ErrorMessage(e.what());
 	}
 
 	return TRUE;

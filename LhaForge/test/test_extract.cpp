@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
+#include "Utilities/Utility.h"
 #include "extract.h"
 
 TEST(extract, trimArchiveName) {

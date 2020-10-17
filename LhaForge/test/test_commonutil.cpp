@@ -4,6 +4,7 @@
 #include "CommonUtil.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
 
 TEST(CommonUtil, LF_get_output_dir) {
 	struct LF_GET_OUTPUT_DIR_TEST_CALLBACK :I_LF_GET_OUTPUT_DIR_CALLBACK {

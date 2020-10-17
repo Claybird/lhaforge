@@ -62,13 +62,13 @@ LRESULT CConfigDlgGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//ファイラのパス
 	Edit_FilerPath=GetDlgItem(IDC_EDIT_FILER_PATH);
 	Edit_FilerPath.SetLimitText(_MAX_PATH);
-	Edit_FilerPath.SetWindowText(m_Config.Filer.FilerPath);
+	Edit_FilerPath.SetWindowText(m_Config.Filer.FilerPath.c_str());
 	Edit_FilerPath.EnableWindow(Check_UseFiler.GetCheck());
 
 	//パラメータ
 	Edit_FilerParam=GetDlgItem(IDC_EDIT_FILER_PARAM);
 	Edit_FilerParam.SetLimitText(_MAX_PATH);
-	Edit_FilerParam.SetWindowText(m_Config.Filer.Param);
+	Edit_FilerParam.SetWindowText(m_Config.Filer.Param.c_str());
 	Edit_FilerParam.EnableWindow(Check_UseFiler.GetCheck());
 
 	Button_BrowseFiler=GetDlgItem(IDC_BUTTON_BROWSE_FILER);
@@ -120,8 +120,16 @@ LRESULT CConfigDlgGeneral::OnApply()
 	// 出力先を開くファイラ
 	//----------------------
 	m_Config.Filer.UseFiler=Check_UseFiler.GetCheck();
-	Edit_FilerPath.GetWindowText(m_Config.Filer.FilerPath);
-	Edit_FilerParam.GetWindowText(m_Config.Filer.Param);
+	{
+		CString buf;
+		Edit_FilerPath.GetWindowText(buf);
+		m_Config.Filer.FilerPath = buf;
+	}
+	{
+		CString buf;
+		Edit_FilerParam.GetWindowText(buf);
+		m_Config.Filer.Param = buf;
+	}
 
 	return TRUE;
 }

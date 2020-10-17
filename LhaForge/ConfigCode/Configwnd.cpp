@@ -23,9 +23,10 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/arc_interface.h"
 #include "configwnd.h"
-#include "../Utilities/OSUtil.h"
+#include "Utilities/OSUtil.h"
+#include "FileListWindow/MenuCommand.h"
 
 
 CConfigDialog::CConfigDialog(CConfigManager &cfg)
@@ -41,8 +42,11 @@ CConfigDialog::CConfigDialog(CConfigManager &cfg)
 	m_strAssistINI = UtilGetTemporaryFileName().c_str();
 
 	//設定読み込み
-	CString strErr;
-	if(!mr_Config.LoadConfig(strErr))ErrorMessage((const wchar_t*)strErr);
+	try {
+		mr_Config.load();
+	} catch (const LF_EXCEPTION& e) {
+		ErrorMessage(e.what());
+	}
 }
 
 CConfigDialog::~CConfigDialog()
@@ -130,7 +134,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
 
 	//---ユーザー間共通設定?
-	if(mr_Config.IsUserCommon()){
+	if(mr_Config.isUserCommon()){
 		//ウィンドウタイトルを設定
 		SetWindowText(CString(MAKEINTRESOURCE(IDS_CAPTION_CONFIG_USERCOMMON)));
 	}
@@ -145,8 +149,11 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
 	//直前にメニューエディタなどで設定が変更されていた場合、ここで単純に上書きすると、変更後の情報が消えてしまうので
 	//再読み込みを行い、それを元に上書きする
-	CString tmp;
-	mr_Config.LoadConfig(tmp);
+	try {
+		mr_Config.load();
+	} catch(...) {
+		//ignore...
+	}
 
 	//各ダイアログのOnApplyを呼ぶ
 	bool bRet=true;

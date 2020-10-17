@@ -24,26 +24,18 @@
 
 #pragma once
 
-class CConfigManager;
-struct IConfigIO{
-	virtual ~IConfigIO(){}
-	virtual void load(const CConfigManager&)=0;
-	virtual void store(CConfigManager&)const=0;
-};
-
-class CConfigManager
+struct CConfigManager
 {
-protected:
 	std::filesystem::path m_iniPath;
 	bool m_bUserCommon;	//true to use user common configuration
 	CSimpleIniW m_Config;
-	void setDefaultPath();
-public:
+
 	CConfigManager() {
 		m_Config.SetUnicode(true);
 		setDefaultPath();
 	}
 	virtual ~CConfigManager() {}
+	void setDefaultPath();
 	void setPath(const std::wstring& path);
 	void load();
 	void save();
@@ -84,5 +76,14 @@ public:
 	void setValue(const std::wstring& section, const std::wstring& key, const std::wstring& value) {
 		m_Config.SetValue(section.c_str(), key.c_str(), value.c_str());
 	}
+	void setValue(const std::wstring& section, const std::wstring& key, const wchar_t* value) {
+		m_Config.SetValue(section.c_str(), key.c_str(), value);
+	}
+};
+
+struct IConfigIO {
+	virtual ~IConfigIO() {}
+	virtual void load(const CConfigManager&) = 0;
+	virtual void store(CConfigManager&)const = 0;
 };
 
