@@ -90,6 +90,7 @@ HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 		//get icon and convert to bitmap
 		SHFILEINFO sfi={0};
 		SHGetFileInfoW(path.c_str(), 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
+		if(!info.cIconBmpSmall.IsNull())info.cIconBmpSmall.DeleteObject();
 		UtilMakeDIBFromIcon(info.cIconBmpSmall, sfi.hIcon);
 		DestroyIcon(sfi.hIcon);
 	}
