@@ -36,9 +36,6 @@
 //r_bUseForAll:今後も同じフォルダ設定を使うならtrue
 HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,LPCTSTR lpszSpecific,CPath &r_pathOutputDir,bool &r_bUseForAll,CString &strErr)
 {
-	TCHAR szBuffer[_MAX_PATH+1];
-	FILL_ZERO(szBuffer);
-
 	switch(outputDirType){
 	case OUTPUT_TO_SPECIFIC_DIR:	//Specific Directory
 		//TRACE(_T("Specific Dir:%s\n"),Config.Common.Extract.OutputDir);
@@ -50,17 +47,15 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 		}
 		//FALLTHROUGH
 	case OUTPUT_TO_DESKTOP:	//Desktop
-		if(SHGetSpecialFolderPath(NULL,szBuffer,CSIDL_DESKTOPDIRECTORY,FALSE)){
-			r_pathOutputDir=szBuffer;
-		}else{	//デスクトップがない？
+		try{
+			r_pathOutputDir = UtilGetDesktopPath().c_str();
+		}catch(const LF_EXCEPTION&){	//デスクトップがない？
 			strErr=CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP));
 			return E_FAIL;
 		}
 		return S_OK;
 	case OUTPUT_TO_SAME_DIR:	//Same Directory
-		_tcsncpy_s(szBuffer,lpszOrgFile,_MAX_PATH);
-		PathRemoveFileSpec(szBuffer);
-		r_pathOutputDir=szBuffer;
+		r_pathOutputDir = std::filesystem::path(lpszOrgFile).parent_path().c_str();
 		return S_OK;
 	case OUTPUT_TO_ALWAYS_ASK_WHERE:	//出力先を毎回聞く
 		TRACE(_T("Always ask\n"));

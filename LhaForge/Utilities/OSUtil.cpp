@@ -67,6 +67,8 @@ HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 		info.title = std::filesystem::path(path).stem().c_str();
 
 		{
+			//The maximum path size that can be returned is MAX_PATH
+			//https://docs.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishelllinkw-getpath
 			wchar_t szTarget[_MAX_PATH + 1] = {};
 			hr = pLink->GetPath(szTarget, COUNTOF(szTarget), NULL, 0);
 			if (FAILED(hr))return hr;
@@ -100,7 +102,8 @@ HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 
 void UtilNavigateDirectory(const std::wstring& dir)
 {
-	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs. This value should be set to MAX_PATH.
+	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs.
+	//This value should be set to MAX_PATH.
 	ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
@@ -211,4 +214,17 @@ void UtilSetTextOnClipboard(const std::wstring& text)
 			GlobalFree( hMem );
 		}
 	}
+}
+
+std::pair<std::wstring, int> UtilPathParseIconLocation(const std::wstring& path_and_index)
+{
+	std::wregex re_path(L"^(.+?),(-?\\d+)$");
+
+	std::wcmatch results;
+	if (std::regex_search(path_and_index.c_str(), results, re_path)) {
+		std::wstring path = results[1];
+		std::wstring index = results[2];
+		return std::make_pair<>(path, _wtoi(index.c_str()));
+	}
+	return std::make_pair<>(path_and_index, 0);
 }

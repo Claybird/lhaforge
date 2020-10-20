@@ -116,13 +116,14 @@ HRESULT CDropTarget::GetDroppedFiles(IDataObject *lpDataObject,std::list<CString
 	if(S_OK==hr){
 		//ファイルがドロップされた
 		//---ファイル数を取得
-		UINT nFileCount = ::DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, NULL, 0);
+		UINT nFileCount = ::DragQueryFileW((HDROP)medium.hGlobal, 0xFFFFFFFF, NULL, 0);
 
 		//ファイル取得
 		for(UINT i=0; i<nFileCount;i++){
-			TCHAR szBuffer[_MAX_PATH+2]={0};
-			::DragQueryFile((HDROP)medium.hGlobal, i, szBuffer, _MAX_PATH + 1);
-			fileList.push_back(szBuffer);
+			auto size = ::DragQueryFileW((HDROP)medium.hGlobal, i, nullptr, 0);
+			std::vector<wchar_t> szBuffer(size);
+			::DragQueryFileW((HDROP)medium.hGlobal, i, &szBuffer[0], size);
+			fileList.push_back(&szBuffer[0]);
 		}
 		//解放
 		ReleaseStgMedium(&medium);

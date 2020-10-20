@@ -33,14 +33,27 @@ std::wstring UtilGetDesktopPath()
 {
 	wchar_t* ptr = nullptr;
 	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &ptr))) {
-		std::wstring desktop = ptr;
+		std::wstring path = ptr;
 		CoTaskMemFree(ptr);
 		ptr = nullptr;
-		return desktop;
+		return path;
 	} else {
 		//possibly, no desktops
-		//RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
-		return UtilLoadString(IDS_ERROR_GET_DESKTOP);
+		RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+	}
+}
+
+std::wstring UtilGetSendToPath()
+{
+	wchar_t* ptr = nullptr;
+	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_SendTo, 0, nullptr, &ptr))) {
+		std::wstring path = ptr;
+		CoTaskMemFree(ptr);
+		ptr = nullptr;
+		return path;
+	} else {
+		//possibly, no desktops; //TODO: not a suitable error messasge
+		RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
 	}
 }
 
@@ -48,15 +61,19 @@ std::wstring UtilGetDesktopPath()
 std::wstring UtilGetTempPath()
 {
 	auto tempDir = std::filesystem::temp_directory_path() / L"lhaforge";
+	std::filesystem::create_directories(tempDir);
 	return UtilPathAddLastSeparator(tempDir);
 }
 
 std::wstring UtilGetTemporaryFileName()
 {
-	//etTempFileNameW: The string cannot be longer than MAX_PATH–14 characters or GetTempFileName will fail
-	wchar_t buf[MAX_PATH] = {};
-	GetTempFileNameW(UtilGetTempPath().c_str(), L"tmp", 0, buf);
-	return buf;
+	for (size_t index = 0; ;index++){
+		auto path = std::filesystem::path(UtilGetTempPath()) / Format(L"tmp%d.tmp", index);
+		if (!std::filesystem::exists(path)) {
+			touchFile(path);
+			return path.make_preferred();
+		}
+	}
 }
 
 bool UtilDeletePath(const std::wstring& path)
@@ -266,7 +283,7 @@ std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern)
 std::wstring UtilGetModulePath()
 {
 	std::wstring name;
-	name.resize(_MAX_PATH);
+	name.resize(256);
 	for (;;) {
 		DWORD bufsize = (DWORD)name.size();
 		auto nCopied = GetModuleFileNameW(GetModuleHandleW(nullptr), &name[0], bufsize);

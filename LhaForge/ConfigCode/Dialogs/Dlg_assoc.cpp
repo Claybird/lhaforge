@@ -68,28 +68,27 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	// 関連付けのShellOpenCommandを算出
 	{
-		TCHAR szModule[_MAX_PATH+1];
-		GetModuleFileName(GetModuleHandle(NULL), szModule, _MAX_PATH);	//本体のパス取得
+		std::wstring modulePath = UtilGetModulePath();
 		CPath fullPath;
 		try {
-			fullPath = UtilGetCompletePathName(szModule).c_str();	//パスを正規化
-		} catch (LF_EXCEPTION) {
-			fullPath = szModule;
+			fullPath = UtilGetCompletePathName(modulePath).c_str();	//パスを正規化
+		} catch (const LF_EXCEPTION&) {
+			fullPath = modulePath.c_str();
 		}
 		fullPath.QuoteSpaces();
 		m_strAssocDesired=(LPCTSTR)fullPath;
 		//m_strAssocDesired.MakeLower();	//小文字に正規化
 		m_strAssocDesired+=_T(" /m \"%1\"");	//パラメータ
-		TRACE(_T("ShellOpenCommand_Desired=%s\n"),m_strAssocDesired);
 	}
 
 	// システムデフォルトアイコンを取得
 	if(Icon_SystemDefault.IsNull()){
-		TCHAR Path[_MAX_PATH+1];
-		FILL_ZERO(Path);
-		GetSystemDirectory(Path,_MAX_PATH);
-		PathAppend(Path,_T("shell32.dll"));
-		Icon_SystemDefault.ExtractIcon(Path,0);
+		auto nSize = GetSystemDirectoryW(nullptr, 0);
+		std::vector<wchar_t> buf(nSize);
+		GetSystemDirectoryW(&buf[0], nSize);
+		std::filesystem::path path = &buf[0];
+		path /= L"shell32.dll";
+		Icon_SystemDefault.ExtractIconW(path.make_preferred().c_str(), 0);
 	}
 
 	// 関連付け情報をチェック
@@ -181,17 +180,15 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		return 0;
 	}
 
-	TCHAR ResourcePath[_MAX_PATH+1];	//アイコンファイル名
+	std::filesystem::path ResourcePath;	//アイコンファイル名
 	int IconIndex=-1;
 	if(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON==wID||IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE==wID){
 		//--------------
 		// 標準アイコン
 		//--------------
-		FILL_ZERO(ResourcePath);
-		GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//本体のパス取得
+		ResourcePath = UtilGetModuleDirectoryPath();
 		//EXEのパスを元にDLLのファイル名を組み立てる
-		PathRemoveFileSpec(ResourcePath);
-		PathAppend(ResourcePath,CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT)));
+		ResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
 	}else if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON==wID||IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID){
 		//------------------------------------
 		// 外部のアイコンファイルをセットする
@@ -203,8 +200,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		if(IDOK!=isd.DoModal()){
 			return 0;
 		}
-		TRACE(_T("IconFile=%s\n"),ac.IconFile);
-		_tcsncpy_s(ResourcePath,ac.IconFile,_MAX_PATH);
+		ResourcePath = ac.IconFile.operator LPCWSTR();
 		IconIndex=ac.IconIndex;
 		if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID&&-1==IconIndex){
 			//アイコンが選択されていない
@@ -233,11 +229,11 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			//全て標準アイコンに/全て外部アイコンに
 			{
 				//アイコン数の取得
-				long IconCount=(long)ExtractIcon(GetModuleHandle(NULL),ResourcePath,-1);
+			long IconCount = (long)ExtractIconW(GetModuleHandleW(nullptr), ResourcePath.c_str(), -1);
 				const bool bExtraIcon=(IconCount>=35);	//アイコンの数が35より多ければ全て識別するタイプのアイコンだということになる
 				if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 					AssocSettings[i].AssocInfo.IconIndex=bExtraIcon?AssocSettings[i].DefaultIconIndex_Ex:AssocSettings[i].DefaultIconIndex;
-					AssocSettings[i].AssocInfo.IconFile=ResourcePath;
+					AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
 					AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
 					AssocSettings[i].bChanged=true;
 				}
@@ -247,7 +243,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			//全て標準単一アイコンに
 			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 				AssocSettings[i].AssocInfo.IconIndex=ICONINDEX_EXTERNAL_SINGLE;
-				AssocSettings[i].AssocInfo.IconFile=ResourcePath;
+				AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
 				AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
 				AssocSettings[i].bChanged=true;
 			}
@@ -256,7 +252,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			//全て外部単一アイコンに
 			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
 				AssocSettings[i].AssocInfo.IconIndex=IconIndex;
-				AssocSettings[i].AssocInfo.IconFile=ResourcePath;
+				AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
 				AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
 				AssocSettings[i].bChanged=true;
 			}
@@ -349,30 +345,28 @@ void CIconSelectDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	auto filter = UtilMakeFilterString(
-		L"Icon File|*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl|"
-		L"All Files|*.*");
+	COMDLG_FILTERSPEC filter[] = {
+		{ L"Icon File", L"*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl" },
+		{ L"All Files", L"*.*" },
+	};
 
 	if(!DoDataExchange(TRUE))return;
-	CFileDialog dlg(TRUE, NULL, IconPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
+	CShellFileOpenDialog dlg(IconPath, FOS_DONTADDTORECENT | FOS_FILEMUSTEXIST |FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
 
-	IconPath=dlg.m_szFileName;
+	dlg.GetFilePath(IconPath);
 	DoDataExchange(FALSE);
 	UpdateIcon();
 }
 
 void CIconSelectDialog::OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	TCHAR ResourcePath[_MAX_PATH+1];
-	FILL_ZERO(ResourcePath);
-	GetModuleFileName(GetModuleHandle(NULL), ResourcePath, _MAX_PATH);	//本体のパス取得
+	std::filesystem::path ResourcePath = UtilGetModuleDirectoryPath();
 	//EXEのパスを元にDLLのファイル名を組み立てる
-	PathRemoveFileSpec(ResourcePath);
-	PathAppend(ResourcePath,CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT)));
-	IconPath=ResourcePath;
+	ResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+	IconPath = ResourcePath.make_preferred().c_str();
 
 	DoDataExchange(FALSE);
 	UpdateIcon();
@@ -383,7 +377,7 @@ bool CIconSelectDialog::UpdateIcon()
 	ListView.DeleteAllItems();
 	IconList.Destroy();
 	//アイコン数の取得
-	long IconCount=(long)ExtractIcon(GetModuleHandle(NULL),IconPath,-1);
+	long IconCount=(long)ExtractIconW(GetModuleHandleW(nullptr),IconPath,-1);
 	if(0==IconCount){
 		ListView.EnableWindow(false);
 		return false;

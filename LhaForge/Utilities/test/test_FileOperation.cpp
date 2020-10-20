@@ -9,6 +9,10 @@
 TEST(FileOperation, UtilGetDesktopPath) {
 	EXPECT_TRUE(std::filesystem::exists(UtilGetDesktopPath()));
 }
+TEST(FileOperation, UtilGetSendToPath) {
+	EXPECT_TRUE(std::filesystem::exists(UtilGetSendToPath()));
+}
+
 TEST(FileOperation, UtilGetTempPath) {
 	EXPECT_TRUE(std::filesystem::exists(UtilGetTempPath()));
 }

@@ -113,8 +113,8 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	PageDetail.Create(ScrollWindow);
 	HTREEITEM hItemDetail;
 	{
-		TCHAR Buffer[_MAX_PATH+1]={0};
-		PageDetail.GetWindowText(Buffer,_MAX_PATH);
+		CString Buffer;
+		PageDetail.GetWindowTextW(Buffer);
 		hItemDetail=SelectTreeView.InsertItem(Buffer, TVI_ROOT, TVI_LAST);
 	}
 	SelectTreeView.SetItemData(hItemDetail,(DWORD_PTR)PageDetail.m_hWnd);

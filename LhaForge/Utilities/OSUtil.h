@@ -67,6 +67,8 @@ void UtilSetPriorityClass(DWORD dwPriorityClass);
 //Copy text to clipboard
 void UtilSetTextOnClipboard(const std::wstring& text);
 
+std::pair<std::wstring, int> UtilPathParseIconLocation(const std::wstring& path_and_index);
+
 //moves to a directory, and comes back to the previous directory on destructor
 class CCurrentDirManager
 {

@@ -51,8 +51,7 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	// 出力先フォルダのパスをエディットコントロールに設定
 	//----------------------------------------------------
 	Edit_CompressOutputDirPath=GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR);
-	Edit_CompressOutputDirPath.SetLimitText(_MAX_PATH);
-	Edit_CompressOutputDirPath.SetWindowText(m_Config.OutputDirUserSpecified.c_str());
+	Edit_CompressOutputDirPath.SetWindowTextW(m_Config.OutputDirUserSpecified.c_str());
 
 	Button_CompressToFolder=GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER);
 
@@ -151,17 +150,15 @@ LRESULT CConfigDlgCompressGeneral::OnRadioCompressTo(WORD wNotifyCode, WORD wID,
 LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		TCHAR FolderPath[_MAX_PATH+1];
-		FILL_ZERO(FolderPath);
-
-		Edit_CompressOutputDirPath.GetWindowText(FolderPath,_MAX_PATH);
+		CString FolderPath;
+		Edit_CompressOutputDirPath.GetWindowTextW(FolderPath);
 
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
 		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(FolderPath);
 		if(IDOK==dlg.DoModal()){
-			_tcsncpy_s(FolderPath,dlg.GetFolderPath(),_MAX_PATH);
-			Edit_CompressOutputDirPath.SetWindowText(FolderPath);
+			FolderPath = dlg.GetFolderPath();
+			Edit_CompressOutputDirPath.SetWindowTextW(FolderPath);
 		}
 	}
 	return 0;

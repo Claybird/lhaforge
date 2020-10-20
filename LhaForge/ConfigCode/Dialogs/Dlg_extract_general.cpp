@@ -49,7 +49,6 @@ LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	// 出力先フォルダのパスをエディットコントロールに設定
 	//----------------------------------------------------
 	Edit_ExtractOutputDirPath=GetDlgItem(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR);
-	Edit_ExtractOutputDirPath.SetLimitText(_MAX_PATH);
 	Edit_ExtractOutputDirPath.SetWindowText(m_Config.OutputDirUserSpecified.c_str());
 
 	Button_ExtractToFolder=GetDlgItem(IDC_BUTTON_EXTRACT_BROWSE_FOLDER);
@@ -165,17 +164,15 @@ LRESULT CConfigDlgExtractGeneral::OnRadioExtractTo(WORD wNotifyCode, WORD wID, H
 LRESULT CConfigDlgExtractGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		TCHAR FolderPath[_MAX_PATH+1];
-		FILL_ZERO(FolderPath);
-
-		Edit_ExtractOutputDirPath.GetWindowText(FolderPath,_MAX_PATH);
+		CString FolderPath;
+		Edit_ExtractOutputDirPath.GetWindowTextW(FolderPath);
 
 		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
 		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
 		dlg.SetInitialFolder(FolderPath);
 		if(IDOK==dlg.DoModal()){
-			_tcsncpy_s(FolderPath,dlg.GetFolderPath(),_MAX_PATH);
-			Edit_ExtractOutputDirPath.SetWindowText(FolderPath);
+			FolderPath = dlg.GetFolderPath();
+			Edit_ExtractOutputDirPath.SetWindowTextW(FolderPath);
 		}
 	}
 	return 0;

@@ -525,16 +525,13 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 				strBuffer.Replace(_T('/'),_T('\\'));
 
 				//ファイル名除去
-				TCHAR buf[_MAX_PATH+1];
-				_tcsncpy_s(buf, strBuffer, COUNTOF(buf));
-				PathRemoveBackslash(buf);
-				PathRemoveFileSpec(buf);
-				if(_tcslen(buf)==0){
+				std::filesystem::path buf = strBuffer.operator LPCWSTR();
+				buf = buf.parent_path();
+				if(buf.empty()){
 					//何もなくなった、つまりルートディレクトリにある
 					strBuffer = _T("\\");
 				}else{
-					PathAddBackslash(buf);
-					strBuffer = buf;
+					strBuffer = UtilPathAddLastSeparator(buf).c_str();
 				}
 
 				if(bSlash){

@@ -53,7 +53,7 @@ public:
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnCreateShortcut(WORD,WORD,HWND,BOOL&);
-	bool GetCompressShortcutInfo(LPTSTR,CString&);
+	bool GetCompressShortcutInfo(std::filesystem::path &,CString&);
 	LRESULT OnApply(){return TRUE;}
 
 	CConfigDlgShortcut(){

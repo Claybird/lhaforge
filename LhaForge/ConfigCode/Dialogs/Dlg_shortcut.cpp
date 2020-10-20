@@ -46,13 +46,10 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		//------------------------
 		// LhaForge本体のパス取得
 		//------------------------
-		TCHAR ExePath[_MAX_PATH+1];
-		FILL_ZERO(ExePath);
-		GetModuleFileName(GetModuleHandle(NULL), ExePath, _MAX_PATH);
+		const auto ExePath = UtilGetModulePath();
 
 		//ショートカット ファイル名
-		TCHAR ShortcutFileName[_MAX_PATH+1];
-		FILL_ZERO(ShortcutFileName);
+		std::filesystem::path ShortcutFileName;
 
 		//----------------------
 		// 作成先フォルダの取得
@@ -64,10 +61,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP:
 			// デスクトップに作成
-			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_DESKTOPDIRECTORY,FALSE)){
-				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP)));
-				return 0;
-			}
+			ShortcutFileName = UtilGetDesktopPath();
 			break;
 		case IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO://FALLTHROUGH
@@ -75,10 +69,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
 			// 「送る」フォルダに作成
-			if(!SHGetSpecialFolderPath(NULL,ShortcutFileName,CSIDL_SENDTO,FALSE)){
-				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_GET_SENDTO)));
-				return 0;
-			}
+			ShortcutFileName = UtilGetSendToPath();
 			break;
 		default:ASSERT(!"OnCreateShortcut:this code must not be run.");return 0;
 		}
@@ -101,7 +92,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO:
 			//LhaForgeで解凍
-			PathAppend(ShortcutFileName,CString(MAKEINTRESOURCE(IDS_SHORTCUT_NAME_EXTRACT)));
+			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_EXTRACT);
 			Param=_T("/e");
 			DescriptionID=IDS_SHORTCUT_DESCRIPTION_EXTRACT;
 			IconIndex=2;
@@ -110,7 +101,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_SENDTO:
 			//LhaForgeで処理
-			PathAppend(ShortcutFileName,CString(MAKEINTRESOURCE(IDS_SHORTCUT_NAME_AUTOMATIC)));
+			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_AUTOMATIC);
 			Param.Empty();
 			DescriptionID=IDS_SHORTCUT_DESCRIPTION_AUTOMATIC;
 			IconIndex=0;
@@ -119,7 +110,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO:
 			//LhaForgeで閲覧
-			PathAppend(ShortcutFileName,CString(MAKEINTRESOURCE(IDS_SHORTCUT_NAME_LIST)));
+			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_LIST);
 			Param=_T("/l");
 			DescriptionID=IDS_SHORTCUT_DESCRIPTION_LIST;
 			IconIndex=3;
@@ -128,7 +119,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
 			//LhaForgeで検査
-			PathAppend(ShortcutFileName,CString(MAKEINTRESOURCE(IDS_SHORTCUT_NAME_TESTARCHIVE)));
+			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_TESTARCHIVE);
 			Param=_T("/t");
 			DescriptionID=IDS_SHORTCUT_DESCRIPTION_TESTARCHIVE;
 			IconIndex=4;
@@ -137,10 +128,10 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 		default:ASSERT(!"OnCreateShortcut:this code must not be run.");return 0;
 		}
 		//拡張子
-		_tcsncat_s(ShortcutFileName,_T(".lnk"),_MAX_PATH);
+		ShortcutFileName += L".lnk";
 
-		if(FAILED(UtilCreateShortcut((const wchar_t*)ShortcutFileName, (const wchar_t*)ExePath, (const wchar_t*)Param, (const wchar_t*)ExePath,IconIndex, (const wchar_t*)CString(MAKEINTRESOURCE(DescriptionID))))){
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
+		if(FAILED(UtilCreateShortcut(ShortcutFileName, ExePath, (const wchar_t*)Param, ExePath,IconIndex, UtilLoadString(DescriptionID).c_str()))){
+			ErrorMessage(UtilLoadString(IDS_ERROR_CREATE_SHORTCUT));
 		}else{
 			//作成成功で音を鳴らす
 			MessageBeep(MB_ICONASTERISK);
@@ -151,7 +142,7 @@ LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hW
 
 //作成するショートカットの情報を取得
 //Path:ショートカットファイル名,Param:コマンドライン引数
-bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
+bool CConfigDlgShortcut::GetCompressShortcutInfo(std::filesystem::path &Path,CString &Param)
 {
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
 	if(IDYES== UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
@@ -169,12 +160,12 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 			CString Buf;
 			if (bSingleCompression) {
 				//一つずつ圧縮
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, CString(MAKEINTRESOURCE(args.FormatName)));
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, UtilLoadString(args.FormatName).c_str());
 			} else {
 				//通常
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX, CString(MAKEINTRESOURCE(args.FormatName)));
+				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX, UtilLoadString(args.FormatName).c_str());
 			}
-			PathAppend(Path, Buf);
+			Path /= Buf.operator LPCWSTR();
 			//パラメータ
 			Param = L"/c:" + CString(args.name);
 			if (bSingleCompression) {
@@ -190,7 +181,7 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(LPTSTR Path,CString &Param)
 	}
 	else{
 		//圧縮形式をその都度決める
-		PathAppend(Path,CString(MAKEINTRESOURCE(IDS_SHORTCUT_NAME_COMPRESS)));
+		Path /= UtilLoadString(IDS_SHORTCUT_NAME_COMPRESS);
 		Param=_T("/c");
 	}
 	return true;

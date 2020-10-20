@@ -50,13 +50,9 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 	m_MenuCommandArray=m_Config.MenuCommandArray;
 
 	Edit_Path	=GetDlgItem(IDC_EDIT_FILELIST_USERAPP_PATH);
-	Edit_Path.SetLimitText(_MAX_PATH);
 	Edit_Param	=GetDlgItem(IDC_EDIT_FILELIST_USERAPP_PARAM);
-	Edit_Param.SetLimitText(_MAX_PATH*3);
 	Edit_Dir	=GetDlgItem(IDC_EDIT_FILELIST_USERAPP_DIR);
-	Edit_Dir.SetLimitText(_MAX_PATH);
 	Edit_Caption=GetDlgItem(IDC_EDIT_FILELIST_USERAPP_CAPTION);
-	Edit_Caption.SetLimitText(_MAX_PATH);
 	List_Command=GetDlgItem(IDC_LIST_FILELIST_USERAPP);
 
 	CRect rect;
@@ -120,50 +116,50 @@ void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
 void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 {
 	auto filter = UtilMakeFilterString(
-		_T("Program(*.exe;*.com;*.bat;*.cmd)|")
-		_T("*.exe;*.com;*.bat;*.cmd|")
-		_T("All Files(*.*)|")
-		_T("*.*"));
+		L"Program(*.exe;*.com;*.bat;*.cmd)|"
+		L"*.exe;*.com;*.bat;*.cmd|"
+		L"All Files(*.*)|"
+		L"*.*");
 
-	TCHAR szPath[_MAX_PATH+1];
-	Edit_Path.GetWindowText(szPath,_MAX_PATH);
-	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
+	CString path;
+	Edit_Path.GetWindowTextW(path);
+	CFileDialog dlg(TRUE, NULL, path, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	Edit_Path.SetWindowText(dlg.m_szFileName);
+	Edit_Path.SetWindowTextW(dlg.m_szFileName);
 }
 
 //フォルダを参照
 void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 {
-	TCHAR szPath[_MAX_PATH+1];
-	Edit_Dir.GetWindowText(szPath,_MAX_PATH);
+	CString path;
+	Edit_Dir.GetWindowTextW(path);
 	CFolderDialog dlg(NULL,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-	dlg.SetInitialFolder(szPath);
+	dlg.SetInitialFolder(path);
 
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	Edit_Dir.SetWindowText(dlg.GetFolderPath());
+	Edit_Dir.SetWindowTextW(dlg.GetFolderPath());
 }
 
 //カスタムツールバー画像を参照
 void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 {
 	auto filter = UtilMakeFilterString(
-		_T("Bitmap(*.bmp)|")
-		_T("*.bmp|")
-		_T("All Files(*.*)|")
-		_T("*.*"));
+		L"Bitmap(*.bmp)|"
+		L"*.bmp|"
+		L"All Files(*.*)|"
+		L"*.*");
 
-	TCHAR szPath[_MAX_PATH+1];
-	::GetWindowText(GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE),szPath,_MAX_PATH);
-	CFileDialog dlg(TRUE, NULL, szPath, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
+	CString path;
+	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).GetWindowTextW(path);
+	CFileDialog dlg(TRUE, NULL, path, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	::SetWindowText(GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE),dlg.m_szFileName);
+	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).SetWindowTextW(dlg.m_szFileName);
 }
 
 //仮想リストビューのアイテム取得

@@ -428,14 +428,28 @@ HANDLE CFileListFrame::GetMultiOpenLockMutex(LPCTSTR lpszMutex)
 	}
 }
 
+std::wstring GetClassNameHelper(HWND hWnd)
+{
+	std::wstring name;
+	name.resize(256);
+	for (;;) {
+		DWORD bufsize = (DWORD)name.size();
+		auto nCopied = GetClassNameW(hWnd, &name[0], bufsize);
+		if (nCopied < bufsize) {
+			break;
+		} else {
+			name.resize(name.size() * 2);
+		}
+	}
+	return name.c_str();
+}
+
 
 //ファイル一覧ウィンドウの列挙
 BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
 {
-	TCHAR Buffer[_MAX_PATH+1];
-	FILL_ZERO(Buffer);
-	GetClassName(hWnd,Buffer,_MAX_PATH);
-	if(0!=_tcsncmp(LHAFORGE_FILE_LIST_CLASS,Buffer,_MAX_PATH)){
+	auto className = GetClassNameHelper(hWnd);
+	if(LHAFORGE_FILE_LIST_CLASS == className){
 		return TRUE;
 	}
 
@@ -453,10 +467,8 @@ BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
 BOOL CALLBACK CFileListFrame::EnumFirstFileListWindowProc(HWND hWnd,LPARAM lParam)
 {
 	if(hWnd!=(HWND)lParam){
-		TCHAR Buffer[_MAX_PATH+1];
-		FILL_ZERO(Buffer);
-		GetClassName(hWnd,Buffer,_MAX_PATH);
-		if(0!=_tcsncmp(LHAFORGE_FILE_LIST_CLASS,Buffer,_MAX_PATH)){
+		auto className = GetClassNameHelper(hWnd);
+		if(LHAFORGE_FILE_LIST_CLASS == className){
 			return TRUE;
 		}
 

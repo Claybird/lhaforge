@@ -25,6 +25,7 @@
 #include "stdafx.h"
 
 #include "Association.h"
+#include "Utilities/OSUtil.h"
 
 //関連付けを取得
 //Extの情報を元に、FileTypeとそのIconについて調べる
@@ -107,9 +108,9 @@ bool AssocGetAssociation(ASSOCINFO &AssocInfo)
 		return false;
 	}
 	//アイコン情報の取得
-	AssocInfo.IconFile=(TCHAR*)&Buffer.at(0);
-	AssocInfo.IconIndex=PathParseIconLocation(AssocInfo.IconFile.GetBuffer(_MAX_PATH*2));
-	AssocInfo.IconFile.ReleaseBuffer();
+	auto path_and_index = UtilPathParseIconLocation((const wchar_t*)&Buffer.at(0));
+	AssocInfo.IconFile = path_and_index.first.c_str();
+	AssocInfo.IconIndex = path_and_index.second;
 	TRACE(_T("***%d:::%s\n"),AssocInfo.IconIndex,AssocInfo.IconFile);
 
 	AssocInfo.OrgIconFile=AssocInfo.IconFile;

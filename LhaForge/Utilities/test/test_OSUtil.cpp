@@ -44,6 +44,34 @@ TEST(OSUtil, UtilGetEnvInfo) {
 	}
 }
 
+TEST(OSUtil, UtilPathParseIconLocation)
+{
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/te,st/icon.dll,5");
+		EXPECT_EQ(path_and_index.first, L"c:/te,st/icon.dll");
+		EXPECT_EQ(path_and_index.second, 5);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll,-1");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.second, -1);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.second, 0);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll,");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll,");
+		EXPECT_EQ(path_and_index.second, 0);
+	}
+}
+
+
 TEST(OSUtil, CurrentDirManager) {
 	auto prevPath = std::filesystem::current_path();
 	{

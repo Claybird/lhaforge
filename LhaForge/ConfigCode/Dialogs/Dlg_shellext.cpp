@@ -162,12 +162,9 @@ LRESULT CConfigDlgShellExt::OnEditMenu(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 	}
 
 	//編集プログラム起動
-	TCHAR szPath[_MAX_PATH]={0};
-	GetModuleFileName(NULL,szPath,_MAX_PATH);
+	std::filesystem::path path = UtilGetModuleDirectoryPath();
+	path /= L"MenuEditor.exe";
 
-	PathRemoveFileSpec(szPath);
-	PathAppend(szPath,_T("MenuEditor.exe"));
-
-	ShellExecute(m_hWnd,_T("open"),szPath,NULL,NULL,SW_SHOW);
+	ShellExecuteW(m_hWnd, L"open", path.make_preferred().c_str(), nullptr, nullptr, SW_SHOW);
 	return 0;
 }

@@ -110,20 +110,18 @@ void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW)
 
 void MenuCommand_MakeSendToCommands()
 {
-	TCHAR szSendTo[_MAX_PATH];
+	std::filesystem::path szSendTo;
 	std::vector<CString> files;
-	if(SHGetSpecialFolderPath(NULL,szSendTo,CSIDL_SENDTO,FALSE)){
-		PathAddBackslash(szSendTo);
-		PathAppend(szSendTo,_T("*.lnk"));
-		CFindFile cFind;
+	szSendTo = UtilGetSendToPath();
+	szSendTo /= L"*.lnk";
+	CFindFile cFind;
 
-		BOOL bFound=cFind.FindFile(szSendTo);
-		for(;bFound;bFound=cFind.FindNextFile()){
-			if(cFind.IsDots())continue;
+	BOOL bFound=cFind.FindFile(szSendTo.c_str());
+	for(;bFound;bFound=cFind.FindNextFile()){
+		if(cFind.IsDots())continue;
 
-			if(!cFind.IsDirectory()){	//サブディレクトリ検索はしない
-				files.push_back(cFind.GetFilePath());
-			}
+		if(!cFind.IsDirectory()){	//サブディレクトリ検索はしない
+			files.push_back(cFind.GetFilePath());
 		}
 	}
 

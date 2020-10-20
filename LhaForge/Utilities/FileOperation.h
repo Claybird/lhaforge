@@ -25,6 +25,7 @@
 #pragma once
 
 std::wstring UtilGetDesktopPath();
+std::wstring UtilGetSendToPath();
 
 //returns a temp dir exclusive use of lhaforge
 std::wstring UtilGetTempPath();
