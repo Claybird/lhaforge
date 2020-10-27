@@ -115,19 +115,19 @@ void CConfigDlgFileListWindow::OnResetExt(UINT,int nID,HWND)
 //プログラムの場所を参照
 void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 {
-	auto filter = UtilMakeFilterString(
-		L"Program(*.exe;*.com;*.bat;*.cmd)|"
-		L"*.exe;*.com;*.bat;*.cmd|"
-		L"All Files(*.*)|"
-		L"*.*");
+	const COMDLG_FILTERSPEC filter[] = {
+		{L"Program", L"*.exe;*.com;*.bat;*.cmd"},
+		{L"All Files",L"*.*"},
+	};
 
 	CString path;
 	Edit_Path.GetWindowTextW(path);
-	CFileDialog dlg(TRUE, NULL, path, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
+	CShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	Edit_Path.SetWindowTextW(dlg.m_szFileName);
+	dlg.GetFilePath(path);
+	Edit_Path.SetWindowTextW(path);
 }
 
 //フォルダを参照
@@ -147,19 +147,19 @@ void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 //カスタムツールバー画像を参照
 void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 {
-	auto filter = UtilMakeFilterString(
-		L"Bitmap(*.bmp)|"
-		L"*.bmp|"
-		L"All Files(*.*)|"
-		L"*.*");
+	const COMDLG_FILTERSPEC filter[] = {
+		{L"Bitmap(*.bmp)", L"*.bmp"},
+		{L"All Files(*.*)", L"*.*"},
+	};
 
 	CString path;
 	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).GetWindowTextW(path);
-	CFileDialog dlg(TRUE, NULL, path, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, filter.c_str());
+	CShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).SetWindowTextW(dlg.m_szFileName);
+	dlg.GetFilePath(path);
+	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).SetWindowTextW(path);
 }
 
 //仮想リストビューのアイテム取得

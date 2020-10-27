@@ -318,12 +318,16 @@ std::wstring confirmOutputFile(
 		}
 
 		// "save as" dialog
-		CFileDialog dlg(FALSE, ext.c_str(), archive_path.c_str(), OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
+		CShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
 		if (IDCANCEL == dlg.DoModal()) {
 			CANCEL_EXCEPTION();
 		}
 
-		archive_path = dlg.m_szFileName;
+		{
+			CString path;
+			dlg.GetFilePath(path);
+			archive_path = path.operator LPCWSTR();
+		}
 
 		bInputFilenameFirst = false;
 	}

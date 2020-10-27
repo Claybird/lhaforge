@@ -345,13 +345,14 @@ void CIconSelectDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	COMDLG_FILTERSPEC filter[] = {
+	const COMDLG_FILTERSPEC filter[] = {
 		{ L"Icon File", L"*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl" },
 		{ L"All Files", L"*.*" },
 	};
 
 	if(!DoDataExchange(TRUE))return;
-	CShellFileOpenDialog dlg(IconPath, FOS_DONTADDTORECENT | FOS_FILEMUSTEXIST |FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+	CShellFileOpenDialog dlg(IconPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}

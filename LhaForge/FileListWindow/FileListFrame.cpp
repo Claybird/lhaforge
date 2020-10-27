@@ -433,7 +433,7 @@ std::wstring GetClassNameHelper(HWND hWnd)
 	std::wstring name;
 	name.resize(256);
 	for (;;) {
-		DWORD bufsize = (DWORD)name.size();
+		int bufsize = (int)name.size();
 		auto nCopied = GetClassNameW(hWnd, &name[0], bufsize);
 		if (nCopied < bufsize) {
 			break;
@@ -874,20 +874,37 @@ void CFileListFrame::OnListMode(UINT uNotifyCode,int nID,HWND hWndCtrl)
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//「全てのファイル」のフィルタ文字を作る
-	CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-	auto filter = UtilMakeFilterString((const wchar_t*)strAnyFile);
-	//CFileDialog dlg(TRUE, NULL, NULL, OFN_NOCHANGEDIR|OFN_FILEMUSTEXIST|OFN_HIDEREADONLY,&filter[0]);
-	CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_ALLOWMULTISELECT, filter.c_str());
+	const COMDLG_FILTERSPEC filter[] = {
+		{ L"All Files", L"*.*" },
+	};
+
+	CShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
 	//ファイル名取り出し
-	CString tmp;
-	if(dlg.GetFirstPathName(tmp)){
-		do{
-			HRESULT hr=OpenArchiveFile(tmp,false);
-			if(E_ABORT==hr)break;
-		}while(dlg.GetNextPathName(tmp));
+	std::vector<std::wstring> files;
+	{
+		auto ptr = dlg.GetPtr();
+		ATL::CComPtr<IShellItemArray> spArray;
+		HRESULT hRet = ptr->GetResults(&spArray);
+
+		if (SUCCEEDED(hRet)) {
+			DWORD count;
+			spArray->GetCount(&count);
+			for (DWORD i = 0; i < count; i++) {
+				ATL::CComPtr<IShellItem> spItem;
+				spArray->GetItemAt(i, &spItem);
+				CString path;
+				dlg.GetFileNameFromShellItem(spItem, SIGDN_FILESYSPATH, path);
+				files.push_back(path.operator LPCWSTR());
+			}
+		}
+	}
+
+	for(const auto &file:files){
+		HRESULT hr = OpenArchiveFile(file.c_str(), false);
+		if(E_ABORT==hr)break;
 	}
 }
 

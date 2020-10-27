@@ -150,9 +150,14 @@ LRESULT CConfigDlgGeneral::OnBrowseFiler(WORD wNotifyCode, WORD wID, HWND hWndCt
 
 		Edit_FilerPath.GetWindowText(FilerPath);
 
-		CFileDialog dlg(TRUE, NULL, FilerPath, OFN_NOCHANGEDIR,_T("Executable File(*.exe)\0*.exe\0All Files\0*.*\0\0"));
+		const COMDLG_FILTERSPEC filter[] = {
+			{L"Executable File(*.exe)",L"*.exe"},
+			{L"All Files", L"*.*"},
+		};
+		CShellFileOpenDialog dlg(FilerPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 		if(IDOK==dlg.DoModal()){
-			Edit_FilerPath.SetWindowText(dlg.m_szFileName);
+			dlg.GetFilePath(FilerPath);
+			Edit_FilerPath.SetWindowText(FilerPath);
 		}
 	}
 	return 0;
