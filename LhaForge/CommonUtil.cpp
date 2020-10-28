@@ -70,12 +70,10 @@ HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,L
 				pathTmp=(LPCTSTR)s_strLastOutput;
 			}
 
-			CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-			CFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-			dlg.SetInitialFolder(pathTmp);
+			LFShellFileOpenDialog dlg(pathTmp, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if(IDOK==dlg.DoModal()){
 				r_bUseForAll=(GetKeyState(VK_SHIFT)<0);	//TODO
-				r_pathOutputDir=dlg.GetFolderPath();
+				dlg.GetFilePath(r_pathOutputDir);
 				s_strLastOutput=(LPCTSTR)r_pathOutputDir;
 				return S_OK;
 			}else{

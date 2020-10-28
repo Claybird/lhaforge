@@ -25,6 +25,7 @@
 #pragma once
 
 #include "ArchiverCode/arc_interface.h"
+#include "Utilities/OSUtil.h"
 
 //設定から出力先フォルダを読み込む
 //r_bUseForAll:今後も同じフォルダ設定を使うならtrue
@@ -48,15 +49,15 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 		if (_skip_user_input) {
 			return _default_path;
 		} else {
-			CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-			CFolderDialog dlg(NULL, title, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
-			dlg.SetInitialFolder(_default_path.c_str());
+			LFShellFileOpenDialog dlg(_default_path.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
 				if (GetKeyState(VK_SHIFT) < 0) {
 					//TODO: is this operation is suitable?
 					_skip_user_input = true;
 				}
-				_default_path = dlg.GetFolderPath();
+				CString tmp;
+				dlg.GetFilePath(tmp);
+				_default_path = tmp;
 				return _default_path;
 			} else {
 				CANCEL_EXCEPTION();

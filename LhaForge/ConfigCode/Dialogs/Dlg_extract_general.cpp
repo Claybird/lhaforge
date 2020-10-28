@@ -24,6 +24,7 @@
 
 #include "stdafx.h"
 #include "Dlg_extract_general.h"
+#include "Utilities/OSUtil.h"
 
 
 //==================
@@ -167,11 +168,9 @@ LRESULT CConfigDlgExtractGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HWN
 		CString FolderPath;
 		Edit_ExtractOutputDirPath.GetWindowTextW(FolderPath);
 
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-		dlg.SetInitialFolder(FolderPath);
+		LFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
-			FolderPath = dlg.GetFolderPath();
+			dlg.GetFilePath(FolderPath);
 			Edit_ExtractOutputDirPath.SetWindowTextW(FolderPath);
 		}
 	}

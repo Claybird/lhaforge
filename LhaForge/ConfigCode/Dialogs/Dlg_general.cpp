@@ -171,10 +171,10 @@ LRESULT CConfigDlgGeneral::OnBrowseTempPath(WORD wNotifyCode, WORD wID, HWND hWn
 		CString path;
 		Edit_TempPath.GetWindowText(path);
 
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TEMP_PATH));
-		CFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
-			Edit_TempPath.SetWindowText(dlg.GetFolderPath());
+			dlg.GetFilePath(path);
+			Edit_TempPath.SetWindowText(path);
 		}else{
 			//キャンセル
 			return E_ABORT;

@@ -134,14 +134,14 @@ void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 {
 	CString path;
-	Edit_Dir.GetWindowTextW(path);
-	CFolderDialog dlg(NULL,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-	dlg.SetInitialFolder(path);
+	Edit_Dir.GetWindowText(path);
+	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
-	Edit_Dir.SetWindowTextW(dlg.GetFolderPath());
+	dlg.GetFilePath(path);
+	Edit_Dir.SetWindowTextW(path);
 }
 
 //カスタムツールバー画像を参照

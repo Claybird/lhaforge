@@ -805,24 +805,24 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 	std::list<CString> fileList;
 	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
-		//「全てのファイル」のフィルタ文字を作る
-		CString strAnyFile(MAKEINTRESOURCE(IDS_FILTER_ANYFILE));
-		auto filter = UtilMakeFilterString((const wchar_t*)strAnyFile);
+		const COMDLG_FILTERSPEC filter[] = {
+			{ L"All Files", L"*.*" },
+		};
 
-		CMultiFileDialog dlg(NULL, NULL, OFN_NOCHANGEDIR | OFN_DONTADDTORECENT | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_ALLOWMULTISELECT, filter.c_str());
+		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 		if(IDOK==dlg.DoModal()){
 			//ファイル名取り出し
-			CString tmp;
-			if(dlg.GetFirstPathName(tmp)){
-				do{
-					fileList.push_back(tmp);
-				}while(dlg.GetNextPathName(tmp));
+			auto files = dlg.GetMultipleFiles();
+			for (const auto &f : files) {
+				fileList.push_back(f);
 			}
 		}
 	}else{		//フォルダ追加
-		CFolderDialog dlg(m_hFrameWnd,NULL,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
+		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
-			fileList.push_back(dlg.GetFolderPath());
+			CString path;
+			dlg.GetFilePath(path);
+			fileList.push_back(path);
 		}
 	}
 

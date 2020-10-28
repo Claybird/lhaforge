@@ -24,9 +24,10 @@
 
 #include "stdafx.h"
 #include "Dlg_compress_general.h"
-#include "../../ArchiverCode/arc_interface.h"
-#include "../../Dialogs/selectdlg.h"
-#include "../../compress.h"
+#include "ArchiverCode/arc_interface.h"
+#include "Dialogs/selectdlg.h"
+#include "compress.h"
+#include "Utilities/OSUtil.h"
 
 //==================
 // 圧縮一般設定画面
@@ -153,11 +154,9 @@ LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HW
 		CString FolderPath;
 		Edit_CompressOutputDirPath.GetWindowTextW(FolderPath);
 
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CFolderDialog dlg(m_hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-		dlg.SetInitialFolder(FolderPath);
+		LFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
-			FolderPath = dlg.GetFolderPath();
+			dlg.GetFilePath(FolderPath);
 			Edit_CompressOutputDirPath.SetWindowTextW(FolderPath);
 		}
 	}

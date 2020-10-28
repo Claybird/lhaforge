@@ -873,7 +873,6 @@ void CFileListFrame::OnListMode(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//「全てのファイル」のフィルタ文字を作る
 	const COMDLG_FILTERSPEC filter[] = {
 		{ L"All Files", L"*.*" },
 	};

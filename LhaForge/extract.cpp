@@ -77,10 +77,11 @@ std::wstring determineExtractBaseDir(
 			break;
 		} else {
 			// Need to change path
-			CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-			CFolderDialog dlg(NULL, title, BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
+			LFShellFileOpenDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
-				std::filesystem::path pathOutputDir = dlg.GetFolderPath();
+				CString tmp;
+				dlg.GetFilePath(tmp);
+				std::filesystem::path pathOutputDir = tmp.operator LPCWSTR();
 				outputDir = pathOutputDir;
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {

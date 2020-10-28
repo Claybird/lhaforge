@@ -552,10 +552,11 @@ void compress_helper(
 			break;
 		} else {
 			// Need to change path
-			auto title = UtilLoadString(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT);
-			CFolderDialog dlg(nullptr, title.c_str(), BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE);
+			LFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
-				pathOutputDir = dlg.GetFolderPath();
+				CString tmp;
+				dlg.GetFilePath(tmp);
+				pathOutputDir = tmp.operator LPCWSTR();
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {
 					args.compress.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;

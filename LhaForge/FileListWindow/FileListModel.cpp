@@ -356,13 +356,11 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	pathOutputBaseDir.AddBackslash();
 	TRACE(_T("Default path from config:%s\n"),(LPCTSTR)pathOutputBaseDir);
 	if(!bSameDir){	//出力先をダイアログで選ばせる
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER));
-		CFolderDialog dlg(hWnd,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-		dlg.SetInitialFolder(pathOutputBaseDir);
+		LFShellFileOpenDialog dlg(pathOutputBaseDir, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK!=dlg.DoModal()){
 			return S_FALSE;//E_ABORT;
 		}
-		pathOutputBaseDir=dlg.GetFolderPath();
+		dlg.GetFilePath(pathOutputBaseDir);
 		pathOutputBaseDir.AddBackslash();
 	}
 
