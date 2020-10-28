@@ -351,8 +351,7 @@ void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
 	};
 
 	if(!DoDataExchange(TRUE))return;
-	CShellFileOpenDialog dlg(IconPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
-
+	LFShellFileOpenDialog dlg(IconPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}

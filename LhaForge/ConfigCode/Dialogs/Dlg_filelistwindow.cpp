@@ -122,7 +122,7 @@ void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 
 	CString path;
 	Edit_Path.GetWindowTextW(path);
-	CShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
@@ -154,7 +154,7 @@ void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 
 	CString path;
 	GetDlgItem(IDC_EDIT_CUSTOMTOOLBAR_IMAGE).GetWindowTextW(path);
-	CShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}

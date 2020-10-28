@@ -24,6 +24,7 @@
 
 #include "stdafx.h"
 #include "Dlg_general.h"
+#include "Utilities/OSUtil.h"
 
 
 //==============
@@ -154,7 +155,7 @@ LRESULT CConfigDlgGeneral::OnBrowseFiler(WORD wNotifyCode, WORD wID, HWND hWndCt
 			{L"Executable File(*.exe)",L"*.exe"},
 			{L"All Files", L"*.*"},
 		};
-		CShellFileOpenDialog dlg(FilerPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+		LFShellFileOpenDialog dlg(FilerPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 		if(IDOK==dlg.DoModal()){
 			dlg.GetFilePath(FilerPath);
 			Edit_FilerPath.SetWindowText(FilerPath);

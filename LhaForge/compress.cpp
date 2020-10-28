@@ -288,13 +288,6 @@ std::wstring confirmOutputFile(
 	const std::wstring& ext,	//with '.'
 	bool bInputFilenameFirst)	//Compress.SpecifyOutputFilename;
 {
-	//filter string for dialog box
-	std::wstring filter;
-	{
-		auto strFilter = UtilLoadString(IDS_COMPRESS_FILE);
-		strFilter += Format(L" (*%s)|*%s", ext.c_str(), ext.c_str());
-		filter = UtilMakeFilterString(strFilter);
-	}
 	std::unordered_set<std::wstring> sourceFiles;
 	for (const auto& src : original_source_list.pathPair) {
 		sourceFiles.insert(toLower(src.originalFullPath));
@@ -318,7 +311,7 @@ std::wstring confirmOutputFile(
 		}
 
 		// "save as" dialog
-		CShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
+		LFShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
 		if (IDCANCEL == dlg.DoModal()) {
 			CANCEL_EXCEPTION();
 		}

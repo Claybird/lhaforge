@@ -93,3 +93,73 @@ public:
 	}
 };
 
+class LFShellFileOpenDialog : public CShellFileOpenDialog
+{
+public:
+	LFShellFileOpenDialog(LPCWSTR lpszFileName = nullptr, 
+	                     DWORD dwOptions = FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST, 
+	                     LPCWSTR lpszDefExt = nullptr,
+	                     const COMDLG_FILTERSPEC* arrFilterSpec = nullptr,
+	                     UINT uFilterSpecCount = 0U) : CShellFileOpenDialog(lpszFileName ? std::filesystem::path(lpszFileName).filename().c_str() : nullptr, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount)
+	{
+		if (lpszFileName) {
+			ATL::CComPtr<IShellItem> spItem;
+			auto path = std::filesystem::path(lpszFileName).make_preferred();
+			HRESULT hr = SHCreateItemFromParsingName(
+				path.parent_path().c_str(),
+				nullptr, IID_IShellItem, (void**)&spItem);
+			if (SUCCEEDED(hr)) {
+				GetPtr()->SetFolder(spItem);
+			}
+		}
+	}
+
+	virtual ~LFShellFileOpenDialog()
+	{ }
+	std::vector<CString> GetMultipleFiles() {
+		std::vector<CString> files;
+		{
+			auto ptr = GetPtr();
+			ATL::CComPtr<IShellItemArray> spArray;
+			HRESULT hRet = ptr->GetResults(&spArray);
+
+			if (SUCCEEDED(hRet)) {
+				DWORD count;
+				spArray->GetCount(&count);
+				for (DWORD i = 0; i < count; i++) {
+					ATL::CComPtr<IShellItem> spItem;
+					spArray->GetItemAt(i, &spItem);
+					CString path;
+					GetFileNameFromShellItem(spItem, SIGDN_FILESYSPATH, path);
+					files.push_back(path);
+				}
+			}
+		}
+		return files;
+	}
+};
+
+class LFShellFileSaveDialog : public CShellFileSaveDialog
+{
+public:
+	LFShellFileSaveDialog(LPCWSTR lpszFileName = nullptr,
+		DWORD dwOptions = FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST,
+		LPCWSTR lpszDefExt = nullptr,
+		const COMDLG_FILTERSPEC* arrFilterSpec = nullptr,
+		UINT uFilterSpecCount = 0U) : CShellFileSaveDialog(lpszFileName ? std::filesystem::path(lpszFileName).filename().c_str() : nullptr, dwOptions, lpszDefExt, arrFilterSpec, uFilterSpecCount)
+	{
+		if (lpszFileName) {
+			ATL::CComPtr<IShellItem> spItem;
+			auto path = std::filesystem::path(lpszFileName).make_preferred();
+			HRESULT hr = SHCreateItemFromParsingName(
+				path.parent_path().c_str(),
+				nullptr, IID_IShellItem, (void**)&spItem);
+			if (SUCCEEDED(hr)) {
+				GetPtr()->SetFolder(spItem);
+			}
+		}
+	}
+
+	virtual ~LFShellFileSaveDialog()
+	{ }
+};

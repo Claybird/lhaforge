@@ -878,32 +878,15 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		{ L"All Files", L"*.*" },
 	};
 
-	CShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
+	LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 	if(IDCANCEL==dlg.DoModal()){	//キャンセル
 		return;
 	}
 	//ファイル名取り出し
-	std::vector<std::wstring> files;
-	{
-		auto ptr = dlg.GetPtr();
-		ATL::CComPtr<IShellItemArray> spArray;
-		HRESULT hRet = ptr->GetResults(&spArray);
-
-		if (SUCCEEDED(hRet)) {
-			DWORD count;
-			spArray->GetCount(&count);
-			for (DWORD i = 0; i < count; i++) {
-				ATL::CComPtr<IShellItem> spItem;
-				spArray->GetItemAt(i, &spItem);
-				CString path;
-				dlg.GetFileNameFromShellItem(spItem, SIGDN_FILESYSPATH, path);
-				files.push_back(path.operator LPCWSTR());
-			}
-		}
-	}
+	auto files = dlg.GetMultipleFiles();
 
 	for(const auto &file:files){
-		HRESULT hr = OpenArchiveFile(file.c_str(), false);
+		HRESULT hr = OpenArchiveFile(file, false);
 		if(E_ABORT==hr)break;
 	}
 }
