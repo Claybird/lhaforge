@@ -115,84 +115,10 @@ struct ARCHIVE_EXCEPTION: public LF_EXCEPTION {
 };
 
 
-struct _LIBARCHIVE_INTERNAL {
+struct LF_ARCHIVE_ENTRY {
 	struct archive *_arc;
 	struct archive_entry *_entry;
-	_LIBARCHIVE_INTERNAL() {
-		_arc = nullptr;
-		_entry = archive_entry_new();
-	}
-	virtual ~_LIBARCHIVE_INTERNAL() {
-		if (_entry) {
-			archive_entry_free(_entry);
-			_entry = nullptr;
-		}
-	}
-	void renew() {
-		if (_entry) {
-			archive_entry_free(_entry);
-			_entry = nullptr;
-		}
-		_entry = archive_entry_new();
-	}
 
-	std::wstring get_pathname() {
-		return archive_entry_pathname_w(_entry);
-	}
-	void set_pathname(const std::wstring& path) {
-		archive_entry_copy_pathname_w(_entry, path.c_str());
-	}
-	void set_stat(const struct __stat64 &st) {
-		archive_entry_set_size(_entry, st.st_size);
-		archive_entry_set_mtime(_entry, st.st_mtime, 0/* nanosec */);
-		archive_entry_set_atime(_entry, st.st_atime, 0/* nanosec */);
-		archive_entry_set_ctime(_entry, st.st_ctime, 0/* nanosec */);
-		archive_entry_set_mode(_entry, st.st_mode);
-	}
-
-	UINT64 get_original_filesize() {
-		if (archive_entry_size_is_set(_entry)) {
-			return archive_entry_size(_entry);
-		} else {
-			return -1;
-		}
-	}
-	time_t get_mtime() {
-		if (archive_entry_mtime_is_set(_entry)) {
-			return archive_entry_mtime(_entry);
-		} else {
-			return 0;
-		}
-	};
-	time_t get_atime() {
-		if (archive_entry_atime_is_set(_entry)) {
-			return archive_entry_atime(_entry);
-		} else {
-			return 0;
-		}
-	};
-	time_t get_ctime() {
-		if (archive_entry_ctime_is_set(_entry)) {
-			return archive_entry_ctime(_entry);
-		} else {
-			return 0;
-		}
-	};
-	unsigned short get_file_mode() {
-		return archive_entry_filetype(_entry);
-	}
-	bool is_encrypted() {
-		return archive_entry_is_encrypted(_entry);
-	}
-	const char* get_format_name() {
-		return archive_format_name(_arc);	//differ on each entry
-	}
-	const char* get_mode_name() {
-		return archive_entry_strmode(_entry);
-	}
-};
-
-struct LF_ARCHIVE_ENTRY {
 	std::wstring _pathname;
 	UINT64 _original_filesize;
 	__time64_t _atime, _ctime, _mtime;
@@ -201,16 +127,18 @@ struct LF_ARCHIVE_ENTRY {
 	std::string _format_name;
 	std::string _mode_name;
 
-	_LIBARCHIVE_INTERNAL  _la_internal;
-
-	LF_ARCHIVE_ENTRY() { renew(); }
+	LF_ARCHIVE_ENTRY():_arc(nullptr),_entry(nullptr){ renew(); }
 	LF_ARCHIVE_ENTRY(LF_ARCHIVE_ENTRY& a) = delete;
 	LF_ARCHIVE_ENTRY(archive_entry* entry) = delete;
 	const LF_ARCHIVE_ENTRY& operator=(const LF_ARCHIVE_ENTRY& a) = delete;
-	virtual ~LF_ARCHIVE_ENTRY() {}
-	archive_entry* la_entry() { return _la_internal._entry; }
-	void renew() {
-		_la_internal.renew();
+	virtual ~LF_ARCHIVE_ENTRY() {
+		if (_entry) {
+			archive_entry_free(_entry);
+			_entry = nullptr;
+		}
+	}
+	archive_entry* la_entry() { return _entry; }
+	void clear_entry_data() {
 		_pathname.clear();
 		_original_filesize = -1;
 		_mtime = 0;
@@ -221,34 +149,51 @@ struct LF_ARCHIVE_ENTRY {
 		_format_name.clear();
 		_mode_name.clear();
 	}
+	void renew() {
+		if (_entry) {
+			archive_entry_free(_entry);
+			_entry = nullptr;
+		}
+		_entry = archive_entry_new();
+		clear_entry_data();
+	}
 	void set_archive(archive* arc) {
-		_la_internal._arc = arc;
+		_arc = arc;
 		renew();
 	}
 
 	bool read_next() {
-		int r = archive_read_next_header2(_la_internal._arc, _la_internal._entry);
+		clear_entry_data();
+		int r = archive_read_next_header2(_arc, _entry);
 		if (ARCHIVE_OK == r) {
-			_pathname = _la_internal.get_pathname();
-			_original_filesize = _la_internal.get_original_filesize();
-			_mtime = _la_internal.get_mtime();
-			_atime = _la_internal.get_atime();
-			_ctime = _la_internal.get_ctime();
-			_filemode = _la_internal.get_file_mode();
-			_is_encrypted = _la_internal.is_encrypted();
+			_pathname = archive_entry_pathname_w(_entry);
+			if (archive_entry_size_is_set(_entry)) {
+				_original_filesize = archive_entry_size(_entry);
+			}
+			if (archive_entry_mtime_is_set(_entry)) {
+				_mtime = archive_entry_mtime(_entry);
+			}
+			if (archive_entry_atime_is_set(_entry)) {
+				_atime = archive_entry_atime(_entry);
+			}
+			if (archive_entry_ctime_is_set(_entry)) {
+				_ctime = archive_entry_ctime(_entry);
+			}
+			_filemode = archive_entry_filetype(_entry);
+			_is_encrypted = archive_entry_is_encrypted(_entry);
 			{
-				auto p = _la_internal.get_format_name();
+				auto p = archive_format_name(_arc);	//differ on each entry
 				_format_name = p ? p : "---";
 			}
 			{
-				auto p = _la_internal.get_mode_name();
+				auto p = archive_entry_strmode(_entry);
 				_mode_name = p ? p : "---";
 			}
 			return true;
 		} else if (ARCHIVE_EOF == r) {
 			return false;
 		} else {
-			throw ARCHIVE_EXCEPTION(_la_internal._arc);
+			throw ARCHIVE_EXCEPTION(_arc);
 		}
 	}
 
@@ -265,13 +210,19 @@ struct LF_ARCHIVE_ENTRY {
 
 	void copy_file_stat(const std::wstring& path, const std::wstring& stored_as) {
 		_pathname = stored_as;
-		_la_internal.set_pathname(stored_as);
+		archive_entry_copy_pathname_w(_entry, stored_as.c_str());
 		struct __stat64 st;
 		if (0 != _wstat64(path.c_str(), &st)) {
 			ARCHIVE_EXCEPTION(L"Failed to stat file");
 		}
 		_original_filesize = st.st_size;
-		_la_internal.set_stat(st);
+
+		archive_entry_set_size(_entry, st.st_size);
+		archive_entry_set_mtime(_entry, st.st_mtime, 0/* nanosec */);
+		archive_entry_set_atime(_entry, st.st_atime, 0/* nanosec */);
+		archive_entry_set_ctime(_entry, st.st_ctime, 0/* nanosec */);
+		archive_entry_set_mode(_entry, st.st_mode);
+
 		_mtime = st.st_mtime;
 		_atime = st.st_atime;
 		_ctime = st.st_ctime;
