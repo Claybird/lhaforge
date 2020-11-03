@@ -39,7 +39,7 @@ class CFileListFrame:
 	public CUpdateUI<CFileListFrame>,
 	public CMessageFilter,
 	public CIdleHandler,
-	public IDropCommunicator//自前のDnDインターフェイス
+	public ILFDropCommunicator//自前のDnDインターフェイス
 {
 protected:
 	//bool m_bFirst;		//初回表示
@@ -58,7 +58,7 @@ protected:
 	static CString			ms_strPropString;	// SetPropの識別名:LhaForgeのウィンドウである事を示す
 protected:
 	//---ドロップ受け入れ
-	CDropTarget m_DropTarget;	//ドロップ受け入れに使う
+	CLFDropTarget m_DropTarget;	//ドロップ受け入れに使う
 	void EnableDropTarget(bool bEnable);
 	//IDropCommunicatorの実装
 	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);

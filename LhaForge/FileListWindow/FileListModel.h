@@ -119,7 +119,7 @@ public:
 	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
-	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
+	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
 	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);
 	HRESULT ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する

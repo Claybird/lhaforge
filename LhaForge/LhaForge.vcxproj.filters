@@ -97,9 +97,6 @@
     <ClCompile Include="FileListWindow\OLE\DropSource.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\OLE\DropTarget.cpp">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>

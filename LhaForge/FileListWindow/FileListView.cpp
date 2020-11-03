@@ -753,7 +753,7 @@ void CFileListView::OpenAssociation(const std::list<CString> &filesList)
 	}
 }
 
-HRESULT CFileListView::AddItems(const std::list<CString> &fileList,LPCTSTR strDest)
+HRESULT CFileListView::AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest)
 {
 	//追加開始
 	::EnableWindow(m_hFrameWnd,FALSE);
@@ -806,7 +806,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	//CString strDest;	//放り込む先
 	auto strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
 
-	std::list<CString> fileList;
+	std::vector<std::wstring> fileList;
 	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
 		const COMDLG_FILTERSPEC filter[] = {
 			{ L"All Files", L"*.*" },
@@ -817,7 +817,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 			//ファイル名取り出し
 			auto files = dlg.GetMultipleFiles();
 			for (const auto &f : files) {
-				fileList.push_back(f);
+				fileList.push_back(f.operator LPCWSTR());
 			}
 		}
 	}else{		//フォルダ追加
@@ -825,7 +825,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		if(IDOK==dlg.DoModal()){
 			CString path;
 			dlg.GetFilePath(path);
-			fileList.push_back(path);
+			fileList.push_back(path.operator LPCWSTR());
 		}
 	}
 
@@ -903,8 +903,8 @@ HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 	m_nDropHilight=-1;
 
 	//ファイル取得
-	std::list<CString> fileList;
-	if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
+	auto [hr, fileList] = m_DropTarget.GetDroppedFiles(lpDataObject);
+	if(S_OK==hr){
 		dwEffect = DROPEFFECT_COPY;
 
 		//---ドロップ先を特定

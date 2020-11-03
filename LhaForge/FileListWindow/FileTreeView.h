@@ -30,7 +30,7 @@
 #include "resource.h"
 #include "MenuCommand.h"
 
-class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public IDropCommunicator//自前のインターフェイス
+class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public ILFDropCommunicator//自前のインターフェイス
 {
 protected:
 	CImageList	m_ImageList;
@@ -41,7 +41,7 @@ protected:
 	HWND m_hFrameWnd;
 protected:
 	//---ドロップ受け入れ
-	CDropTarget m_DropTarget;	//ドロップ受け入れに使う
+	CLFDropTarget m_DropTarget;	//ドロップ受け入れに使う
 	HTREEITEM m_hDropHilight;	//ドロップハイライト状態にあるアイテムのハンドル
 	//IDropCommunicatorの実装
 	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);

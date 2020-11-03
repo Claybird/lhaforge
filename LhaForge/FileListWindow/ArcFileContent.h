@@ -201,7 +201,7 @@ public:
 	//TODO
 	bool IsOK()const { return m_pRoot.get() != nullptr; }
 
-	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
+	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
 	bool ExtractItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);

@@ -60,7 +60,6 @@
     <ClCompile Include="FileListWindow\OLE\DataObject.cpp" />
     <ClCompile Include="FileListWindow\OLE\DnDSource.cpp" />
     <ClCompile Include="FileListWindow\OLE\DropSource.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DropTarget.cpp" />
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp" />
     <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp" />
     <ClCompile Include="FileListWindow\ShellDataManager.cpp" />

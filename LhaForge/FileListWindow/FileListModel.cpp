@@ -387,7 +387,7 @@ bool CFileListModel::MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_EN
 	}
 }
 
-HRESULT CFileListModel::AddItem(const std::list<CString> &fileList,LPCTSTR lpDestDir,CString &strLog)
+HRESULT CFileListModel::AddItem(const std::vector<std::wstring> &fileList,LPCTSTR lpDestDir,CString &strLog)
 {
 	return m_Content.AddItem(fileList,lpDestDir,mr_Config,strLog);
 }

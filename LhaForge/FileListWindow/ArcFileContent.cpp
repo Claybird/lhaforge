@@ -215,11 +215,11 @@ bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &Config,LPCTSTR 
 }
 
 
-HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR lpDestDir,CConfigManager& rConfig,CString &strLog)
+HRESULT CArchiveFileContent::AddItem(const std::vector<std::wstring> &fileList,LPCTSTR lpDestDir,CConfigManager& rConfig,CString &strLog)
 {
 	//---ファイル名チェック
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		if(0==_wcsicmp(m_pathArchive.c_str(), *ite)){
+	for(const auto &file: fileList){
+		if(0==_wcsicmp(m_pathArchive.c_str(), file.c_str())){
 			//アーカイブ自身を追加しようとした
 			return E_LF_SAME_INPUT_AND_OUTPUT;
 		}

@@ -976,11 +976,11 @@ HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwE
 	}else{
 		dwEffect = DROPEFFECT_COPY;// : DROPEFFECT_NONE;
 		//ファイル取得
-		std::list<CString> fileList;
+		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
 		//---ディレクトリが含まれていたら拒否
-		if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
-			for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-				if(PathIsDirectory(*ite)){
+		if(S_OK==hr){
+			for(const auto &file:files){
+				if(PathIsDirectory(file.c_str())){
 					dwEffect = DROPEFFECT_NONE;
 					break;
 				}
@@ -994,14 +994,15 @@ HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwE
 HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
 	//ファイル取得
-	std::list<CString> fileList;
-	if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
+	auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+	if(S_OK==hr){
 		dwEffect = DROPEFFECT_COPY;
 
 		//開く
-		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			HRESULT hr=OpenArchiveFile(*ite,false);
-			if(E_ABORT==hr)break;
+		for (const auto &file : files) {
+			if (E_ABORT == OpenArchiveFile(file.c_str(), false)) {
+				break;
+			}
 		}
 
 		return S_OK;

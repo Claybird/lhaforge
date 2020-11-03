@@ -253,8 +253,8 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 	}
 
 	//ファイル取得
-	std::list<CString> fileList;
-	if(S_OK==m_DropTarget.GetDroppedFiles(lpDataObject,fileList)){
+	auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+	if(S_OK==hr){
 		//ファイルがドロップされた
 		dwEffect = DROPEFFECT_COPY;
 
@@ -278,7 +278,7 @@ HRESULT CFileTreeView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect
 		::EnableWindow(m_hFrameWnd,FALSE);
 		CString strLog;
 
-		HRESULT hr=mr_Model.AddItem(fileList,strDest,strLog);
+		HRESULT hr=mr_Model.AddItem(files,strDest,strLog);
 
 		::EnableWindow(m_hFrameWnd,TRUE);
 		::SetForegroundWindow(m_hFrameWnd);

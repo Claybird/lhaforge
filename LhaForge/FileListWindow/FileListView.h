@@ -33,7 +33,7 @@
 #include "MenuCommand.h"
 
 struct CConfigFileListWindow;
-class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public IDropCommunicator//自前のインターフェイス
+class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public ILFDropCommunicator//自前のインターフェイス
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CListViewCtrl::GetWndClassName())
@@ -97,7 +97,7 @@ protected:
 	HWND	m_hFrameWnd;
 
 	COLEDnDSource	m_DnDSource;	//DnDハンドラ
-	CDropTarget		m_DropTarget;	//ドロップ受け入れに使う
+	CLFDropTarget		m_DropTarget;	//ドロップ受け入れに使う
 	int				m_nDropHilight;		//ドロップハイライト状態にあるアイテムのインデックス
 
 protected:
@@ -142,7 +142,7 @@ protected:
 	void OpenAssociation(const std::list<CString> &filesList);
 	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)
 	bool OnSendToApp(UINT nID);	//「プログラムで開く」のハンドラ(SendToコマンド)
-	HRESULT AddItems(const std::list<CString> &fileList,LPCTSTR strDest);
+	HRESULT AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest);
 	void UpdateSortIcon();
 public:
 	CFileListView(CConfigManager&,CFileListModel& rModel);
