@@ -25,7 +25,7 @@
 #pragma once
 #include "Utilities/OSUtil.h"
 
-//ファイル一覧モードの右クリックメニュー「プログラムで開く」のメニューID定義
+//Menu ID for "Open With" in file list window
 #define USERAPP_MAX_NUM				200
 #define ID_MENUITEM_USERAPP_BEGIN	4000
 #define ID_MENUITEM_USERAPP_END		(ID_MENUITEM_USERAPP_BEGIN+USERAPP_MAX_NUM-1)
