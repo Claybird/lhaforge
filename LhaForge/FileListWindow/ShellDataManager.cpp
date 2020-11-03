@@ -24,72 +24,43 @@
 
 #include "stdafx.h"
 #include "ShellDataManager.h"
-#include "../FileListWindow/ArcFileContent.h"
+#include "FileListWindow/ArcFileContent.h"
 
-int CShellDataManager::GetIconIndex(LPCTSTR Ext)
+const LF_SHELLDATA& CLFShellDataManager::makeSureDataRegistered(
+	const wchar_t* extension,
+	DWORD Attribute)
 {
-	std::unordered_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
-	if(ite!=ShellDataMap.end()){
-		//既に登録されていた
-		return (*ite).second.IconIndex;
+	const wchar_t* FOLDER_EXTENSION_STRING = L"***";
+	if (!extension)extension = FOLDER_EXTENSION_STRING;
+
+	auto ite = _shellDataMap.find(extension);
+	if (ite == _shellDataMap.end()) {
+		//if not found, register data
+		LF_SHELLDATA ShellData;
+		//dummy extension for folder
+
+		//file icon index
+		SHFILEINFO shfi;
+		SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON | SHGFI_SYSICONINDEX);
+		ShellData.IconIndex = shfi.iIcon;
+
+		//filetype name
+		SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_TYPENAME);
+		ShellData.TypeName = shfi.szTypeName;
+
+		auto result = _shellDataMap.insert(std::make_pair(extension, ShellData));
+		return (*result.first).second;
+	} else {
+		return (*ite).second;
 	}
-	//マップに未登録だったら登録する
-
-	ite=RegisterData(Ext);
-	return (*ite).second.IconIndex;
 }
 
-LPCTSTR CShellDataManager::GetTypeName(LPCTSTR Ext)
-{
-	std::unordered_map<StlString,SHELLDATA>::iterator ite=ShellDataMap.find(Ext);
-	if(ite!=ShellDataMap.end()){
-		//既に登録されていた
-		return (*ite).second.TypeName;
-	}
-	//マップに未登録だったら登録する
-
-	ite=RegisterData(Ext);
-	return (*ite).second.TypeName;
-}
-
-std::unordered_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute)
-{
-	SHELLDATA ShellData;
-	//ファイル アイコン インデックス取得
-	SHFILEINFO shfi;
-	SHGetFileInfo(Ext ? Ext : _T("dummy"),Attribute,&shfi,sizeof(shfi),SHGFI_USEFILEATTRIBUTES|SHGFI_ICON|SHGFI_LARGEICON|SHGFI_SYSICONINDEX);
-	ShellData.IconIndex=shfi.iIcon;
-
-	//ファイル形式名取得
-	SHGetFileInfo(Ext ? Ext : _T("dummy"),Attribute,&shfi,sizeof(shfi),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME);
-	ShellData.TypeName=shfi.szTypeName;
-
-	std::pair<std::unordered_map<StlString,SHELLDATA>::iterator,bool> Result;
-
-	//フォルダの識別文字列(拡張子)
-	const LPCTSTR FOLDER_EXTENSION_STRING = _T("***");
-	if(!Ext)Ext=FOLDER_EXTENSION_STRING;
-	Result=ShellDataMap.insert(std::pair<StlString,SHELLDATA>(Ext,ShellData));
-	return Result.first;
-}
-
-
-void CShellDataManager::Init()
+void CLFShellDataManager::Init()
 {
 	SHFILEINFO shfi;
-	ImageListLarge=(HIMAGELIST)SHGetFileInfo(_T(""),0,&shfi,sizeof(shfi),SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
-	ImageListSmall=(HIMAGELIST)SHGetFileInfo(_T(""),0,&shfi,sizeof(shfi),SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
-	//アイコン(フォルダ用)を抽出
-	RegisterData(NULL,FILE_ATTRIBUTE_DIRECTORY);
-}
+	_imageListLarge = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
+	_imageListSmall = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
 
-HIMAGELIST CShellDataManager::GetImageList(bool bLarge)
-{
-	if(bLarge){
-		return ImageListLarge;
-	}
-	else{
-		return ImageListSmall;
-	}
+	//register for folder
+	makeSureDataRegistered(nullptr, FILE_ATTRIBUTE_DIRECTORY);
 }
-

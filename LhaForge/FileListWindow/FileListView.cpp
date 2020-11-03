@@ -551,7 +551,10 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		}
 		break;
 	case FILEINFO_TYPENAME:	//ファイルタイプ
-		if(pstLVDInfo->item.mask & LVIF_TEXT)lpText=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());
+		if (pstLVDInfo->item.mask & LVIF_TEXT) {
+			strBuffer = m_ShellDataManager.GetTypeName(lpNode->getExt().c_str()).c_str();
+			lpText = strBuffer;
+		}
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
@@ -599,7 +602,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 	//ファイルタイプ
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
-	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());	strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str()).c_str();	strInfo+=_T("\n");
 	//ファイル日時
 	strBuffer = UtilFormatTime(lpNode->_st_mtime).c_str();
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));

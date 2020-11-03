@@ -90,7 +90,7 @@ protected:
 	CConfigManager&				mr_Config;
 	CFileListModel&				mr_Model;
 	CTemporaryDirectoryManager	m_TempDirMgr;
-	CShellDataManager			m_ShellDataManager;
+	CLFShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
 	bool	m_bDisplayFileSizeInByte;
 	bool	m_bPathOnly;
