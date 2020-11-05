@@ -59,14 +59,15 @@ HRESULT COLEDnDSource::DragDrop(CFileListModel &rModel,const std::list<ARCHIVE_E
 			CreateMedium(CF_HDROP, hObject, &fmt, &medium);
 
 			if(lpDataObject->SetData(&fmt, &medium, TRUE) == S_OK){	//解放はDataObjectに任せる
-				CDropSource *lpDropSource = new CDropSource(rModel,items,lpszOutputDir,lpBase);
+				std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
+				CLFDropSource *lpDropSource = new CLFDropSource(rModel,itemsTmp,lpszOutputDir,lpBase);
 				ret = ::DoDragDrop(lpDataObject, lpDropSource, DROPEFFECT_COPY,&dwEffect);
 				if(DRAGDROP_S_DROP!=ret){
 					if(ret==DRAGDROP_S_CANCEL){
 						//解凍キャンセルの可能性がある
 						if(!lpDropSource->_bRet){
 							//解凍はキャンセルされた
-							strLog=lpDropSource->_strLog;
+							strLog=lpDropSource->_strLog.c_str();
 							hRes=E_ABORT;
 						}else{
 							//DnDそのものをキャンセルしたのでエラーではない

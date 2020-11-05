@@ -716,11 +716,12 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 	//選択されたアイテムを列挙
 	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
+	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
 
 	if(!items.empty()){
-		std::list<CString> filesList;
-		CString strLog;
-		if(mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,bOverwrite,strLog)){
+		std::vector<std::wstring> filesList;
+		std::wstring strLog;
+		if(mr_Model.MakeSureItemsExtracted(NULL, bOverwrite,mr_Model.GetRootNode(), itemsTmp,filesList,strLog)){
 			if(bOpen)OpenAssociation(filesList);
 		}else{
 			//TODO
@@ -738,14 +739,14 @@ bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
 	return true;
 }
 
-void CFileListView::OpenAssociation(const std::list<CString> &filesList)
+void CFileListView::OpenAssociation(const std::vector<std::wstring> &filesList)
 {
-	for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
+	for (const auto & file: filesList) {
 		//拒否されたら上書きも追加解凍もしない;ディレクトリなら拒否のみチェック
-		bool bDenyOnly=BOOL2bool(::PathIsDirectory(*ite));//lpNode->bDir;
-		if(mr_Model.IsPathAcceptableToOpenAssoc(*ite,bDenyOnly)){
-			::ShellExecute(GetDesktopWindow(),NULL,*ite,NULL,NULL,SW_SHOW);
-			TRACE(_T("%s\n"),(LPCTSTR)*ite);
+		bool bDenyOnly=BOOL2bool(::PathIsDirectory(file.c_str()));//lpNode->bDir;
+		if(mr_Model.IsPathAcceptableToOpenAssoc(file.c_str(),bDenyOnly)){
+			::ShellExecute(GetDesktopWindow(),NULL, file.c_str(),NULL,NULL,SW_SHOW);
+			TRACE(_T("%s\n"),file.c_str());
 			//::ShellExecute(GetDesktopWindow(),_T("explore"),*ite,NULL,NULL,SW_SHOW);
 		}else{
 			::MessageBeep(MB_ICONEXCLAMATION);
@@ -1189,11 +1190,12 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	//選択されたアイテムを列挙
 	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
+	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(),items.end());
 
-	std::list<CString> filesList;
+	std::vector<std::wstring> filesList;
 	if(!items.empty()){
-		CString strLog;
-		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,false,strLog)){
+		std::wstring strLog;
+		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(), false,itemsTmp,filesList,strLog)){
 			//TODO
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs;
@@ -1220,8 +1222,8 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 	if(std::wstring::npos!=strParam.find(L"%F")){
 		//ファイル一覧を連結して作成
 		CString strFileList;
-		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
-			CPath path=*ite;
+		for(const auto& file:filesList){
+			CPath path=file.c_str();
 			path.QuoteSpaces();
 			strFileList+=(LPCTSTR)path;
 			strFileList+=_T(" ");
@@ -1230,8 +1232,8 @@ bool CFileListView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 		//---実行
 		::ShellExecute(GetDesktopWindow(), NULL, strCmd.c_str(), strParam.c_str(), strDir.c_str(), SW_SHOW);
 	}else if(std::wstring::npos!=strParam.find(L"%S")){
-		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
-			CPath path=*ite;
+		for (const auto& file : filesList) {
+			CPath path=file.c_str();
 			path.QuoteSpaces();
 
 			CString strParamTmp = strParam.c_str();
@@ -1258,11 +1260,12 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 	//選択されたアイテムを列挙
 	std::list<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
+	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
 
-	std::list<CString> filesList;
+	std::vector<std::wstring> filesList;
 	if(!items.empty()){
-		CString strLog;
-		if(!mr_Model.MakeSureItemsExtracted(NULL,mr_Model.GetRootNode(),items,filesList,false,strLog)){
+		std::wstring strLog;
+		if(!mr_Model.MakeSureItemsExtracted(NULL, false,mr_Model.GetRootNode(),itemsTmp,filesList,strLog)){
 			//TODO
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs;
@@ -1281,10 +1284,10 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 	if(PathIsDirectory(sendToCmd[nID].cmd.c_str())){
 		//対象はディレクトリなので、コピー
 		CString strFiles;
-		for(std::list<CString>::const_iterator ite=filesList.begin();ite!=filesList.end();++ite){
-			CPath file=*ite;
-			file.RemoveBackslash();
-			strFiles+=file;
+		for (const auto& file : filesList) {
+			CPath file_=file.c_str();
+			file_.RemoveBackslash();
+			strFiles+=file_;
 			strFiles+=_T('|');
 		}
 		strFiles+=_T('|');
@@ -1315,8 +1318,8 @@ bool CFileListView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 		//送り先はプログラム
 		//ファイル一覧を連結して作成
 		CString strFileList;
-		for(std::list<CString>::iterator ite=filesList.begin();ite!=filesList.end();++ite){
-			CPath path=*ite;
+		for (const auto& file : filesList) {
+			CPath path=file.c_str();
 			path.QuoteSpaces();
 			strFileList+=(LPCTSTR)path;
 			strFileList+=_T(" ");

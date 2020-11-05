@@ -166,7 +166,7 @@ protected:
 	)const;
 
 	void postInspectArchive(ARCHIVE_ENTRY_INFO*);
-	void CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList);
+	void collectUnextractedFiles(const std::wstring& outputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::vector<ARCHIVE_ENTRY_INFO*> > &toExtractList);
 
 public:
 	CArchiveFileContent(): m_bReadOnly(false),m_bEncrypted(false), m_bExtractEachSupported(false){
@@ -202,9 +202,16 @@ public:
 	bool IsOK()const { return m_pRoot.get() != nullptr; }
 
 	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);
+	bool ExtractItems(CConfigManager&,const std::vector<ARCHIVE_ENTRY_INFO*> &items,const std::wstring& outputDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir, std::wstring &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
+	bool MakeSureItemsExtracted(
+		CConfigManager&,
+		const std::wstring &outputDir,
+		bool bOverwrite,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+		std::vector<std::wstring> &r_extractedFiles,
+		std::wstring &strLog);
 	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
 };
 

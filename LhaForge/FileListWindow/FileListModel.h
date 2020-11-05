@@ -120,10 +120,33 @@ public:
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog);
-	HRESULT ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog);
+	bool ExtractItems(
+		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+		const std::wstring &outputDir,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		bool bCollapseDir,
+		std::wstring &strLog) {
+		return m_Content.ExtractItems(mr_Config, items, outputDir, lpBase, bCollapseDir, strLog);
+	}
+	HRESULT ExtractItems(
+		HWND hWnd,
+		bool bSameDir,
+		const std::list<ARCHIVE_ENTRY_INFO*> &items,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		CString &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
+	bool MakeSureItemsExtracted(
+		LPCTSTR lpOutputDir,
+		bool bOverwrite,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+		std::vector<std::wstring> &r_extractedFiles,
+		std::wstring &strLog) {
+		if (!lpOutputDir) {
+			lpOutputDir = m_TempDirManager.path();
+		}
+		return m_Content.MakeSureItemsExtracted(mr_Config, lpOutputDir, bOverwrite, lpBase, items, r_extractedFiles, strLog);
+	}
 	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
 
 	static void SetOpenAssocExtDeny(const std::wstring &extDeny){ms_strExtDeny=extDeny.c_str();}

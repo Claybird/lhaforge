@@ -124,27 +124,33 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 }
 
 
-bool CArchiveFileContent::ExtractItems(CConfigManager &Config,const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
+bool CArchiveFileContent::ExtractItems(
+	CConfigManager &Config,
+	const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+	const std::wstring& outputDir,
+	const ARCHIVE_ENTRY_INFO* lpBase,
+	bool bCollapseDir,
+	std::wstring &strLog)
 {
 	//TODO
 	RAISE_EXCEPTION(L"NOT INMPELEMTED");
 	return false;// return m_lpArchiver->ExtractItems(m_pathArchive, Config, lpBase, items, lpszDir, bCollapseDir, strLog);
 }
 
-void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > &toExtractList)
+void CArchiveFileContent::collectUnextractedFiles(const std::wstring& outputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::vector<ARCHIVE_ENTRY_INFO*> > &toExtractList)
 {
 	size_t numChildren=lpParent->getNumChildren();
 	for(size_t i=0;i<numChildren;i++){
 		ARCHIVE_ENTRY_INFO* lpNode=lpParent->getChild(i);
-		CPath path=lpOutputDir;
+		std::filesystem::path path=outputDir;
 
 		auto subPath = lpNode->getRelativePath(lpBase);
-		path.Append(subPath.c_str());
+		path /= subPath;
 
-		if(::PathIsDirectory(path)){
+		if(std::filesystem::is_directory(path)){
 			// フォルダが存在するが中身はそろっているか?
-			CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
-		}else if(!::PathFileExists(path)){
+			collectUnextractedFiles(outputDir,lpBase,lpNode,toExtractList);
+		}else if(!std::filesystem::is_regular_file(path)){
 			// キャッシュが存在しないので、解凍要請リストに加える
 			toExtractList[lpParent].push_back(lpNode);
 		}
@@ -153,60 +159,58 @@ void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCH
 
 
 //bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &Config,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
+bool CArchiveFileContent::MakeSureItemsExtracted(
+	CConfigManager& Config,
+	const std::wstring &outputDir,
+	bool bOverwrite,
+	const ARCHIVE_ENTRY_INFO* lpBase,
+	const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+	std::vector<std::wstring> &r_extractedFiles,
+	std::wstring &strLog)
 {
 	//選択されたアイテムを列挙
-	std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> > toExtractList;
+	std::map<const ARCHIVE_ENTRY_INFO*,std::vector<ARCHIVE_ENTRY_INFO*> > toExtractList;
 
-	std::list<CString> newFilesList;	//これから解凍するファイルのディスク上のパス名
-
-	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=items.begin();ite!=items.end();++ite){
+	for(auto &lpNode: items){
 		// 存在をチェックし、もし解凍済みであればそれを開く
-		ARCHIVE_ENTRY_INFO* lpNode=*ite;
-		CPath path=lpOutputDir;
+		std::filesystem::path path = outputDir;
 
 		auto subPath = lpNode->getRelativePath(lpBase);
-		path.Append(subPath.c_str());
+		path /= subPath;
 
 		if(bOverwrite){
 			// 上書き解凍するので、存在するファイルは削除
 			if(lpNode->isDirectory()){
-				if(::PathIsDirectory(path))UtilDeleteDir((const wchar_t*)path,true);
+				if (std::filesystem::is_directory(path))UtilDeleteDir(path, true);
 			}else{
-				if(::PathFileExists(path))UtilDeletePath((const wchar_t*)path);
+				if (std::filesystem::is_regular_file(path))UtilDeletePath(path);
 			}
 			//解凍要請リストに加える
 			toExtractList[lpBase].push_back(lpNode);
-			newFilesList.push_back(path);
 		}else{	//上書きはしない
-			if(::PathIsDirectory(path)){
+			if(std::filesystem::is_directory(path)){
 				// フォルダが存在するが中身はそろっているか?
-				CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
-			}else if(!::PathFileExists(path)){
+				collectUnextractedFiles(outputDir,lpBase,lpNode,toExtractList);
+			}else if(!std::filesystem::is_regular_file(path)){
 				// キャッシュが存在しないので、解凍要請リストに加える
 				toExtractList[lpBase].push_back(lpNode);
-				newFilesList.push_back(path);
 			}
 		}
-		path.RemoveBackslash();
-		//開く予定リストに追加
-		r_filesList.push_back(path);
 	}
 	if(toExtractList.empty()){
 		return true;
 	}
 
 	//未解凍の物のみ一時フォルダに解凍
-	for(std::map<const ARCHIVE_ENTRY_INFO*,std::list<ARCHIVE_ENTRY_INFO*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
-		const std::list<ARCHIVE_ENTRY_INFO*> &filesList = (*ite).second;
-		if(!ExtractItems(Config,filesList,lpOutputDir,lpBase,false,strLog)){
-			for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
+	for(const auto &pair: toExtractList){
+		const std::vector<ARCHIVE_ENTRY_INFO*> &filesList = pair.second;
+		if(!ExtractItems(Config,filesList,outputDir,lpBase,false,strLog)){
+			for(const auto &toDelete : filesList){
 				//失敗したので削除
-				ARCHIVE_ENTRY_INFO* lpNode = *iteRemove;
-				CPath path=lpOutputDir;
-				auto subPath = lpNode->getRelativePath(lpBase);
-				path.Append(subPath.c_str());
-				UtilDeletePath((const wchar_t*)path);
+				std::filesystem::path path=outputDir;
+				auto subPath = toDelete->getRelativePath(lpBase);
+				path /= subPath;
+				UtilDeletePath(path);
 			}
 			return false;
 		}

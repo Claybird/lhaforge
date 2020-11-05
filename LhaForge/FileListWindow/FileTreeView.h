@@ -96,7 +96,7 @@ protected:
 	void OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);
-	void OpenAssociation(const std::list<CString> &filesList);
+	void OpenAssociation(const std::vector<std::wstring> &filesList);
 
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())

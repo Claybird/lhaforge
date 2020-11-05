@@ -330,11 +330,6 @@ void CFileListModel::EndFindItem()
 	}
 }
 
-bool CFileListModel::ExtractItems(const std::list<ARCHIVE_ENTRY_INFO*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir,CString &strLog)
-{
-	return m_Content.ExtractItems(mr_Config,items,lpszDir,lpBase,bCollapseDir,strLog);
-}
-
 HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog)
 {
 	CConfigExtract ConfExtract;
@@ -367,23 +362,18 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	//ウィンドウを使用不可に
 	::EnableWindow(hWnd,FALSE);
 	//解凍
-	if(ExtractItems(items,pathOutputBaseDir,lpBase,IsFindMode(),strLog)){
+	std::wstring log;
+	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
+	if(ExtractItems(itemsTmp,pathOutputBaseDir.operator LPCWSTR(),lpBase,IsFindMode(),log)){
 		//ウィンドウを使用可能に
+		strLog = log.c_str();
 		::EnableWindow(hWnd,TRUE);
 		return S_OK;
 	}else{
 		//ウィンドウを使用可能に
+		strLog = log.c_str();
 		::EnableWindow(hWnd,TRUE);
 		return E_FAIL;
-	}
-}
-
-bool CFileListModel::MakeSureItemsExtracted(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO* lpBase,const std::list<ARCHIVE_ENTRY_INFO*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
-{
-	if(lpOutputDir){
-		return m_Content.MakeSureItemsExtracted(mr_Config,lpOutputDir,lpBase,items,r_filesList,bOverwrite,strLog);
-	}else{
-		return m_Content.MakeSureItemsExtracted(mr_Config,m_TempDirManager.path(),lpBase,items,r_filesList,bOverwrite,strLog);
 	}
 }
 
