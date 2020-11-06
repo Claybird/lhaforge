@@ -91,9 +91,6 @@
     <ClCompile Include="FileListWindow\OLE\DataObject.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\OLE\DnDSource.cpp">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>

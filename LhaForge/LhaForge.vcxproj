@@ -58,7 +58,6 @@
     <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
     <ClCompile Include="FileListWindow\OLE\DataObject.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DnDSource.cpp" />
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp" />
     <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp" />
     <ClCompile Include="FileListWindow\ShellDataManager.cpp" />

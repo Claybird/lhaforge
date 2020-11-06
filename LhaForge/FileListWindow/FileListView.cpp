@@ -947,12 +947,13 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 		return 0;
 	}
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
-	GetSelectedItems(items);
-	if(items.empty()){	//本来あり得ない
+	std::list<ARCHIVE_ENTRY_INFO*> itemsTmp;
+	GetSelectedItems(itemsTmp);
+	if(itemsTmp.empty()){	//本来あり得ない
 		ASSERT(!"This code cannot be run");
 		return 0;
 	}
+	std::vector<ARCHIVE_ENTRY_INFO*> items(itemsTmp.begin(),itemsTmp.end());
 
 	if(!UtilDeleteDir(m_TempDirMgr.path(), false)){
 		//テンポラリディレクトリを空に出来ない
@@ -962,8 +963,8 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 		::EnableWindow(m_hFrameWnd,FALSE);
 
 		//ドラッグ&ドロップで解凍
-		CString strLog;
-		HRESULT hr=m_DnDSource.DragDrop(
+		std::wstring strLog;
+		HRESULT hr=m_DnDSource.DoDragDrop(
 			mr_Model,
 			items,
 			mr_Model.GetCurrentNode(),
@@ -981,7 +982,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 				LogDlg.SetLogArray(logs);
 				LogDlg.DoModal(m_hFrameWnd);
 			}else{
-				ErrorMessage((const wchar_t*)strLog);
+				ErrorMessage(strLog.c_str());
 			}
 		}
 

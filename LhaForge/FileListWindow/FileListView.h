@@ -96,7 +96,7 @@ protected:
 	bool	m_bPathOnly;
 	HWND	m_hFrameWnd;
 
-	COLEDnDSource	m_DnDSource;	//DnDハンドラ
+	CLFDnDSource	m_DnDSource;	//DnDハンドラ
 	CLFDropTarget		m_DropTarget;	//ドロップ受け入れに使う
 	int				m_nDropHilight;		//ドロップハイライト状態にあるアイテムのインデックス
 
