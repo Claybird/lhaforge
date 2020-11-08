@@ -169,19 +169,19 @@ public:
 		return S_OK;
 	}
 	virtual HRESULT __stdcall EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC **ppenumFormatetc)override {
-		CEnumFORMATETC*	pfmt;
+		CLFDnDEnumFORMATETC* pfmt;
 
 		if (!ppenumFormatetc )return E_INVALIDARG;
 		*ppenumFormatetc = nullptr;
 		switch (dwDirection) {
 		case DATADIR_GET:
-			pfmt = new CEnumFORMATETC;
+			pfmt = new CLFDnDEnumFORMATETC;
 			if (pfmt == nullptr) {
 				return E_OUTOFMEMORY;
 			}
 
 			for (auto& item : _Objects) {
-				pfmt->SetFormat(&item->fmt);
+				pfmt->SetFormat(item->fmt);
 			}
 			*ppenumFormatetc = pfmt;
 			break;

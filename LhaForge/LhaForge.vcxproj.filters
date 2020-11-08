@@ -88,9 +88,6 @@
     <ClCompile Include="FileListWindow\ShellDataManager.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClCompile>
     <ClCompile Include="Association.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -57,7 +57,6 @@
     <ClCompile Include="FileListWindow\FileListView.cpp" />
     <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
-    <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp" />
     <ClCompile Include="FileListWindow\ShellDataManager.cpp" />
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp" />
     <ClCompile Include="main.cpp" />
