@@ -88,13 +88,7 @@
     <ClCompile Include="FileListWindow\ShellDataManager.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\OLE\DataObject.cpp">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClCompile>
-    <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp">
       <Filter>FileListWindow\OLE</Filter>
     </ClCompile>
     <ClCompile Include="Association.cpp">
@@ -351,9 +345,6 @@
       <Filter>FileListWindow\OLE</Filter>
     </ClInclude>
     <ClInclude Include="FileListWindow\OLE\EnumFORMATETC.h">
-      <Filter>FileListWindow\OLE</Filter>
-    </ClInclude>
-    <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h">
       <Filter>FileListWindow\OLE</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\FileOperation.h">

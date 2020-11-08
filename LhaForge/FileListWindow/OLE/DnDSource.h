@@ -25,7 +25,6 @@
 #pragma once
 #include "DataObject.h"
 #include "DropSource.h"
-#include "STGMEDIUM.h"
 #include "Utilities/StringUtil.h"
 #include "FileListWindow/FileListModel.h"
 #include "resource.h"
@@ -100,43 +99,45 @@ public:
 		HRESULT hRes = E_OUTOFMEMORY;
 		strLog = L"E_OUTOFMEMORY";
 
-		CDataObject *lpDataObject = new CDataObject();
-		if (lpDataObject->allocate(2)) {
-			HANDLE hObject = createHDrop(files);
-			if (hObject) {
-				FORMATETC fmt;
-				STGMEDIUM medium;
-				createMedium(CF_HDROP, hObject, &fmt, &medium);
+		CLFDnDDataObject dataObject;
+		HANDLE hObject = createHDrop(files);
+		if (hObject) {
+			FORMATETC fmt;
+			STGMEDIUM medium;
+			createMedium(CF_HDROP, hObject, &fmt, &medium);
 
-				if (lpDataObject->SetData(&fmt, &medium, TRUE) == S_OK) {
-					std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
-					CLFDropSource *lpDropSource = new CLFDropSource(rModel, itemsTmp, outputDir, lpBase);
-					DWORD dwEffect;
-					auto ret = ::DoDragDrop(lpDataObject, lpDropSource, DROPEFFECT_COPY, &dwEffect);
-					if (DRAGDROP_S_DROP != ret) {
-						if (ret == DRAGDROP_S_CANCEL) {
-							//cancel?
-							if (!lpDropSource->_bRet) {
-								//extract aborted
-								strLog = lpDropSource->_strLog.c_str();
-								hRes = E_ABORT;
-							} else {
-								//cancelled Drag & Drop; not an error
-								hRes = S_OK;
-							}
+			if (dataObject.SetData(&fmt, &medium, TRUE) == S_OK) {
+				std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
+				CLFDropSource *lpDropSource = new CLFDropSource(rModel, itemsTmp, outputDir, lpBase);
+				DWORD dwEffect;
+				auto ret = ::DoDragDrop(&dataObject, lpDropSource, DROPEFFECT_COPY, &dwEffect);
+				if (DRAGDROP_S_DROP != ret) {
+					if (ret == DRAGDROP_S_CANCEL) {
+						//cancel?
+						if (!lpDropSource->_bRet) {
+							//extract aborted
+							strLog = lpDropSource->_strLog.c_str();
+							hRes = E_ABORT;
 						} else {
-							hRes = E_FAIL;
-							strLog = UtilLoadString(IDS_ERROR_DND_FAILED);
-							//Drag & Drop failed
+							//cancelled Drag & Drop; not an error
+							strLog = L"";
+							hRes = S_OK;
 						}
-					} else hRes = S_OK;
-					if (lpDropSource)lpDropSource->Release();
+					} else {
+						hRes = E_FAIL;
+						strLog = UtilLoadString(IDS_ERROR_DND_FAILED);
+						//Drag & Drop failed
+					}
+				} else {
+					strLog = L"";
+					hRes = S_OK;
 				}
+				if (lpDropSource)lpDropSource->Release();
 			}
-			if (hObject)GlobalFree(hObject);
 		}
+		if (hObject)GlobalFree(hObject);
 
-		if (lpDataObject)lpDataObject->Release();
+		//if (lpDataObject)lpDataObject->Release();
 		return hRes;
 	}
 };

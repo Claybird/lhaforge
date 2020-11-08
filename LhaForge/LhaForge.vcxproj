@@ -57,9 +57,7 @@
     <ClCompile Include="FileListWindow\FileListView.cpp" />
     <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DataObject.cpp" />
     <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp" />
-    <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp" />
     <ClCompile Include="FileListWindow\ShellDataManager.cpp" />
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp" />
     <ClCompile Include="main.cpp" />
@@ -133,7 +131,6 @@
     <ClInclude Include="FileListWindow\OLE\DropSource.h" />
     <ClInclude Include="FileListWindow\OLE\DropTarget.h" />
     <ClInclude Include="FileListWindow\OLE\EnumFORMATETC.h" />
-    <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h" />
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
