@@ -449,7 +449,7 @@ void CFileTreeView::OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl)
 }
 
 
-bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID)	//「プログラムで開く」のハンドラ
+bool CFileTreeView::OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID)	//「プログラムで開く」のハンドラ
 {
 	ASSERT(!menuCommandArray.empty());
 	ASSERT(nID<menuCommandArray.size());
@@ -521,9 +521,8 @@ bool CFileTreeView::OnUserApp(const std::vector<CMenuCommandItem> &menuCommandAr
 
 bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハンドラ
 {
-	ASSERT(MenuCommand_GetNumSendToCmd());
-	ASSERT(nID<MenuCommand_GetNumSendToCmd());
-	if(nID>=MenuCommand_GetNumSendToCmd())return false;
+	ASSERT(nID<MenuCommand_GetSendToCmdArray().size());
+	if(nID>= MenuCommand_GetSendToCmdArray().size())return false;
 
 	if(!mr_Model.IsOK())return false;
 

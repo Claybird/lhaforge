@@ -30,8 +30,8 @@
 #define ID_MENUITEM_USERAPP_BEGIN	4000
 #define ID_MENUITEM_USERAPP_END		(ID_MENUITEM_USERAPP_BEGIN+USERAPP_MAX_NUM-1)
 
-struct CMenuCommandItem{
-	virtual ~CMenuCommandItem(){}
+struct CLFMenuCommandItem {
+	virtual ~CLFMenuCommandItem() {}
 	std::wstring Caption;
 	std::wstring Path;
 	std::wstring Param;
@@ -43,7 +43,6 @@ struct CConfigFileListWindow;
 void MenuCommand_MakeUserAppMenu(HMENU hMenu);
 void MenuCommand_MakeSendToMenu(HMENU hMenu);
 void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW);
-UINT MenuCommand_GetNumSendToCmd();
 void MenuCommand_MakeSendToCommands();
-const std::vector<CMenuCommandItem>& MenuCommand_GetCmdArray();
+const std::vector<CLFMenuCommandItem>& MenuCommand_GetCmdArray();
 const std::vector<UTIL_SHORTCUTINFO>& MenuCommand_GetSendToCmdArray();

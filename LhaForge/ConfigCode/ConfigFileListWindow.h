@@ -63,7 +63,7 @@ public:
 		std::wstring Deny;
 	}OpenAssoc;
 
-	std::vector<CMenuCommandItem> MenuCommandArray;	//「プログラムで開く」のコマンド
+	std::vector<CLFMenuCommandItem> MenuCommandArray;	//「プログラムで開く」のコマンド
 protected:
 	void loadMenuCommand(const CConfigManager&);
 	void storeMenuCommand(CConfigManager&)const;

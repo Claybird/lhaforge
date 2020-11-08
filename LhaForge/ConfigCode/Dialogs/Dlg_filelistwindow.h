@@ -52,8 +52,8 @@ protected:
 	void OnBrowseDir(UINT, int, HWND);
 	void OnBrowseCustomToolbarImage(UINT, int, HWND);
 
-	std::vector<CMenuCommandItem> m_MenuCommandArray;
-	CMenuCommandItem *m_lpMenuCommandItem;	//編集中のコマンドアイテム
+	std::vector<CLFMenuCommandItem> m_MenuCommandArray;
+	CLFMenuCommandItem *m_lpMenuCommandItem;	//編集中のコマンドアイテム
 
 	LRESULT OnGetDispInfo(LPNMHDR pnmh);
 	LRESULT OnSelect(LPNMHDR pnmh);

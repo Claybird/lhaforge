@@ -168,7 +168,7 @@ LRESULT CConfigDlgFileListWindow::OnGetDispInfo(LPNMHDR pnmh)
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
 
 	if(pstLVDInfo->item.iItem<0||pstLVDInfo->item.iItem>=(signed)m_MenuCommandArray.size())return 1;
-	CMenuCommandItem &mci=m_MenuCommandArray[pstLVDInfo->item.iItem];
+	CLFMenuCommandItem &mci=m_MenuCommandArray[pstLVDInfo->item.iItem];
 
 	if(pstLVDInfo->item.mask & LVIF_TEXT){
 		_tcsncpy_s(pstLVDInfo->item.pszText,pstLVDInfo->item.cchTextMax,mci.Caption.c_str(),pstLVDInfo->item.cchTextMax);
@@ -221,7 +221,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveUp(WORD,WORD,HWND,BOOL&)
 		MessageBeep(MB_ICONASTERISK);
 		return TRUE;
 	}
-	CMenuCommandItem mci=m_MenuCommandArray[iItem];
+	CLFMenuCommandItem mci=m_MenuCommandArray[iItem];
 	m_MenuCommandArray[iItem]=m_MenuCommandArray[iItem-1];
 	m_MenuCommandArray[iItem-1]=mci;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem-1];
@@ -241,7 +241,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppMoveDown(WORD,WORD,HWND,BOOL&)
 		MessageBeep(MB_ICONASTERISK);
 		return TRUE;
 	}
-	CMenuCommandItem mci=m_MenuCommandArray[iItem];
+	CLFMenuCommandItem mci=m_MenuCommandArray[iItem];
 	m_MenuCommandArray[iItem]=m_MenuCommandArray[iItem+1];
 	m_MenuCommandArray[iItem+1]=mci;
 	m_lpMenuCommandItem=&m_MenuCommandArray[iItem+1];
@@ -261,7 +261,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD,WORD,HWND,BOOL&)
 	}
 
 	//新項目の設定
-	CMenuCommandItem mci;
+	CLFMenuCommandItem mci;
 	mci.Caption=_T("UserApp");
 	mci.Param=_T("%S");
 	m_MenuCommandArray.push_back(mci);
@@ -280,7 +280,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppDelete(WORD,WORD,HWND,BOOL&)
 {
 	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
 	if(-1==iItem||iItem>=(signed)m_MenuCommandArray.size())return FALSE;
-	std::vector<CMenuCommandItem>::iterator ite=m_MenuCommandArray.begin();
+	std::vector<CLFMenuCommandItem>::iterator ite=m_MenuCommandArray.begin();
 
 	//削除対象アイテムの検索
 	ite+=iItem;

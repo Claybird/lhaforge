@@ -155,7 +155,7 @@ void CConfigFileListWindow::loadMenuCommand(const CConfigManager &Config)
 		if (!Config.hasSection(section)) {
 			break;
 		} else {
-			CMenuCommandItem mci;
+			CLFMenuCommandItem mci;
 
 			//「プログラムで開く」メニューのコマンド
 			//プログラムのパス

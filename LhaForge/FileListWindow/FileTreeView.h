@@ -63,7 +63,7 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPEN_ASSOCIATION,OnOpenAssociation)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,OnOpenAssociation)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_TEMPORARY,OnExtractTemporary)
-		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetNumSendToCmd(),OnOpenWithUserApp)
+		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetSendToCmdArray().size(),OnOpenWithUserApp)
 
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_RCLICK, OnRClick)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTreeSelect)
@@ -89,7 +89,7 @@ protected:
 
 	void OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	void OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);
+	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID);
 	bool OnSendToApp(UINT nID);
 	void OnExtractItem(UINT,int nID,HWND);
 	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items);

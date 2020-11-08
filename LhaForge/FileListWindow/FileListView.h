@@ -68,7 +68,7 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_TEMPORARY,OnExtractTemporary)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CLEAR_TEMPORARY,OnClearTemporary)
 		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_COPY_FILENAME,ID_MENUITEM_COPY_ALL,OnCopyInfo)
-		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetNumSendToCmd(),OnOpenWithUserApp)
+		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetSendToCmdArray().size(),OnOpenWithUserApp)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_DBLCLK, OnDblClick)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_RETURN, OnDblClick)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_BEGINDRAG, OnBeginDrag)
@@ -140,7 +140,7 @@ protected:
 	void FormatFileSize(CString&, UINT64);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	void OpenAssociation(const std::vector<std::wstring> &filesList);
-	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)
+	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)
 	bool OnSendToApp(UINT nID);	//「プログラムで開く」のハンドラ(SendToコマンド)
 	HRESULT AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest);
 	void UpdateSortIcon();

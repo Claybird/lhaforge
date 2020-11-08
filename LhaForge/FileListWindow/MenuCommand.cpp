@@ -25,23 +25,18 @@
 #include "stdafx.h"
 #include "menucommand.h"
 #include "FileListModel.h"
-#include "../Utilities/OSUtil.h"
-#include "../ConfigCode/ConfigManager.h"
-#include "../ConfigCode/ConfigFileListWindow.h"
-#include "../resource.h"
+#include "Utilities/OSUtil.h"
+#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFileListWindow.h"
+#include "resource.h"
 
 
 //---SendTo commands
 std::vector<UTIL_SHORTCUTINFO> s_SendToCmd;
 //---OpenWith commands
-std::vector<CMenuCommandItem> s_MenuCommandArray;
+std::vector<CLFMenuCommandItem> s_MenuCommandArray;
 
-UINT MenuCommand_GetNumSendToCmd()
-{
-	return (UINT)s_SendToCmd.size();
-}
-
-const std::vector<CMenuCommandItem>& MenuCommand_GetCmdArray()
+const std::vector<CLFMenuCommandItem>& MenuCommand_GetCmdArray()
 {
 	return s_MenuCommandArray;
 }
@@ -105,7 +100,7 @@ void MenuCommand_MakeSendToMenu(HMENU hMenu)
 
 void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW)
 {
-	s_MenuCommandArray=ConfFLW.MenuCommandArray;
+	s_MenuCommandArray = ConfFLW.MenuCommandArray;
 }
 
 void MenuCommand_MakeSendToCommands()
@@ -116,11 +111,11 @@ void MenuCommand_MakeSendToCommands()
 	szSendTo /= L"*.lnk";
 	CFindFile cFind;
 
-	BOOL bFound=cFind.FindFile(szSendTo.c_str());
-	for(;bFound;bFound=cFind.FindNextFile()){
-		if(cFind.IsDots())continue;
+	BOOL bFound = cFind.FindFile(szSendTo.c_str());
+	for (; bFound; bFound = cFind.FindNextFile()) {
+		if (cFind.IsDots())continue;
 
-		if(!cFind.IsDirectory()){
+		if (!cFind.IsDirectory()) {
 			files.push_back(cFind.GetFilePath().operator LPCWSTR());
 		}
 	}
