@@ -36,10 +36,40 @@ protected:
 	CImageList _imageListSmall;
 	CImageList _imageListLarge;
 	std::unordered_map<std::wstring, LF_SHELLDATA> _shellDataMap;
-	const LF_SHELLDATA& makeSureDataRegistered(const wchar_t* extension, DWORD Attribute = FILE_ATTRIBUTE_NORMAL);
+	const LF_SHELLDATA& makeSureDataRegistered(const wchar_t* extension, DWORD Attribute = FILE_ATTRIBUTE_NORMAL) {
+		if (!extension)extension = ARCHIVE_ENTRY_INFO::dirDummyExt();
+
+		auto ite = _shellDataMap.find(extension);
+		if (ite == _shellDataMap.end()) {
+			//if not found, register data
+			LF_SHELLDATA ShellData;
+			//dummy extension for folder
+
+			//file icon index
+			SHFILEINFO shfi;
+			SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON | SHGFI_SYSICONINDEX);
+			ShellData.IconIndex = shfi.iIcon;
+
+			//filetype name
+			SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_TYPENAME);
+			ShellData.TypeName = shfi.szTypeName;
+
+			auto result = _shellDataMap.insert(std::make_pair(extension, ShellData));
+			return (*result.first).second;
+		} else {
+			return (*ite).second;
+		}
+	}
 public:
 	virtual ~CLFShellDataManager(){}
-	void Init();
+	void Init() {
+		SHFILEINFO shfi;
+		_imageListLarge = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
+		_imageListSmall = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
+
+		//register for folder
+		makeSureDataRegistered(nullptr, FILE_ATTRIBUTE_DIRECTORY);
+	}
 	HIMAGELIST GetImageList(bool bLarge) {
 		if (bLarge) {
 			return _imageListLarge;

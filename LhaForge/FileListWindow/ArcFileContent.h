@@ -50,9 +50,14 @@ struct ARCHIVE_ENTRY_INFO {
 	ARCHIVE_ENTRY_INFO() { clear(); }
 	virtual ~ARCHIVE_ENTRY_INFO() {}
 
+	static const wchar_t* dirDummyExt() {
+		const wchar_t* FOLDER_EXTENSION_STRING = L"***directory/dummy/extension***";
+		return FOLDER_EXTENSION_STRING;
+	}
+
 	bool isDirectory()const { return (!_children.empty()) || ((_nAttribute & S_IFDIR) != 0); }
 	std::wstring getExt()const {
-		if (isDirectory())return L"";
+		if (isDirectory())return dirDummyExt();
 		else return std::filesystem::path(_fullpath).extension();
 	}
 

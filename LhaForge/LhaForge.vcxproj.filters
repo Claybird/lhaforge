@@ -82,12 +82,6 @@
     <ClCompile Include="FileListWindow\FileTreeView.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\MenuCommand.cpp">
-      <Filter>FileListWindow</Filter>
-    </ClCompile>
-    <ClCompile Include="FileListWindow\ShellDataManager.cpp">
-      <Filter>FileListWindow</Filter>
-    </ClCompile>
     <ClCompile Include="Association.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -162,6 +156,9 @@
     </ClCompile>
     <ClCompile Include="ConfigCode\test\test_configmanager.cpp">
       <Filter>Configs\Other\test</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\MenuCommand.cpp">
+      <Filter>FileListWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
