@@ -233,6 +233,114 @@ overwrite_options confirmOverwrite(
 	}
 }
 
+void extractOneEntry(
+	ARCHIVE_FILE_TO_READ &arc,
+	LF_ARCHIVE_ENTRY* entry,
+	const std::wstring& output_dir,
+	overwrite_options& defaultDecision,
+	ARCLOG &arcLog,
+	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+) {
+	//original file name
+	std::wstring originalPath = entry->get_pathname();
+	//original attributes
+	int nAttribute = entry->get_file_mode();
+	//original file size (before compression)
+	auto llOriginalSize = entry->get_original_filesize();
+	//filetime
+	auto cFileTime = entry->get_mtime();
+
+	auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
+
+	progressHandler(outputPath, 0, llOriginalSize);
+	try {
+		if (entry->is_dir()) {
+			try {
+				std::filesystem::create_directories(outputPath);
+				arcLog(originalPath, L"directory created");
+			} catch (std::filesystem::filesystem_error&) {
+				arcLog(originalPath, L"failed to create directory");
+				CString err;	//TODO
+				err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
+				RAISE_EXCEPTION((LPCWSTR)err);
+			}
+		} else {
+			auto decision = overwrite_options::overwrite;
+			if (std::filesystem::exists(outputPath)
+				&& std::filesystem::is_regular_file(outputPath)) {
+				if (overwrite_options::skip_all == defaultDecision) {
+					decision = overwrite_options::skip;
+				} else if (overwrite_options::overwrite_all == defaultDecision) {
+					decision = overwrite_options::overwrite;
+				} else {
+					decision = preExtractHandler(outputPath, entry);
+				}
+			}
+			switch (decision) {
+			case overwrite_options::overwrite_all:	//FALLTHROUGH
+				defaultDecision = decision;
+			case overwrite_options::overwrite:
+				//do nothing, keep going
+				break;
+			case overwrite_options::skip_all:	//FALLTHROUGH
+				defaultDecision = decision;
+			case overwrite_options::skip:
+				arcLog(originalPath, L"skipped");
+				return;//continue;
+				break;
+			case overwrite_options::abort:
+				//abort
+				arcLog(originalPath, L"cancelled by user");
+				CANCEL_EXCEPTION();
+				break;
+			}
+
+			{
+				auto parent = std::filesystem::path(outputPath).parent_path();
+				if (!std::filesystem::exists(parent)) {
+					//in case directory entry is not in archive
+					std::filesystem::create_directories(parent);
+					arcLog(parent, L"directory created");
+				}
+			}
+
+			//go
+			CAutoFile fp;
+			fp.open(outputPath, L"wb");
+			if (!fp.is_opened()) {
+				arcLog(originalPath, L"failed to open for write");
+				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
+			}
+			for (;;) {
+				auto buffer = arc.read_block();
+				if (buffer.is_eof()) {
+					progressHandler(originalPath, llOriginalSize, llOriginalSize);
+					break;
+				} else {
+					progressHandler(originalPath, buffer.offset, llOriginalSize);
+					auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
+					if (written != buffer.size) {
+						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+					}
+				}
+			}
+			arcLog(originalPath, L"OK");
+			fp.close();
+		}
+		struct __utimbuf64 ut;
+		ut.modtime = entry->get_mtime();
+		ut.actime = entry->get_mtime();
+		_wutime64(outputPath.c_str(), &ut);
+	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+		arcLog(originalPath, e.what());
+		throw e;
+	} catch (LF_EXCEPTION &e) {
+		arcLog(originalPath, e.what());
+		throw e;
+	}
+}
+
 void extractOneArchive(
 	const std::wstring& archive_path,
 	const std::wstring& output_dir,
@@ -245,103 +353,7 @@ void extractOneArchive(
 	arc.read_open(archive_path, LF_passphrase_callback);
 	// loop for each entry
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
-		//original file name
-		std::wstring originalPath = entry->get_pathname();
-		//original attributes
-		int nAttribute = entry->get_file_mode();
-		//original file size (before compression)
-		auto llOriginalSize = entry->get_original_filesize();
-		//filetime
-		auto cFileTime = entry->get_mtime();
-
-		auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
-
-		progressHandler(outputPath, 0, llOriginalSize);
-		try {
-			if (entry->is_dir()) {
-				try {
-					std::filesystem::create_directories(outputPath);
-					arcLog(originalPath, L"directory created");
-				} catch (std::filesystem::filesystem_error&) {
-					arcLog(originalPath, L"failed to create directory");
-					CString err;	//TODO
-					err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
-					RAISE_EXCEPTION((LPCWSTR)err);
-				}
-			} else {
-				auto decision = overwrite_options::overwrite;
-				if (std::filesystem::exists(outputPath)
-					&& std::filesystem::is_regular_file(outputPath)) {
-					if (overwrite_options::skip_all == defaultDecision) {
-						decision = overwrite_options::skip;
-					} else if (overwrite_options::overwrite_all == defaultDecision) {
-						decision = overwrite_options::overwrite;
-					} else {
-						decision = preExtractHandler(outputPath, entry);
-					}
-				}
-				switch (decision) {
-				case overwrite_options::overwrite_all:	//FALLTHROUGH
-					defaultDecision = decision;
-				case overwrite_options::overwrite:
-					//do nothing, keep going
-					break;
-				case overwrite_options::skip_all:	//FALLTHROUGH
-					defaultDecision = decision;
-				case overwrite_options::skip:
-					arcLog(originalPath, L"skipped");
-					continue;
-					break;
-				case overwrite_options::abort:
-					//abort
-					arcLog(originalPath, L"cancelled by user");
-					CANCEL_EXCEPTION();
-					break;
-				}
-
-				{
-					auto parent = std::filesystem::path(outputPath).parent_path();
-					if (!std::filesystem::exists(parent)) {
-						//in case directory entry is not in archive
-						std::filesystem::create_directories(parent);
-						arcLog(parent, L"directory created");
-					}
-				}
-
-				//go
-				CAutoFile fp;
-				fp.open(outputPath, L"wb");
-				if (!fp.is_opened()) {
-					arcLog(originalPath, L"failed to open for write");
-					RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
-				}
-				for (;;) {
-					auto buffer = arc.read_block();
-					if (buffer.is_eof()) {
-						progressHandler(originalPath, llOriginalSize, llOriginalSize);
-						break;
-					} else {
-						progressHandler(originalPath, buffer.offset, llOriginalSize);
-						auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
-						if (written != buffer.size) {
-							RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
-						}
-					}
-				}
-				arcLog(originalPath, L"OK");
-				fp.close();
-			}
-			struct __utimbuf64 ut;
-			ut.modtime = entry->get_mtime();
-			ut.actime = entry->get_mtime();
-			_wutime64(outputPath.c_str(), &ut);
-		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
-			arcLog(originalPath, e.what());
-			throw e;
-		} catch (LF_EXCEPTION &e) {
-			arcLog(originalPath, e.what());
-			throw e;
-		}
+		extractOneEntry(arc, entry, output_dir, defaultDecision, arcLog, preExtractHandler, progressHandler);
 	}
 	//end
 	arc.close();

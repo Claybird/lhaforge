@@ -47,6 +47,15 @@ enum class overwrite_options {
 	abort,
 };
 
+void extractOneEntry(
+	ARCHIVE_FILE_TO_READ &arc,
+	LF_ARCHIVE_ENTRY* entry,
+	const std::wstring& output_dir,
+	overwrite_options& defaultDecision,
+	ARCLOG &arcLog,
+	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+);
 void extractOneArchive(
 	const std::wstring& archive_path,
 	const std::wstring& output_dir,
