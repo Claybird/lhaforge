@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigCode/ConfigManager.h"
+#include "ArchiverCode/arc_interface.h"
 
 struct ARCHIVE_ENTRY_INFO;
 struct IArchiveContentUpdateHandler {
@@ -31,6 +31,9 @@ struct IArchiveContentUpdateHandler {
 	virtual void onUpdated(ARCHIVE_ENTRY_INFO&) = 0;
 	virtual bool isAborted() = 0;
 };
+
+//TODO
+struct CConfigManager;
 
 //reconstructed archive content structure
 struct ARCHIVE_ENTRY_INFO {
@@ -206,8 +209,14 @@ public:
 	//TODO
 	bool IsOK()const { return m_pRoot.get() != nullptr; }
 
+	void extractItems(
+		CConfigManager&,
+		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+		const std::wstring& outputDir,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		bool bCollapseDir,
+		ARCLOG &strLog);
 	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(CConfigManager&,const std::vector<ARCHIVE_ENTRY_INFO*> &items,const std::wstring& outputDir,const ARCHIVE_ENTRY_INFO* lpBase,bool bCollapseDir, std::wstring &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
 	bool MakeSureItemsExtracted(
 		CConfigManager&,

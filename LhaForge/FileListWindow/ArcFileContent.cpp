@@ -23,12 +23,14 @@
 */
 
 #include "stdafx.h"
-#include "ArcFileContent.h"
+#include "ConfigCode/ConfigManager.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/Utility.h"
-#include "ArchiverCode/arc_interface.h"
+#include "Dialogs/ProgressDlg.h"
+#include "extract.h"
 #include "CommonUtil.h"
+#include "ArcFileContent.h"
 
 
 void CArchiveFileContent::inspectArchiveStruct(
@@ -124,17 +126,61 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 }
 
 
-bool CArchiveFileContent::ExtractItems(
+void CArchiveFileContent::extractItems(
 	CConfigManager &Config,
 	const std::vector<ARCHIVE_ENTRY_INFO*> &items,
 	const std::wstring& outputDir,
 	const ARCHIVE_ENTRY_INFO* lpBase,
 	bool bCollapseDir,
-	std::wstring &strLog)
+	ARCLOG &arcLog)
 {
-	//TODO
-	RAISE_EXCEPTION(L"NOT INMPELEMTED");
-	return false;// return m_lpArchiver->ExtractItems(m_pathArchive, Config, lpBase, items, lpszDir, bCollapseDir, strLog);
+	ARCHIVE_FILE_TO_READ arc;
+	//progress bar
+	CProgressDialog dlg;
+	dlg.Create(nullptr);
+	dlg.ShowWindow(SW_SHOW);
+
+	arc.read_open(m_pathArchive, LF_passphrase_callback);
+
+	std::unordered_map<std::wstring, ARCHIVE_ENTRY_INFO*> unextracted;
+	for (const auto &item : items) {
+		unextracted[item->getFullpath()] = item;
+	}
+
+	std::function<overwrite_options(const std::wstring&, const LF_ARCHIVE_ENTRY*)> preExtractHandler =
+		[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)->overwrite_options {
+			return overwrite_options::overwrite;
+	};
+	std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
+		[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
+		dlg.SetProgress(
+			m_pathArchive,
+			1,
+			1,
+			originalPath,
+			currentSize,
+			totalSize);
+		while (UtilDoMessageLoop())continue;
+		if (dlg.isAborted()) {
+			dlg.DestroyWindow();
+			CANCEL_EXCEPTION();
+		}
+	};
+
+	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->get_pathname()));
+		auto iter = unextracted.find(pathname);
+		if (iter != unextracted.end()) {
+			auto defaultDecision = overwrite_options::overwrite_all;
+			if (bCollapseDir) {
+				entry->_pathname = std::filesystem::path(entry->get_pathname()).filename();
+			}
+			extractOneEntry(arc, entry, outputDir, defaultDecision, arcLog, preExtractHandler, progressHandler);
+			unextracted.erase(iter);
+		}
+	}
+	arc.close();
+	dlg.DestroyWindow();
 }
 
 void CArchiveFileContent::collectUnextractedFiles(const std::wstring& outputDir,const ARCHIVE_ENTRY_INFO* lpBase,const ARCHIVE_ENTRY_INFO* lpParent,std::map<const ARCHIVE_ENTRY_INFO*,std::vector<ARCHIVE_ENTRY_INFO*> > &toExtractList)
@@ -204,7 +250,12 @@ bool CArchiveFileContent::MakeSureItemsExtracted(
 	//未解凍の物のみ一時フォルダに解凍
 	for(const auto &pair: toExtractList){
 		const std::vector<ARCHIVE_ENTRY_INFO*> &filesList = pair.second;
-		if(!ExtractItems(Config,filesList,outputDir,lpBase,false,strLog)){
+		ARCLOG arcLog;
+		arcLog.setArchivePath(m_pathArchive);
+		try {
+			extractItems(Config, filesList, outputDir, lpBase, false, arcLog);
+		} catch (const LF_EXCEPTION& e) {
+			arcLog.overallResult = LF_RESULT::NG;
 			for(const auto &toDelete : filesList){
 				//失敗したので削除
 				std::filesystem::path path=outputDir;

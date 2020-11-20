@@ -120,13 +120,13 @@ public:
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(
+	void ExtractItems(
 		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
 		const std::wstring &outputDir,
 		const ARCHIVE_ENTRY_INFO* lpBase,
 		bool bCollapseDir,
-		std::wstring &strLog) {
-		return m_Content.ExtractItems(mr_Config, items, outputDir, lpBase, bCollapseDir, strLog);
+		ARCLOG &arcLog) {
+		m_Content.extractItems(mr_Config, items, outputDir, lpBase, bCollapseDir, arcLog);
 	}
 	HRESULT ExtractItems(
 		HWND hWnd,

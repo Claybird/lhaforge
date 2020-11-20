@@ -362,16 +362,19 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 	//ウィンドウを使用不可に
 	::EnableWindow(hWnd,FALSE);
 	//解凍
-	std::wstring log;
+	ARCLOG arcLog;
+	arcLog.setArchivePath(m_Content.getArchivePath());
 	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
-	if(ExtractItems(itemsTmp,pathOutputBaseDir.operator LPCWSTR(),lpBase,IsFindMode(),log)){
+	try{
+		ExtractItems(itemsTmp, pathOutputBaseDir.operator LPCWSTR(), lpBase, IsFindMode(), arcLog);
 		//ウィンドウを使用可能に
-		strLog = log.c_str();
+		strLog = arcLog.toString().c_str();
 		::EnableWindow(hWnd,TRUE);
 		return S_OK;
-	}else{
+	}catch(const LF_EXCEPTION& e){
+		arcLog.overallResult=LF_RESULT::NG;
 		//ウィンドウを使用可能に
-		strLog = log.c_str();
+		strLog = arcLog.toString().c_str();
 		::EnableWindow(hWnd,TRUE);
 		return E_FAIL;
 	}
