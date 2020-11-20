@@ -63,13 +63,6 @@ public:
 			}
 		}
 	}
-	std::wstring assembleLogMessage(const ARCLOG& log)const {
-		std::wstring message;
-		for (const auto &e : log.logs) {
-			message += e.entryPath + L" -> " + e.message + L"\r\n";
-		}
-		return message;
-	}
 protected:
 	BEGIN_MSG_MAP_EX(CLogListDialog)
 		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)
@@ -205,7 +198,7 @@ protected:
 		//iItem==-1 if not found
 		if (iItem < 0 || (unsigned)iItem >= m_LogArray.size())return FALSE;
 		m_PathEdit.SetWindowText(m_LogArray[iItem]._archivePath.c_str());
-		m_MsgEdit.SetWindowText(assembleLogMessage(m_LogArray[iItem]).c_str());
+		m_MsgEdit.SetWindowText(m_LogArray[iItem].toString().c_str());
 		return TRUE;
 	}
 	LRESULT OnSortItem(LPNMHDR pnmh) {

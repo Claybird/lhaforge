@@ -55,6 +55,13 @@ struct ARCLOG{
 		LOGENTRY e = { entryPath,message };
 		logs.push_back(e);
 	}
+	std::wstring toString()const {
+		std::wstring out;
+		for (const auto& log : logs) {
+			out += log.entryPath + L" -> " + log.message + L"\r\n";
+		}
+		return out;
+	}
 };
 
 
