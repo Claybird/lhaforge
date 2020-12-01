@@ -43,7 +43,6 @@ protected:
 		if (ite == _shellDataMap.end()) {
 			//if not found, register data
 			LF_SHELLDATA ShellData;
-			//dummy extension for folder
 
 			//file icon index
 			SHFILEINFO shfi;
@@ -68,7 +67,7 @@ public:
 		_imageListSmall = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
 
 		//register for folder
-		makeSureDataRegistered(nullptr, FILE_ATTRIBUTE_DIRECTORY);
+		makeSureDataRegistered(ARCHIVE_ENTRY_INFO::dirDummyExt(), FILE_ATTRIBUTE_DIRECTORY);
 	}
 	HIMAGELIST GetImageList(bool bLarge) {
 		if (bLarge) {

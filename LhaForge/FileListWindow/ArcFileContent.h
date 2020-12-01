@@ -68,7 +68,12 @@ struct ARCHIVE_ENTRY_INFO {
 				//ex. ".gitignore"
 				return fname;
 			} else {
-				return fname.extension();
+				auto ext = fname.extension();
+				if (ext.empty()) {
+					return L"file_without_extension";
+				} else {
+					return ext;
+				}
 			}
 		}
 	}
