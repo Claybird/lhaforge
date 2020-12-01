@@ -60,8 +60,17 @@ struct ARCHIVE_ENTRY_INFO {
 
 	bool isDirectory()const { return (!_children.empty()) || ((_nAttribute & S_IFDIR) != 0); }
 	std::wstring getExt()const {
-		if (isDirectory())return dirDummyExt();
-		else return std::filesystem::path(_fullpath).extension();
+		if (isDirectory()) {
+			return dirDummyExt();
+		} else {
+			auto fname = std::filesystem::path(_fullpath).filename();
+			if (!fname.empty() && fname.wstring()[0]==L'.') {
+				//ex. ".gitignore"
+				return fname;
+			} else {
+				return fname.extension();
+			}
+		}
 	}
 
 	size_t getNumChildren()const { return _children.size(); }
