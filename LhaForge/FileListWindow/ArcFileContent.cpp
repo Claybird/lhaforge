@@ -242,6 +242,9 @@ bool CArchiveFileContent::MakeSureItemsExtracted(
 				toExtractList[lpBase].push_back(lpNode);
 			}
 		}
+
+		//extracted files
+		r_extractedFiles.push_back(path.make_preferred());
 	}
 	if(toExtractList.empty()){
 		return true;
