@@ -372,7 +372,7 @@ HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARC
 		::EnableWindow(hWnd,TRUE);
 		return S_OK;
 	}catch(const LF_EXCEPTION& e){
-		arcLog.overallResult=LF_RESULT::NG;
+		arcLog.logException(e);
 		//ウィンドウを使用可能に
 		strLog = arcLog.toString().c_str();
 		::EnableWindow(hWnd,TRUE);

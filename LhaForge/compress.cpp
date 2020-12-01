@@ -396,14 +396,11 @@ void compressOneArchive(
 				archive.add_directory(entry);
 			}
 			arcLog(output_archive, L"OK");
-		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
-			arcLog(output_archive, e.what());
-			throw e;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog(output_archive, e.what());
 			throw e;
 		} catch (const std::filesystem::filesystem_error& e) {
-			auto msg = UtilCP932toUNICODE(e.what(), strlen(e.what()));
+			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
 			arcLog(output_archive, msg);
 			throw LF_EXCEPTION(msg);
 		}
@@ -702,13 +699,13 @@ bool GUI_compress_multiple_files(
 				if (dlg.isAborted()) {
 					CANCEL_EXCEPTION();
 				}
-			} catch (const LF_USER_CANCEL_EXCEPTION&) {
+			} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 				ARCLOG &arcLog = logs.back();
-				arcLog.overallResult = LF_RESULT::CANCELED;
+				arcLog.logException(e);
 				break;
-			} catch (const LF_EXCEPTION&) {
+			} catch (const LF_EXCEPTION& e) {
 				ARCLOG &arcLog = logs.back();
-				arcLog.overallResult = LF_RESULT::NG;
+				arcLog.logException(e);
 				continue;
 			}
 		}
@@ -726,18 +723,15 @@ bool GUI_compress_multiple_files(
 				progressHandler,
 				LF_passphrase_callback
 			);
-		} catch (const LF_USER_CANCEL_EXCEPTION&) {
+		} catch (const LF_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::CANCELED;
-		} catch (const LF_EXCEPTION&) {
-			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::NG;
+			arcLog.logException(e);
 		}
 	}
 
 	bool bAllOK = true;
 	for (const auto& log : logs) {
-		bAllOK = bAllOK && (log.overallResult == LF_RESULT::OK);
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
 	}
 	//---display logs
 	bool displayLog = false;

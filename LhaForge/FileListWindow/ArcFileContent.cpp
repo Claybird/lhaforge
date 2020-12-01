@@ -255,7 +255,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(
 		try {
 			extractItems(Config, filesList, outputDir, lpBase, false, arcLog);
 		} catch (const LF_EXCEPTION& e) {
-			arcLog.overallResult = LF_RESULT::NG;
+			arcLog.logException(e);
 			for(const auto &toDelete : filesList){
 				//失敗したので削除
 				std::filesystem::path path=outputDir;

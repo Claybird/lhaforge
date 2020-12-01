@@ -57,7 +57,7 @@ public:
 
 		m_bAllOK = true;
 		for (const auto &log : m_LogArray) {
-			if (log.overallResult != LF_RESULT::OK) {
+			if (log._overallResult != LF_RESULT::OK) {
 				m_bAllOK = false;
 				break;
 			}
@@ -164,7 +164,7 @@ protected:
 		case COLUMN_RESULTS:
 			if (pstLVDInfo->item.mask & LVIF_TEXT) {
 				WORD wCaption = -1;
-				switch (log.overallResult) {
+				switch (log._overallResult) {
 				case LF_RESULT::OK:
 					wCaption = IDS_LOGINFO_RESULT_OK;
 					break;
@@ -221,7 +221,7 @@ protected:
 				break;
 			case COLUMN_RESULTS:
 				std::sort(m_LogArray.begin(), m_LogArray.end(), [](const ARCLOG &x, const ARCLOG &y) {
-					return (x.overallResult < y.overallResult);
+					return (x._overallResult < y._overallResult);
 				});
 				break;
 			default:
@@ -249,7 +249,7 @@ public:
 		if (lpnmcd->hdr.idFrom == IDC_LIST_LOGINFO_ITEMS) {
 			//change color to indicate results
 			LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
-			switch (m_LogArray[lpnmcd->dwItemSpec].overallResult) {
+			switch (m_LogArray[lpnmcd->dwItemSpec]._overallResult) {
 			case LF_RESULT::CANCELED:	//FALLTHROUGH
 			case LF_RESULT::NG:
 				lpnmlv->clrText = RGB(0, 0, 0);

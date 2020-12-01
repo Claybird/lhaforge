@@ -36,34 +36,6 @@ enum class LF_RESULT {
 	NOTIMPL,//not implemented
 };
 
-struct ARCLOG{
-	virtual ~ARCLOG(){}
-	void setArchivePath(const std::wstring& archivePath) {
-		_archivePath = archivePath;
-		_archiveFilename = std::filesystem::path(archivePath).filename().generic_wstring().c_str();
-	}
-	std::wstring _archivePath;
-	std::wstring _archiveFilename;
-	LF_RESULT overallResult;
-
-	struct LOGENTRY {
-		std::wstring entryPath;
-		std::wstring message;
-	};
-	std::vector<LOGENTRY> logs;
-	void operator()(const std::wstring& entryPath, const std::wstring& message) {
-		LOGENTRY e = { entryPath,message };
-		logs.push_back(e);
-	}
-	std::wstring toString()const {
-		std::wstring out;
-		for (const auto& log : logs) {
-			out += log.entryPath + L" -> " + log.message + L"\r\n";
-		}
-		return out;
-	}
-};
-
 
 enum LOGVIEW{
 	LOGVIEW_ON_ERROR,
@@ -621,3 +593,46 @@ struct ARCHIVE_FILE_TO_WRITE
 		//, as it is called automatically by archive_write_next_header() and archive_write_close() as needed. 
 	}
 };
+
+struct ARCLOG {
+	ARCLOG() :_overallResult(LF_RESULT::OK) {}
+	virtual ~ARCLOG() {}
+	void setArchivePath(const std::wstring& archivePath) {
+		_archivePath = archivePath;
+		_archiveFilename = std::filesystem::path(archivePath).filename().generic_wstring().c_str();
+	}
+	std::wstring _archivePath;
+	std::wstring _archiveFilename;
+	LF_RESULT _overallResult;
+
+	struct LOGENTRY {
+		std::wstring entryPath;
+		std::wstring message;
+	};
+	std::vector<LOGENTRY> logs;
+
+	void operator()(const std::wstring& entryPath, const std::wstring& message) {
+		LOGENTRY e = { entryPath,message };
+		logs.push_back(e);
+	}
+	std::wstring toString()const {
+		std::wstring out;
+		for (const auto& log : logs) {
+			out += log.entryPath + L" -> " + log.message + L"\r\n";
+		}
+		return out;
+	}
+	void logException(const LF_USER_CANCEL_EXCEPTION& e) {
+		_overallResult = LF_RESULT::CANCELED;
+		operator()(L"", e.what());
+	}
+	void logException(const LF_EXCEPTION& e) {
+		_overallResult = LF_RESULT::NG;
+		operator()(L"", e.what());
+	}
+	void logException(const ARCHIVE_EXCEPTION& e) {
+		_overallResult = LF_RESULT::NOTARCHIVE;
+		operator()(L"", e.what());
+	}
+};
+

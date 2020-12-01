@@ -478,18 +478,17 @@ bool GUI_extract_multiple_files(
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
 			extractOneArchive(archive_path, output_dir, arcLog, preExtractHandler, progressHandler);
-			arcLog.overallResult = LF_RESULT::OK;
-		} catch (const LF_USER_CANCEL_EXCEPTION&) {
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::CANCELED;
+			arcLog.logException(e);
 			break;
-		} catch (const ARCHIVE_EXCEPTION&) {
+		} catch (const ARCHIVE_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::NOTARCHIVE;
+			arcLog.logException(e);
 			continue;
-		} catch (const LF_EXCEPTION&) {
+		} catch (const LF_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::NG;
+			arcLog.logException(e);
 			continue;
 		}
 
@@ -522,7 +521,7 @@ bool GUI_extract_multiple_files(
 
 	bool bAllOK = true;
 	for (const auto& log : logs) {
-		bAllOK = bAllOK && (log.overallResult == LF_RESULT::OK);
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
 	}
 	//---display logs
 	bool displayLog = false;
@@ -651,25 +650,24 @@ bool GUI_test_multiple_files(
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
 			testOneArchive(archive_path, arcLog, progressHandler, LF_passphrase_callback);
-			arcLog.overallResult = LF_RESULT::OK;
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::CANCELED;
+			arcLog.logException(e);
 			break;
 		} catch (const ARCHIVE_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::NOTARCHIVE;
+			arcLog.logException(e);
 			continue;
 		} catch (const LF_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
-			arcLog.overallResult = LF_RESULT::NG;
+			arcLog.logException(e);
 			continue;
 		}
 	}
 
 	bool bAllOK = true;
 	for (const auto& log : logs) {
-		bAllOK = bAllOK && (log.overallResult == LF_RESULT::OK);
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
 	}
 	// close progress bar
 	if (dlg.IsWindow())dlg.DestroyWindow();
