@@ -90,7 +90,7 @@ public:
 		std::vector<std::wstring> files;
 		for (const auto& item: items) {
 			std::filesystem::path path = outputDir;
-			path /= item->getRelativePath(lpBase);
+			path /= item->getFullpath();
 			files.push_back(UtilPathRemoveLastSeparator(path));
 		}
 		std::sort(files.begin(), files.end());
@@ -107,8 +107,7 @@ public:
 			createMedium(CF_HDROP, hObject, &fmt, &medium);
 
 			if (dataObject.SetData(&fmt, &medium, TRUE) == S_OK) {
-				std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
-				CLFDropSource *lpDropSource = new CLFDropSource(rModel, itemsTmp, outputDir, lpBase);
+				CLFDropSource *lpDropSource = new CLFDropSource(rModel, items, outputDir, lpBase);
 				DWORD dwEffect;
 				auto ret = ::DoDragDrop(&dataObject, lpDropSource, DROPEFFECT_COPY, &dwEffect);
 				if (DRAGDROP_S_DROP != ret) {

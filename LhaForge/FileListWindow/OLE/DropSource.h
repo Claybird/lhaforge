@@ -87,13 +87,13 @@ public:
 		}else if ((grfKeyState & (MK_LBUTTON | MK_RBUTTON)) == 0) {
 			// dropped, then extract
 			if (DROPEFFECT_NONE != _dwEffect) {
-				std::vector<std::wstring> dummyList;
+				std::vector<std::wstring> extractedFiles;
 				_bRet = _rModel.MakeSureItemsExtracted(
 					_outputDir.c_str(),
 					true,
 					_lpBase,
 					_items,
-					dummyList,
+					extractedFiles,
 					_strLog);
 				if (!_bRet) {
 					return DRAGDROP_S_CANCEL;
