@@ -125,7 +125,7 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 	return found;
 }
 
-
+//extracts one entry; for directories, caller should expand and add children to items
 void CArchiveFileContent::extractItems(
 	CConfigManager &Config,
 	const std::vector<ARCHIVE_ENTRY_INFO*> &items,
@@ -228,6 +228,7 @@ bool CArchiveFileContent::MakeSureItemsExtracted(
 			// 上書き解凍するので、存在するファイルは削除
 			if(lpNode->isDirectory()){
 				if (std::filesystem::is_directory(path))UtilDeleteDir(path, true);
+				collectUnextractedFiles(outputDir, lpBase, lpNode, toExtractList);
 			}else{
 				if (std::filesystem::is_regular_file(path))UtilDeletePath(path);
 			}
