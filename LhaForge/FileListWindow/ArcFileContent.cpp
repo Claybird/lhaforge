@@ -199,6 +199,10 @@ void CArchiveFileContent::collectUnextractedFiles(const std::wstring& outputDir,
 		}else if(!std::filesystem::is_regular_file(path)){
 			// キャッシュが存在しないので、解凍要請リストに加える
 			toExtractList[lpParent].push_back(lpNode);
+			if (lpNode->isDirectory()) {
+				//is a directory, but does not exist
+				collectUnextractedFiles(outputDir, lpBase, lpNode, toExtractList);
+			}
 		}
 	}
 }
