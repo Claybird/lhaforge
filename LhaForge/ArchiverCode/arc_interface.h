@@ -524,19 +524,28 @@ struct ARCHIVE_FILE_TO_WRITE
 		LF_ARCHIVE_FORMAT fmt,
 		const std::map<std::string, std::string> &archive_options,
 		archive_passphrase_callback passphrase_callback) {
-		close();
-		_arc = archive_write_new();
 		const auto& cap = get_archive_capability(fmt);
 
 		int la_filter = cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK;
-		if (la_filter != ARCHIVE_FILTER_NONE) {
-			int r = archive_write_add_filter(_arc, la_filter);
+		int la_fmt = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
+
+		write_open_la(arcname, la_fmt, { la_filter }, archive_options, passphrase_callback);
+	}
+	void write_open_la(const std::wstring& arcname,
+		int la_fmt,
+		const std::vector<int> &filters,
+		const std::map<std::string, std::string> &archive_options,
+		archive_passphrase_callback passphrase_callback) {
+		close();
+		_arc = archive_write_new();
+
+		for(auto f: filters){
+			int r = archive_write_add_filter(_arc, f);
 			if (r < ARCHIVE_OK) {
 				throw ARCHIVE_EXCEPTION(_arc);
 			}
 		}
 
-		int la_fmt = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
 		int r = archive_write_set_format(_arc, la_fmt);
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
@@ -547,7 +556,7 @@ struct ARCHIVE_FILE_TO_WRITE
 		if (r < ARCHIVE_OK) {
 			throw ARCHIVE_EXCEPTION(_arc);
 		}
-		for(auto &ite: archive_options){
+		for (auto &ite : archive_options) {
 			int r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
 			if (r < ARCHIVE_OK) {
 				throw ARCHIVE_EXCEPTION(_arc);
