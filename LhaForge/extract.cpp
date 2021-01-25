@@ -555,7 +555,7 @@ void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
-	archive_passphrase_callback passphrase_callback
+	std::function<const char*(struct archive*, LF_PASSPHRASE&)> passphrase_callback
 ) {
 	ARCHIVE_FILE_TO_READ arc;
 	arc.read_open(archive_path, passphrase_callback);

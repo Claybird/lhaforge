@@ -229,17 +229,19 @@ struct LF_PASSPHRASE {
 		std::wstring raw;
 		std::string utf8;
 	}_storage;
-	std::function<const char*(struct archive * arc, void *_client_data)> _callback;
+	std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> _callback;
 
 	LF_PASSPHRASE() : _callback(nullptr) {}
 	virtual ~LF_PASSPHRASE() {}
-	void setCallback(archive_passphrase_callback callback) { _callback = callback; }
+	void setCallback(std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> callback) {
+		_callback = callback;
+	}
 
 	static const char* wrapper(struct archive * arc, void *_client_data) {
 		//when callback returns nullptr, it should be handled as "user cancel"
 		LF_PASSPHRASE *pf = (LF_PASSPHRASE*)_client_data;
 		if (pf && pf->_callback) {
-			auto out = pf->_callback(arc, _client_data);
+			auto out = pf->_callback(arc, *pf);
 			if (out) {
 				return out;
 			} else {
@@ -268,7 +270,7 @@ struct ARCHIVE_FILE_TO_READ
 		close();
 	}
 	void read_open(const std::wstring& arcname,
-		archive_passphrase_callback passphrase_callback) {
+		std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> passphrase_callback) {
 		_passphrase.setCallback(passphrase_callback);
 
 		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
@@ -523,7 +525,7 @@ struct ARCHIVE_FILE_TO_WRITE
 	void write_open(const std::wstring& arcname,
 		LF_ARCHIVE_FORMAT fmt,
 		const std::map<std::string, std::string> &archive_options,
-		archive_passphrase_callback passphrase_callback) {
+		std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> passphrase_callback) {
 		const auto& cap = get_archive_capability(fmt);
 
 		int la_filter = cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK;
@@ -535,7 +537,7 @@ struct ARCHIVE_FILE_TO_WRITE
 		int la_fmt,
 		const std::vector<int> &filters,
 		const std::map<std::string, std::string> &archive_options,
-		archive_passphrase_callback passphrase_callback) {
+		std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> passphrase_callback) {
 		close();
 		_arc = archive_write_new();
 

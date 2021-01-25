@@ -533,7 +533,7 @@ TEST(compress, compressOneArchive)
 			const std::wstring& path_on_disk,
 			UINT64 currentSize,
 			UINT64 totalSize)> progressHandler,
-		archive_passphrase_callback passphrase_callback
+		std::function<const char*(struct archive*, LF_PASSPHRASE&)> passphrase_callback
 	);
 	//delete directory
 	std::filesystem::path source_dir = UtilGetTempPath() + L"lhaforge_test/compress";
@@ -596,10 +596,10 @@ TEST(compress, compressOneArchive)
 
 		auto la_options = getLAOptionsFromConfig(fake_args, p.format, p.options);
 
-		auto null_passphrase_callback = [](struct archive *, void *_client_data) ->const char* {
+		auto null_passphrase_callback = [](struct archive *, LF_PASSPHRASE&) ->const char* {
 			return nullptr;
 		};
-		auto passphrase_callback = [](struct archive *, void *_client_data) ->const char* {
+		auto passphrase_callback = [](struct archive *, LF_PASSPHRASE&) ->const char* {
 			return "password";
 		};
 

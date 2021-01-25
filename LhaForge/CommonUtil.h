@@ -94,5 +94,5 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath);
 
 void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files);
 
-const char* LF_passphrase_callback(struct archive *,void *_client_data);
+const char* LF_passphrase_callback(struct archive *, LF_PASSPHRASE &pf);
 
