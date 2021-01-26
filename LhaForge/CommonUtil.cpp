@@ -373,7 +373,7 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 
 #include "Dialogs/TextInputDlg.h"
 
-const char* LF_passphrase_callback(struct archive *, LF_PASSPHRASE &pf)
+const char* LF_passphrase_input(struct archive *, LF_PASSPHRASE &pf)
 {
 	//TODO: use more sophisticated dialog
 	CTextInputDialog dlg(L"Enter passphrase");
