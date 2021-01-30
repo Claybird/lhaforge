@@ -260,10 +260,7 @@ struct ARCHIVE_FILE_TO_READ
 	LF_PASSPHRASE _passphrase;
 	const ARCHIVE_FILE_TO_READ& operator=(const ARCHIVE_FILE_TO_READ&) = delete;
 
-	ARCHIVE_FILE_TO_READ() {
-		_arc = archive_read_new();
-		archive_read_support_filter_all(_arc);
-		archive_read_support_format_all(_arc);
+	ARCHIVE_FILE_TO_READ():_arc(nullptr) {
 	}
 	ARCHIVE_FILE_TO_READ(const ARCHIVE_FILE_TO_READ&) = delete;
 	virtual ~ARCHIVE_FILE_TO_READ() {
@@ -272,6 +269,9 @@ struct ARCHIVE_FILE_TO_READ
 	void read_open(const std::wstring& arcname,
 		std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> passphrase_callback) {
 		close();
+		_arc = archive_read_new();
+		archive_read_support_filter_all(_arc);
+		archive_read_support_format_all(_arc);
 		_passphrase.setCallback(passphrase_callback);
 
 		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
