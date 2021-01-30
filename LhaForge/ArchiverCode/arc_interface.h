@@ -271,6 +271,7 @@ struct ARCHIVE_FILE_TO_READ
 	}
 	void read_open(const std::wstring& arcname,
 		std::function<const char*(struct archive * arc, LF_PASSPHRASE&)> passphrase_callback) {
+		close();
 		_passphrase.setCallback(passphrase_callback);
 
 		int r = archive_read_set_passphrase_callback(_arc, &_passphrase, _passphrase.wrapper);
