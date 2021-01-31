@@ -670,3 +670,42 @@ TEST(compress, GUI_compress_multiple_files)
 */
 #endif
 
+
+TEST(compress, mimic_archive_property)
+{
+	std::tuple<int/*la_format*/, std::vector<int>/*filters*/>
+		mimic_archive_property(ARCHIVE_FILE_TO_READ& src_archive);
+
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
+		ARCHIVE_FILE_TO_READ src;
+		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		auto[la_format, filters] = mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
+		EXPECT_EQ(filters.size(), 1);
+		EXPECT_EQ(filters.back(), ARCHIVE_FILTER_NONE);
+	}
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test_gzip.gz";
+		ARCHIVE_FILE_TO_READ src;
+		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		auto[la_format, filters] = mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+	}
+}
+/*
+TEST(compress, copyArchive)
+{
+	void copyArchive(
+		CConfigManager& mngr,
+		const std::wstring& dest_filename,
+		ARCHIVE_FILE_TO_WRITE& dest,
+		const std::wstring& src_filename,
+		std::function<bool(LF_ARCHIVE_ENTRY*)> false_if_skip);
+
+	TODO
+}
+*/

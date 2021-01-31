@@ -358,7 +358,7 @@ void compressOneArchive(
 		const std::wstring& path_on_disk,
 		UINT64 currentSize,
 		UINT64 totalSize)> progressHandler,
-	archive_passphrase_callback passphrase_callback
+	std::function<const char*(struct archive*, LF_PASSPHRASE&)> passphrase_callback
 ) {
 	ARCHIVE_FILE_TO_WRITE archive;
 	archive.write_open(output_archive, format, archive_options, passphrase_callback);
@@ -396,6 +396,9 @@ void compressOneArchive(
 				archive.add_directory(entry);
 			}
 			arcLog(output_archive, L"OK");
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
+			arcLog(output_archive, e.what());
+			throw e;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog(output_archive, e.what());
 			throw e;
@@ -408,21 +411,20 @@ void compressOneArchive(
 }
 
 std::map<std::string, std::string> getLAOptionsFromConfig(
-	LF_COMPRESS_ARGS &args,
-	LF_ARCHIVE_FORMAT format,
-	LF_WRITE_OPTIONS options)
+	int la_format,
+	const std::vector<int> &la_filters,
+	bool encrypt,
+	CConfigManager &mngr)
 {
-	const auto& cap = get_archive_capability(format);
-
 	std::map<std::string, std::string> params;
 	//formats
-	switch (cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK) {
+	switch (la_format & ARCHIVE_FORMAT_BASE_MASK) {
 	case ARCHIVE_FORMAT_ZIP:
 	{
 		CConfigCompressFormatZIP conf;
-		conf.load(args.mngr);
+		conf.load(mngr);
 		params.merge(conf.params);
-		if (!(options & LF_WOPT_DATA_ENCRYPTION)) {
+		if (!encrypt) {
 			params.erase("encryption");
 		}
 	}
@@ -430,14 +432,14 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	case ARCHIVE_FORMAT_7ZIP:
 	{
 		CConfigCompressFormat7Z conf;
-		conf.load(args.mngr);
+		conf.load(mngr);
 		params.merge(conf.params);
 	}
 	break;
 	case ARCHIVE_FORMAT_TAR:
 	{
 		CConfigCompressFormatTAR conf;
-		conf.load(args.mngr);
+		conf.load(mngr);
 		params = conf.params;
 	}
 	break;
@@ -449,46 +451,61 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	}
 
 	//filters
-	switch (cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK) {
-	case ARCHIVE_FILTER_GZIP:
-	{
-		CConfigCompressFormatGZ conf;
-		conf.load(args.mngr);
-		params.merge(conf.params);
+	for (auto la_filter : la_filters) {
+		switch (la_filter & ~ARCHIVE_FORMAT_BASE_MASK) {
+		case ARCHIVE_FILTER_GZIP:
+		{
+			CConfigCompressFormatGZ conf;
+			conf.load(mngr);
+			params.merge(conf.params);
+		}
+		break;
+		case ARCHIVE_FILTER_BZIP2:
+		{
+			CConfigCompressFormatBZ2 conf;
+			conf.load(mngr);
+			params.merge(conf.params);
+		}
+		break;
+		case ARCHIVE_FILTER_LZMA:
+		{
+			CConfigCompressFormatLZMA conf;
+			conf.load(mngr);
+			params.merge(conf.params);
+		}
+		break;
+		case ARCHIVE_FILTER_XZ:
+		{
+			CConfigCompressFormatXZ conf;
+			conf.load(mngr);
+			params.merge(conf.params);
+		}
+		break;
+		case ARCHIVE_FILTER_ZSTD:
+		{
+			CConfigCompressFormatZSTD conf;
+			conf.load(mngr);
+			params.merge(conf.params);
+		}
+		break;
+		}
 	}
-	break;
-	case ARCHIVE_FILTER_BZIP2:
-	{
-		CConfigCompressFormatBZ2 conf;
-		conf.load(args.mngr);
-		params.merge(conf.params);
-	}
-	break;
-	case ARCHIVE_FILTER_LZMA:
-	{
-		CConfigCompressFormatLZMA conf;
-		conf.load(args.mngr);
-		params.merge(conf.params);
-	}
-	break;
-	case ARCHIVE_FILTER_XZ:
-	{
-		CConfigCompressFormatXZ conf;
-		conf.load(args.mngr);
-		params.merge(conf.params);
-	}
-	break;
-	case ARCHIVE_FILTER_ZSTD:
-	{
-		CConfigCompressFormatZSTD conf;
-		conf.load(args.mngr);
-		params.merge(conf.params);
-	}
-	break;
-	}
-
 	return params;
 }
+
+std::map<std::string, std::string> getLAOptionsFromConfig(
+	LF_COMPRESS_ARGS &args,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options)
+{
+	const auto& cap = get_archive_capability(format);
+	int la_format = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
+	std::vector<int> la_filters = { cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK };
+
+	bool encrypt = (options & LF_WOPT_DATA_ENCRYPTION) != 0;
+	return getLAOptionsFromConfig(la_format, la_filters, encrypt, args.mngr);
+}
+
 
 void compress_helper(
 	const std::vector<std::wstring> &givenFiles,
@@ -501,7 +518,7 @@ void compress_helper(
 		const std::wstring& path_on_disk,
 		UINT64 currentSize,
 		UINT64 totalSize)> &progressHandler,
-	archive_passphrase_callback passphraseHandler
+	std::function<const char*(struct archive*, LF_PASSPHRASE&)> passphraseHandler
 	)
 {
 	// get common path for base path
@@ -694,7 +711,7 @@ bool GUI_compress_multiple_files(
 					logs.back(),
 					args,
 					progressHandler,
-					LF_passphrase_callback
+					LF_passphrase_input
 				);
 				if (dlg.isAborted()) {
 					CANCEL_EXCEPTION();
@@ -721,7 +738,7 @@ bool GUI_compress_multiple_files(
 				logs.back(),
 				args,
 				progressHandler,
-				LF_passphrase_callback
+				LF_passphrase_input
 			);
 		} catch (const LF_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
@@ -798,4 +815,85 @@ const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT 
 		}
 	}
 	throw ARCHIVE_EXCEPTION(EINVAL);
+}
+
+//get most similar option
+std::tuple<int/*la_format*/, std::vector<int>/*filters*/>
+mimic_archive_property(ARCHIVE_FILE_TO_READ& src_archive) {
+	src_archive.begin();	//need to scan
+	int la_format = archive_format(src_archive);
+
+	std::vector<int> filters;
+	auto filter_count = archive_filter_count(src_archive);
+	for (int i = 0; i < filter_count; i++) {
+		auto code = archive_filter_code(src_archive, i);
+		filters.push_back(code);
+	}
+
+	return { la_format, filters };
+}
+
+//-----
+//read from source, write to new
+//this would need overhead of extract on read and compress on write
+//there seems no way to get raw data
+void copyArchive(
+	CConfigManager& mngr,
+	const std::wstring& dest_filename,
+	ARCHIVE_FILE_TO_WRITE& dest,
+	const std::wstring& src_filename,
+	std::function<bool(LF_ARCHIVE_ENTRY*)> false_if_skip)
+{
+	//- open the source archive
+	bool is_src_encrypted = false;
+	std::string passphrase;
+
+	//- scan for archive status
+	ARCHIVE_FILE_TO_READ src;
+	src.read_open(src_filename, [&](struct archive *a, LF_PASSPHRASE& pf) ->const char* {
+		is_src_encrypted = true;
+		auto p = LF_passphrase_input(a, pf);
+		if (p) {
+			passphrase = p;
+		} else {
+			CANCEL_EXCEPTION();
+		}
+		return p;
+	});
+	for (LF_ARCHIVE_ENTRY* entry = src.begin(); entry; entry = src.next()) {
+		if (entry->is_encrypted() || is_src_encrypted) {
+			break;
+		}
+	}
+
+	auto [la_format, filters] = mimic_archive_property(src);
+
+	//- open an output archive in most similar option
+	LF_COMPRESS_ARGS args;
+	parseCompressOption(args, nullptr);	//TODO:command line args are ignored
+	auto options = getLAOptionsFromConfig(la_format, filters, is_src_encrypted, mngr);
+	dest.write_open_la(dest_filename, la_format, filters, options, [&](struct archive*,LF_PASSPHRASE&) {return passphrase.c_str(); });
+
+	//- reopen for reading with new callback
+	src.close();
+	src.read_open(src_filename, [&](struct archive *a, LF_PASSPHRASE& pf) ->const char* {
+		return passphrase.c_str();
+	});
+
+	//- then, copy entries if filter returns true
+	for (LF_ARCHIVE_ENTRY* entry = src.begin(); entry; entry = src.next()) {
+		if (false_if_skip(entry)) {
+			if (entry->is_dir()) {
+				dest.add_directory(*entry);
+			} else {
+				dest.add_entry(*entry, [&]() {
+					while (UtilDoMessageLoop())continue;	//TODO
+					//TODO progress handler
+					return src.read_block();
+				});
+			}
+		}
+	}
+
+	//- copy finished. now the caller can add extra files
 }
