@@ -695,6 +695,16 @@ TEST(compress, mimic_archive_property)
 		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
 		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
 	}
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test.tar.gz";
+		ARCHIVE_FILE_TO_READ src;
+		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		auto[la_format, filters] = mimic_archive_property(src);
+		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+	}
 }
 /*
 TEST(compress, copyArchive)
