@@ -680,6 +680,7 @@ TEST(compress, mimic_archive_property)
 		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
 		ARCHIVE_FILE_TO_READ src;
 		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		src.begin();	//need to scan
 		auto[la_format, filters] = mimic_archive_property(src);
 		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
 		EXPECT_EQ(filters.size(), 1);
@@ -689,6 +690,7 @@ TEST(compress, mimic_archive_property)
 		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test_gzip.gz";
 		ARCHIVE_FILE_TO_READ src;
 		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		src.begin();	//need to scan
 		auto[la_format, filters] = mimic_archive_property(src);
 		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
 		EXPECT_EQ(filters.size(), 2);
@@ -699,6 +701,7 @@ TEST(compress, mimic_archive_property)
 		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test.tar.gz";
 		ARCHIVE_FILE_TO_READ src;
 		src.read_open(fileToRead, [&](archive*, LF_PASSPHRASE&) ->const char* {return nullptr; });
+		src.begin();	//need to scan
 		auto[la_format, filters] = mimic_archive_property(src);
 		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
 		EXPECT_EQ(filters.size(), 2);
@@ -706,7 +709,7 @@ TEST(compress, mimic_archive_property)
 		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
 	}
 }
-/*
+
 TEST(compress, copyArchive)
 {
 	void copyArchive(
@@ -716,6 +719,40 @@ TEST(compress, copyArchive)
 		const std::wstring& src_filename,
 		std::function<bool(LF_ARCHIVE_ENTRY*)> false_if_skip);
 
-	TODO
+	auto src_filename = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
+	auto tempFile = UtilGetTemporaryFileName();
+	CConfigManager mngr;
+	auto dummyIni = UtilGetTemporaryFileName();
+	mngr.setPath(dummyIni);
+	ARCHIVE_FILE_TO_WRITE dest;
+	copyArchive(mngr, tempFile, dest, src_filename, [](LF_ARCHIVE_ENTRY*) {return true; });
+	dest.close();
+
+	EXPECT_TRUE(ARCHIVE_FILE_TO_READ::isKnownFormat(tempFile));
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_copyArchive");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+
+	ARCLOG arcLog;
+	EXPECT_NO_THROW(
+		extractOneArchive(tempFile, tempDir, arcLog,
+			[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry) {return overwrite_options::abort; },
+			[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {}
+	));
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
+
+	UtilDeleteDir(tempDir, true);
+
+	UtilDeletePath(tempFile);
+	UtilDeletePath(dummyIni);
 }
-*/

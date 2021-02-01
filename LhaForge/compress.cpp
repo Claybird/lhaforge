@@ -820,7 +820,6 @@ const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT 
 //get most similar option
 std::tuple<int/*la_format*/, std::vector<int>/*filters*/>
 mimic_archive_property(ARCHIVE_FILE_TO_READ& src_archive) {
-	src_archive.begin();	//need to scan
 	int la_format = archive_format(src_archive);
 
 	std::vector<int> filters;
