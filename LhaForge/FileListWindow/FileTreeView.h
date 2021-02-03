@@ -92,7 +92,7 @@ protected:
 	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID);
 	bool OnSendToApp(UINT nID);
 	void OnExtractItem(UINT,int nID,HWND);
-	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items);
+	void GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*> &items);
 	void OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	bool OpenAssociation(bool bOverwrite,bool bOpen);

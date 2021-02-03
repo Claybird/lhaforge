@@ -380,16 +380,42 @@ HRESULT CArchiveFileContent::AddItem(const std::vector<std::wstring> &fileList,L
 	return S_OK;
 }
 
-bool CArchiveFileContent::DeleteItems(CConfigManager &Config,const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
+bool CArchiveFileContent::DeleteItems(
+	CConfigManager &rConfig,
+	const std::vector<ARCHIVE_ENTRY_INFO*> &fileList,
+	CString &strLog)
 {
-	//TODO
-	RAISE_EXCEPTION(L"NOT INMPELEMTED");
-	return false;
-/*	//削除対象を列挙
-	std::list<CString> filesToDel;
-	for(std::list<ARCHIVE_ENTRY_INFO*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		(*ite)->EnumFiles(filesToDel);
+	std::unordered_set<std::wstring> fileList_lower_case;
+	for (const auto &file : fileList) {
+		fileList_lower_case.insert(
+			toLower(std::filesystem::path(file->getFullpath()).lexically_normal()
+			));
 	}
-	return m_lpArchiver->DeleteItemFromArchive(m_pathArchive,Config,filesToDel,strLog);*/
+
+	ARCLOG arcLog;	//TODO
+
+	//read from source, write to new
+	//this would need overhead of extract on read and compress on write
+	//there seems no way to get raw data
+
+	auto tempFile = UtilGetTemporaryFileName();
+	ARCHIVE_FILE_TO_WRITE dest;
+	copyArchive(
+		rConfig,
+		tempFile,
+		dest,
+		m_pathArchive,
+		[&](LF_ARCHIVE_ENTRY* entry) {
+		std::wstring path = std::filesystem::path(entry->get_pathname()).lexically_normal();
+		if (isIn(fileList_lower_case, toLower(path))) {
+			return false;
+		} else {
+			return true;
+		}
+	});
+	dest.close();
+	UtilDeletePath(m_pathArchive);
+	std::filesystem::rename(tempFile, m_pathArchive);
+	return true;
 }
 

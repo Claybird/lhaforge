@@ -330,7 +330,7 @@ void CFileListModel::EndFindItem()
 	}
 }
 
-HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::list<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog)
+HRESULT CFileListModel::ExtractItems(HWND hWnd,bool bSameDir,const std::vector<ARCHIVE_ENTRY_INFO*> &items,const ARCHIVE_ENTRY_INFO* lpBase,CString &strLog)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(mr_Config);
@@ -385,7 +385,7 @@ HRESULT CFileListModel::AddItem(const std::vector<std::wstring> &fileList,LPCTST
 	return m_Content.AddItem(fileList,lpDestDir,mr_Config,strLog);
 }
 
-bool CFileListModel::DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
+bool CFileListModel::DeleteItems(const std::vector<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)
 {
 	return m_Content.DeleteItems(mr_Config,fileList,strLog);
 }

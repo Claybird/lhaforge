@@ -115,7 +115,7 @@ public:
 	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.getRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
-	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
+	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return true; }
 	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return true; }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
@@ -131,7 +131,7 @@ public:
 	HRESULT ExtractItems(
 		HWND hWnd,
 		bool bSameDir,
-		const std::list<ARCHIVE_ENTRY_INFO*> &items,
+		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
 		const ARCHIVE_ENTRY_INFO* lpBase,
 		CString &strLog);
 	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
@@ -147,7 +147,7 @@ public:
 		}
 		return m_Content.MakeSureItemsExtracted(mr_Config, lpOutputDir, bOverwrite, lpBase, items, r_extractedFiles, strLog);
 	}
-	bool DeleteItems(const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
+	bool DeleteItems(const std::vector<ARCHIVE_ENTRY_INFO*>&,CString&);
 
 	static void SetOpenAssocExtDeny(const std::wstring &extDeny){ms_strExtDeny=extDeny.c_str();}
 	static LPCTSTR GetOpenAssocExtDeny(){return ms_strExtDeny;}

@@ -337,7 +337,7 @@ LRESULT CFileTreeView::OnRClick(LPNMHDR lpNM)
 void CFileTreeView::OnContextMenu(HWND hWndCtrl,CPoint &Point)
 {
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	//何も選択していない、もしくはルートを選択した場合は表示しない
@@ -396,7 +396,7 @@ void CFileTreeView::OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	//選択されたファイルを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 
 	//ファイルが選択されていなければエラー
@@ -459,7 +459,7 @@ bool CFileTreeView::OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommand
 
 	//---選択解凍開始
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
 
@@ -528,7 +528,7 @@ bool CFileTreeView::OnSendToApp(UINT nID)	//「プログラムで開く」のハ
 
 	//---選択解凍開始
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
 
@@ -616,7 +616,7 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	if(items.empty()){
 		//選択されたファイルがない
@@ -643,7 +643,7 @@ void CFileTreeView::OnExtractItem(UINT,int nID,HWND)
 	}
 }
 
-void CFileTreeView::GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*> &items)
+void CFileTreeView::GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*> &items)
 {
 	items.clear();
 	HTREEITEM hItem=GetSelectedItem();
@@ -679,7 +679,7 @@ bool CFileTreeView::OpenAssociation(bool bOverwrite,bool bOpen)
 	}
 
 	//選択されたアイテムを列挙
-	std::list<ARCHIVE_ENTRY_INFO*> items;
+	std::vector<ARCHIVE_ENTRY_INFO*> items;
 	GetSelectedItems(items);
 	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
 

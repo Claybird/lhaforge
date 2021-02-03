@@ -153,7 +153,7 @@ public:
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}
 
-	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO*>&);
+	void GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*>&);
 	void EnableDropTarget(bool bEnable);
 	void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 };

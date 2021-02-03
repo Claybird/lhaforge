@@ -240,6 +240,6 @@ public:
 		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
 		std::vector<std::wstring> &r_extractedFiles,
 		std::wstring &strLog);
-	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO*>&,CString&);
+	bool DeleteItems(CConfigManager&,const std::vector<ARCHIVE_ENTRY_INFO*>&,CString&);
 };
 
