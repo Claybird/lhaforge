@@ -116,7 +116,7 @@ public:
 
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
 	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return false; }
-	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return false; }
+	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return true; }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮

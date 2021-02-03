@@ -116,7 +116,7 @@ public:
 
 			//get files
 			for (UINT i = 0; i < nFileCount; i++) {
-				auto size = ::DragQueryFileW((HDROP)medium.hGlobal, i, nullptr, 0);
+				auto size = ::DragQueryFileW((HDROP)medium.hGlobal, i, nullptr, 0) + 1;
 				std::vector<wchar_t> szBuffer(size);
 				::DragQueryFileW((HDROP)medium.hGlobal, i, &szBuffer[0], size);
 				files.push_back(&szBuffer[0]);

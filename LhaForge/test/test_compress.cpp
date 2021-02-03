@@ -668,7 +668,6 @@ TEST(compress, GUI_compress_multiple_files)
 	TODO;
 }
 */
-#endif
 
 
 TEST(compress, mimic_archive_property)
@@ -712,20 +711,19 @@ TEST(compress, mimic_archive_property)
 
 TEST(compress, copyArchive)
 {
-	void copyArchive(
-		CConfigManager& mngr,
-		const std::wstring& dest_filename,
-		ARCHIVE_FILE_TO_WRITE& dest,
-		const std::wstring& src_filename,
-		std::function<bool(LF_ARCHIVE_ENTRY*)> false_if_skip);
-
 	auto src_filename = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
 	auto tempFile = UtilGetTemporaryFileName();
 	CConfigManager mngr;
 	auto dummyIni = UtilGetTemporaryFileName();
 	mngr.setPath(dummyIni);
 	ARCHIVE_FILE_TO_WRITE dest;
-	copyArchive(mngr, tempFile, dest, src_filename, [](LF_ARCHIVE_ENTRY*) {return true; });
+	copyArchive(mngr, tempFile, dest, src_filename, [](LF_ARCHIVE_ENTRY* entry) {
+		if (std::wstring(entry->get_pathname()).find(L"dirC") == std::wstring::npos) {
+			return true;
+		} else {
+			return false;
+		}
+	});
 	dest.close();
 
 	EXPECT_TRUE(ARCHIVE_FILE_TO_READ::isKnownFormat(tempFile));
@@ -745,8 +743,8 @@ TEST(compress, copyArchive)
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
-	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
-	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_FALSE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_FALSE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
@@ -756,3 +754,4 @@ TEST(compress, copyArchive)
 	UtilDeletePath(tempFile);
 	UtilDeletePath(dummyIni);
 }
+#endif

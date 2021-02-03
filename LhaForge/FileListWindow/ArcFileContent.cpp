@@ -29,6 +29,7 @@
 #include "Utilities/Utility.h"
 #include "Dialogs/ProgressDlg.h"
 #include "extract.h"
+#include "compress.h"
 #include "CommonUtil.h"
 #include "ArcFileContent.h"
 
@@ -41,7 +42,7 @@ void CArchiveFileContent::inspectArchiveStruct(
 	m_pRoot = std::make_shared<ARCHIVE_ENTRY_INFO>();
 
 	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archiveName, LF_passphrase_callback);
+	arc.read_open(archiveName, LF_passphrase_input);
 
 	bool bEncrypted = false;
 	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
@@ -140,7 +141,7 @@ void CArchiveFileContent::extractItems(
 	dlg.Create(nullptr);
 	dlg.ShowWindow(SW_SHOW);
 
-	arc.read_open(m_pathArchive, LF_passphrase_callback);
+	arc.read_open(m_pathArchive, LF_passphrase_input);
 
 	std::unordered_map<std::wstring, ARCHIVE_ENTRY_INFO*> unextracted;
 	for (const auto &item : items) {
@@ -280,24 +281,103 @@ bool CArchiveFileContent::MakeSureItemsExtracted(
 
 HRESULT CArchiveFileContent::AddItem(const std::vector<std::wstring> &fileList,LPCTSTR lpDestDir,CConfigManager& rConfig,CString &strLog)
 {
-	//---ファイル名チェック
-	for(const auto &file: fileList){
-		if(0==_wcsicmp(m_pathArchive.c_str(), file.c_str())){
-			//アーカイブ自身を追加しようとした
+	for (const auto &file : fileList) {
+		if (0 == _wcsicmp(file.c_str(), m_pathArchive.c_str())) {
+			//tried to compress archive itself
+			//TODO:this could be acceptable
 			return E_LF_SAME_INPUT_AND_OUTPUT;
 		}
 	}
 
-	//TODO
-	RAISE_EXCEPTION(L"NOT INMPELEMTED");
-	return E_NOTIMPL;
-/*	//---追加
-	//基底ディレクトリ取得などはCArchiverDLL側に任せる
-	if(m_lpArchiver->AddItemToArchive(m_pathArchive,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
-		return S_OK;
-	}else{
-		return S_FALSE;
-	}*/
+	std::unordered_set<std::wstring> fileList_lower_case;
+	for (const auto &file : fileList) {
+		auto entryPath = lpDestDir / std::filesystem::path(file).filename();
+		fileList_lower_case.insert(toLower(entryPath));
+	}
+
+	ARCLOG arcLog;	//TODO
+
+	//read from source, write to new
+	//this would need overhead of extract on read and compress on write
+	//there seems no way to get raw data
+
+	auto tempFile = UtilGetTemporaryFileName();
+	ARCHIVE_FILE_TO_WRITE dest;
+	copyArchive(
+		rConfig,
+		tempFile,
+		dest,
+		m_pathArchive,
+		[&](LF_ARCHIVE_ENTRY* entry) {
+			std::wstring path = entry->get_pathname();
+			if (isIn(fileList_lower_case, toLower(path))) {
+				return false;
+			} else {
+				return true;
+			}
+		});
+
+	//TODO: move to sub-function
+	for (const auto &file : fileList) {
+		try {
+			LF_ARCHIVE_ENTRY entry;
+			auto entryPath = lpDestDir / std::filesystem::path(file).filename();
+			entry.copy_file_stat(file, entryPath);
+			//progressHandler(tempFile, file, processed, total_filesize);
+
+			if (std::filesystem::is_regular_file(file)) {
+				RAW_FILE_READER provider;
+				provider.open(file);
+				dest.add_entry(entry, [&]() {
+					auto data = provider();
+					/*if (!data.is_eof()) {
+						progressHandler(
+							output_archive,
+							source.originalFullPath,
+							processed + data.offset,
+							source_files.total_filesize);
+					}*/
+					while (UtilDoMessageLoop())continue;
+					return data;
+				});
+
+				/*processed += std::filesystem::file_size(source.originalFullPath);
+				progressHandler(
+					output_archive,
+					source.originalFullPath,
+					processed,
+					source_files.total_filesize);*/
+			} else {
+				//directory
+				dest.add_directory(entry);
+			}
+			arcLog(tempFile, L"OK");
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
+			arcLog(tempFile, e.what());
+			dest.close();
+			UtilDeletePath(m_pathArchive);
+			//throw e;
+			return E_ABORT;	//TODO
+		} catch (const LF_EXCEPTION& e) {
+			arcLog(tempFile, e.what());
+			dest.close();
+			UtilDeletePath(m_pathArchive);
+			//throw e;
+			return E_FAIL;	//TODO
+		} catch (const std::filesystem::filesystem_error& e) {
+			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
+			arcLog(tempFile, msg);
+			dest.close();
+			UtilDeletePath(m_pathArchive);
+			//throw LF_EXCEPTION(msg);
+			return E_FAIL;	//TODO
+		}
+	}
+	dest.close();
+	UtilDeletePath(m_pathArchive);
+	std::filesystem::rename(tempFile, m_pathArchive);
+
+	return S_OK;
 }
 
 bool CArchiveFileContent::DeleteItems(CConfigManager &Config,const std::list<ARCHIVE_ENTRY_INFO*> &fileList,CString &strLog)

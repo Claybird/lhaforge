@@ -93,3 +93,11 @@ struct COMPRESS_SOURCES {
 	std::vector<PATH_PAIR> pathPair;
 	std::uintmax_t total_filesize;
 };
+
+void copyArchive(
+	CConfigManager& mngr,
+	const std::wstring& dest_filename,
+	ARCHIVE_FILE_TO_WRITE& dest,
+	const std::wstring& src_filename,
+	std::function<bool(LF_ARCHIVE_ENTRY*)> false_if_skip);
+
