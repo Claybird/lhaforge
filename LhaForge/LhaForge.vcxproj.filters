@@ -160,6 +160,9 @@
     <ClCompile Include="FileListWindow\MenuCommand.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiverCode\archive_libarchive.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -214,9 +217,6 @@
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ArchiverCode\arc_interface.h">
-      <Filter>ArchiverCode</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\AssocSettings.h">
       <Filter>Configs\Other</Filter>
@@ -382,6 +382,15 @@
     </ClInclude>
     <ClInclude Include="ConfigCode\ConfigCompressFormat.h">
       <Filter>Configs\ConfigStruct</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_base.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_libarchive.h">
+      <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

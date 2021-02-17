@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "Dlg_compress_general.h"
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "Dialogs/selectdlg.h"
 #include "compress.h"
 #include "Utilities/OSUtil.h"

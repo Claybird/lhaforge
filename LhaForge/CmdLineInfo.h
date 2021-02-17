@@ -37,7 +37,7 @@ enum PROCESS_MODE{
 };
 
 
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
 
 // command line arguments

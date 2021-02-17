@@ -27,7 +27,7 @@
 #include "../ConfigManager.h"
 #include "../../resource.h"
 #include "../ConfigCompress.h"
-#include "../../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 
 //====================================
 // 圧縮一般設定

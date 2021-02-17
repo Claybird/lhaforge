@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "ConfigManager.h"
 #include "ConfigCompress.h"
 #include "Utilities/FileOperation.h"

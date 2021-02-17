@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "configwnd.h"
 #include "Utilities/OSUtil.h"
 #include "FileListWindow/MenuCommand.h"

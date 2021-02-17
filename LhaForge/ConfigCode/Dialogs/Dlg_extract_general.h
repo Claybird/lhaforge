@@ -27,7 +27,7 @@
 #include "../ConfigManager.h"
 #include "../../resource.h"
 #include "../ConfigExtract.h"
-#include "../../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 
 //====================================
 // 解凍一般設定

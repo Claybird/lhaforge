@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 
 struct ARCHIVE_ENTRY_INFO;
 struct IArchiveContentUpdateHandler {

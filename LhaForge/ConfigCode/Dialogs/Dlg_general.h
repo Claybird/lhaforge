@@ -26,7 +26,7 @@
 #include "Dlg_Base.h"
 #include "../ConfigManager.h"
 #include "../../resource.h"
-#include "../../ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "../ConfigGeneral.h"
 
 //====================================

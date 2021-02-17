@@ -24,7 +24,7 @@
 
 #pragma once
 //Original code from http://hp.vector.co.jp/authors/VA016117/
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "FileListWindow/FileListModel.h"
 
 class CFileListModel;
