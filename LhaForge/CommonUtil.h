@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
 
 //設定から出力先フォルダを読み込む
@@ -94,5 +94,13 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath);
 
 void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files);
 
-const char* LF_passphrase_input(struct archive *, LF_PASSPHRASE &pf);
 
+struct CLFPassphraseGUI:public ILFPassphrase {
+	virtual ~CLFPassphraseGUI() {}
+	const char* operator()()override;
+};
+
+struct CLFPassphraseNULL:public ILFPassphrase {
+	virtual ~CLFPassphraseNULL() {}
+	const char* operator()()override { return nullptr; }
+};

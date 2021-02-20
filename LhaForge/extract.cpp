@@ -104,19 +104,14 @@ struct PRE_EXTRACT_CHECK {
 	std::wstring baseDirName;	//valid if allInOneDir is true
 
 	PRE_EXTRACT_CHECK() :allInOneDir(false) {}
-	void check(ARCHIVE_FILE_TO_READ &arc) {
+	void check(ILFArchiveFile &arc) {
 		bool bFirst = true;
 
-		for (auto entry = arc.begin(); entry != NULL; entry = arc.next()) {
-			std::wstring fname = entry->get_pathname();
-			fname = LF_sanitize_pathname(fname);
-			TRACE(L"%s\n", fname.c_str());
-
-			auto path_components = UtilSplitString(fname, L"/");
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			auto path = LF_sanitize_pathname(entry->path);
 			//to remove trailing '/'
-			//TODO: use UtilPathRemoveLastSeparator
-			remove_item_if(path_components, [](const std::wstring &s) {return s.empty(); });
-
+			path = UtilPathRemoveLastSeparator(path);
+			auto path_components = UtilSplitString(path, L"/");
 			if (path_components.empty())continue;
 
 			if (bFirst) {
@@ -134,7 +129,16 @@ struct PRE_EXTRACT_CHECK {
 	}
 };
 
+#ifdef UNIT_TEST
+#include <gtest/gtest.h>
+TEST(extract, PRE_EXTRACT_CHECK) {
+	//TODO
+}
+
+#endif
+
 std::wstring determineExtractDir(
+	ILFArchiveFile& arc,
 	const std::wstring& archive_path,
 	const std::wstring& output_base_dir,
 	const LF_EXTRACT_ARGS& args)
@@ -146,10 +150,8 @@ std::wstring determineExtractDir(
 		break;
 	case CREATE_OUTPUT_DIR_SINGLE:
 		if (args.extract.CreateNoFolderIfSingleFileOnly) {
-			ARCHIVE_FILE_TO_READ a;
-			a.read_open(archive_path, LF_passphrase_input);	//TODO: exception
 			PRE_EXTRACT_CHECK result;
-			result.check(a);
+			result.check(arc);
 			if (result.allInOneDir) {
 				needToCreateDir = false;
 			} else {
@@ -199,63 +201,67 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLI
 }
 
 #include "Dialogs/ConfirmOverwriteDlg.h"
-overwrite_options confirmOverwrite(
-	const std::wstring& extracting_file_path,
-	UINT64 extracting_file_size,
-	__time64_t extracting_file_mtime,
-	const std::wstring& existing_file_path,
-	UINT64 existing_file_size,
-	__time64_t existing_file_mtime
-	)
+overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)
 {
-	CConfirmOverwriteDialog dlg;
-	dlg.SetFileInfo(
-		extracting_file_path,
-		extracting_file_size,
-		extracting_file_mtime,
-		existing_file_path,
-		existing_file_size,
-		existing_file_mtime
-	);
-	auto ret = dlg.DoModal();
-	switch (ret) {
-	case IDC_BUTTON_EXTRACT_OVERWRITE:
+	if (std::filesystem::exists(pathToWrite)
+		&& std::filesystem::is_regular_file(pathToWrite)) {
+		if (defaultDecision == overwrite_options::not_defined) {
+			//file exists. overwrite?
+
+			//existing file
+			LF_ENTRY_STAT existing;
+			existing.read_file_stat(pathToWrite, pathToWrite);
+			CConfirmOverwriteDialog dlg;
+			dlg.SetFileInfo(
+				entry->path,entry->stat.st_size,entry->stat.st_mtime,
+				existing.path,existing.stat.st_size,existing.stat.st_mtime
+			);
+			auto ret = dlg.DoModal();
+			switch (ret) {
+			case IDC_BUTTON_EXTRACT_OVERWRITE:
+				return overwrite_options::overwrite;
+			case IDC_BUTTON_EXTRACT_OVERWRITE_ALL:
+				defaultDecision = overwrite_options::overwrite;
+				return overwrite_options::overwrite;
+			case IDC_BUTTON_EXTRACT_SKIP:
+				return overwrite_options::skip;
+			case IDC_BUTTON_EXTRACT_SKIP_ALL:
+				defaultDecision = overwrite_options::skip;
+				return overwrite_options::skip;
+			case IDC_BUTTON_EXTRACT_ABORT:
+			default:
+				return overwrite_options::abort;
+			}
+		} else {
+			return defaultDecision;
+		}
+	} else {
 		return overwrite_options::overwrite;
-	case IDC_BUTTON_EXTRACT_OVERWRITE_ALL:
-		return overwrite_options::overwrite_all;
-	case IDC_BUTTON_EXTRACT_SKIP:
-		return overwrite_options::skip;
-	case IDC_BUTTON_EXTRACT_SKIP_ALL:
-		return overwrite_options::skip_all;
-	case IDC_BUTTON_EXTRACT_ABORT:
-	default:
-		return overwrite_options::abort;
 	}
 }
 
-void extractOneEntry(
-	ARCHIVE_FILE_TO_READ &arc,
-	LF_ARCHIVE_ENTRY* entry,
+void extractCurrentEntry(
+	ILFArchiveFile &arc,
+	const LF_ENTRY_STAT *entry,
 	const std::wstring& output_dir,
-	overwrite_options& defaultDecision,
 	ARCLOG &arcLog,
-	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	ILFOverwriteConfirm& preExtractHandler,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 ) {
 	//original file name
-	std::wstring originalPath = entry->get_pathname();
+	auto originalPath = entry->path;
 	//original attributes
-	int nAttribute = entry->get_file_mode();
+	int nAttribute = entry->stat.st_mode;
 	//original file size (before compression)
-	auto llOriginalSize = entry->get_original_filesize();
+	auto llOriginalSize = entry->stat.st_size;
 	//filetime
-	auto cFileTime = entry->get_mtime();
+	auto cFileTime = entry->stat.st_mtime;
 
 	auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
 
 	progressHandler(outputPath, 0, llOriginalSize);
 	try {
-		if (entry->is_dir()) {
+		if (entry->is_directory()) {
 			try {
 				std::filesystem::create_directories(outputPath);
 				arcLog(originalPath, L"directory created");
@@ -266,29 +272,15 @@ void extractOneEntry(
 				RAISE_EXCEPTION((LPCWSTR)err);
 			}
 		} else {
-			auto decision = overwrite_options::overwrite;
-			if (std::filesystem::exists(outputPath)
-				&& std::filesystem::is_regular_file(outputPath)) {
-				if (overwrite_options::skip_all == defaultDecision) {
-					decision = overwrite_options::skip;
-				} else if (overwrite_options::overwrite_all == defaultDecision) {
-					decision = overwrite_options::overwrite;
-				} else {
-					decision = preExtractHandler(outputPath, entry);
-				}
-			}
+			//overwrite?
+			auto decision = preExtractHandler(outputPath, entry);
 			switch (decision) {
-			case overwrite_options::overwrite_all:	//FALLTHROUGH
-				defaultDecision = decision;
 			case overwrite_options::overwrite:
 				//do nothing, keep going
 				break;
-			case overwrite_options::skip_all:	//FALLTHROUGH
-				defaultDecision = decision;
 			case overwrite_options::skip:
 				arcLog(originalPath, L"skipped");
-				return;//continue;
-				break;
+				return;
 			case overwrite_options::abort:
 				//abort
 				arcLog(originalPath, L"cancelled by user");
@@ -313,13 +305,13 @@ void extractOneEntry(
 				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
 			}
 			for (;;) {
-				auto buffer = arc.read_block();
+				auto buffer = arc.read_file_entry_block();
 				if (buffer.is_eof()) {
 					progressHandler(originalPath, llOriginalSize, llOriginalSize);
 					break;
 				} else {
 					progressHandler(originalPath, buffer.offset, llOriginalSize);
-					auto written = fwrite(buffer.buffer, 1, buffer.size, fp);
+					auto written = fwrite(buffer.buffer, 1, (size_t)buffer.size, fp);
 					if (written != buffer.size) {
 						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
 					}
@@ -328,10 +320,8 @@ void extractOneEntry(
 			arcLog(originalPath, L"OK");
 			fp.close();
 		}
-		struct __utimbuf64 ut;
-		ut.modtime = entry->get_mtime();
-		ut.actime = entry->get_mtime();
-		_wutime64(outputPath.c_str(), &ut);
+
+		entry->write_file_stat(outputPath);
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 		arcLog(originalPath, e.what());
 		throw e;
@@ -339,24 +329,6 @@ void extractOneEntry(
 		arcLog(originalPath, e.what());
 		throw e;
 	}
-}
-
-void extractOneArchive(
-	const std::wstring& archive_path,
-	const std::wstring& output_dir,
-	ARCLOG &arcLog,
-	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
-){
-	auto defaultDecision = overwrite_options::abort;
-	ARCHIVE_FILE_TO_READ arc;
-	arc.read_open(archive_path, LF_passphrase_input);
-	// loop for each entry
-	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
-		extractOneEntry(arc, entry, output_dir, defaultDecision, arcLog, preExtractHandler, progressHandler);
-	}
-	//end
-	arc.close();
 }
 
 //enumerate archives to delete
@@ -419,16 +391,17 @@ bool GUI_extract_multiple_files(
 			//determine output base directory
 			auto output_base_dir = determineExtractBaseDir(archive_path, args);
 
+			CLFArchiveLA arc;
+			arc.read_open(archive_path, CLFPassphraseGUI());
+
 			//output destination directory [could be same as the output base directory]
-			output_dir = determineExtractDir(archive_path, output_base_dir, args);
+			output_dir = determineExtractDir(arc, archive_path, output_base_dir, args);
 
 			//make sure output directory exists
 			try {
 				std::filesystem::create_directories(output_dir);
 			} catch (std::filesystem::filesystem_error&) {
-				CString err;
-				err.Format(IDS_ERROR_CANNOT_MAKE_DIR, output_dir.c_str());
-				RAISE_EXCEPTION((LPCWSTR)err);
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR).c_str(), output_dir.c_str());
 			}
 
 			// limit concurrent extractions
@@ -439,25 +412,6 @@ bool GUI_extract_multiple_files(
 			}
 
 			while (UtilDoMessageLoop())continue;
-			std::function<overwrite_options(const std::wstring&, const LF_ARCHIVE_ENTRY*)> preExtractHandler =
-				[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)->overwrite_options {
-				if (args.extract.ForceOverwrite
-					|| !std::filesystem::exists(fullpath)
-					|| !std::filesystem::is_regular_file(fullpath)) {
-					return overwrite_options::overwrite;
-				} else {
-					struct _stat64 st;
-					_wstat64(fullpath.c_str(), &st);
-					return confirmOverwrite(
-						std::filesystem::path(entry->get_pathname()).filename().generic_wstring().c_str(),
-						entry->get_original_filesize(),
-						entry->get_mtime(),
-						fullpath,
-						st.st_size,
-						st.st_mtime
-					);
-				}
-			};
 			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
 				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
 				dlg.SetProgress(
@@ -477,7 +431,14 @@ bool GUI_extract_multiple_files(
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
-			extractOneArchive(archive_path, output_dir, arcLog, preExtractHandler, progressHandler);
+
+			CLFOverwriteConfirmGUI preExtractHandler;
+			// loop for each entry
+			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+				extractCurrentEntry(arc, entry, output_dir, arcLog, preExtractHandler, progressHandler);
+			}
+			//end
+			arc.close();
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 			ARCLOG &arcLog = logs.back();
 			arcLog.logException(e);
@@ -555,27 +516,27 @@ void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
-	std::function<const char*(struct archive*, LF_PASSPHRASE&)> passphrase_callback
+	ILFPassphrase &passphrase_callback
 ) {
-	ARCHIVE_FILE_TO_READ arc;
+	CLFArchiveLA arc;
 	arc.read_open(archive_path, passphrase_callback);
 	// loop for each entry
-	for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
+	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 		//original file name
-		std::wstring originalPath = entry->get_pathname();
+		std::wstring originalPath = entry->path;
 		//original attributes
-		int nAttribute = entry->get_file_mode();
+		int nAttribute = entry->stat.st_mode;
 		//original file size (before compression)
-		auto llOriginalSize = entry->get_original_filesize();
+		auto llOriginalSize = entry->stat.st_size;
 
 		progressHandler(originalPath, 0, llOriginalSize);
 		try {
-			if (entry->is_dir()) {
+			if (entry->is_directory()) {
 				arcLog(originalPath, L"directory");
 			} else {
 				//go
 				for (;;) {
-					auto buffer = arc.read_block();
+					auto buffer = arc.read_file_entry_block();
 					if (buffer.is_eof()) {
 						progressHandler(originalPath, llOriginalSize, llOriginalSize);
 						break;
@@ -649,7 +610,7 @@ bool GUI_test_multiple_files(
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
 			arcLog.setArchivePath(archive_path);
-			testOneArchive(archive_path, arcLog, progressHandler, LF_passphrase_input);
+			testOneArchive(archive_path, arcLog, progressHandler, CLFPassphraseGUI());
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
 			arcLog.logException(e);

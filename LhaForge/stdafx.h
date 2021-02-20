@@ -177,5 +177,8 @@ struct LF_USER_CANCEL_EXCEPTION: LF_EXCEPTION {
 
 #include <filesystem>
 #include <sys/utime.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <io.h>
 
 #include "SimpleIni.h"

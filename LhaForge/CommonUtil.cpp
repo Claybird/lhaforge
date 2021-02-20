@@ -26,7 +26,7 @@
 #include "CommonUtil.h"
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "resource.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
@@ -373,16 +373,19 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 
 #include "Dialogs/TextInputDlg.h"
 
-const char* LF_passphrase_input(struct archive *, LF_PASSPHRASE &pf)
+const char* CLFPassphraseGUI::operator()()
 {
 	//TODO: use more sophisticated dialog
-	CTextInputDialog dlg(L"Enter passphrase");
-	dlg.SetInputText(pf._storage.raw.c_str());
-	if (IDOK == dlg.DoModal()) {
-		pf._storage.raw = dlg.GetInputText();
-		pf._storage.utf8 = UtilToUTF8(pf._storage.raw);
-		return pf._storage.utf8.c_str();
+	if (raw.empty()) {
+		CTextInputDialog dlg(L"Enter passphrase");
+		dlg.SetInputText(raw.c_str());
+		if (IDOK == dlg.DoModal()) {
+			set_passphrase(raw);
+			return utf8.c_str();
+		} else {
+			return nullptr;	//give up
+		}
 	} else {
-		return nullptr;	//give up
+		return utf8.c_str();
 	}
 }

@@ -151,9 +151,6 @@
     <ClCompile Include="test\test_main.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
-    <ClCompile Include="ArchiverCode\test\test_arc_interface.cpp">
-      <Filter>ArchiverCode\test</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\test\test_configmanager.cpp">
       <Filter>Configs\Other\test</Filter>
     </ClCompile>
@@ -162,6 +159,12 @@
     </ClCompile>
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp">
       <Filter>ArchiverCode</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\archive.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive.cpp">
+      <Filter>ArchiverCode\test</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

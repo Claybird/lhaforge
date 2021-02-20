@@ -3,18 +3,6 @@
 #include <gtest/gtest.h>
 #include "Utilities/FileOperation.h"
 
-TEST(main, isArchive)
-{
-	bool isArchive(const std::wstring& fname);
-	const auto dir = std::filesystem::path(__FILEW__).parent_path();
-
-	EXPECT_FALSE(isArchive(__FILEW__));
-	EXPECT_TRUE(isArchive(dir / L"test_extract.zip"));
-	EXPECT_TRUE(isArchive(dir / L"test_broken_crc.zip"));
-	EXPECT_FALSE(isArchive(dir / L"test_broken_file.zip"));
-	EXPECT_FALSE(isArchive(L"some_non_existing_file"));
-}
-
 TEST(main, enumerateFiles)
 {
 	std::vector<std::wstring> enumerateFiles(const std::vector<std::wstring>& input, const std::vector<std::wstring>& denyExts);

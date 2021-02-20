@@ -27,7 +27,7 @@
 #include "ConfigCode/configwnd.h"
 #include "compress.h"
 #include "extract.h"
-#include "ArchiverCode/arc_interface.h"
+#include "ArchiverCode/archive.h"
 #include "FileListWindow/FileListFrame.h"
 #include "Dialogs/SelectDlg.h"
 #include "Dialogs/ProgressDlg.h"
@@ -40,20 +40,6 @@
 
 CAppModule _Module;
 
-
-bool isArchive(const std::wstring& fname)
-{
-	ARCHIVE_FILE_TO_READ arc;
-	try {
-		arc.read_open(fname, nullptr);
-		for (LF_ARCHIVE_ENTRY* entry = arc.begin(); entry; entry = arc.next()) {
-			continue;
-		}
-		return true;
-	} catch (const ARCHIVE_EXCEPTION& ) {
-		return false;
-	}
-}
 
 //enumerates files, removes directory
 std::vector<std::wstring> enumerateFiles(const std::vector<std::wstring>& input, const std::vector<std::wstring>& denyExts)
@@ -161,7 +147,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
-	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
+	remove_item_if(tmp, [](const std::wstring& file) {return !LF_isKnownArchive(file); });
 
 	if(tmp.empty()){
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
@@ -177,7 +163,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
-	remove_item_if(tmp, [](const std::wstring& file) {return !isArchive(file); });
+	remove_item_if(tmp, [](const std::wstring& file) {return !LF_isKnownArchive(file); });
 
 	if(!cli.FileList.empty() && tmp.empty()){
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
@@ -359,7 +345,7 @@ void procMain()
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
 			bool isDenied = toLower(ConfExtract.DenyExt).find(toLower(std::filesystem::path(cli.FileList.front()).extension())) == -1;
-			if (!isDenied && isArchive(cli.FileList.front())) {
+			if (!isDenied && LF_isKnownArchive(cli.FileList.front())) {
 				DoExtract(ConfigManager, cli);
 			} else {
 				DoCompress(ConfigManager, cli);

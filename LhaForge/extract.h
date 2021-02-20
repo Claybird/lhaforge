@@ -40,29 +40,47 @@ struct LF_EXTRACT_ARGS {
 };
 
 enum class overwrite_options {
+	not_defined,
 	overwrite,
-	overwrite_all,
 	skip,
-	skip_all,
 	abort,
 };
 
-void extractOneEntry(
-	ARCHIVE_FILE_TO_READ &arc,
-	LF_ARCHIVE_ENTRY* entry,
+struct ILFOverwriteConfirm {
+	virtual ~ILFOverwriteConfirm() {}
+	virtual overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry) = 0;
+};
+
+struct CLFOverwriteConfirmGUI: public ILFOverwriteConfirm {
+	overwrite_options defaultDecision;
+	CLFOverwriteConfirmGUI():defaultDecision(overwrite_options::not_defined){}
+	virtual ~CLFOverwriteConfirmGUI() {}
+	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override;
+};
+
+struct CLFOverwriteConfirmFORCED : public ILFOverwriteConfirm {
+	overwrite_options decision;
+	CLFOverwriteConfirmFORCED(overwrite_options forceDecision) :decision(forceDecision) {}
+	virtual ~CLFOverwriteConfirmFORCED() {}
+	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override {
+		if (std::filesystem::exists(pathToWrite)
+			&& std::filesystem::is_regular_file(pathToWrite)) {
+			return decision;
+		} else {
+			return overwrite_options::overwrite;
+		}
+	}
+};
+
+void extractCurrentEntry(
+	ILFArchiveFile &arc,
+	const LF_ENTRY_STAT *entry,
 	const std::wstring& output_dir,
-	overwrite_options& defaultDecision,
 	ARCLOG &arcLog,
-	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
+	ILFOverwriteConfirm& preExtractHandler,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
 );
-void extractOneArchive(
-	const std::wstring& archive_path,
-	const std::wstring& output_dir,
-	ARCLOG &arcLog,
-	std::function<overwrite_options(const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry)> preExtractHandler,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
-);
+
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
 	const CMDLINEINFO* lpCmdLineInfo
@@ -71,7 +89,7 @@ void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
-	std::function<const char*(struct archive*, LF_PASSPHRASE&)>
+	ILFPassphrase &passphrase_callback
 );
 bool GUI_test_multiple_files(
 	const std::vector<std::wstring> &archive_files,

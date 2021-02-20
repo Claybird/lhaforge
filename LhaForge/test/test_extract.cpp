@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
+#include "Utilities/FileOperation.h"
 #include "Utilities/Utility.h"
 #include "extract.h"
 
@@ -72,11 +73,15 @@ TEST(extract, extractOneArchive) {
 	ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 	ARCLOG arcLog;
+	CLFArchiveLA arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
 	EXPECT_NO_THROW(
-		extractOneArchive(archiveFile, tempDir, arcLog,
-		[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry) {return overwrite_options::abort; },
-		[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {}
-	));
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+				[](const std::wstring&, UINT64, UINT64) {});
+		}
+	);
 
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
@@ -105,11 +110,15 @@ TEST(extract, extractOneArchive_broken_files) {
 		ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 		ARCLOG arcLog;
+		CLFArchiveLA arc;
+		CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+		EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
 		EXPECT_THROW(
-			extractOneArchive(archiveFile, tempDir, arcLog,
-				[&](const std::wstring& fullpath, const LF_ARCHIVE_ENTRY* entry) {return overwrite_options::abort; },
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {}
-		), LF_EXCEPTION);
+			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+					[](const std::wstring&, UINT64, UINT64) {});
+			}
+		, LF_EXCEPTION);
 
 		UtilDeleteDir(tempDir, true);
 		EXPECT_FALSE(std::filesystem::exists(tempDir));
@@ -179,7 +188,7 @@ TEST(extract, testOneArchive) {
 		EXPECT_NO_THROW(
 			testOneArchive(archiveFile, arcLog,
 				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
-				nullptr
+				CLFPassphraseNULL()
 			));
 	}
 }
@@ -197,7 +206,7 @@ TEST(extract, testOneArchive_broken_files) {
 		EXPECT_THROW(
 			testOneArchive(archiveFile, arcLog,
 				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
-				nullptr
+				CLFPassphraseNULL()
 		), LF_EXCEPTION);
 	}
 }

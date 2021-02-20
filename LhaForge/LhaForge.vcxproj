@@ -15,8 +15,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ArchiverCode\archive.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_arc_interface.cpp" />
+    <ClCompile Include="ArchiverCode\test\test_archive.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
