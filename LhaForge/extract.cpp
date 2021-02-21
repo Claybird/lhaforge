@@ -391,7 +391,7 @@ bool GUI_extract_multiple_files(
 			//determine output base directory
 			auto output_base_dir = determineExtractBaseDir(archive_path, args);
 
-			CLFArchiveLA arc;
+			CLFArchive arc;
 			arc.read_open(archive_path, CLFPassphraseGUI());
 
 			//output destination directory [could be same as the output base directory]
@@ -518,7 +518,7 @@ void testOneArchive(
 	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
 	ILFPassphrase &passphrase_callback
 ) {
-	CLFArchiveLA arc;
+	CLFArchive arc;
 	arc.read_open(archive_path, passphrase_callback);
 	// loop for each entry
 	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {

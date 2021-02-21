@@ -73,7 +73,7 @@ TEST(extract, extractOneArchive) {
 	ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 	ARCLOG arcLog;
-	CLFArchiveLA arc;
+	CLFArchive arc;
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
 	EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
 	EXPECT_NO_THROW(
@@ -110,7 +110,7 @@ TEST(extract, extractOneArchive_broken_files) {
 		ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 		ARCLOG arcLog;
-		CLFArchiveLA arc;
+		CLFArchive arc;
 		CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
 		EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
 		EXPECT_THROW(

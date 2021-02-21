@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "archive_base.h"
+#include "archive.h"
 
 //archive file support by libarchive
 class CLFArchiveLA :public ILFArchiveFile
@@ -55,7 +55,7 @@ public:
 	LF_ENTRY_STAT* read_entry_next()override;
 	void read_entry_end()override;
 
-	bool support_bypass_io()const override{ return false; }
+	bool is_bypass_io_supported()const override{ return false; }
 
 	//read entry
 	LF_BUFFER_INFO read_file_entry_block()override;
@@ -71,5 +71,5 @@ public:
 	}
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 
-	static bool isKnownFormat(const std::filesystem::path &arcname);
+	static bool is_known_format(const std::filesystem::path &arcname);
 };

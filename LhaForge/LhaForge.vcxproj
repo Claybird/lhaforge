@@ -85,7 +85,6 @@
   <ItemGroup>
     <ClInclude Include="ArchiverCode\archive_libarchive.h" />
     <ClInclude Include="ArchiverCode\archive.h" />
-    <ClInclude Include="ArchiverCode\archive_base.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />
     <ClInclude Include="CommonUtil.h" />

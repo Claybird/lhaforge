@@ -389,9 +389,6 @@
     <ClInclude Include="ArchiverCode\archive.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
-    <ClInclude Include="ArchiverCode\archive_base.h">
-      <Filter>ArchiverCode</Filter>
-    </ClInclude>
     <ClInclude Include="ArchiverCode\archive_libarchive.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>

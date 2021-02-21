@@ -147,7 +147,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
-	remove_item_if(tmp, [](const std::wstring& file) {return !LF_isKnownArchive(file); });
+	remove_item_if(tmp, [](const std::wstring& file) {return !CLFArchive::is_known_format(file); });
 
 	if(tmp.empty()){
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
@@ -163,7 +163,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
-	remove_item_if(tmp, [](const std::wstring& file) {return !LF_isKnownArchive(file); });
+	remove_item_if(tmp, [](const std::wstring& file) {return !CLFArchive::is_known_format(file); });
 
 	if(!cli.FileList.empty() && tmp.empty()){
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
@@ -345,7 +345,7 @@ void procMain()
 			CConfigExtract ConfExtract;
 			ConfExtract.load(ConfigManager);
 			bool isDenied = toLower(ConfExtract.DenyExt).find(toLower(std::filesystem::path(cli.FileList.front()).extension())) == -1;
-			if (!isDenied && LF_isKnownArchive(cli.FileList.front())) {
+			if (!isDenied && CLFArchive::is_known_format(cli.FileList.front())) {
 				DoExtract(ConfigManager, cli);
 			} else {
 				DoCompress(ConfigManager, cli);

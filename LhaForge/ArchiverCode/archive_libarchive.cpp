@@ -192,7 +192,7 @@ struct LA_FILE_TO_READ
 		if (r < ARCHIVE_OK) {
 			//retry enabling archive_read_support_format_raw
 			close();
-			if (isKnownFormat(arcpath)) {
+			if (is_known_format(arcpath)) {
 				_arc = archive_read_new();
 				r = archive_read_set_passphrase_callback(_arc, &passphrase, LF_LA_passphrase);
 				if (r < ARCHIVE_OK) {
@@ -251,7 +251,7 @@ struct LA_FILE_TO_READ
 		}
 		return ibi;
 	}
-	static bool isKnownFormat(const std::filesystem::path &arcname) {
+	static bool is_known_format(const std::filesystem::path &arcname) {
 		const size_t readSize = 10;
 		try {
 			if (std::filesystem::file_size(arcname) < readSize)return false;
@@ -695,15 +695,14 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 	}
 }
 
-bool CLFArchiveLA::isKnownFormat(const std::filesystem::path &arcname)
+#include "CommonUtil.h"
+
+bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 {
-	if (LA_FILE_TO_READ::isKnownFormat(arcname)) {
+	if (LA_FILE_TO_READ::is_known_format(arcname)) {
 		LA_FILE_TO_READ arc;
 		try {
-			struct NULLFUNC:public ILFPassphrase {
-				const char* operator()() { return nullptr; }
-			};
-			arc.open(arcname, NULLFUNC());
+			arc.open(arcname, CLFPassphraseNULL());
 			for (auto* entry = arc.begin(); entry; entry = arc.next()) {
 				continue;
 			}
@@ -727,20 +726,20 @@ bool CLFArchiveLA::isKnownFormat(const std::filesystem::path &arcname)
 TEST(LA_FILE_TO_READ, isKnownArchive)
 {
 	const auto dir = std::filesystem::path(__FILEW__).parent_path();
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"empty.gz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"empty.bz2"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"empty.xz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"empty.lzma"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"empty.zst"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.gz"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.bz2"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.xz"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.lzma"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.zst"));
 
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"abcde.gz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"abcde.bz2"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"abcde.xz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"abcde.lzma"));
-	EXPECT_TRUE(LA_FILE_TO_READ::isKnownFormat(dir / L"abcde.zst"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.gz"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.bz2"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.xz"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.lzma"));
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.zst"));
 
-	EXPECT_FALSE(LA_FILE_TO_READ::isKnownFormat(__FILEW__));
-	EXPECT_FALSE(LA_FILE_TO_READ::isKnownFormat(L"some_non_existing_file"));
+	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(__FILEW__));
+	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(L"some_non_existing_file"));
 
 }
 #endif
