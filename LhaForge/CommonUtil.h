@@ -104,3 +104,9 @@ struct CLFPassphraseNULL:public ILFPassphrase {
 	virtual ~CLFPassphraseNULL() {}
 	const char* operator()()override { return nullptr; }
 };
+
+struct CLFPassphraseConst :public ILFPassphrase {
+	CLFPassphraseConst(const std::wstring& pwd) { set_passphrase(pwd); }
+	virtual ~CLFPassphraseConst() {}
+	const char* operator()()override { return utf8.c_str(); }
+};
