@@ -60,6 +60,7 @@ enum CREATE_OUTPUT_DIR{
 
 
 /*
+//TODO
 //---following are extracted other than libarchive
 {LF_FMT_ACE, NOT_BY_LIBARCHIVE, false, L".ace", true, {}},
 { LF_FMT_JAK, NOT_BY_LIBARCHIVE, false, L".jak", true, {} },
@@ -143,6 +144,20 @@ struct LF_COMPRESS_CAPABILITY {
 	std::wstring extension;	//such as "{ext}.gz"; "{ext}" should be replaced with original extension
 	bool contains_multiple_files;	//true if archive can contain multiple files.
 	std::vector<int> allowed_combinations;	//combination of LF_WRITE_OPTIONS
+
+	//returns extension with first "."
+	std::wstring formatExt(const std::filesystem::path& input_filename, int option)const {
+		auto org_ext = input_filename.extension();
+		if (option & LF_WOPT_SFX) {
+			if (extension.find(L"{ext}") == std::string::npos) {
+				return L".exe";
+			} else {
+				return org_ext.wstring() + L".exe";
+			}
+		} else {
+			return replace(extension, L"{ext}", org_ext);
+		}
+	}
 };
 
 struct LF_BUFFER_INFO {
@@ -212,13 +227,13 @@ public:
 	ILFArchiveFile() {}
 	virtual ~ILFArchiveFile() {}
 	virtual void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase) = 0;
-	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, const std::map<std::string, std::string> &flags, ILFPassphrase& passphrase) = 0;
+	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase) = 0;
 	virtual void close() = 0;
 
 	//make a copy, and returns in "write_open" state
 	virtual std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip) = 0;
 
 	//archive property
@@ -312,7 +327,7 @@ public:
 	CLFArchive() {}
 	virtual ~CLFArchive() {}
 	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, const std::map<std::string, std::string> &flags, ILFPassphrase& passphrase)override;
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
 	void close()override {
 		if (m_ptr) {
 			m_ptr->close();
@@ -323,7 +338,7 @@ public:
 	//make a copy, and returns in "write_open" state
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
 		_LFA_SAFE_CALL(make_copy_archive(dest_path, args, false_if_skip));
 	}
@@ -331,6 +346,7 @@ public:
 	//archive property
 	std::wstring get_format_name()override { _LFA_SAFE_CALL(get_format_name()); }
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
+	static LF_COMPRESS_CAPABILITY get_compression_capability(LF_ARCHIVE_FORMAT format);
 
 	//entry seek; returns null if it reached EOF; valid for "read_open"ed archive
 	LF_ENTRY_STAT* read_entry_begin()override { _LFA_SAFE_CALL(read_entry_begin()); }//rewinds to start of file

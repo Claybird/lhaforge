@@ -37,13 +37,13 @@ public:
 	CLFArchiveLA();
 	virtual ~CLFArchiveLA();
 	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, const std::map<std::string, std::string> &flags, ILFPassphrase& passphrase)override;
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
 	void close()override;
 
 	//make a copy, and returns in "write_open" state
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip);
 
 	//archive property

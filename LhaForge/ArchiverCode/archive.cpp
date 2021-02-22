@@ -37,10 +37,15 @@ void CLFArchive::read_open(const std::filesystem::path& file, ILFPassphrase& pas
 	m_ptr->read_open(file, passphrase);
 }
 
-void CLFArchive::write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, const std::map<std::string, std::string> &flags, ILFPassphrase& passphrase)
+void CLFArchive::write_open(
+	const std::filesystem::path& file,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	const LF_COMPRESS_ARGS &args,
+	ILFPassphrase& passphrase)
 {
 	m_ptr = guessSuitableArchiver(format);
-	m_ptr->write_open(file, format, flags, passphrase);
+	m_ptr->write_open(file, format, options, args, passphrase);
 }
 
 std::vector<LF_COMPRESS_CAPABILITY> CLFArchive::get_compression_capability()const
@@ -49,6 +54,18 @@ std::vector<LF_COMPRESS_CAPABILITY> CLFArchive::get_compression_capability()cons
 	auto capsLA = CLFArchiveLA().get_compression_capability();
 	caps.insert(caps.end(), capsLA.begin(), capsLA.end());
 	return caps;
+}
+
+LF_COMPRESS_CAPABILITY CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT format)
+{
+	auto arc = guessSuitableArchiver(format);
+	std::vector<LF_COMPRESS_CAPABILITY> caps = arc->get_compression_capability();
+	for (const auto cap : caps) {
+		if (cap.format == format) {
+			return cap;
+		}
+	}
+	RAISE_EXCEPTION(L"Unknown format");
 }
 
 bool CLFArchive::is_known_format(const std::filesystem::path& path)

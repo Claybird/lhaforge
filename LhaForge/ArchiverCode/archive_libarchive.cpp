@@ -56,7 +56,7 @@ struct LA_COMPRESSION_CAPABILITY :public LF_COMPRESS_CAPABILITY {
 	int mapped_libarchive_format;
 };
 
-const static std::vector<LA_COMPRESSION_CAPABILITY> g_capabilities = {
+const static std::vector<LA_COMPRESSION_CAPABILITY> g_la_capabilities = {
 	{LF_FMT_ZIP, L".zip", true, {
 		LF_WOPT_STANDARD,
 		LF_WOPT_SFX,
@@ -85,9 +85,9 @@ const static std::vector<LA_COMPRESSION_CAPABILITY> g_capabilities = {
 };
 
 
-static const LA_COMPRESSION_CAPABILITY& get_archive_capability(LF_ARCHIVE_FORMAT fmt)
+static const LA_COMPRESSION_CAPABILITY& la_get_compression_capability(LF_ARCHIVE_FORMAT fmt)
 {
-	for (const auto &cap : g_capabilities) {
+	for (const auto &cap : g_la_capabilities) {
 		if (fmt == cap.format) {
 			return cap;
 		}
@@ -323,7 +323,7 @@ struct LA_FILE_TO_WRITE
 		LF_ARCHIVE_FORMAT fmt,
 		const std::map<std::string, std::string> &archive_options,
 		ILFPassphrase& passphrase) {
-		const auto& cap = get_archive_capability(fmt);
+		const auto& cap = la_get_compression_capability(fmt);
 
 		int la_filter = cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK;
 		int la_fmt = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
@@ -423,136 +423,6 @@ struct LA_FILE_TO_WRITE
 	}
 };
 
-//------
-
-CLFArchiveLA::CLFArchiveLA() {}
-CLFArchiveLA::~CLFArchiveLA() {}
-
-void CLFArchiveLA::read_open(const std::filesystem::path& file, ILFPassphrase& passhprase)
-{
-	close();
-	_arc_read = std::make_unique<LA_FILE_TO_READ>();
-	_arc_read->open(file, passhprase);
-}
-
-void CLFArchiveLA::write_open(
-	const std::filesystem::path& file,
-	LF_ARCHIVE_FORMAT format,
-	const std::map<std::string, std::string> &flags,
-	ILFPassphrase& passphrase)
-{
-	_arc_write = std::make_unique<LA_FILE_TO_WRITE>();
-
-	_arc_write->open(file, format, flags, passphrase);
-}
-
-void CLFArchiveLA::close()
-{
-	if (_arc_read) {
-		_arc_read->close();
-		_arc_read.reset();
-	}
-	if (_arc_write) {
-		_arc_write->close();
-		_arc_write.reset();
-	}
-}
-
-//archive property
-std::wstring CLFArchiveLA::get_format_name()
-{
-	if (_arc_read) {
-		auto p = archive_format_name(*_arc_read);	//differ on each entry
-		if (p)return UtilUTF8toUNICODE(p);
-	}
-	if (_arc_write) {
-		auto p = archive_format_name(*_arc_write);	//differ on each entry
-		if (p)return UtilUTF8toUNICODE(p);
-	}
-	return L"---";
-}
-
-std::vector<LF_COMPRESS_CAPABILITY> CLFArchiveLA::get_compression_capability()const
-{
-	std::vector<LF_COMPRESS_CAPABILITY> caps(g_capabilities.begin(), g_capabilities.end());
-	return caps;
-}
-
-LF_ENTRY_STAT* CLFArchiveLA::read_entry_begin()
-{
-	if (_arc_read) {
-		auto p = _arc_read->begin();
-		if (p) {
-			return &p->_lf_stat;
-		} else {
-			return nullptr;
-		}
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
-LF_ENTRY_STAT* CLFArchiveLA::read_entry_next()
-{
-	if (_arc_read) {
-		auto p = _arc_read->next();
-		if (p) {
-			return &p->_lf_stat;
-		} else {
-			return nullptr;
-		}
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
-void CLFArchiveLA::read_entry_end()
-{
-	if (_arc_read) {
-		_arc_read->rewind();
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
-
-//read file entry
-LF_BUFFER_INFO CLFArchiveLA::read_file_entry_block()
-{
-	if (_arc_read) {
-		return _arc_read->read_block();
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
-//write entry
-void CLFArchiveLA::add_file_entry(
-	const LF_ENTRY_STAT& lf_stat,
-	std::function<LF_BUFFER_INFO()> dataProvider)
-{
-	if (_arc_write) {
-		LF_LA_ENTRY la_entry;
-		la_entry.set_archive(*_arc_write);
-		la_entry.set_stat(lf_stat);
-		_arc_write->add_entry(la_entry, dataProvider);
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
-void CLFArchiveLA::add_directory_entry(const LF_ENTRY_STAT& lf_stat)
-{
-	if (_arc_write) {
-		LF_LA_ENTRY la_entry;
-		la_entry.set_archive(*_arc_write);
-		la_entry.set_stat(lf_stat);
-		_arc_write->add_directory(la_entry);
-	} else {
-		throw ARCHIVE_EXCEPTION(EFAULT);
-	}
-}
-
 #include "compress.h"
 #include "ConfigCode/ConfigCompressFormat.h"
 
@@ -561,7 +431,7 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	int la_format,
 	const std::vector<int> &la_filters,
 	bool encrypt,
-	CConfigManager &mngr)
+	const CConfigManager &mngr)
 {
 	std::map<std::string, std::string> params;
 	//formats
@@ -641,11 +511,11 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 }
 
 std::map<std::string, std::string> getLAOptionsFromConfig(
-	LF_COMPRESS_ARGS &args,
+	const LF_COMPRESS_ARGS &args,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options)
 {
-	const auto& cap = get_archive_capability(format);
+	const auto& cap = la_get_compression_capability(format);
 	int la_format = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
 	std::vector<int> la_filters = { cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK };
 
@@ -653,10 +523,143 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	return getLAOptionsFromConfig(la_format, la_filters, encrypt, args.mngr);
 }
 
+//------
+
+CLFArchiveLA::CLFArchiveLA() {}
+CLFArchiveLA::~CLFArchiveLA() {}
+
+void CLFArchiveLA::read_open(const std::filesystem::path& file, ILFPassphrase& passhprase)
+{
+	close();
+	_arc_read = std::make_unique<LA_FILE_TO_READ>();
+	_arc_read->open(file, passhprase);
+}
+
+void CLFArchiveLA::write_open(
+	const std::filesystem::path& file,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	const LF_COMPRESS_ARGS& args,
+	ILFPassphrase& passphrase)
+{
+	_arc_write = std::make_unique<LA_FILE_TO_WRITE>();
+
+	auto flags = getLAOptionsFromConfig(args, format, options);
+	_arc_write->open(file, format, flags, passphrase);
+}
+
+void CLFArchiveLA::close()
+{
+	if (_arc_read) {
+		_arc_read->close();
+		_arc_read.reset();
+	}
+	if (_arc_write) {
+		_arc_write->close();
+		_arc_write.reset();
+	}
+}
+
+//archive property
+std::wstring CLFArchiveLA::get_format_name()
+{
+	if (_arc_read) {
+		auto p = archive_format_name(*_arc_read);	//differ on each entry
+		if (p)return UtilUTF8toUNICODE(p);
+	}
+	if (_arc_write) {
+		auto p = archive_format_name(*_arc_write);	//differ on each entry
+		if (p)return UtilUTF8toUNICODE(p);
+	}
+	return L"---";
+}
+
+std::vector<LF_COMPRESS_CAPABILITY> CLFArchiveLA::get_compression_capability()const
+{
+	std::vector<LF_COMPRESS_CAPABILITY> caps(g_la_capabilities.begin(), g_la_capabilities.end());
+	return caps;
+}
+
+LF_ENTRY_STAT* CLFArchiveLA::read_entry_begin()
+{
+	if (_arc_read) {
+		auto p = _arc_read->begin();
+		if (p) {
+			return &p->_lf_stat;
+		} else {
+			return nullptr;
+		}
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+LF_ENTRY_STAT* CLFArchiveLA::read_entry_next()
+{
+	if (_arc_read) {
+		auto p = _arc_read->next();
+		if (p) {
+			return &p->_lf_stat;
+		} else {
+			return nullptr;
+		}
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+void CLFArchiveLA::read_entry_end()
+{
+	if (_arc_read) {
+		_arc_read->rewind();
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+
+//read file entry
+LF_BUFFER_INFO CLFArchiveLA::read_file_entry_block()
+{
+	if (_arc_read) {
+		return _arc_read->read_block();
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+//write entry
+void CLFArchiveLA::add_file_entry(
+	const LF_ENTRY_STAT& lf_stat,
+	std::function<LF_BUFFER_INFO()> dataProvider)
+{
+	if (_arc_write) {
+		LF_LA_ENTRY la_entry;
+		la_entry.set_archive(*_arc_write);
+		la_entry.set_stat(lf_stat);
+		_arc_write->add_entry(la_entry, dataProvider);
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+void CLFArchiveLA::add_directory_entry(const LF_ENTRY_STAT& lf_stat)
+{
+	if (_arc_write) {
+		LF_LA_ENTRY la_entry;
+		la_entry.set_archive(*_arc_write);
+		la_entry.set_stat(lf_stat);
+		_arc_write->add_directory(la_entry);
+	} else {
+		throw ARCHIVE_EXCEPTION(EFAULT);
+	}
+}
+
+
 //make a copy, and returns in "write_open" state
 std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 	const std::filesystem::path& dest_path,
-	LF_COMPRESS_ARGS& args,
+	const LF_COMPRESS_ARGS& args,
 	std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)
 {
 	if (_arc_read) {
@@ -723,7 +726,7 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 #include <gtest/gtest.h>
 #include "ArchiverCode/archive.h"
 
-TEST(LA_FILE_TO_READ, isKnownArchive)
+TEST(CLFArchiveLA, isKnownArchive)
 {
 	const auto dir = std::filesystem::path(__FILEW__).parent_path();
 	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.gz"));
@@ -740,6 +743,111 @@ TEST(LA_FILE_TO_READ, isKnownArchive)
 
 	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(__FILEW__));
 	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(L"some_non_existing_file"));
-
 }
+
+TEST(CLFArchiveLA, getLAOptionsFromConfig)
+{
+	LF_COMPRESS_ARGS fake_args;
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+		EXPECT_EQ(4, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+		EXPECT_EQ(5, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_7Z, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_TAR, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_GZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_BZ2, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_XZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("0", la_options.at("threads"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_LZMA, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZSTD, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("3", la_options.at("compression-level"));
+	}
+}
+
+TEST(CLFArchiveLA, mimic_archive_property)
+{
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test_extract.zip";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
+		EXPECT_EQ(filters.size(), 1);
+		EXPECT_EQ(filters.back(), ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test_gzip.gz";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+	{
+		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test.tar.gz";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+}
+
 #endif
