@@ -33,6 +33,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 
 void CLFArchive::read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)
 {
+	close();
 	m_ptr = guessSuitableArchiver(file);
 	m_ptr->read_open(file, passphrase);
 }
@@ -44,6 +45,7 @@ void CLFArchive::write_open(
 	const LF_COMPRESS_ARGS &args,
 	ILFPassphrase& passphrase)
 {
+	close();
 	m_ptr = guessSuitableArchiver(format);
 	m_ptr->write_open(file, format, options, args, passphrase);
 }
@@ -66,6 +68,23 @@ LF_COMPRESS_CAPABILITY CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT 
 		}
 	}
 	RAISE_EXCEPTION(L"Unknown format");
+}
+
+//-1 if no information is given
+int64_t CLFArchive::get_num_entries()
+{
+	if (m_numEntries == -1) {
+		//no cache available
+		try {
+			m_numEntries = 0;
+			for (auto entry = read_entry_begin(); entry; entry = read_entry_next()) {
+				m_numEntries++;
+			}
+		} catch (const LF_EXCEPTION&) {
+			m_numEntries = -1;
+		}
+	}
+	return m_numEntries;
 }
 
 bool CLFArchive::is_known_format(const std::filesystem::path& path)

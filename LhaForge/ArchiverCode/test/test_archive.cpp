@@ -2,6 +2,7 @@
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
 #include "ArchiverCode/archive.h"
+#include "CommonUtil.h"
 
 TEST(CLFArchive, is_known_format)
 {
@@ -12,6 +13,17 @@ TEST(CLFArchive, is_known_format)
 	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"test_broken_crc.zip"));
 	EXPECT_FALSE(CLFArchive::is_known_format(dir / L"test_broken_file.zip"));
 	EXPECT_FALSE(CLFArchive::is_known_format(L"some_non_existing_file"));
+}
+
+TEST(CLFArchive, get_num_entries)
+{
+	const auto dir = std::filesystem::path(__FILEW__).parent_path();
+
+	CLFArchive arc;
+	arc.read_open(dir / L"test_extract.zip", CLFPassphraseNULL());
+	EXPECT_EQ(6, arc.get_num_entries());
+	arc.read_open(dir / L"test_broken_crc.zip", CLFPassphraseNULL());
+	EXPECT_EQ(6, arc.get_num_entries());
 }
 
 TEST(LF_COMPRESS_CAPABILITY, formatExt)

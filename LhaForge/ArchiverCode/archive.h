@@ -185,6 +185,20 @@ struct ILFPassphrase {
 	virtual const char* operator()() = 0;
 };
 
+struct ILFProgressHandler {
+	int64_t numEntries;
+	std::filesystem::path archivePath;
+
+	ILFProgressHandler() { reset(); }
+	virtual ~ILFProgressHandler() {}
+	virtual void reset() { numEntries = 0; archivePath.clear(); }
+	virtual void end() = 0;
+	virtual void setArchive(const std::filesystem::path& path) { archivePath = path; }
+	virtual void setNumEntries(int64_t num) { numEntries = num; }
+	virtual void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size) = 0;
+	virtual void onEntryIO(int64_t current_size) = 0;
+};
+
 struct LF_ENTRY_STAT {
 	LF_ENTRY_STAT() {
 		stat = {};
@@ -323,8 +337,9 @@ class CLFArchive : public ILFArchiveFile
 {
 	DISALLOW_COPY_AND_ASSIGN(CLFArchive);
 	std::unique_ptr<ILFArchiveFile> m_ptr;
+	int64_t m_numEntries;
 public:
-	CLFArchive() {}
+	CLFArchive() :m_numEntries(-1) {}
 	virtual ~CLFArchive() {}
 	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
@@ -333,6 +348,7 @@ public:
 			m_ptr->close();
 		}
 		m_ptr = nullptr;
+		m_numEntries = -1;
 	}
 
 	//make a copy, and returns in "write_open" state
@@ -348,6 +364,7 @@ public:
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
 	static LF_COMPRESS_CAPABILITY get_compression_capability(LF_ARCHIVE_FORMAT format);
 
+	int64_t get_num_entries();	//-1 if no information is given
 	//entry seek; returns null if it reached EOF; valid for "read_open"ed archive
 	LF_ENTRY_STAT* read_entry_begin()override { _LFA_SAFE_CALL(read_entry_begin()); }//rewinds to start of file
 	LF_ENTRY_STAT* read_entry_next()override { _LFA_SAFE_CALL(read_entry_next()); }
