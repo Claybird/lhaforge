@@ -31,6 +31,8 @@ protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
 	bool m_bAbort;
+	int64_t m_entrySize;
+	std::wstring m_entryPath;
 public:
 	enum{IDD=IDD_DIALOG_PROGRESS};
 
@@ -58,31 +60,41 @@ public:
 		pLoop->AddMessageFilter(this);
 		return TRUE;
 	}
-	void SetProgress(
+	void SetEntry(
 		const std::wstring& archivePath,
-		UINT64 fileIndex,
-		UINT64 totalFiles, 
-		const std::wstring& originalPath,
-		UINT64 currentSize,
-		UINT64 totalSize
-		) {
+		int64_t entryIndex,
+		int64_t numEntries,
+		const std::wstring& entryPath,
+		int64_t entrySize
+	) {
 		auto str = Format(L"%s\n%I64d / %I64d",
 			archivePath.c_str(),
-			fileIndex,
-			totalFiles
+			entryIndex,
+			numEntries
 		);
-		m_fileInfo.SetWindowTextW(
-			str.c_str());
-		m_fileProgress.SetPos(INT32(fileIndex * 100ull / totalFiles));
+		m_fileInfo.SetWindowTextW(str.c_str());
+		m_fileProgress.SetPos(int(entryIndex * 100ull / numEntries));
 
 		str = Format(L"%s\n%s / %s",
-			originalPath.c_str(),
+			entryPath.c_str(),
+			UtilFormatSize(0).c_str(),
+			UtilFormatSize(entrySize).c_str()
+		);
+		m_entrySize = entrySize;
+		m_entryPath = entryPath;
+		m_entryInfo.SetWindowTextW(
+			str.c_str());
+		m_entryProgress.SetPos(0);
+	}
+	void SetEntryProgress(int64_t currentSize) {
+		auto str = Format(L"%s\n%s / %s",
+			m_entryPath.c_str(),
 			UtilFormatSize(currentSize).c_str(),
-			UtilFormatSize(totalSize).c_str()
+			UtilFormatSize(m_entrySize).c_str()
 		);
 		m_entryInfo.SetWindowTextW(
 			str.c_str());
-		m_entryProgress.SetPos(INT32(currentSize * 100ull / std::max(1ull, totalSize)));
+		m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
 	}
 	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
 		m_bAbort = true;

@@ -72,6 +72,7 @@ bool GUI_compress_multiple_files(
 	const std::vector<std::wstring> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
+	ILFProgressHandler &progressHandler,
 	CMDLINEINFO& CmdLineInfo);
 
 //command line parameter table
@@ -84,7 +85,6 @@ struct COMPRESS_COMMANDLINE_PARAMETER{
 extern const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams;
 const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT fmt, int opts);
 struct COMPRESS_SOURCES {
-	COMPRESS_SOURCES() : total_filesize(0) {}
 	virtual ~COMPRESS_SOURCES() {}
 	struct PATH_PAIR {
 		std::wstring originalFullPath;
@@ -92,5 +92,4 @@ struct COMPRESS_SOURCES {
 	};
 	std::wstring basePath;
 	std::vector<PATH_PAIR> pathPair;
-	std::uintmax_t total_filesize;
 };

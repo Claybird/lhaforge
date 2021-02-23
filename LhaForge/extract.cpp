@@ -26,7 +26,6 @@
 #include "extract.h"
 #include "resource.h"
 #include "Dialogs/LogListDialog.h"
-#include "Dialogs/ProgressDlg.h"
 #include "Dialogs/ConfirmOverwriteDlg.h"
 #include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
@@ -103,7 +102,7 @@ struct PRE_EXTRACT_CHECK {
 	bool allInOneDir;	//true if all the contents are under one root directory
 	std::wstring baseDirName;	//valid if allInOneDir is true
 
-	PRE_EXTRACT_CHECK() :allInOneDir(false) {}
+	PRE_EXTRACT_CHECK() :allInOneDir(false){}
 	void check(ILFArchiveFile &arc) {
 		bool bFirst = true;
 
@@ -246,20 +245,19 @@ void extractCurrentEntry(
 	const std::wstring& output_dir,
 	ARCLOG &arcLog,
 	ILFOverwriteConfirm& preExtractHandler,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+	ILFProgressHandler& progressHandler
 ) {
 	//original file name
 	auto originalPath = entry->path;
 	//original attributes
 	int nAttribute = entry->stat.st_mode;
-	//original file size (before compression)
-	auto llOriginalSize = entry->stat.st_size;
 	//filetime
 	auto cFileTime = entry->stat.st_mtime;
 
 	auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
 
-	progressHandler(outputPath, 0, llOriginalSize);
+	//original file size (before compression)
+	progressHandler.onNextEntry(outputPath, entry->stat.st_size);
 	try {
 		if (entry->is_directory()) {
 			try {
@@ -307,14 +305,14 @@ void extractCurrentEntry(
 			for (;;) {
 				auto buffer = arc.read_file_entry_block();
 				if (buffer.is_eof()) {
-					progressHandler(originalPath, llOriginalSize, llOriginalSize);
+					progressHandler.onEntryIO(entry->stat.st_size);
 					break;
 				} else {
-					progressHandler(originalPath, buffer.offset, llOriginalSize);
 					auto written = fwrite(buffer.buffer, 1, (size_t)buffer.size, fp);
 					if (written != buffer.size) {
 						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
 					}
+					progressHandler.onEntryIO(buffer.offset);
 				}
 			}
 			arcLog(originalPath, L"OK");
@@ -364,14 +362,10 @@ std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original
 
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
+	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 )
 {
-	//progress bar
-	CProgressDialog dlg;
-	dlg.Create(NULL);
-	dlg.ShowWindow(SW_SHOW);
-
 	LF_EXTRACT_ARGS args;
 	CConfigManager mngr;
 	try {
@@ -384,8 +378,11 @@ bool GUI_extract_multiple_files(
 	}
 
 	UINT64 totalFiles = archive_files.size();
+	//TODO: queueDialog
 	std::vector<ARCLOG> logs;
 	for (const auto &archive_path : archive_files) {
+		progressHandler.reset();
+		progressHandler.setArchive(archive_path);
 		std::wstring output_dir;
 		try {
 			//determine output base directory
@@ -393,6 +390,7 @@ bool GUI_extract_multiple_files(
 
 			CLFArchive arc;
 			arc.read_open(archive_path, CLFPassphraseGUI());
+			progressHandler.setNumEntries(arc.get_num_entries());
 
 			//output destination directory [could be same as the output base directory]
 			output_dir = determineExtractDir(arc, archive_path, output_base_dir, args);
@@ -410,22 +408,6 @@ bool GUI_extract_multiple_files(
 				const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
 				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
 			}
-
-			while (UtilDoMessageLoop())continue;
-			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
-				dlg.SetProgress(
-					archive_path,
-					logs.size(),
-					totalFiles,
-					originalPath,
-					currentSize,
-					totalSize);
-				while (UtilDoMessageLoop())continue;
-				if (dlg.isAborted()) {
-					CANCEL_EXCEPTION();
-				}
-			};
 
 			logs.resize(logs.size() + 1);
 			ARCLOG &arcLog = logs.back();
@@ -497,8 +479,7 @@ bool GUI_extract_multiple_files(
 		break;
 	}
 
-	// close progress bar
-	if (dlg.IsWindow())dlg.DestroyWindow();
+	progressHandler.end();
 
 	if (displayLog) {
 		CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_EXTRACT)));
@@ -515,21 +496,23 @@ bool GUI_extract_multiple_files(
 void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
+	ILFProgressHandler &progressHandler,
 	ILFPassphrase &passphrase_callback
 ) {
 	CLFArchive arc;
+	progressHandler.reset();
+	progressHandler.setArchive(archive_path);
 	arc.read_open(archive_path, passphrase_callback);
+	progressHandler.setNumEntries(arc.get_num_entries());
 	// loop for each entry
 	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 		//original file name
-		std::wstring originalPath = entry->path;
+		auto originalPath = entry->path;
 		//original attributes
 		int nAttribute = entry->stat.st_mode;
 		//original file size (before compression)
-		auto llOriginalSize = entry->stat.st_size;
+		progressHandler.onNextEntry(originalPath, entry->stat.st_size);
 
-		progressHandler(originalPath, 0, llOriginalSize);
 		try {
 			if (entry->is_directory()) {
 				arcLog(originalPath, L"directory");
@@ -538,10 +521,10 @@ void testOneArchive(
 				for (;;) {
 					auto buffer = arc.read_file_entry_block();
 					if (buffer.is_eof()) {
-						progressHandler(originalPath, llOriginalSize, llOriginalSize);
+						progressHandler.onEntryIO(entry->stat.st_size);
 						break;
 					} else {
-						progressHandler(originalPath, buffer.offset, llOriginalSize);
+						progressHandler.onEntryIO(buffer.offset);
 					}
 				}
 				arcLog(originalPath, L"OK");
@@ -561,14 +544,10 @@ void testOneArchive(
 
 bool GUI_test_multiple_files(
 	const std::vector<std::wstring> &archive_files,
+	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 )
 {
-	//progress bar
-	CProgressDialog dlg;
-	dlg.Create(NULL);
-	dlg.ShowWindow(SW_SHOW);
-
 	LF_EXTRACT_ARGS args;
 	CConfigManager mngr;
 	try {
@@ -581,6 +560,7 @@ bool GUI_test_multiple_files(
 	}
 
 	UINT64 totalFiles = archive_files.size();
+	//TODO: queue
 	std::vector<ARCLOG> logs;
 	for (const auto &archive_path : archive_files) {
 		try {
@@ -590,22 +570,6 @@ bool GUI_test_multiple_files(
 			if (args.extract.LimitExtractFileCount) {
 				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
 			}
-			while (UtilDoMessageLoop())continue;
-			std::function<void(const std::wstring&, UINT64, UINT64)> progressHandler =
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)->void {
-				dlg.SetProgress(
-					archive_path,
-					logs.size(),
-					totalFiles,
-					originalPath,
-					currentSize,
-					totalSize);
-				while (UtilDoMessageLoop())continue;
-				if (dlg.isAborted()) {
-					CANCEL_EXCEPTION();
-				}
-			};
-
 			logs.resize(logs.size() + 1);
 			ARCLOG &arcLog = logs.back();
 			// record archive filename
@@ -630,8 +594,7 @@ bool GUI_test_multiple_files(
 	for (const auto& log : logs) {
 		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
 	}
-	// close progress bar
-	if (dlg.IsWindow())dlg.DestroyWindow();
+	progressHandler.end();
 
 	//---display logs
 	CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));

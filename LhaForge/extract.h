@@ -78,20 +78,22 @@ void extractCurrentEntry(
 	const std::wstring& output_dir,
 	ARCLOG &arcLog,
 	ILFOverwriteConfirm& preExtractHandler,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler
+	ILFProgressHandler& progressHandler
 );
 
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
+	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 );
 void testOneArchive(
 	const std::wstring& archive_path,
 	ARCLOG &arcLog,
-	std::function<void(const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize)> progressHandler,
+	ILFProgressHandler &progressHandler,
 	ILFPassphrase &passphrase_callback
 );
 bool GUI_test_multiple_files(
 	const std::vector<std::wstring> &archive_files,
+	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 );

@@ -79,7 +79,7 @@ TEST(extract, extractOneArchive) {
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
-				[](const std::wstring&, UINT64, UINT64) {});
+				CLFProgressHandlerNULL());
 		}
 	);
 
@@ -116,7 +116,7 @@ TEST(extract, extractOneArchive_broken_files) {
 		EXPECT_THROW(
 			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
-					[](const std::wstring&, UINT64, UINT64) {});
+					CLFProgressHandlerNULL());
 			}
 		, LF_EXCEPTION);
 
@@ -187,7 +187,7 @@ TEST(extract, testOneArchive) {
 		ARCLOG arcLog;
 		EXPECT_NO_THROW(
 			testOneArchive(archiveFile, arcLog,
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+				CLFProgressHandlerNULL(),
 				CLFPassphraseNULL()
 			));
 	}
@@ -205,7 +205,7 @@ TEST(extract, testOneArchive_broken_files) {
 		ARCLOG arcLog;
 		EXPECT_THROW(
 			testOneArchive(archiveFile, arcLog,
-				[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+				CLFProgressHandlerNULL(),
 				CLFPassphraseNULL()
 		), LF_EXCEPTION);
 	}

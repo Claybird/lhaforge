@@ -110,3 +110,30 @@ struct CLFPassphraseConst :public ILFPassphrase {
 	virtual ~CLFPassphraseConst() {}
 	const char* operator()()override { return utf8.c_str(); }
 };
+
+
+struct CLFProgressHandlerNULL :public ILFProgressHandler {
+	CLFProgressHandlerNULL() {}
+	virtual ~CLFProgressHandlerNULL() {}
+	void end()override {}
+	void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)override {}
+	void onEntryIO(int64_t current_size)override {}
+};
+
+class CProgressDialog;
+struct CLFProgressHandlerGUI :public ILFProgressHandler {
+	DISALLOW_COPY_AND_ASSIGN(CLFProgressHandlerGUI);
+
+	int64_t idxEntry;
+	std::unique_ptr<CProgressDialog> dlg;
+
+	CLFProgressHandlerGUI(HWND hParentWnd);
+	virtual ~CLFProgressHandlerGUI();
+	void reset()override {
+		__super::reset();
+		idxEntry = 0;
+	}
+	void end()override;
+	void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)override;
+	void onEntryIO(int64_t current_size)override;
+};

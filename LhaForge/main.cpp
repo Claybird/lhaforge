@@ -137,6 +137,7 @@ bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 		cli.FileList,
 		cli.CompressType,
 		(LF_WRITE_OPTIONS)cli.Options,
+		CLFProgressHandlerGUI(nullptr),
 		cli);
 }
 
@@ -153,7 +154,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
 		return false;
 	}
-	return GUI_extract_multiple_files(tmp, &cli);
+	return GUI_extract_multiple_files(tmp, CLFProgressHandlerGUI(nullptr), &cli);
 }
 
 bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
@@ -203,7 +204,7 @@ bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 		return false;
 	}
 
-	return GUI_test_multiple_files(tmp, &cli);
+	return GUI_test_multiple_files(tmp, CLFProgressHandlerGUI(nullptr), &cli);
 }
 
 void procMain()

@@ -26,7 +26,6 @@
 #include "compress.h"
 #include "ArchiverCode/archive.h"
 #include "Dialogs/LogListDialog.h"
-#include "Dialogs/ProgressDlg.h"
 
 #include "resource.h"
 
@@ -225,14 +224,6 @@ COMPRESS_SOURCES buildCompressSources(
 		}
 
 		targets.pathPair = getRelativePathList(targets.basePath, sourcePathList);
-
-		//original size
-		targets.total_filesize = 0;
-		for (const auto& path : sourcePathList) {
-			if (std::filesystem::is_regular_file(path)) {
-				targets.total_filesize += std::filesystem::file_size(path);
-			}
-		}
 	} catch (const std::filesystem::filesystem_error& e) {
 		auto msg = UtilCP932toUNICODE(e.what(), strlen(e.what()));
 		throw LF_EXCEPTION(msg);
@@ -315,20 +306,18 @@ void compressOneArchive(
 	const std::filesystem::path& output_archive,
 	const COMPRESS_SOURCES &source_files,
 	ARCLOG arcLog,
-	std::function<void(const std::wstring& archivePath,
-		const std::wstring& path_on_disk,
-		UINT64 currentSize,
-		UINT64 totalSize)> progressHandler,
+	ILFProgressHandler &progressHandler,
 	ILFPassphrase& passphrase_callback
 ) {
 	CLFArchive archive;
 	archive.write_open(output_archive, format, options, args, passphrase_callback);
-	std::uintmax_t processed = 0;
+	progressHandler.setArchive(output_archive);
+	progressHandler.setNumEntries(source_files.pathPair.size());
 	for (const auto &source : source_files.pathPair) {
 		try {
 			LF_ENTRY_STAT entry;
 			entry.read_file_stat(source.originalFullPath, source.entryPath);
-			progressHandler(output_archive, source.originalFullPath, processed, source_files.total_filesize);
+			progressHandler.onNextEntry(source.originalFullPath, entry.stat.st_size);
 
 			if (std::filesystem::is_regular_file(source.originalFullPath)) {
 				RAW_FILE_READER provider;
@@ -336,24 +325,16 @@ void compressOneArchive(
 				archive.add_file_entry(entry, [&]() {
 					auto data = provider();
 					if (!data.is_eof()) {
-						progressHandler(
-							output_archive,
-							source.originalFullPath,
-							processed+data.offset,
-							source_files.total_filesize);
+						progressHandler.onEntryIO(data.offset);
 					}
 					while (UtilDoMessageLoop())continue;
 					return data;
 				});
 
-				processed += std::filesystem::file_size(source.originalFullPath);
-				progressHandler(
-					output_archive,
-					source.originalFullPath,
-					processed,
-					source_files.total_filesize);
+				progressHandler.onEntryIO(entry.stat.st_size);
 			} else {
 				//directory
+				progressHandler.onNextEntry(source.originalFullPath, 0);
 				archive.add_directory_entry(entry);
 			}
 			arcLog(output_archive, L"OK");
@@ -379,10 +360,7 @@ void compress_helper(
 	CMDLINEINFO& CmdLineInfo,
 	ARCLOG &arcLog,
 	LF_COMPRESS_ARGS &args,
-	std::function<void(const std::wstring& archivePath,
-		const std::wstring& path_on_disk,
-		UINT64 currentSize,
-		UINT64 totalSize)> &progressHandler,
+	ILFProgressHandler &progressHandler,
 	ILFPassphrase& passphraseHandler
 	)
 {
@@ -529,14 +507,11 @@ bool GUI_compress_multiple_files(
 	const std::vector<std::wstring> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
+	ILFProgressHandler &progressHandler,
 	CMDLINEINFO& CmdLineInfo)
 {
 	LF_COMPRESS_ARGS args;
 	parseCompressOption(args, &CmdLineInfo);
-	//progress bar
-	CProgressDialog dlg;
-	dlg.Create(nullptr);
-	dlg.ShowWindow(SW_SHOW);
 
 	//do compression
 	if (0 != CmdLineInfo.Options) {
@@ -544,23 +519,6 @@ bool GUI_compress_multiple_files(
 	}
 
 	size_t idxFile = 0, totalFiles = 1;
-	std::function<void(const std::wstring&, const std::wstring&, UINT64, UINT64)> progressHandler =
-		[&](const std::wstring& archivePath,
-			const std::wstring& path_on_disk,
-			UINT64 currentSize,
-			UINT64 totalSize)->void {
-		dlg.SetProgress(
-			archivePath,
-			idxFile,
-			totalFiles,
-			path_on_disk,
-			currentSize,
-			totalSize);
-		while (UtilDoMessageLoop())continue;
-		if (dlg.isAborted()) {
-			CANCEL_EXCEPTION();
-		}
-	};
 
 	std::vector<ARCLOG> logs;
 	if (CmdLineInfo.bSingleCompression) {
@@ -579,9 +537,6 @@ bool GUI_compress_multiple_files(
 					progressHandler,
 					CLFPassphraseGUI()
 				);
-				if (dlg.isAborted()) {
-					CANCEL_EXCEPTION();
-				}
 			} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 				ARCLOG &arcLog = logs.back();
 				arcLog.logException(e);
@@ -611,6 +566,7 @@ bool GUI_compress_multiple_files(
 			arcLog.logException(e);
 		}
 	}
+	progressHandler.end();
 
 	bool bAllOK = true;
 	for (const auto& log : logs) {
@@ -628,9 +584,6 @@ bool GUI_compress_multiple_files(
 		displayLog = true;
 		break;
 	}
-
-	// close progress bar
-	if (dlg.IsWindow())dlg.DestroyWindow();
 
 	if (displayLog) {
 		CLogListDialog LogDlg(UtilLoadString(IDS_LOGINFO_OPERATION_EXTRACT).c_str());
@@ -867,7 +820,6 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
-		EXPECT_EQ(5, sources.total_filesize);
 		EXPECT_EQ(10, sources.pathPair.size());
 
 		std::map<std::wstring, std::wstring> expected = {
@@ -910,7 +862,6 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
-		EXPECT_EQ(5, sources.total_filesize);
 		EXPECT_EQ(10, sources.pathPair.size());
 
 		std::map<std::wstring, std::wstring> expected = {
@@ -942,7 +893,6 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
-		EXPECT_EQ(5, sources.total_filesize);
 		EXPECT_EQ(5, sources.pathPair.size());
 
 		std::map<std::wstring, std::wstring> expected = {
@@ -969,7 +919,6 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir / L"b", sources.basePath);
-		EXPECT_EQ(0, sources.total_filesize);
 		EXPECT_EQ(4, sources.pathPair.size());
 
 		std::map<std::wstring, std::wstring> expected = {
@@ -996,7 +945,6 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir / L"b/c", sources.basePath);
-		EXPECT_EQ(0, sources.total_filesize);
 		EXPECT_EQ(3, sources.pathPair.size());
 
 		std::map<std::wstring, std::wstring> expected = {
@@ -1093,11 +1041,8 @@ TEST(compress, compressOneArchive)
 		if (p.options & LF_WOPT_DATA_ENCRYPTION) {
 			//expect user cancel
 			EXPECT_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
-				(cap.contains_multiple_files ? sources : single_source), arcLog, [](
-					const std::wstring&,
-					const std::wstring&,
-					UINT64,
-					UINT64) {},
+				(cap.contains_multiple_files ? sources : single_source), arcLog,
+				CLFProgressHandlerNULL(),
 				CLFPassphraseNULL()),
 				LF_USER_CANCEL_EXCEPTION);
 
@@ -1106,11 +1051,8 @@ TEST(compress, compressOneArchive)
 
 		//expect successful compression
 		EXPECT_NO_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
-			(cap.contains_multiple_files ? sources : single_source), arcLog, [&](
-				const std::wstring&,
-				const std::wstring&,
-				UINT64,
-				UINT64) {},
+			(cap.contains_multiple_files ? sources : single_source), arcLog,
+			CLFProgressHandlerNULL(),
 			CLFPassphraseConst(L"password")));
 
 		//expect readable archive
@@ -1118,7 +1060,7 @@ TEST(compress, compressOneArchive)
 			ASSERT_TRUE(std::filesystem::exists(archive));
 			EXPECT_NO_THROW(
 				testOneArchive(archive, arcLog,
-					[&](const std::wstring& originalPath, UINT64 currentSize, UINT64 totalSize) {},
+					CLFProgressHandlerNULL(),
 					CLFPassphraseConst(L"password")));
 		}
 
@@ -1188,7 +1130,7 @@ TEST(compress, copyArchive)
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
-				[](const std::wstring&, UINT64, UINT64) {});
+				CLFProgressHandlerNULL());
 		}
 	);
 

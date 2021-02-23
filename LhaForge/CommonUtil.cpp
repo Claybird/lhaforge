@@ -389,3 +389,51 @@ const char* CLFPassphraseGUI::operator()()
 		return utf8.c_str();
 	}
 }
+
+#include "Dialogs/ProgressDlg.h"
+
+CLFProgressHandlerGUI::CLFProgressHandlerGUI(HWND hParentWnd):
+	idxEntry(0)
+{
+	//progress bar
+	dlg = std::make_unique<CProgressDialog>();
+	dlg->Create(hParentWnd);
+	dlg->ShowWindow(SW_SHOW);
+}
+
+CLFProgressHandlerGUI::~CLFProgressHandlerGUI()
+{
+	end();
+}
+
+void CLFProgressHandlerGUI::end()
+{
+	if (dlg && dlg->IsWindow()) {
+		dlg->DestroyWindow();
+	}
+}
+
+void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)
+{
+	idxEntry++;
+	dlg->SetEntry(
+		archivePath,
+		idxEntry,
+		numEntries,
+		entry_path,
+		entry_size);
+	while (UtilDoMessageLoop())continue;
+	if (dlg->isAborted()) {
+		CANCEL_EXCEPTION();
+	}
+}
+
+void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
+{
+	dlg->SetEntryProgress(current_size);
+	while (UtilDoMessageLoop())continue;
+	if (dlg->isAborted()) {
+		CANCEL_EXCEPTION();
+	}
+}
+
