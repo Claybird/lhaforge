@@ -137,3 +137,12 @@ struct CLFProgressHandlerGUI :public ILFProgressHandler {
 	void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)override;
 	void onEntryIO(int64_t current_size)override;
 };
+
+#include "FileListWindow/ArcFileContent.h"
+struct CLFScanProgressHandlerNULL : public ILFScanProgressHandler
+{
+	virtual ~CLFScanProgressHandlerNULL() {}
+	void end()override {}
+	void setArchive(const std::filesystem::path& path)override {}
+	void onNextEntry(const std::filesystem::path& entry_path)override {}
+};
