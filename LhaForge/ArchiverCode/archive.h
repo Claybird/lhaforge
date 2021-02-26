@@ -199,6 +199,15 @@ struct ILFProgressHandler {
 	virtual void onEntryIO(int64_t current_size) = 0;
 };
 
+struct ILFScanProgressHandler {
+	ILFScanProgressHandler() {}
+	virtual ~ILFScanProgressHandler() {}
+	virtual void end() = 0;
+	virtual void setArchive(const std::filesystem::path& path) = 0;
+	virtual void onNextEntry(const std::filesystem::path& entry_path) = 0;
+};
+
+
 struct LF_ENTRY_STAT {
 	LF_ENTRY_STAT() {
 		stat = {};

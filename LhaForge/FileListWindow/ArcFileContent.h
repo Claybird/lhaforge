@@ -26,14 +26,6 @@
 #include "ArchiverCode/archive.h"
 #include "CommonUtil.h"
 
-struct ILFScanProgressHandler {
-	ILFScanProgressHandler() {}
-	virtual ~ILFScanProgressHandler() {}
-	virtual void end() = 0;
-	virtual void setArchive(const std::filesystem::path& path) = 0;
-	virtual void onNextEntry(const std::filesystem::path& entry_path) = 0;
-};
-
 //reconstructed archive content structure
 struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > _children;

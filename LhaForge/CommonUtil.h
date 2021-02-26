@@ -138,7 +138,6 @@ struct CLFProgressHandlerGUI :public ILFProgressHandler {
 	void onEntryIO(int64_t current_size)override;
 };
 
-#include "FileListWindow/ArcFileContent.h"
 struct CLFScanProgressHandlerNULL : public ILFScanProgressHandler
 {
 	virtual ~CLFScanProgressHandlerNULL() {}

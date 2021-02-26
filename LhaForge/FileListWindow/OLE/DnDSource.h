@@ -90,7 +90,7 @@ public:
 		std::vector<std::wstring> files;
 		for (const auto& item: items) {
 			std::filesystem::path path = outputDir;
-			path /= item->getFullpath();
+			path /= item->calcFullpath();
 			files.push_back(UtilPathRemoveLastSeparator(path));
 		}
 		std::sort(files.begin(), files.end());
