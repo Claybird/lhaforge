@@ -24,6 +24,7 @@
 
 #pragma once
 #include "FileListWindow/MenuCommand.h"
+#include "ConfigCode/ConfigManager.h"
 
 struct CConfigFileListWindow:public IConfigIO{
 public:
@@ -42,7 +43,6 @@ public:
 	bool StoreWindowPosition;	//ウィンドウの位置を保存する
 
 	bool IgnoreMeaninglessPath;	//空白や.のみのパス指定は無視する
-	FILELISTMODE FileListMode;	//ファイル表示の階層モード
 	bool ExpandTree;			//起動時にツリービューを展開しておく
 	bool DisplayFileSizeInByte;	//バイト単位でファイルサイズを表記する
 	bool DisplayPathOnly;		//フルパスの欄にファイル名を表示しない
@@ -80,5 +80,8 @@ public:
 		store_sub(Config);
 		storeMenuCommand(Config);
 	}
+
+	//checks file extension whether file is allowed to be opened.
+	bool isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const;
 };
 

@@ -23,163 +23,167 @@
 */
 
 #pragma once
-//ファイル一覧構造を保持する
+
 #include "ArcFileContent.h"
 #include "EventDispatcher.h"
+#include "FileListMessages.h"
 #include "Utilities/FileOperation.h"
-#include "Utilities/Utility.h"
 
-enum FILELISTMODE{	//ファイル一覧ウィンドウの表示方法
-	FILELIST_TREE,				//エクスプローラライクのディレクトリ階層表示
-	FILELIST_FLAT,				//フォルダ階層を無視して表示
-	FILELIST_FLAT_FILESONLY,	//フォルダ階層を無視し、ファイルのみ表示
-
-	ENUM_COUNT_AND_LASTITEM(FILELISTMODE),
-};
-
-//ファイル情報
 enum FILEINFO_TYPE{
 	FILEINFO_INVALID=-1,
-	FILEINFO_FILENAME,		//ファイル名
-	FILEINFO_FULLPATH,		//フルパス情報
-	FILEINFO_ORIGINALSIZE,	//圧縮前ファイルサイズ
-	FILEINFO_TYPENAME,		//ファイル種類名
-	FILEINFO_FILETIME,		//ファイル最終更新日時
-	FILEINFO_ATTRIBUTE,		//ファイル属性
-	FILEINFO_COMPRESSEDSIZE,//圧縮後ファイルサイズ
-	FILEINFO_METHOD,		//圧縮メソッド
-	FILEINFO_RATIO,			//圧縮率
-	FILEINFO_CRC,			//CRC
+	FILEINFO_FILENAME,
+	FILEINFO_FULLPATH,
+	FILEINFO_ORIGINALSIZE,
+	FILEINFO_TYPENAME,
+	FILEINFO_FILETIME,
+	FILEINFO_ATTRIBUTE,
+	FILEINFO_COMPRESSEDSIZE,
+	FILEINFO_METHOD,
+	FILEINFO_RATIO,		//compression ratio
+	FILEINFO_CRC,		//CRC checksum//TODO: remove
 
 	ENUM_COUNT_AND_LASTITEM(FILEINFO),
 };
 
-
+struct CConfigManager;	//TODO: remove
 class CFileListModel:public CEventDispatcher
 {
 protected:
-	CArchiveFileContent			m_Content;
-	ARCHIVE_ENTRY_INFO*	m_lpCurrentNode;
-	ARCHIVE_ENTRY_INFO		m_FoundItems;
-	//ソート済みのカレントノード状態
-	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> >	m_SortedChildren;
-	CTemporaryDirectoryManager	m_TempDirManager;	//一時フォルダ管理
+	CArchiveFileContent	m_Content;
+	const ARCHIVE_ENTRY_INFO*	m_lpCurrentDir;
+	ARCHIVE_ENTRY_INFO	m_FoundItems;
 
-	CConfigManager&				mr_Config;
-	//ソート関係
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> >	m_SortedChildren;
+	CTemporaryDirectoryManager	m_TempDirManager;
+
+	//sort
 	bool	m_bSortDescending;
 	int		m_nSortKeyType;
 
-	FILELISTMODE m_Mode;
-	//openassoc
-	static CString ms_strExtAccept,ms_strExtDeny;
+	CConfigManager&				mr_Config;
 protected:
 	//---internal functions
 	void SortCurrentEntries();
 public:
-	CFileListModel(CConfigManager&);
-	virtual ~CFileListModel();
+	CFileListModel(CConfigManager &conf, ILFPassphrase& passphrase) :
+		mr_Config(conf),
+		m_lpCurrentDir(nullptr),
+		m_bSortDescending(true),
+		m_nSortKeyType(FILEINFO_INVALID),
+		m_Content(passphrase)
+	{}
+	virtual ~CFileListModel() {}
 
-	HRESULT OpenArchiveFile(LPCTSTR,FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
-	HRESULT ReopenArchiveFile(FILELISTMODE flMode,CString &strErr,IArchiveContentUpdateHandler* =NULL);
-	void Clear();
+	void Open(const std::filesystem::path& path, ILFScanProgressHandler&);
+	void Reopen(ILFScanProgressHandler& progressHandler) {
+		Open(GetArchiveFileName(), progressHandler);
+	}
+	void Clear() {
+		m_Content.clear();
+		m_lpCurrentDir = nullptr;
+		m_SortedChildren.clear();
 
-	void GetDirStack(std::stack<CString>&);
-	bool SetDirStack(const std::stack<CString>&);
+		m_FoundItems.clear();
+	}
+	std::wstring getCurrentDirPath()const;
+	void setCurrentDirPath(const std::wstring& path);
 
-	ARCHIVE_ENTRY_INFO* GetCurrentNode(){return m_lpCurrentNode;}
-	const ARCHIVE_ENTRY_INFO* GetCurrentNode()const{return m_lpCurrentNode;}
-	void SetCurrentNode(ARCHIVE_ENTRY_INFO* lpN);
+	const ARCHIVE_ENTRY_INFO* getCurrentDir()const{return m_lpCurrentDir;}
+	void setCurrentDir(const ARCHIVE_ENTRY_INFO* lpN);
 
-	void SetSortKeyType(int nSortKeyType);
-	void SetSortMode(bool bSortDescending);
+	void SetSortKeyType(int nSortKeyType) {
+		if (m_nSortKeyType != nSortKeyType) {
+			m_nSortKeyType = nSortKeyType;
+			SortCurrentEntries();
+			dispatchEvent(WM_FILELIST_UPDATED);
+		}
+	}
+	void SetSortMode(bool bSortDescending) {
+		m_bSortDescending = bSortDescending;
+		SortCurrentEntries();
+		dispatchEvent(WM_FILELIST_UPDATED);
+	}
 	int GetSortKeyType()const{return m_nSortKeyType;}
 	bool GetSortMode()const{return m_bSortDescending;}
 
 	bool MoveUpDir();
-	bool MoveDownDir(ARCHIVE_ENTRY_INFO*);
+	bool MoveDownDir(const ARCHIVE_ENTRY_INFO*);
 
-	bool IsRoot()const{return (GetCurrentNode()==m_Content.getRootNode());}
-	bool IsOK()const{return m_Content.IsOK();}	//ファイルリストが正常なときは、lpArchiverはnon-NULL
-	bool IsFindMode()const{return m_lpCurrentNode==&m_FoundItems;}
+	bool IsRoot()const { return (getCurrentDir() == m_Content.getRootNode()); }
+	bool IsOK()const{return m_Content.isOK();}
 
-	ARCHIVE_ENTRY_INFO* GetFileListItemByIndex(long iIndex);
+	const ARCHIVE_ENTRY_INFO* GetFileListItemByIndex(int iIndex)const;
 
-	//lpTop以下のファイルを検索;検索結果を格納したARCHIVE_ENTRY_INFOのポインタを返す
-	ARCHIVE_ENTRY_INFO* FindItem(LPCTSTR lpszMask,ARCHIVE_ENTRY_INFO *lpTop);
-	void EndFindItem();
+	bool IsFindMode()const { return m_lpCurrentDir == &m_FoundItems; }
+	const ARCHIVE_ENTRY_INFO* FindItem(const std::wstring& mask, const ARCHIVE_ENTRY_INFO *parent) {
+		m_FoundItems._children = m_Content.findItem(mask, parent);
+		m_FoundItems._parent = nullptr;
+		return &m_FoundItems;
+	}
+	void EndFindItem() {
+		if (IsFindMode()) {
+			setCurrentDir(m_FoundItems._parent);
+		}
+	}
 
-	//処理対象アーカイブ名を取得
-	LPCTSTR GetArchiveFileName()const{return m_Content.getArchivePath();}
+	LPCTSTR GetArchiveFileName()const{return m_Content.getArchivePath().c_str();}
 	ARCHIVE_ENTRY_INFO* GetRootNode(){return m_Content.getRootNode();}
 	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.getRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
 	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return true; }
-	[[deprecated("just a placeholder")]] bool IsAddItemsSupported()const { return true; }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
-	HRESULT AddItem(const std::vector<std::wstring>&,LPCTSTR lpDestDir,CString&);	//ファイルを追加圧縮
+	void AddItem(
+		LF_COMPRESS_ARGS& args,
+		const std::vector<std::filesystem::path> &files,
+		const ARCHIVE_ENTRY_INFO* parent,
+		ILFProgressHandler& progressHandler,
+		ARCLOG &arcLog) {
+		m_Content.addEntries(
+			args,
+			files,
+			parent,
+			progressHandler,
+			arcLog);
+	}
+	void DeleteItems(LF_COMPRESS_ARGS& args,
+		const std::vector<const ARCHIVE_ENTRY_INFO*>& items,
+		ILFProgressHandler& progressHandler,
+		ARCLOG &arcLog) {
+		m_Content.deleteEntries(args, items, progressHandler, arcLog);
+	}
 	void ExtractItems(
-		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
-		const std::wstring &outputDir,
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		const std::filesystem::path &outputDir,
 		const ARCHIVE_ENTRY_INFO* lpBase,
 		bool bCollapseDir,
+		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
-		m_Content.extractItems(mr_Config, items, outputDir, lpBase, bCollapseDir, arcLog);
+		m_Content.extractEntries(items, outputDir, lpBase, bCollapseDir, progressHandler, arcLog);
 	}
-	HRESULT ExtractItems(
-		HWND hWnd,
-		bool bSameDir,
-		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+
+	std::vector<std::filesystem::path> MakeSureItemsExtracted(
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		std::filesystem::path outputDir,
 		const ARCHIVE_ENTRY_INFO* lpBase,
-		CString &strLog);
-	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool MakeSureItemsExtracted(
-		LPCTSTR lpOutputDir,
-		bool bOverwrite,
-		const ARCHIVE_ENTRY_INFO* lpBase,
-		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
-		std::vector<std::wstring> &r_extractedFiles,
-		std::wstring &strLog) {
-		if (!lpOutputDir) {
-			lpOutputDir = m_TempDirManager.path();
-		}
-		return m_Content.MakeSureItemsExtracted(mr_Config, lpOutputDir, bOverwrite, lpBase, items, r_extractedFiles, strLog);
+		ILFProgressHandler& progressHandler,
+		overwrite_options options,
+		ARCLOG &arcLog) {
+		return m_Content.makeSureItemsExtracted(
+			items,
+			outputDir,
+			lpBase,
+			progressHandler,
+			options,
+			arcLog);
 	}
-	bool DeleteItems(const std::vector<ARCHIVE_ENTRY_INFO*>&,CString&);
 
-	static void SetOpenAssocExtDeny(const std::wstring &extDeny){ms_strExtDeny=extDeny.c_str();}
-	static LPCTSTR GetOpenAssocExtDeny(){return ms_strExtDeny;}
-	static void SetOpenAssocExtAccept(const std::wstring &extAccept){ms_strExtAccept=extAccept.c_str();}
-	static LPCTSTR GetOpenAssocExtAccept(){return ms_strExtAccept;}
+	bool ExtractArchive(ILFProgressHandler &progressHandler);
+	bool TestArchive(ILFProgressHandler &progressHandler);
 
-	FILELISTMODE GetListMode()const{return m_Mode;}
-
-	bool ExtractArchive();	//::Extract()を呼ぶ
-	bool TestArchive();
-
-	void ClearTempDir();
-
-	//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
-	bool IsPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const {
-		const auto denyList = UtilSplitString(GetOpenAssocExtDeny(), L";");
-		const auto acceptList = UtilSplitString(GetOpenAssocExtAccept(), L";");
-		for (const auto& deny : denyList) {
-			if (UtilExtMatchSpec(lpszPath, deny)) {
-				return false;
-			}
-		}
-		if (bDenyOnly) {
-			return true;
-		} else {
-			for (const auto& accept : acceptList) {
-				if (UtilExtMatchSpec(lpszPath, accept)) {
-					return true;
-				}
-			}
-		}
-		return false;
+	void ClearTempDir() {
+		UtilDeleteDir(m_TempDirManager.path(), false);
 	}
 };
 

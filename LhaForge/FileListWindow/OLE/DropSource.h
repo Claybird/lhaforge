@@ -25,6 +25,7 @@
 #pragma once
 //Original code from http://hp.vector.co.jp/authors/VA016117/
 #include "ArchiverCode/archive.h"
+#include "extract.h"
 #include "FileListWindow/FileListModel.h"
 
 class CFileListModel;
@@ -33,25 +34,26 @@ class CLFDropSource : public IDropSource
 protected:
 	LONG _RefCount;
 	CFileListModel& _rModel;
-	std::vector<ARCHIVE_ENTRY_INFO*> _items;
+	std::vector<const ARCHIVE_ENTRY_INFO*> _items;
 	std::wstring _outputDir;
-	ARCHIVE_ENTRY_INFO* _lpBase;
+	const ARCHIVE_ENTRY_INFO* _lpBase;
 	DWORD _dwEffect;
+	HWND _hParent;
 public:
-	std::wstring _strLog;
-	bool _bRet;
+	ARCLOG _arcLog;
 public:
 	CLFDropSource(CFileListModel &rModel,
-		const std::vector<ARCHIVE_ENTRY_INFO*> &items,
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 		const std::wstring &outputDir,
-		ARCHIVE_ENTRY_INFO* lpBase) :
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		HWND hParent) :
 		_RefCount(1),
 		_rModel(rModel),
 		_items(items),
 		_outputDir(outputDir),
 		_lpBase(lpBase),
 		_dwEffect(0),
-		_bRet(true)
+		_hParent(hParent)
 	{}
 	virtual ~CLFDropSource(){};
 
@@ -87,15 +89,15 @@ public:
 		}else if ((grfKeyState & (MK_LBUTTON | MK_RBUTTON)) == 0) {
 			// dropped, then extract
 			if (DROPEFFECT_NONE != _dwEffect) {
-				std::vector<std::wstring> extractedFiles;
-				_bRet = _rModel.MakeSureItemsExtracted(
-					_outputDir.c_str(),
-					true,
-					_lpBase,
-					_items,
-					extractedFiles,
-					_strLog);
-				if (!_bRet) {
+				try {
+					auto extractedFiles = _rModel.MakeSureItemsExtracted(
+						_items,
+						_outputDir,
+						_lpBase,
+						CLFProgressHandlerGUI(_hParent),
+						overwrite_options::overwrite,
+						_arcLog);
+				}catch(...) {
 					return DRAGDROP_S_CANCEL;
 				}
 			}

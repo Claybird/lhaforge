@@ -28,6 +28,7 @@
 #include "FileListWindow/FileListFrame.h"
 #include "FileListWindow/FileListTabClient.h"
 #include "Utilities/StringUtil.h"
+#include "Utilities/Utility.h"
 #include "ConfigFileListWindow.h"
 #include "resource.h"
 
@@ -285,4 +286,32 @@ void CConfigFileListWindow::storeMenuCommand(CConfigManager &Config)const
 		//キャプション
 		Config.setValue(section, L"Caption", mci.Caption);
 	}
+}
+
+//checks file extension whether file is allowed to be opened.
+bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const
+{
+	auto denyExt = OpenAssoc.Deny;
+	if (DenyPathExt) {
+		auto envs = UtilGetEnvInfo();
+		denyExt += envs[L"PATHEXT"];
+	}
+
+	const auto denyList = UtilSplitString(denyExt, L";");
+	for (const auto& deny : denyList) {
+		if (UtilExtMatchSpec(lpszPath, deny)) {
+			return false;
+		}
+	}
+	if (bDenyOnly) {
+		return true;
+	} else {
+		const auto acceptList = UtilSplitString(OpenAssoc.Accept, L";");
+		for (const auto& accept : acceptList) {
+			if (UtilExtMatchSpec(lpszPath, accept)) {
+				return true;
+			}
+		}
+	}
+	return false;
 }

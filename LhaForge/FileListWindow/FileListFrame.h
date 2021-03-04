@@ -76,7 +76,6 @@ protected:
 	void UpdateStatusBar();
 	void UpdateMenuState();
 	HANDLE GetMultiOpenLockMutex(LPCTSTR lpszMutex);
-	void SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW);
 
 	HMENU GetUserAppMenuHandle();
 	HMENU GetSendToMenuHandle();
