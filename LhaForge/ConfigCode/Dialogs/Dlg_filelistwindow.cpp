@@ -39,13 +39,6 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//DDX情報アップデート
 	DoDataExchange(FALSE);
 
-	//ファイル一覧モード
-	Radio_FileListMode[FILELIST_TREE]=GetDlgItem(IDC_RADIO_FILELIST_TREE);
-	Radio_FileListMode[FILELIST_FLAT]=GetDlgItem(IDC_RADIO_FILELIST_FLAT);
-	Radio_FileListMode[FILELIST_FLAT_FILESONLY]=GetDlgItem(IDC_RADIO_FILELIST_FLAT_FILESONLY);
-
-	Radio_FileListMode[m_Config.FileListMode].SetCheck(true);
-
 	//「プログラムで開く」コマンド関連
 	m_MenuCommandArray=m_Config.MenuCommandArray;
 
@@ -79,12 +72,6 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
-	}
-	for(int i=0;i<COUNTOF(Radio_FileListMode);i++){
-		if(Radio_FileListMode[i].GetCheck()){
-			m_Config.FileListMode=(FILELISTMODE)i;
-			break;
-		}
 	}
 	//「プログラムで開く」コマンドの更新
 	if(m_lpMenuCommandItem){

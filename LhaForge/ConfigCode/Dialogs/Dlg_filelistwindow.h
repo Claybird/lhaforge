@@ -44,8 +44,6 @@ protected:
 	void OnClearTemporary(UINT,int,HWND);	//残ってしまったテンポラリディレクトリを削除
 	void OnResetExt(UINT,int,HWND);			//禁止・許可拡張子のリセット
 
-	CButton Radio_FileListMode[FILELISTMODE_ITEM_COUNT];
-
 	CEdit Edit_Path,Edit_Param,Edit_Dir,Edit_Caption;
 	CListViewCtrl List_Command;
 	void OnBrowsePath(UINT, int, HWND);
