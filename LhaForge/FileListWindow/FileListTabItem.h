@@ -26,11 +26,14 @@
 #include "FileListModel.h"
 #include "FileListView.h"
 #include "FileTreeView.h"
+#include "ConfigCode/ConfigFileListWindow.h"
 
 struct CConfigFileListWindow;
 struct CFileListTabItem{
 	DISALLOW_COPY_AND_ASSIGN(CFileListTabItem);
 public:
+	CLFPassphraseGUI _passphrase;
+	CLFScanProgressHandlerGUI _progress;
 	CFileListModel	Model;
 
 	CSplitterWindow	Splitter;	// スプリッタウィンドウ
@@ -44,27 +47,142 @@ public:
 	CString strMutexName;
 protected:
 	//---internal functions
-	bool CreateListView(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow&);
-	bool CreateTreeView(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow&);
-public:
-	CFileListTabItem(CConfigManager &rMan);
-	virtual ~CFileListTabItem(){DestroyWindow();}
-	bool CreateTabItem(HWND hParentWnd,HWND hFrameWnd,const CConfigFileListWindow&);
-	HRESULT OpenArchive(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,FILELISTMODE flMode,IArchiveContentUpdateHandler* lpHandler,CString &strErr);
+	bool CreateListView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow& ConfFLW) {
+		//--ファイル一覧ウィンドウ作成
+		ListView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | /*WS_VISIBLE | */WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_OWNERDATA | LVS_AUTOARRANGE | LVS_SHAREIMAGELISTS | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
+		//フレームウィンドウのハンドルを教える
+		ListView.SetFrameWnd(hFrameWnd);
 
-	void DestroyWindow();
-	void ShowWindow(int nCmdShow);
-	void OnActivated();
-	void OnDeactivated();
+		//スタイル設定
+		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
+
+		//リストビューにカラム追加
+		if (!ListView.SetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray))return false;
+
+		//表示設定
+		UpdateFileListConfig(ConfFLW);
+
+		//ソート設定
+		if (ConfFLW.StoreSetting) {
+			Model.SetSortKeyType(ConfFLW.SortColumn);
+			Model.SetSortMode(0 != ConfFLW.SortDescending);
+		} else {
+			Model.SetSortKeyType(-1);
+			Model.SetSortMode(true);
+		}
+
+		//リストビュースタイルの設定
+		if (ConfFLW.StoreSetting) {
+			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
+			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
+			ListView.SetWindowLong(GWL_STYLE, Style | ConfFLW.ListStyle);
+		} else {
+			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
+			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
+			ListView.SetWindowLong(GWL_STYLE, Style | LVS_ICON);
+		}
+		return true;
+	}
+	bool CreateTreeView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow&) {
+		//ツリービュー作成
+		TreeView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
+
+		//フレームウィンドウのハンドルを教える
+		TreeView.SetFrameWnd(hFrameWnd);
+		return true;
+	}
+public:
+	CFileListTabItem(CConfigManager &rMan): Model(rMan, _passphrase),
+		ListView(rMan, Model),
+		TreeView(Model),
+		hMutex(NULL){}
+	virtual ~CFileListTabItem(){DestroyWindow();}
+	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow &ConfFLW) {
+		m_hFrameWnd = hFrameWnd;
+
+		// スプリッタウィンドウを作成
+		CRect rc;
+		GetClientRect(hParentWnd, rc);
+		Splitter.Create(hParentWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+		// スプリッタウィンドウ拡張スタイルを設定
+		Splitter.SetSplitterExtendedStyle(0);
+
+		//---ツリービュー
+		if (!CreateTreeView(Splitter, hFrameWnd, ConfFLW))return false;
+		//---リストビュー
+		if (!CreateListView(Splitter, hFrameWnd, ConfFLW))return false;
+
+		//分割ウィンドウに設定
+		Splitter.SetSplitterPanes(TreeView, ListView);
+		// 分割バーの位置を設定
+		Splitter.SetSplitterPos(ConfFLW.TreeWidth);
+		Splitter.UpdateSplitterLayout();
+		return true;
+	}
+	HRESULT OpenArchive(const std::filesystem::path &arcpath, const CConfigFileListWindow& ConfFLW) {
+		//---解析
+		HRESULT hr = Model.Open(arcpath, _progress);
+
+		if (SUCCEEDED(hr)) {
+			//ツリー構築
+			TreeView.ConstructTree();
+			while (UtilDoMessageLoop())continue;	//ここでメッセージループを回さないとツリーアイテムが有効にならない
+			if (ConfFLW.ExpandTree)TreeView.ExpandTree();
+		}
+		return hr;
+	}
+
+	void DestroyWindow() {
+		if (TreeView.IsWindow())TreeView.DestroyWindow();
+		if (ListView.IsWindow())ListView.DestroyWindow();
+		if (Splitter.IsWindow())Splitter.DestroyWindow();
+
+		if (hMutex) {
+			CloseHandle(hMutex);
+			hMutex = NULL;
+		}
+	}
+	void ShowWindow(int nCmdShow) {
+		TreeView.ShowWindow(nCmdShow);
+		ListView.ShowWindow(nCmdShow);
+		Splitter.ShowWindow(nCmdShow);
+	}
+	void OnActivated() {
+		//---フレームウィンドウをイベントリスナに登録
+		Model.addEventListener(m_hFrameWnd);
+	}
+	void OnDeactivated() {
+		//---フレームウィンドウをイベントリスナから解除
+		Model.removeEventListener(m_hFrameWnd);
+	}
 
 	int GetTreeWidth(){return Splitter.GetSplitterPos();}
 	void SetTreeWidth(int width){Splitter.SetSplitterPos(width);}
 
-	DWORD GetListViewStyle();
-	void SetListViewStyle(DWORD);
-	void UpdateFileListConfig(const CConfigFileListWindow&);
+	DWORD GetListViewStyle()const {
+		return ListView.GetWindowLong(GWL_STYLE);
+	}
+	void SetListViewStyle(DWORD dwStyleNew) {
+		DWORD dwStyle = ListView.GetWindowLong(GWL_STYLE);
+		dwStyle &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
+		ListView.SetWindowLong(GWL_STYLE, dwStyle | dwStyleNew);
+	}
+	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW) {
+		//表示設定
+		ListView.SetDisplayFileSizeInByte(BOOL2bool(ConfFLW.DisplayFileSizeInByte));
+		ListView.SetDisplayPathOnly(BOOL2bool(ConfFLW.DisplayPathOnly));
+		ListView.Invalidate();
+	}
 
-	void SetSortColumn(int);
+	void SetSortColumn(int iCol) {
+		ListView.SortItem(iCol);
+	}
 
-	void ShowTreeView(bool);
+	void ShowTreeView(bool bShow) {
+		if (bShow) {
+			Splitter.SetSinglePaneMode(SPLIT_PANE_NONE);    // show both pane
+		} else {
+			Splitter.SetSinglePaneMode(SPLIT_PANE_RIGHT);   // right pane only
+		}
+	}
 };

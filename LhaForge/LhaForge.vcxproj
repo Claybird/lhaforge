@@ -55,7 +55,6 @@
     <ClCompile Include="FileListWindow\FileListFrame.cpp" />
     <ClCompile Include="FileListWindow\FileListModel.cpp" />
     <ClCompile Include="FileListWindow\FileListTabClient.cpp" />
-    <ClCompile Include="FileListWindow\FileListTabItem.cpp" />
     <ClCompile Include="FileListWindow\FileListView.cpp" />
     <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />

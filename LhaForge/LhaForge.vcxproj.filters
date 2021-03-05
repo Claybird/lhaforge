@@ -73,9 +73,6 @@
     <ClCompile Include="FileListWindow\FileListTabClient.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\FileListTabItem.cpp">
-      <Filter>FileListWindow</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\FileListView.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
