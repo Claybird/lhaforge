@@ -33,36 +33,29 @@ struct CFileListTabItem{
 	DISALLOW_COPY_AND_ASSIGN(CFileListTabItem);
 public:
 	CLFPassphraseGUI _passphrase;
-	CLFScanProgressHandlerGUI _progress;
 	CFileListModel	Model;
 
-	CSplitterWindow	Splitter;	// スプリッタウィンドウ
+	CSplitterWindow	Splitter;
 	CFileListView	ListView;
-	CFileTreeView	TreeView;	// フォルダのツリービュー
+	CFileTreeView	TreeView;
 
 	HWND			m_hFrameWnd;
 
-	//重複open阻止用
-	HANDLE hMutex;	//NULL以外なら、自動的に閉じる
-	CString strMutexName;
+	//for detect same file opened in different window/tab
+	HANDLE hMutex;
+	std::wstring strMutexName;
 protected:
 	//---internal functions
 	bool CreateListView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow& ConfFLW) {
-		//--ファイル一覧ウィンドウ作成
 		ListView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | /*WS_VISIBLE | */WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_OWNERDATA | LVS_AUTOARRANGE | LVS_SHAREIMAGELISTS | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
-		//フレームウィンドウのハンドルを教える
 		ListView.SetFrameWnd(hFrameWnd);
 
-		//スタイル設定
 		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
 
-		//リストビューにカラム追加
 		if (!ListView.SetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray))return false;
 
-		//表示設定
 		UpdateFileListConfig(ConfFLW);
 
-		//ソート設定
 		if (ConfFLW.StoreSetting) {
 			Model.SetSortKeyType(ConfFLW.SortColumn);
 			Model.SetSortMode(0 != ConfFLW.SortDescending);
@@ -71,7 +64,6 @@ protected:
 			Model.SetSortMode(true);
 		}
 
-		//リストビュースタイルの設定
 		if (ConfFLW.StoreSetting) {
 			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
 			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
@@ -84,10 +76,7 @@ protected:
 		return true;
 	}
 	bool CreateTreeView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow&) {
-		//ツリービュー作成
 		TreeView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
-
-		//フレームウィンドウのハンドルを教える
 		TreeView.SetFrameWnd(hFrameWnd);
 		return true;
 	}
@@ -100,36 +89,26 @@ public:
 	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow &ConfFLW) {
 		m_hFrameWnd = hFrameWnd;
 
-		// スプリッタウィンドウを作成
 		CRect rc;
 		GetClientRect(hParentWnd, rc);
 		Splitter.Create(hParentWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-		// スプリッタウィンドウ拡張スタイルを設定
 		Splitter.SetSplitterExtendedStyle(0);
 
-		//---ツリービュー
 		if (!CreateTreeView(Splitter, hFrameWnd, ConfFLW))return false;
-		//---リストビュー
 		if (!CreateListView(Splitter, hFrameWnd, ConfFLW))return false;
 
-		//分割ウィンドウに設定
 		Splitter.SetSplitterPanes(TreeView, ListView);
-		// 分割バーの位置を設定
 		Splitter.SetSplitterPos(ConfFLW.TreeWidth);
 		Splitter.UpdateSplitterLayout();
 		return true;
 	}
-	HRESULT OpenArchive(const std::filesystem::path &arcpath, const CConfigFileListWindow& ConfFLW) {
-		//---解析
-		HRESULT hr = Model.Open(arcpath, _progress);
+	void OpenArchive(const std::filesystem::path &arcpath, const CConfigFileListWindow& ConfFLW) {
+		CLFScanProgressHandlerGUI progress(m_hFrameWnd);
+		Model.Open(arcpath, progress);
 
-		if (SUCCEEDED(hr)) {
-			//ツリー構築
-			TreeView.ConstructTree();
-			while (UtilDoMessageLoop())continue;	//ここでメッセージループを回さないとツリーアイテムが有効にならない
-			if (ConfFLW.ExpandTree)TreeView.ExpandTree();
-		}
-		return hr;
+		//construct tree view structure
+		TreeView.ConstructTree();
+		if (ConfFLW.ExpandTree)TreeView.ExpandTree();
 	}
 
 	void DestroyWindow() {
@@ -148,11 +127,9 @@ public:
 		Splitter.ShowWindow(nCmdShow);
 	}
 	void OnActivated() {
-		//---フレームウィンドウをイベントリスナに登録
 		Model.addEventListener(m_hFrameWnd);
 	}
 	void OnDeactivated() {
-		//---フレームウィンドウをイベントリスナから解除
 		Model.removeEventListener(m_hFrameWnd);
 	}
 
@@ -168,9 +145,8 @@ public:
 		ListView.SetWindowLong(GWL_STYLE, dwStyle | dwStyleNew);
 	}
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW) {
-		//表示設定
-		ListView.SetDisplayFileSizeInByte(BOOL2bool(ConfFLW.DisplayFileSizeInByte));
-		ListView.SetDisplayPathOnly(BOOL2bool(ConfFLW.DisplayPathOnly));
+		ListView.SetDisplayFileSizeInByte(ConfFLW.DisplayFileSizeInByte);
+		ListView.SetDisplayPathOnly(ConfFLW.DisplayPathOnly);
 		ListView.Invalidate();
 	}
 
