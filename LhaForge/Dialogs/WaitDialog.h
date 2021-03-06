@@ -28,8 +28,7 @@
 class CWaitDialog : 
 	public CDialogImpl<CWaitDialog>,
 	public CMessageFilter,
-	public CIdleHandler,
-	public IArchiveContentUpdateHandler
+	public CIdleHandler
 {
 protected:
 	CStatic	Static_MessageString;
@@ -76,10 +75,9 @@ public:
 	enum {IDD = IDD_DIALOG_WAIT};
 	void SetMessageString(const std::wstring& t){Static_MessageString.SetWindowTextW(t.c_str());}
 
-	void Prepare(HWND hWndParent, const std::wstring& msg, DWORD delay_in_ms) {
+	void Prepare(HWND hWndParent, DWORD delay_in_ms) {
 		m_ActiveAfter = timeGetTime() + delay_in_ms;
 		Create(hWndParent);
-		SetMessageString(msg);
 		if (m_ActiveAfter > timeGetTime()) {
 			ShowWindow(SW_HIDE);
 		} else {
@@ -87,13 +85,13 @@ public:
 		}
 		UpdateWindow();
 	}
-	void onUpdated(ARCHIVE_ENTRY_INFO &rInfo)override {
+	void setEntry(const std::wstring &entryPath) {
 		if (m_ActiveAfter <= timeGetTime()) {
 			ShowWindow(SW_SHOW);
 		}
-		SetMessageString(rInfo._fullpath.c_str());
+		SetMessageString(entryPath);
 	}
-	bool isAborted()override {
+	bool isAborted(){
 		return m_bAborted;
 	}
 };
