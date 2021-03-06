@@ -145,3 +145,18 @@ struct CLFScanProgressHandlerNULL : public ILFScanProgressHandler
 	void setArchive(const std::filesystem::path& path)override {}
 	void onNextEntry(const std::filesystem::path& entry_path)override {}
 };
+
+class CWaitDialog;
+struct CLFScanProgressHandlerGUI :public ILFScanProgressHandler
+{
+	DISALLOW_COPY_AND_ASSIGN(CLFScanProgressHandlerGUI);
+
+	std::unique_ptr<CWaitDialog> dlg;
+
+	CLFScanProgressHandlerGUI(HWND hWndParent);
+	virtual ~CLFScanProgressHandlerGUI();
+	void end()override;
+	void setArchive(const std::filesystem::path& path)override;
+	void onNextEntry(const std::filesystem::path& entry_path)override;
+};
+

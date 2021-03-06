@@ -416,24 +416,66 @@ void CLFProgressHandlerGUI::end()
 void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)
 {
 	idxEntry++;
-	dlg->SetEntry(
-		archivePath,
-		idxEntry,
-		numEntries,
-		entry_path,
-		entry_size);
-	while (UtilDoMessageLoop())continue;
-	if (dlg->isAborted()) {
-		CANCEL_EXCEPTION();
+	if (dlg) {
+		dlg->SetEntry(
+			archivePath,
+			idxEntry,
+			numEntries,
+			entry_path,
+			entry_size);
+		while (UtilDoMessageLoop())continue;
+		if (dlg->isAborted()) {
+			CANCEL_EXCEPTION();
+		}
 	}
 }
 
 void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
 {
-	dlg->SetEntryProgress(current_size);
-	while (UtilDoMessageLoop())continue;
-	if (dlg->isAborted()) {
-		CANCEL_EXCEPTION();
+	if (dlg) {
+		dlg->SetEntryProgress(current_size);
+		while (UtilDoMessageLoop())continue;
+		if (dlg->isAborted()) {
+			CANCEL_EXCEPTION();
+		}
 	}
 }
 
+#include "Dialogs/WaitDialog.h"
+CLFScanProgressHandlerGUI::CLFScanProgressHandlerGUI(HWND hWndParent)
+{
+	dlg = std::make_unique<CWaitDialog>();
+	dlg->Prepare(hWndParent, 5000);
+}
+
+CLFScanProgressHandlerGUI::~CLFScanProgressHandlerGUI()
+{
+	end();
+}
+
+void CLFScanProgressHandlerGUI::end()
+{
+	if (dlg && dlg->IsWindow()) {
+		dlg->DestroyWindow();
+	}
+}
+
+void CLFScanProgressHandlerGUI::setArchive(const std::filesystem::path& path)
+{
+	if (dlg) {
+		dlg->setEntry(path);
+		if (dlg->isAborted()) {
+			CANCEL_EXCEPTION();
+		}
+	}
+}
+
+void CLFScanProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path)
+{
+	if (dlg) {
+		dlg->setEntry(entry_path);
+		if (dlg->isAborted()) {
+			CANCEL_EXCEPTION();
+		}
+	}
+}
