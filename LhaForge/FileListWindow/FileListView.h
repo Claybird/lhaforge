@@ -23,28 +23,17 @@
 */
 
 #pragma once
-#include "FileListModel.h"
 #include "ShellDataManager.h"
 #include "OLE/DnDSource.h"
-#include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "resource.h"
-#include "FileListMessages.h"
 #include "Utilities/OSUtil.h"
-#include "MenuCommand.h"
+#include "FileViewBase.h"
 
 struct CConfigFileListWindow;
-class CFileListView:public CWindowImpl<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>,public ILFDropCommunicator//自前のインターフェイス
+class CFileListView:public CFileViewBase<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CListViewCtrl::GetWndClassName())
 	BOOL PreTranslateMessage(MSG* pMsg){return FALSE;}
-
-	//----------------------
-	//IDropCommunicatorの実装
-	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
-	HRESULT DragLeave();
-	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
-	HRESULT Drop(IDataObject*,POINTL&,DWORD&);
 protected:
 	BEGIN_MSG_MAP_EX(CFileListView)
 		MSG_WM_CREATE(OnCreate)
@@ -88,13 +77,10 @@ protected:
 
 
 	CConfigManager&				mr_Config;
-	CFileListModel&				mr_Model;
-	CTemporaryDirectoryManager	m_TempDirMgr;
 	CLFShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
 	bool	m_bDisplayFileSizeInByte;
 	bool	m_bPathOnly;
-	HWND	m_hFrameWnd;
 
 	CLFDnDSource	m_DnDSource;	//DnDハンドラ
 	CLFDropTarget		m_DropTarget;	//ドロップ受け入れに使う
@@ -114,19 +100,14 @@ protected:
 	LRESULT OnBeginDrag(LPNMHDR pnmh);
 	LRESULT OnDblClick(LPNMHDR pnmh);
 	void OnSelectAll(UINT,int,HWND);
-	void OnDelete(UINT,int,HWND);
-	void OnContextMenu(HWND,CPoint&);
 	void OnExtractItem(UINT,int,HWND);	//選択ファイルを解凍
 	void OnFindItem(UINT,int,HWND);	//ファイル検索
 	void OnShowCustomizeColumn(UINT,int,HWND);	//カラムヘッダ編集メニューを表示
-	void OnOpenAssociation(UINT,int,HWND);	//一時フォルダに展開したファイルを関連付けで開く
-	void OnExtractTemporary(UINT,int,HWND);	//一時フォルダに展開
 	void OnClearTemporary(UINT,int,HWND);	//一時フォルダを空にする
 	void OnAddItems(UINT,int,HWND);
 
 	//コマンドハンドラ
 	void OnCopyInfo(UINT,int,HWND);
-	void OnOpenWithUserApp(UINT,int,HWND);
 public:
 	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//カラムヘッダを右クリック
 	void SortItem(int iCol);
@@ -138,10 +119,6 @@ protected:
 	//ファイル情報取得
 	static void FormatFileSizeInBytes(CString&, UINT64);
 	void FormatFileSize(CString&, UINT64);
-	bool OpenAssociation(bool bOverwrite,bool bOpen);	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	void OpenAssociation(const std::vector<std::wstring> &filesList);
-	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID);	//「プログラムで開く」のハンドラ(LhaForge設定)
-	bool OnSendToApp(UINT nID);	//「プログラムで開く」のハンドラ(SendToコマンド)
 	HRESULT AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest);
 	void UpdateSortIcon();
 public:
@@ -154,6 +131,4 @@ public:
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}
 
 	void GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*>&);
-	void EnableDropTarget(bool bEnable);
-	void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 };

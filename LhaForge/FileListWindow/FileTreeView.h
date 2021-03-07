@@ -23,36 +23,22 @@
 */
 
 #pragma once
-#include "ArcFileContent.h"
-#include "FileListModel.h"
-#include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "FileListMessages.h"
-#include "resource.h"
-#include "MenuCommand.h"
+#include "FileViewBase.h"
 
-class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public ILFDropCommunicator//自前のインターフェイス
+struct ARCHIVE_ENTRY_INFO;
+class CFileTreeView:public CFileViewBase<CFileTreeView,CTreeViewCtrl>
 {
 protected:
 	CImageList	m_ImageList;
-	typedef std::map<ARCHIVE_ENTRY_INFO*,HTREEITEM> ITEMDICT;
-	ITEMDICT m_TreeItemMap;
-	CFileListModel &mr_Model;
+	std::map<const ARCHIVE_ENTRY_INFO*,HTREEITEM> m_TreeItemMap;
 	bool m_bSelfAction;
-	HWND m_hFrameWnd;
 protected:
-	//---ドロップ受け入れ
-	CLFDropTarget m_DropTarget;	//ドロップ受け入れに使う
-	HTREEITEM m_hDropHilight;	//ドロップハイライト状態にあるアイテムのハンドル
-	//IDropCommunicatorの実装
-	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
-	HRESULT DragLeave();
-	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
-	HRESULT Drop(IDataObject*,POINTL&,DWORD&);
+	HTREEITEM m_hDropHilight;	//highlited item handle for drag-drop
 protected:
 	BEGIN_MSG_MAP_EX(CFileTreeView)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		MSG_WM_CONTEXTMENU(OnContextMenu)	//右クリックメニュー
+		MSG_WM_CONTEXTMENU(OnContextMenu)
 		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListArchiveLoaded)
 		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
 		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
@@ -73,30 +59,48 @@ protected:
 protected:
 	//---internal functions
 	LRESULT OnCreate(LPCREATESTRUCT lpcs);
-	LRESULT OnDestroy();
-	void OnContextMenu(HWND,CPoint&);
+	LRESULT OnDestroy() {
+		mr_Model.removeEventListener(m_hWnd);
+		m_ImageList.Destroy();
+		return 0;
+	}
 
-	LRESULT OnRClick(LPNMHDR);
 	LRESULT OnTreeSelect(LPNMHDR);
-	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		Clear();
+		ConstructTree();
+
+		EnableDropTarget(true);
+		return 0;
+	}
+	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		UpdateCurrentNode();
+		return 0;
+	}
+	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		//nothing to do
+		return 0;
+	}
 	bool UpdateCurrentNode();
 
+	//flags to prevent actios while ConstructTree()
 	bool IsSelfAction(){return m_bSelfAction;}
 	void BeginSelfAction(){m_bSelfAction=true;}
 	void EndSelfAction(){m_bSelfAction=false;}
 
-	void OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	void OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray,UINT nID);
-	bool OnSendToApp(UINT nID);
 	void OnExtractItem(UINT,int nID,HWND);
-	void GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*> &items);
-	void OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl);
 	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	bool OpenAssociation(bool bOverwrite,bool bOpen);
-	void OpenAssociation(const std::vector<std::wstring> &filesList);
+
+	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override;
+	LRESULT OnRClick(LPNMHDR lpNM) {
+		CPoint pt;
+		GetCursorPos(&pt);
+		CPoint ptClient = pt;
+		ScreenToClient(&ptClient);
+		SelectItem(HitTest(ptClient, nullptr));
+		OnContextMenu(m_hWnd, pt);
+		return 0;
+	}
 
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
@@ -104,10 +108,14 @@ public:
 
 	CFileTreeView(CFileListModel&);
 	virtual ~CFileTreeView(){}
-	bool ConstructTree(HTREEITEM hParentItem=NULL,ARCHIVE_ENTRY_INFO* lpNode=NULL);
-	void Clear();
-	void ExpandTree();
-
-	void EnableDropTarget(bool bEnable);
-	void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
+	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr);
+	void Clear() {
+		DeleteAllItems();
+		m_TreeItemMap.clear();
+	}
+	void ExpandTree() {
+		for (const auto &item : m_TreeItemMap) {
+			Expand(item.second);
+		}
+	}
 };

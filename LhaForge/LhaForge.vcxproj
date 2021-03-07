@@ -118,6 +118,7 @@
     <ClInclude Include="extract.h" />
     <ClInclude Include="FileListWindow\ArcFileContent.h" />
     <ClInclude Include="FileListWindow\EventDispatcher.h" />
+    <ClInclude Include="FileListWindow\FileViewBase.h" />
     <ClInclude Include="FileListWindow\FileListFrame.h" />
     <ClInclude Include="FileListWindow\FileListMessages.h" />
     <ClInclude Include="FileListWindow\FileListModel.h" />
