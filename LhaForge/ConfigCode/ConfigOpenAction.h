@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "ConfigManager.h"
 
 enum OPENACTION{
 	OPENACTION_EXTRACT,

@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "ConfigManager.h"
 
 enum LOSTDIR;
 enum LOGVIEW;

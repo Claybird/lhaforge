@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "ConfigManager.h"
 
 enum OUTPUT_TO;
 enum LF_ARCHIVE_FORMAT;

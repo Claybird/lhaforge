@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "ConfigManager.h"
 
 struct CConfigShellExt:public IConfigIO{
 public:

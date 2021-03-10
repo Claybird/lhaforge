@@ -24,7 +24,7 @@
 
 #pragma once
 #include "FileListWindow/MenuCommand.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigManager.h"
 
 struct CConfigFileListWindow:public IConfigIO{
 public:
