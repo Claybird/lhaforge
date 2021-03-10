@@ -27,6 +27,7 @@
 #include "ConfigManager.h"
 #include "ConfigExtract.h"
 #include "Utilities/FileOperation.h"
+#include "resource.h"
 
 void CConfigExtract::load(const CConfigManager &Config)
 {
