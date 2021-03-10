@@ -424,87 +424,53 @@ struct LA_FILE_TO_WRITE
 };
 
 #include "compress.h"
-#include "ConfigCode/ConfigCompressFormat.h"
-
 
 std::map<std::string, std::string> getLAOptionsFromConfig(
 	int la_format,
 	const std::vector<int> &la_filters,
 	bool encrypt,
-	const CConfigManager &mngr)
+	const LF_COMPRESS_ARGS &args)
 {
 	std::map<std::string, std::string> params;
 	//formats
 	switch (la_format & ARCHIVE_FORMAT_BASE_MASK) {
 	case ARCHIVE_FORMAT_ZIP:
 	{
-		CConfigCompressFormatZIP conf;
-		conf.load(mngr);
-		params.merge(conf.params);
+		merge_map(params, args.formats.zip.params);
 		if (!encrypt) {
 			params.erase("encryption");
 		}
 	}
-	break;
+		break;
 	case ARCHIVE_FORMAT_7ZIP:
-	{
-		CConfigCompressFormat7Z conf;
-		conf.load(mngr);
-		params.merge(conf.params);
-	}
-	break;
+		merge_map(params, args.formats.sevenzip.params);
+		break;
 	case ARCHIVE_FORMAT_TAR:
-	{
-		CConfigCompressFormatTAR conf;
-		conf.load(mngr);
-		params = conf.params;
-	}
-	break;
+		merge_map(params, args.formats.tar.params);
+		break;
 	case ARCHIVE_FORMAT_RAW:
-	{
 		//nothing to do
-	}
-	break;
+		break;
 	}
 
 	//filters
 	for (auto la_filter : la_filters) {
 		switch (la_filter & ~ARCHIVE_FORMAT_BASE_MASK) {
 		case ARCHIVE_FILTER_GZIP:
-		{
-			CConfigCompressFormatGZ conf;
-			conf.load(mngr);
-			params.merge(conf.params);
-		}
-		break;
+			merge_map(params, args.formats.gz.params);
+			break;
 		case ARCHIVE_FILTER_BZIP2:
-		{
-			CConfigCompressFormatBZ2 conf;
-			conf.load(mngr);
-			params.merge(conf.params);
-		}
-		break;
+			merge_map(params, args.formats.bz2.params);
+			break;
 		case ARCHIVE_FILTER_LZMA:
-		{
-			CConfigCompressFormatLZMA conf;
-			conf.load(mngr);
-			params.merge(conf.params);
-		}
-		break;
+			merge_map(params, args.formats.lzma.params);
+			break;
 		case ARCHIVE_FILTER_XZ:
-		{
-			CConfigCompressFormatXZ conf;
-			conf.load(mngr);
-			params.merge(conf.params);
-		}
-		break;
+			merge_map(params, args.formats.xz.params);
+			break;
 		case ARCHIVE_FILTER_ZSTD:
-		{
-			CConfigCompressFormatZSTD conf;
-			conf.load(mngr);
-			params.merge(conf.params);
-		}
-		break;
+			merge_map(params, args.formats.zstd.params);
+			break;
 		}
 	}
 	return params;
@@ -520,7 +486,7 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	std::vector<int> la_filters = { cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK };
 
 	bool encrypt = (options & LF_WOPT_DATA_ENCRYPTION) != 0;
-	return getLAOptionsFromConfig(la_format, la_filters, encrypt, args.mngr);
+	return getLAOptionsFromConfig(la_format, la_filters, encrypt, args);
 }
 
 //------
@@ -670,7 +636,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 		dest_archive->_arc_write = std::make_unique<LA_FILE_TO_WRITE>();
 
 		//- open an output archive in most similar option
-		auto options = getLAOptionsFromConfig(la_format, filters, is_encrypted, args.mngr);
+		auto options = getLAOptionsFromConfig(la_format, filters, is_encrypted, args);
 		dest_archive->_arc_write->write_open_la(dest_path, la_format, filters, options, *_arc_read->_rewind.passphrase);
 
 		//- then, copy entries if filter returns true

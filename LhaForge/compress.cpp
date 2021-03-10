@@ -41,10 +41,9 @@
 #include "CmdLineInfo.h"
 
 
-void parseCompressOption(LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
+void parseCompressOption(const CConfigManager& config, LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
 {
-	args.general.load(args.mngr);
-	args.compress.load(args.mngr);
+	args.load(config);
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
@@ -508,10 +507,11 @@ bool GUI_compress_multiple_files(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
+	const CConfigManager& config,
 	CMDLINEINFO& CmdLineInfo)
 {
 	LF_COMPRESS_ARGS args;
-	parseCompressOption(args, &CmdLineInfo);
+	parseCompressOption(config, args, &CmdLineInfo);
 
 	//do compression
 	if (0 != CmdLineInfo.Options) {

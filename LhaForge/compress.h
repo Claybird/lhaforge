@@ -30,11 +30,26 @@
 #include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigCompress.h"
+#include "ConfigCode/ConfigCompressFormat.h"
+
 
 struct LF_COMPRESS_ARGS {
-	CConfigManager mngr;
 	CConfigGeneral general;
 	CConfigCompress compress;
+	struct _formats {
+		CConfigCompressFormatZIP zip;
+		CConfigCompressFormat7Z sevenzip;
+		CConfigCompressFormatTAR tar;
+		CConfigCompressFormatGZ gz;
+		CConfigCompressFormatBZ2 bz2;
+		CConfigCompressFormatLZMA lzma;
+		CConfigCompressFormatXZ xz;
+		CConfigCompressFormatZSTD zstd;
+	}formats;
+	void load(const CConfigManager& mngr) {
+		general.load(mngr);
+		compress.load(mngr);
+	}
 };
 
 struct RAW_FILE_READER {
@@ -73,6 +88,7 @@ bool GUI_compress_multiple_files(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
+	const CConfigManager& config,
 	CMDLINEINFO& CmdLineInfo);
 
 //command line parameter table
