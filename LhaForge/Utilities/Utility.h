@@ -91,3 +91,10 @@ bool isIn(const T &collection, U value)
 	return false;
 }
 
+template<typename T>
+void merge_map(T &dest, const T &src) {	//merge, overwriting
+	for (const auto &item : src) {
+		dest[item.first] = item.second;
+	}
+	//dest.merge will modify src and will not overwrite existing item
+}

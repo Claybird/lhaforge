@@ -141,5 +141,22 @@ TEST(Utility, isIn) {
 	EXPECT_TRUE(isIn(a, 4));
 	EXPECT_FALSE(isIn(a, 3));
 }
+TEST(Utility, merge_map) {
+	std::map<std::string, std::string> a = {
+		{"a","a"},
+		{"b","b"},
+		{"c","c"},
+	}, b = {
+		{"a","A"},
+		{"b","B"},
+		{"d","D"},
+	};
+	merge_map(a, b);
+	EXPECT_EQ(a["a"], "A");
+	EXPECT_EQ(a["b"], "B");
+	EXPECT_EQ(a["c"], "c");
+	EXPECT_EQ(a["d"], "D");
+}
+
 
 #endif
