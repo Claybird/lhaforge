@@ -407,3 +407,51 @@ public:
 #undef _LFA_SAFE_CALL
 #undef _LFA_SAFE_CALL_VOID
 
+//dummy interface
+class CLFArchiveNULL : public ILFArchiveFile
+{
+public:
+	CLFArchiveNULL() {}
+	virtual ~CLFArchiveNULL() {}
+	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override {}
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override {}
+	void close()override {}
+
+	//make a copy, and returns in "write_open" state
+	std::unique_ptr<ILFArchiveFile> make_copy_archive(
+		const std::filesystem::path& dest_path,
+		const LF_COMPRESS_ARGS& args,
+		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
+		return std::make_unique<CLFArchiveNULL>();
+	}
+
+	//archive property
+	std::wstring get_format_name()override { return L"dummy"; }
+	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override { return {}; }
+
+	int64_t get_num_entries() { return -1; }	//-1 if no information is given
+	//entry seek; returns null if it reached EOF; valid for "read_open"ed archive
+	LF_ENTRY_STAT* read_entry_begin()override { return nullptr; }//rewinds to start of file
+	LF_ENTRY_STAT* read_entry_next()override { return nullptr; }
+	void read_entry_end()override {}
+	bool is_bypass_io_supported() const override { return false; }
+
+	//read entry block; should be called until returned buffer becomes eof
+	LF_BUFFER_INFO read_file_entry_block()override {
+		LF_BUFFER_INFO buf;
+		buf.make_eof();
+		return buf;
+	}
+	//read entry - bypasses decoder; can copy an entry with minimum IO cost
+	LF_BUFFER_INFO read_file_entry_bypass()override {
+		LF_BUFFER_INFO buf;
+		buf.make_eof();
+		return buf;
+	}
+
+	//write entry
+	void add_file_entry(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {}
+	//write entry - bypasses encoder; can copy an entry with minimum IO cost
+	void add_file_entry_bypass(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {}
+	void add_directory_entry(const LF_ENTRY_STAT& entry)override {}
+};
