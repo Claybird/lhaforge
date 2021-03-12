@@ -58,14 +58,53 @@ protected:
 
 protected:
 	//---internal functions
-	LRESULT OnCreate(LPCREATESTRUCT lpcs);
+	LRESULT OnCreate(LPCREATESTRUCT lpcs) {
+		LRESULT lRes = DefWindowProc();
+		SetFont(AtlGetDefaultGuiFont());
+
+		mr_Model.addEventListener(m_hWnd);
+
+		m_ImageList.Create(::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CXSMICON), ILC_COLOR32 | ILC_MASK, 8, 1);
+		SetImageList(m_ImageList, TVSIL_NORMAL);
+
+		//directory icons
+		//-close
+		SHFILEINFO shfi;
+		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON);
+		m_ImageList.AddIcon(shfi.hIcon);
+		DestroyIcon(shfi.hIcon);
+		//-open
+		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON | SHGFI_OPENICON);
+		m_ImageList.AddIcon(shfi.hIcon);
+		DestroyIcon(shfi.hIcon);
+
+		return lRes;
+	}
 	LRESULT OnDestroy() {
 		mr_Model.removeEventListener(m_hWnd);
 		m_ImageList.Destroy();
 		return 0;
 	}
 
-	LRESULT OnTreeSelect(LPNMHDR);
+	LRESULT OnTreeSelect(LPNMHDR) {
+		if (IsSelfAction()) {
+			EndSelfAction();
+		} else {
+			auto lpCurrent = mr_Model.getCurrentDir();
+
+			HTREEITEM hItem = GetSelectedItem();
+			if (!hItem)return 0;
+
+			auto lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
+			ASSERT(lpNode);
+
+			if (!mr_Model.IsRoot())mr_Model.EndFindItem();
+			if (lpNode && lpNode != lpCurrent) {
+				mr_Model.setCurrentDir(lpNode);
+			}
+		}
+		return 0;
+	}
 	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
 		Clear();
 		ConstructTree();
@@ -81,17 +120,33 @@ protected:
 		//nothing to do
 		return 0;
 	}
-	bool UpdateCurrentNode();
+	bool UpdateCurrentNode() {
+		auto lpNode = mr_Model.getCurrentDir();
+		const auto ite = m_TreeItemMap.find(lpNode);
+		if (m_TreeItemMap.end() == ite) {
+			return false;
+		}
+		EnsureVisible((*ite).second);
+		SelectItem((*ite).second);
+		return true;
+	}
 
 	//flags to prevent actios while ConstructTree()
-	bool IsSelfAction(){return m_bSelfAction;}
+	bool IsSelfAction()const{return m_bSelfAction;}
 	void BeginSelfAction(){m_bSelfAction=true;}
 	void EndSelfAction(){m_bSelfAction=false;}
 
-	void OnExtractItem(UINT,int nID,HWND);
-	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
-
-	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override;
+	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override {
+		std::vector<const ARCHIVE_ENTRY_INFO*> items;
+		HTREEITEM hItem = GetSelectedItem();
+		if (hItem) {
+			const ARCHIVE_ENTRY_INFO* lpNode = (const ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
+			items.push_back(lpNode);
+		}
+		//always one item maximum
+		ASSERT(items.size() <= 1);
+		return items;
+	}
 	LRESULT OnRClick(LPNMHDR lpNM) {
 		CPoint pt;
 		GetCursorPos(&pt);
@@ -106,9 +161,51 @@ public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
 	BOOL PreTranslateMessage(MSG* pMsg){return FALSE;}
 
-	CFileTreeView(CFileListModel&);
+	CFileTreeView(CFileListModel& rModel,const CConfigFileListWindow& r_confFLW):
+		CFileViewBase(rModel, r_confFLW),
+		m_bSelfAction(false),
+		m_hDropHilight(NULL)
+	{}
 	virtual ~CFileTreeView(){}
-	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr);
+	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr) {
+		const int dirIconClosed = 0;
+		const int dirIconOpened = 1;
+		const int archiveIconIndex = 2;
+		BeginSelfAction();
+		HTREEITEM hItem;
+		if (hParentItem) {
+			//directory
+			hItem = InsertItem(lpNode->_entryName.c_str(), hParentItem, TVI_LAST);
+			SetItemImage(hItem, dirIconClosed, dirIconOpened);
+		} else {
+			//---root
+			//archive file icon
+			m_ImageList.Remove(archiveIconIndex);	//remove old icon
+			SHFILEINFO shfi;
+			::SHGetFileInfoW(mr_Model.GetArchiveFileName().c_str(),
+				0, &shfi, sizeof(shfi), SHGFI_ICON | SHGFI_SMALLICON);
+			m_ImageList.AddIcon(shfi.hIcon);
+
+			lpNode = mr_Model.GetRootNode();
+			hItem = InsertItem(mr_Model.GetArchiveFileName().filename().c_str(), TVI_ROOT, TVI_LAST);
+			SetItemImage(hItem, archiveIconIndex, archiveIconIndex);
+		}
+
+		m_TreeItemMap.insert({ lpNode,hItem });
+		//set node pointer
+		SetItemData(hItem, (DWORD_PTR)lpNode);
+
+		//process children
+		UINT numItems = lpNode->getNumChildren();
+		for (UINT i = 0; i < numItems; i++) {
+			const auto* lpChild = lpNode->getChild(i);
+			if (lpChild->is_directory()) {
+				ConstructTree(hItem, lpChild);
+			}
+		}
+		while (UtilDoMessageLoop())continue;
+		return true;
+	}
 	void Clear() {
 		DeleteAllItems();
 		m_TreeItemMap.clear();
@@ -116,6 +213,41 @@ public:
 	void ExpandTree() {
 		for (const auto &item : m_TreeItemMap) {
 			Expand(item.second);
+		}
+	}
+
+	bool IsValidDropTarget(const HIGHLIGHT&)const override { return true; }
+
+	//dropped
+	virtual HRESULT Drop(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {
+		if (m_dropHighlight.isValid()) {
+			//disable drop highlight
+			SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
+		}
+		m_dropHighlight.invalidate();
+
+		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+		if (S_OK == hr) {
+			//files dropped
+			dwEffect = DROPEFFECT_COPY;
+
+			//---destination
+			CPoint ptTemp(pt.x, pt.y);
+			ScreenToClient(&ptTemp);
+			auto target = HitTest(ptTemp, nullptr);
+
+			auto lpNode = (const ARCHIVE_ENTRY_INFO*)GetItemData(target);
+			if (lpNode) {
+				if (lpNode->is_directory()) {
+					return AddItemsToDirectory(lpNode, files);
+				}
+			} else {
+				return E_HANDLE;
+			}
+		} else {
+			//not acceptable
+			dwEffect = DROPEFFECT_NONE;
+			return S_FALSE;
 		}
 	}
 };

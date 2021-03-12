@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "FileListWindow/ArcFileContent.h"
 
 class LF_SHELLDATA{
 public:

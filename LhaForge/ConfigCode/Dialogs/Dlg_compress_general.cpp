@@ -196,7 +196,7 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 
 		//選択ダイアログの条件に一致するパラメータを検索
 		try {
-			const auto &caps = get_archive_capability(format);
+			const auto caps = CLFArchive::get_compression_capability(format);
 			if (!isIn(caps.allowed_combinations, Options)) {
 				throw ARCHIVE_EXCEPTION(EINVAL);
 			}

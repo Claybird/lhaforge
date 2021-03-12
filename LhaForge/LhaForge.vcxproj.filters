@@ -76,9 +76,6 @@
     <ClCompile Include="FileListWindow\FileListView.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\FileTreeView.cpp">
-      <Filter>FileListWindow</Filter>
-    </ClCompile>
     <ClCompile Include="Association.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -41,6 +41,7 @@ protected:
 	HWND _hParent;
 public:
 	ARCLOG _arcLog;
+	bool _bRet;
 public:
 	CLFDropSource(CFileListModel &rModel,
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
@@ -53,7 +54,8 @@ public:
 		_outputDir(outputDir),
 		_lpBase(lpBase),
 		_dwEffect(0),
-		_hParent(hParent)
+		_hParent(hParent),
+		_bRet(true)
 	{}
 	virtual ~CLFDropSource(){};
 
@@ -97,7 +99,12 @@ public:
 						CLFProgressHandlerGUI(_hParent),
 						overwrite_options::overwrite,
 						_arcLog);
-				}catch(...) {
+					_bRet = true;
+				} catch (const LF_USER_CANCEL_EXCEPTION&) {
+					_bRet = false;
+					return DRAGDROP_S_CANCEL;
+				} catch (...) {
+					_bRet = true;
 					return DRAGDROP_S_CANCEL;
 				}
 			}

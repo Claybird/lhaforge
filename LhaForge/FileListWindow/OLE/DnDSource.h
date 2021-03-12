@@ -82,10 +82,11 @@ public:
 	virtual ~CLFDnDSource(){}
 	HRESULT DoDragDrop(
 		CFileListModel &rModel,
-		const std::vector<ARCHIVE_ENTRY_INFO*>& items,
-		ARCHIVE_ENTRY_INFO *lpBase,
+		const std::vector<const ARCHIVE_ENTRY_INFO*>& items,
+		const ARCHIVE_ENTRY_INFO *lpBase,
 		const std::wstring& outputDir,
-		std::wstring &strLog)
+		HWND hParent,
+		ARCLOG &arcLog)
 	{
 		std::vector<std::wstring> files;
 		for (const auto& item: items) {
@@ -97,7 +98,6 @@ public:
 		files.erase(std::unique(files.begin(), files.end()), files.end());
 
 		HRESULT hRes = E_OUTOFMEMORY;
-		strLog = L"E_OUTOFMEMORY";
 
 		CLFDnDDataObject dataObject;
 		HANDLE hObject = createHDrop(files);
@@ -107,28 +107,26 @@ public:
 			createMedium(CF_HDROP, hObject, &fmt, &medium);
 
 			if (dataObject.SetData(&fmt, &medium, TRUE) == S_OK) {
-				CLFDropSource *lpDropSource = new CLFDropSource(rModel, items, outputDir, lpBase);
+				CLFDropSource *lpDropSource = new CLFDropSource(rModel, items, outputDir, lpBase, hParent);
 				DWORD dwEffect;
 				auto ret = ::DoDragDrop(&dataObject, lpDropSource, DROPEFFECT_COPY, &dwEffect);
+				arcLog = lpDropSource->_arcLog;
 				if (DRAGDROP_S_DROP != ret) {
 					if (ret == DRAGDROP_S_CANCEL) {
 						//cancel?
-						if (!lpDropSource->_bRet) {
-							//extract aborted
-							strLog = lpDropSource->_strLog.c_str();
-							hRes = E_ABORT;
-						} else {
+						if (lpDropSource->_bRet) {
 							//cancelled Drag & Drop; not an error
-							strLog = L"";
 							hRes = S_OK;
+						}else{
+							//extract aborted
+							hRes = E_ABORT;
 						}
 					} else {
 						hRes = E_FAIL;
-						strLog = UtilLoadString(IDS_ERROR_DND_FAILED);
+						arcLog(rModel.GetArchiveFileName(), UtilLoadString(IDS_ERROR_DND_FAILED));
 						//Drag & Drop failed
 					}
 				} else {
-					strLog = L"";
 					hRes = S_OK;
 				}
 				if (lpDropSource)lpDropSource->Release();

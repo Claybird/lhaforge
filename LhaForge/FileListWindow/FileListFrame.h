@@ -46,6 +46,7 @@ protected:
 	//DLL_ID m_idForceDLL;	//強制使用するDLL
 
 	CConfigManager		&mr_Config;
+	CConfigFileListWindow m_ConfFLW;
 
 	//----------------------
 	// ウィンドウ関係メンバ
@@ -66,7 +67,7 @@ protected:
 	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
 	HRESULT Drop(IDataObject*,POINTL&,DWORD&);
 protected:
-	void ReopenArchiveFile(FILELISTMODE);
+	void ReopenArchiveFile();
 
 	void UpdateUpDirButtonState();
 	void EnableEntryExtractOperationMenu(bool);
@@ -101,7 +102,6 @@ protected:
 	void OnListViewStyle(UINT,int,HWND);
 	void OnRefresh(UINT,int,HWND);
 	LRESULT OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled);
-	void OnListMode(UINT,int,HWND);	//表示モード変更
 	void OnOpenArchive(UINT,int,HWND);
 	void OnCloseTab(UINT,int,HWND);
 	void OnNextTab(UINT,int,HWND);
@@ -134,9 +134,6 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTVIEW_LIST,OnListViewStyle)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_REFRESH,OnRefresh)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CONFIGURE,OnConfigure)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_TREE,OnListMode)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_FLAT,OnListMode)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_FLAT_FILESONLY,OnListMode)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPENARCHIVE,OnOpenArchive);
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CLOSETAB,OnCloseTab);
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_NEXTTAB,OnNextTab);

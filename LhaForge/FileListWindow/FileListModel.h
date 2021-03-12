@@ -28,6 +28,7 @@
 #include "EventDispatcher.h"
 #include "FileListMessages.h"
 #include "Utilities/FileOperation.h"
+#include "compress.h"
 
 enum FILEINFO_TYPE{
 	FILEINFO_INVALID=-1,
@@ -55,29 +56,29 @@ protected:
 
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> >	m_SortedChildren;
 	CTemporaryDirectoryManager	m_TempDirManager;
+	LF_COMPRESS_ARGS m_compressArgs;
 
 	//sort
 	bool	m_bSortDescending;
 	int		m_nSortKeyType;
-
-	CConfigManager&				mr_Config;
 protected:
 	//---internal functions
 	void SortCurrentEntries();
 public:
-	CFileListModel(CConfigManager &conf, ILFPassphrase& passphrase) :
-		mr_Config(conf),
+	CFileListModel(const CConfigManager& mngr, ILFPassphrase& passphrase) :
 		m_lpCurrentDir(nullptr),
 		m_bSortDescending(true),
 		m_nSortKeyType(FILEINFO_INVALID),
 		m_Content(passphrase)
-	{}
+	{
+		setConfig(mngr);
+	}
 	virtual ~CFileListModel() {}
+	void setConfig(const CConfigManager& mngr) {
+		m_compressArgs.load(mngr);
+	}
 
 	void Open(const std::filesystem::path& path, ILFScanProgressHandler&);
-	void Reopen(ILFScanProgressHandler& progressHandler) {
-		Open(GetArchiveFileName(), progressHandler);
-	}
 	void Clear() {
 		m_Content.clear();
 		m_lpCurrentDir = nullptr;
@@ -126,32 +127,31 @@ public:
 		}
 	}
 
-	LPCTSTR GetArchiveFileName()const{return m_Content.getArchivePath().c_str();}
+	std::filesystem::path GetArchiveFileName()const{return m_Content.getArchivePath();}
 	ARCHIVE_ENTRY_INFO* GetRootNode(){return m_Content.getRootNode();}
 	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.getRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
-	[[deprecated("just a placeholder")]] bool IsDeleteItemsSupported()const { return true; }
+	[[deprecated("just a placeholder")]] bool IsModifySupported()const { return true; }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	void AddItem(
-		LF_COMPRESS_ARGS& args,
 		const std::vector<std::filesystem::path> &files,
 		const ARCHIVE_ENTRY_INFO* parent,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
 		m_Content.addEntries(
-			args,
+			m_compressArgs,
 			files,
 			parent,
 			progressHandler,
 			arcLog);
 	}
-	void DeleteItems(LF_COMPRESS_ARGS& args,
+	void DeleteItems(
 		const std::vector<const ARCHIVE_ENTRY_INFO*>& items,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
-		m_Content.deleteEntries(args, items, progressHandler, arcLog);
+		m_Content.deleteEntries(m_compressArgs, items, progressHandler, arcLog);
 	}
 	void ExtractItems(
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
@@ -182,9 +182,10 @@ public:
 	bool ExtractArchive(ILFProgressHandler &progressHandler);
 	bool TestArchive(ILFProgressHandler &progressHandler);
 
-	void ClearTempDir() {
-		UtilDeleteDir(m_TempDirManager.path(), false);
+	bool ClearTempDir() {
+		return UtilDeleteDir(m_TempDirManager.path(), false);
 	}
+	std::filesystem::path getTempDir()const { return m_TempDirManager.path(); }
 };
 
 

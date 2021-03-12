@@ -32,16 +32,12 @@
 #include "CommonUtil.h"
 #include <sstream>
 
-CFileListView::CFileListView(CConfigManager& rConfig,CFileListModel& rModel):
-	mr_Config(rConfig),
-	mr_Model(rModel),
+CFileListView::CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW):
+	CFileViewBase(rModel,r_confFLW),
 	m_bDisplayFileSizeInByte(false),
-	m_bPathOnly(false),
-	//m_DnDSource(m_TempDirManager),
-	m_DropTarget(this),
-	m_nDropHilight(-1),
-	m_hFrameWnd(NULL)
+	m_bPathOnly(false)
 {
+	SetFrameWnd(m_hFrameWnd);
 }
 
 LRESULT CFileListView::OnCreate(LPCREATESTRUCT lpcs)
@@ -188,19 +184,20 @@ void CFileListView::GetColumnState(int* pColumnOrderArray, int *pFileInfoWidthAr
 	}
 }
 
-void CFileListView::GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*> &items)
+std::vector<const ARCHIVE_ENTRY_INFO*> CFileListView::GetSelectedItems()
 {
-	items.clear();
+	std::vector<const ARCHIVE_ENTRY_INFO*> items;
 	int nIndex=-1;
 	for(;;){
 		nIndex = GetNextItem(nIndex, LVNI_ALL | LVNI_SELECTED);
 		if(-1==nIndex)break;
-		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
+		const ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
 
 		ASSERT(lpNode);
 
 		items.push_back(lpNode);
 	}
+	return items;
 }
 
 LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -210,7 +207,7 @@ LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lPa
 	DeleteAllItems();
 	SetItemCount(0);
 	if(mr_Model.IsOK()){
-		ARCHIVE_ENTRY_INFO* lpCurrent=mr_Model.GetCurrentNode();
+		auto lpCurrent = mr_Model.getCurrentDir();
 		ASSERT(lpCurrent);
 		if(lpCurrent){
 			SetItemCount(lpCurrent->getNumChildren());
@@ -248,23 +245,21 @@ LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 	//選択アイテムが複数の時
 	//もしShiftが押されていたら、関連付けで開く
 	if(GetKeyState(VK_SHIFT)<0||GetSelectedCount()>=2){
-		OpenAssociation(false,true);
+		auto files = extractItemToTemporary(false, GetSelectedItems());
+		openAssociation(files);
 		return 0;
-	}
+	} else {
+		//選択されたアイテムを取得
+		auto items = GetSelectedItems();
+		if (items.empty())return 0;
+		auto lpNode = items.front();
 
-	//選択されたアイテムを取得
-	std::vector<ARCHIVE_ENTRY_INFO*> items;
-	GetSelectedItems(items);
-	if(items.empty())return 0;
-	ARCHIVE_ENTRY_INFO* lpNode=*(items.begin());
-
-	if(lpNode->is_directory()){
-		//階層構造を無視する場合には、この動作は無視される
-		if(mr_Model.GetListMode()==FILELIST_TREE){
+		if (lpNode->is_directory()) {
 			mr_Model.MoveDownDir(lpNode);
+		} else {
+			auto files = extractItemToTemporary(false, GetSelectedItems());
+			openAssociation(files);
 		}
-	}else{
-		OpenAssociation(false,true);
 	}
 	return 0;
 }
@@ -366,7 +361,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 //キー入力によるファイル検索
 LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 {
-	ARCHIVE_ENTRY_INFO* lpCurrent=mr_Model.GetCurrentNode();
+	auto lpCurrent = mr_Model.getCurrentDir();
 	ASSERT(lpCurrent);
 	if(!lpCurrent)return -1;
 
@@ -381,7 +376,7 @@ LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 		size_t nLength=_tcslen(lpFindString);
 		//前方一致で検索
 		for(int i=iStart;i<iCount;i++){
-			ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(i);
+			auto lpNode=mr_Model.GetFileListItemByIndex(i);
 			ASSERT(lpNode);
 			if(0==_tcsnicmp(lpFindString,lpNode->_entryName.c_str(),nLength)){
 				return i;
@@ -389,7 +384,7 @@ LRESULT CFileListView::OnFindItem(LPNMHDR pnmh)
 		}
 		if(lpFindInfo->lvfi.flags & LVFI_WRAP){
 			for(int i=0;i<iStart;i++){
-				ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(i);
+				auto lpNode=mr_Model.GetFileListItemByIndex(i);
 				ASSERT(lpNode);
 				if(0==_tcsnicmp(lpFindString,lpNode->_entryName.c_str(),nLength)){
 					return i;
@@ -500,7 +495,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
 
-	ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(pstLVDInfo->item.iItem);
+	auto lpNode=mr_Model.GetFileListItemByIndex(pstLVDInfo->item.iItem);
 	//ASSERT(lpNode);
 	if(!lpNode)return 0;
 
@@ -584,7 +579,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 {
 	LPNMLVGETINFOTIP pGetInfoTip=(LPNMLVGETINFOTIP)pnmh;
 
-	ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(pGetInfoTip->iItem);
+	auto lpNode=mr_Model.GetFileListItemByIndex(pGetInfoTip->iItem);
 	ASSERT(lpNode);
 	if(!lpNode)return 0;
 	CString strInfo;
@@ -683,116 +678,14 @@ void CFileListView::FormatFileSize(CString &Info, UINT64 Size)
 
 //-------
 
-void CFileListView::OnClearTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl)
-{
-	mr_Model.ClearTempDir();
-}
-
-//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-bool CFileListView::OpenAssociation(bool bOverwrite,bool bOpen)
-{
-	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
-		CString msg;
-		msg.Format(IDS_ERROR_FILE_NOT_FOUND,mr_Model.GetArchiveFileName());
-		ErrorMessage((const wchar_t*)msg);
-		return false;
-	}
-
-	//選択されたアイテムを列挙
-	std::vector<ARCHIVE_ENTRY_INFO*> items;
-	GetSelectedItems(items);
-	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
-
-	if(!items.empty()){
-		std::vector<std::wstring> filesList;
-		std::wstring strLog;
-		if(mr_Model.MakeSureItemsExtracted(NULL, bOverwrite,mr_Model.GetRootNode(), itemsTmp,filesList,strLog)){
-			if(bOpen)OpenAssociation(filesList);
-		}else{
-			//TODO
-			CLogListDialog LogDlg(L"Log");
-			std::vector<ARCLOG> logs;
-			logs.resize(1);
-			logs.back().logs.resize(1);
-			logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-			logs.back().logs.back().message = strLog;
-			LogDlg.SetLogArray(logs);
-			LogDlg.DoModal(m_hFrameWnd);
-		}
-	}
-
-	return true;
-}
-
-void CFileListView::OpenAssociation(const std::vector<std::wstring> &filesList)
-{
-	for (const auto & file: filesList) {
-		//拒否されたら上書きも追加解凍もしない;ディレクトリなら拒否のみチェック
-		bool bDenyOnly=BOOL2bool(::PathIsDirectory(file.c_str()));//lpNode->bDir;
-		if(mr_Model.IsPathAcceptableToOpenAssoc(file.c_str(),bDenyOnly)){
-			::ShellExecute(GetDesktopWindow(),NULL, file.c_str(),NULL,NULL,SW_SHOW);
-			TRACE(_T("%s\n"),file.c_str());
-			//::ShellExecute(GetDesktopWindow(),_T("explore"),*ite,NULL,NULL,SW_SHOW);
-		}else{
-			::MessageBeep(MB_ICONEXCLAMATION);
-		}
-	}
-}
-
-HRESULT CFileListView::AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest)
-{
-	//追加開始
-	::EnableWindow(m_hFrameWnd,FALSE);
-	CString strLog;
-
-	HRESULT hr=mr_Model.AddItem(fileList,strDest,strLog);
-
-	::EnableWindow(m_hFrameWnd,TRUE);
-	::SetForegroundWindow(m_hFrameWnd);
-
-	if(FAILED(hr) || S_FALSE==hr){
-		CString msg;
-		switch(hr){
-		case E_LF_SAME_INPUT_AND_OUTPUT:	//アーカイブ自身を追加しようとした
-			msg.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT,mr_Model.GetArchiveFileName());
-			ErrorMessage((const wchar_t*)msg);
-			break;
-		case E_LF_UNICODE_NOT_SUPPORTED:	//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-			break;
-		case S_FALSE:	//追加処理に問題
-			{
-				//TODO
-				CLogListDialog LogDlg(L"Log");
-				std::vector<ARCLOG> logs;
-				logs.resize(1);
-				logs.back().logs.resize(1);
-				logs.back().logs.back().entryPath = strDest;
-				logs.back().logs.back().message = strLog;
-				LogDlg.SetLogArray(logs);
-				LogDlg.DoModal();
-			}
-			break;
-		default:
-			ASSERT(!"This code cannot be run");
-		}
-		return E_INVALIDARG;
-	}
-	//アーカイブ更新
-	::PostMessage(m_hFrameWnd,WM_FILELIST_REFRESH,0,0);
-	return S_OK;
-}
-
 void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	ASSERT(mr_Model.IsAddItemsSupported());
-	if(!mr_Model.IsAddItemsSupported())return;
+	ASSERT(mr_Model.IsModifySupported());
+	if(!mr_Model.IsModifySupported())return;
 
-	//カレントフォルダに追加
-	//CString strDest;	//放り込む先
-	auto strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
+	auto dest = mr_Model.getCurrentDir();
 
-	std::vector<std::wstring> fileList;
+	std::vector<std::filesystem::path> files;
 	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
 		const COMDLG_FILTERSPEC filter[] = {
 			{ L"All Files", L"*.*" },
@@ -803,7 +696,7 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 			//ファイル名取り出し
 			auto files = dlg.GetMultipleFiles();
 			for (const auto &f : files) {
-				fileList.push_back(f.operator LPCWSTR());
+				files.push_back(f.operator LPCWSTR());
 			}
 		}
 	}else{		//フォルダ追加
@@ -811,104 +704,16 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		if(IDOK==dlg.DoModal()){
 			CString path;
 			dlg.GetFilePath(path);
-			fileList.push_back(path.operator LPCWSTR());
+			files.push_back(path.operator LPCWSTR());
 		}
 	}
 
-	if(!fileList.empty()){
+	if(!files.empty()){
 		//追加開始
-		AddItems(fileList,strDest.c_str());
+		AddItemsToDirectory(dest, files);
 	}
 }
 
-
-//---------------------------------------------------------
-//    IDropCommunicatorの実装:ドラッグ&ドロップによる圧縮
-//---------------------------------------------------------
-HRESULT CFileListView::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
-{
-	return DragOver(lpDataObject,pt,dwEffect);
-}
-
-HRESULT CFileListView::DragLeave()
-{
-	//全てのハイライトを無効に
-	SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
-	m_nDropHilight=-1;
-	return S_OK;
-}
-
-HRESULT CFileListView::DragOver(IDataObject *,POINTL &pt,DWORD &dwEffect)
-{
-	//フォーマットに対応した処理をする
-	if(!m_DropTarget.QueryFormat(CF_HDROP) || !mr_Model.IsAddItemsSupported()){	//ファイル専用
-		//ファイルではないので拒否
-		dwEffect = DROPEFFECT_NONE;
-	}else{
-		//---ドロップ先アイテムを取得
-		CPoint ptTemp(pt.x,pt.y);
-		ScreenToClient(&ptTemp);
-		int nIndex=HitTest(ptTemp,NULL);
-
-		//---ちらつきを押さえるため、前と同じアイテムがハイライトされるならハイライトをクリアしない
-		if(nIndex!=m_nDropHilight){
-			//全てのハイライトを無効に
-			SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
-			m_nDropHilight=-1;
-			ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
-			if(lpNode){		//アイテム上にDnD
-				//アイテムがフォルダだったらハイライト
-				if(lpNode->is_directory()){
-					SetItemState( nIndex, LVIS_DROPHILITED, LVIS_DROPHILITED);
-					m_nDropHilight=nIndex;
-				}
-			}
-		}
-		dwEffect = DROPEFFECT_COPY;
-	}
-	return S_OK;
-}
-
-//ファイルのドロップ
-HRESULT CFileListView::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
-{
-	//全てのハイライトを無効に
-	SetItemState( -1, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
-	m_nDropHilight=-1;
-
-	//ファイル取得
-	auto [hr, fileList] = m_DropTarget.GetDroppedFiles(lpDataObject);
-	if(S_OK==hr){
-		dwEffect = DROPEFFECT_COPY;
-
-		//---ドロップ先を特定
-		CPoint ptTemp(pt.x,pt.y);
-		ScreenToClient(&ptTemp);
-		int nIndex=HitTest(ptTemp,NULL);
-
-		std::wstring strDest;	//放り込む先
-		ARCHIVE_ENTRY_INFO* lpNode=mr_Model.GetFileListItemByIndex(nIndex);
-		if(lpNode){		//アイテム上にDnD
-			//アイテムがフォルダだったらそのフォルダに追加
-			if(lpNode->is_directory()){
-				strDest = lpNode->getRelativePath(mr_Model.GetRootNode());
-			}else{
-				//カレントフォルダに追加
-				strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
-			}
-		}else{	//アイテム外にDnD->カレントフォルダに追加
-			strDest = mr_Model.GetCurrentNode()->getRelativePath(mr_Model.GetRootNode());
-		}
-		TRACE(_T("Target:%s\n"),strDest.c_str());
-
-		//追加開始
-		return AddItems(fileList,strDest.c_str());
-	}else{
-		//受け入れできない形式
-		dwEffect = DROPEFFECT_NONE;
-		return S_FALSE;	//S_OK
-	}
-}
 
 //-----------------------------
 // ドラッグ&ドロップによる解凍
@@ -920,43 +725,34 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 		return 0;
 	}
 	//選択されたアイテムを列挙
-	std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp;
-	GetSelectedItems(itemsTmp);
-	if(itemsTmp.empty()){	//本来あり得ない
+	auto items = GetSelectedItems();
+	if(items.empty()){	//本来あり得ない
 		ASSERT(!"This code cannot be run");
 		return 0;
 	}
-	std::vector<ARCHIVE_ENTRY_INFO*> items(itemsTmp.begin(),itemsTmp.end());
 
-	if(!UtilDeleteDir(m_TempDirMgr.path(), false)){
+	if(!mr_Model.ClearTempDir()){
 		//テンポラリディレクトリを空に出来ない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_CANT_CLEAR_TEMPDIR)));
+		ErrorMessage(UtilLoadString(IDS_ERROR_CANT_CLEAR_TEMPDIR));
 		return 0;
 	}else{
 		::EnableWindow(m_hFrameWnd,FALSE);
 
 		//ドラッグ&ドロップで解凍
-		std::wstring strLog;
+		ARCLOG arcLog;
 		HRESULT hr=m_DnDSource.DoDragDrop(
 			mr_Model,
 			items,
-			mr_Model.GetCurrentNode(),
-			m_TempDirMgr.path(),
-			strLog);
+			mr_Model.getCurrentDir(),
+			mr_Model.getTempDir(),
+			m_hFrameWnd,
+			arcLog);
 		if(FAILED(hr)){
-			if(hr==E_ABORT){
-				//TODO
-				CLogListDialog LogDlg(L"Log");
-				std::vector<ARCLOG> logs;
-				logs.resize(1);
-				logs.back().logs.resize(1);
-				logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-				logs.back().logs.back().message = strLog;
-				LogDlg.SetLogArray(logs);
-				LogDlg.DoModal(m_hFrameWnd);
-			}else{
-				ErrorMessage(strLog.c_str());
-			}
+			//TODO
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs = { arcLog };
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
 		}
 
 		::EnableWindow(m_hFrameWnd,TRUE);
@@ -975,8 +771,7 @@ void CFileListView::OnSelectAll(UINT,int,HWND)
 void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	//選択されたアイテムを列挙
-	std::vector<ARCHIVE_ENTRY_INFO*> items;
-	GetSelectedItems(items);
+	auto items = GetSelectedItems();
 
 	CString info;
 
@@ -1035,53 +830,6 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	UtilSetTextOnClipboard((const wchar_t*)info);
 }
 
-void CFileListView::OnExtractItem(UINT,int nID,HWND)
-{
-	//アーカイブと同じフォルダに解凍する場合はtrue
-	const bool bSameDir=(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR==nID);
-
-	if(!mr_Model.IsOK()){
-		return;// false;
-	}
-
-	//選択されたアイテムを列挙
-	std::vector<ARCHIVE_ENTRY_INFO*> items;
-	GetSelectedItems(items);
-	if(items.empty()){
-		//選択されたファイルがない
-		ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
-		return;// false;
-	}
-
-	TODO
-	if (!bSameDir) {	//出力先をダイアログで選ばせる
-		LFShellFileOpenDialog dlg(pathOutputBaseDir, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
-		if (IDOK != dlg.DoModal()) {
-			return S_FALSE;//E_ABORT;
-		}
-		dlg.GetFilePath(pathOutputBaseDir);
-		pathOutputBaseDir.AddBackslash();
-	}
-
-	//解凍
-	CString strLog;
-	HRESULT hr=mr_Model.ExtractItems(m_hFrameWnd,bSameDir,items,mr_Model.GetCurrentNode(),strLog);
-
-	SetForegroundWindow(m_hFrameWnd);
-
-	if(FAILED(hr)){
-		//TODO
-		CLogListDialog LogDlg(L"Log");
-		std::vector<ARCLOG> logs;
-		logs.resize(1);
-		logs.back().logs.resize(1);
-		logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-		logs.back().logs.back().message = strLog;
-		LogDlg.SetLogArray(logs);
-		LogDlg.DoModal(m_hFrameWnd);
-	}
-}
-
 void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	if(ID_MENUITEM_FINDITEM_END==nID){
@@ -1091,8 +839,8 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 		if(IDOK == dlg.DoModal()){
 			mr_Model.EndFindItem();
-			ARCHIVE_ENTRY_INFO* lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.GetCurrentNode());
-			mr_Model.SetCurrentNode(lpFound);
+			auto lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.getCurrentDir());
+			mr_Model.setCurrentDir(lpFound);
 		}
 	}
 }

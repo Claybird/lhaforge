@@ -29,6 +29,7 @@
 #include "Utilities/OSUtil.h"
 #include "Utilities/StringUtil.h"
 #include "compress.h"
+#include "resource.h"
 
 //-----------
 

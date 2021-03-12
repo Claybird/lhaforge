@@ -77,8 +77,6 @@ void CConfigFileListWindow::load_sub(const CConfigManager& Config)
 	//---------
 	//無意味なパスを無視するか
 	IgnoreMeaninglessPath = Config.getBool(section, L"IgnoreMeaninglessPath", true);
-	//階層構造を無視するか
-	FileListMode = (FILELISTMODE)Config.getIntRange(section, L"FileListMode", 0, FILELISTMODE_LAST_ITEM, 0);
 	//---------
 	//初めからツリーを展開
 	ExpandTree=Config.getBool(section, L"ExpandTree", false);
@@ -205,8 +203,6 @@ void CConfigFileListWindow::store_sub(CConfigManager &Config)const
 	//---------
 	//無意味なパスを無視するか
 	Config.setValue(section, L"IgnoreMeaninglessPath", IgnoreMeaninglessPath);
-	//階層構造を無視するか
-	Config.setValue(section, L"FileListMode", FileListMode);
 	//---------
 	//初めからツリーを展開
 	Config.setValue(section, L"ExpandTree", ExpandTree);

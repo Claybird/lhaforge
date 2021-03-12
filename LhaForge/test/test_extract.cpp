@@ -46,20 +46,30 @@ TEST(extract, determineExtractBaseDir) {
 }
 
 TEST(extract, determineExtractDir) {
-	std::wstring determineExtractDir(const std::wstring& archive_path, const std::wstring& output_base_dir, const LF_EXTRACT_ARGS& args);
+	std::wstring determineExtractDir(
+		ILFArchiveFile& arc,
+		const std::wstring& archive_path,
+		const std::wstring& output_base_dir,
+		const LF_EXTRACT_ARGS& args);
 	LF_EXTRACT_ARGS fakeArg;
 	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_NEVER;
 	fakeArg.extract.RemoveSymbolAndNumber = false;
+	CLFArchiveNULL arc;
+	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
 	EXPECT_EQ(L"path_to_output", 
-		replace(determineExtractDir(L"path_to_archive/archive.ext", L"path_to_output", fakeArg), L"\\", L"/"));
+		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+
+	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
 	EXPECT_EQ(L"path_to_output",
-		replace(determineExtractDir(L"path_to_archive/archive  .ext", L"path_to_output", fakeArg), L"\\", L"/"));
+		determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
 
 	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_ALWAYS;
+	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
 	EXPECT_EQ(L"path_to_output/archive",
-		replace(determineExtractDir(L"path_to_archive/archive.ext", L"path_to_output", fakeArg), L"\\", L"/"));
+		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
 	EXPECT_EQ(L"path_to_output/archive",
-		replace(determineExtractDir(L"path_to_archive/archive  .ext", L"path_to_output", fakeArg), L"\\", L"/"));
+		determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
 }
 
 TEST(extract, extractOneArchive) {

@@ -30,32 +30,33 @@
 #include "FileListFrame.h"
 #include "Dialogs/WaitDialog.h"
 
-CFileListTabClient::CFileListTabClient(CConfigManager& rConfig,CFileListFrame& rFrame):
-	m_rConfig(rConfig),
+CFileListTabClient::CFileListTabClient(
+	const CConfigManager& rConfig,
+	const CConfigFileListWindow& confFLW,
+	CFileListFrame& rFrame
+):
+	mr_Config(rConfig),
+	m_confFLW(confFLW),
 	m_rFrameWnd(rFrame),
 	m_lpPrevTab(NULL),
 	m_bShowTab(true)
 {
-	CConfigFileListWindow ConfFLW;
-	ConfFLW.load(rConfig);
-	ASSERT(sizeof(m_ColumnIndexArray)==sizeof(ConfFLW.ColumnOrderArray));
-	memcpy(m_ColumnIndexArray, ConfFLW.ColumnOrderArray, sizeof(ConfFLW.ColumnOrderArray));
-	memcpy(m_FileInfoWidth, ConfFLW.ColumnWidthArray, sizeof(m_FileInfoWidth));
+	ASSERT(sizeof(m_ColumnIndexArray)==sizeof(m_confFLW.ColumnOrderArray));
+	memcpy(m_ColumnIndexArray, m_confFLW.ColumnOrderArray, sizeof(m_confFLW.ColumnOrderArray));
+	memcpy(m_FileInfoWidth, m_confFLW.ColumnWidthArray, sizeof(m_FileInfoWidth));
 
-	if(ConfFLW.StoreSetting){
-		m_nTreeWidth=ConfFLW.TreeWidth;
-		m_bSortDescending=BOOL2bool(ConfFLW.SortDescending);
-		m_nSortKeyType=ConfFLW.SortColumn;
-		m_dwListStyle=ConfFLW.ListStyle;
-		m_ListMode=ConfFLW.FileListMode;
-		m_bShowTreeView=BOOL2bool(ConfFLW.ShowTreeView);
-	}else{
-		m_nTreeWidth=FILELISTWINDOW_DEFAULT_TREE_WIDTH;
-		m_bSortDescending=true;
-		m_nSortKeyType=-1;
-		m_dwListStyle=LVS_ICON;
-		m_ListMode=FILELIST_TREE;
-		m_bShowTreeView=true;
+	if (m_confFLW.StoreSetting) {
+		m_nTreeWidth = m_confFLW.TreeWidth;
+		m_bSortDescending = m_confFLW.SortDescending;
+		m_nSortKeyType = m_confFLW.SortColumn;
+		m_dwListStyle = m_confFLW.ListStyle;
+		m_bShowTreeView = m_confFLW.ShowTreeView;
+	} else {
+		m_nTreeWidth = FILELISTWINDOW_DEFAULT_TREE_WIDTH;
+		m_bSortDescending = true;
+		m_nSortKeyType = -1;
+		m_dwListStyle = LVS_ICON;
+		m_bShowTreeView = true;
 	}
 }
 
@@ -75,9 +76,9 @@ LRESULT CFileListTabClient::OnDestroy()
 	return 0;
 }
 
-HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr)
+HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr)
 {
-	int idx=CreateNewTab(ConfFLW);
+	int idx=CreateNewTab();
 	ASSERT(idx>=0);
 	if(idx<0)return E_HANDLE;
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
@@ -88,31 +89,21 @@ HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileLi
 	pItem->hMutex=hMutex;
 	pItem->strMutexName=lpMutexName;
 
-	//「お待ちください」ダイアログを表示
-	CWaitDialog waitDialog;
-	waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
-
-	m_rFrameWnd.EnableWindow(FALSE);
 	//---解析
-	HRESULT hr=pItem->OpenArchive(lpszArc,ConfFLW,ConfFLW.FileListMode,&waitDialog,strErr);
-	m_rFrameWnd.EnableWindow(TRUE);
-	waitDialog.DestroyWindow();
-	if(FAILED(hr)){
-		RemoveTab(idx);
-	}else{
-		SetPageTitle(idx,PathFindFileName(pItem->Model.GetArchiveFileName()));
-		// ツリービューにフォーカスを持たせる
-		pItem->TreeView.SetFocus();
-		pItem->ShowTreeView(m_bShowTreeView);
-		dispatchEvent(WM_FILELIST_MODELCHANGED);
-		dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
+	if(!pItem->OpenArchive(lpszArc))RemoveTab(idx);
 
-		//フレームウィンドウのプロパティとして登録
-		::SetProp(m_rFrameWnd,lpMutexName,pItem);
+	SetPageTitle(idx,pItem->Model.GetArchiveFileName().filename().c_str());
+	// ツリービューにフォーカスを持たせる
+	pItem->TreeView.SetFocus();
+	pItem->ShowTreeView(m_bShowTreeView);
+	dispatchEvent(WM_FILELIST_MODELCHANGED);
+	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 
-		FitClient();
-	}
-	return hr;
+	//フレームウィンドウのプロパティとして登録
+	::SetProp(m_rFrameWnd,lpMutexName,pItem);
+
+	FitClient();
+	return S_OK;
 }
 
 void CFileListTabClient::ShowTabCtrl(bool bShow)
@@ -156,12 +147,12 @@ void CFileListTabClient::FitClient()
 	}
 }
 
-int CFileListTabClient::CreateNewTab(const CConfigFileListWindow& ConfFLW)
+int CFileListTabClient::CreateNewTab()
 {
 	//--インスタンス確保
-	auto p = std::make_shared<CFileListTabItem>(m_rConfig);
+	auto p = std::make_shared<CFileListTabItem>(mr_Config, m_confFLW);
 	auto pItem = p.get();
-	if(!pItem->CreateTabItem(m_hWnd,m_rFrameWnd,ConfFLW)){
+	if(!pItem->CreateTabItem(m_hWnd,m_rFrameWnd)){
 		return -1;
 	}
 	m_GC.push_back(p);
@@ -186,7 +177,7 @@ void CFileListTabClient::RemoveTab(int idx)
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
 
 	//フレームウィンドウのプロパティとして登録
-	::RemoveProp(m_rFrameWnd,pItem->strMutexName);
+	::RemoveProp(m_rFrameWnd,pItem->strMutexName.c_str());
 
 	if(idx==GetActivePage()){
 		OnDeactivateTab(pItem);
@@ -255,8 +246,6 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 		pItem->ShowTreeView(m_bShowTreeView);
 		m_lpPrevTab=pItem;
 
-		m_ListMode=pItem->Model.GetListMode();
-
 		FitClient();
 	}
 
@@ -273,7 +262,6 @@ void CFileListTabClient::GetTabSettingsToClient(CFileListTabItem* pItem)
 		m_nSortKeyType	 =pItem->Model.GetSortKeyType();
 
 		m_dwListStyle	 =pItem->GetListViewStyle()%(0x0004);
-		m_ListMode		 =pItem->Model.GetListMode();
 	}
 }
 
@@ -325,7 +313,6 @@ void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
 	}
 	ConfFLW.ListStyle=m_dwListStyle;
 
-	ConfFLW.FileListMode=m_ListMode;
 	//カラムの並び順
 	memcpy(ConfFLW.ColumnOrderArray, m_ColumnIndexArray, sizeof(m_ColumnIndexArray));
 	//カラムの幅
@@ -335,7 +322,7 @@ void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
 	ConfFLW.ShowTreeView=m_bShowTreeView;
 }
 
-HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
+HRESULT CFileListTabClient::ReopenArchiveFile(int nPage)
 {
 	if(GetPageCount()<=0)return S_FALSE;
 	if(nPage==-1)nPage=GetActivePage();
@@ -346,24 +333,20 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 		pItem->ListView.SetItemCount(0);
 
 		//カレントディレクトリの保存と復元を行う
-		std::stack<CString> dirStack;
-		pItem->Model.GetDirStack(dirStack);
+		auto currentDir = pItem->Model.getCurrentDirPath();
 
-		//「お待ちください」ダイアログを表示
-		CWaitDialog waitDialog;
-		waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
-
-		m_rFrameWnd.EnableWindow(FALSE);
 		//---解析
-		CString strErr;
-		HRESULT hr=pItem->Model.ReopenArchiveFile(flMode,strErr,&waitDialog);
-		m_rFrameWnd.EnableWindow(TRUE);
-		waitDialog.DestroyWindow();
-		if(FAILED(hr)){
-			ErrorMessage((const wchar_t*)strErr);
-			return hr;
+		auto path = pItem->Model.GetArchiveFileName();
+		try {
+			pItem->OpenArchive(path);
+		} catch (const LF_EXCEPTION& e) {
+			ErrorMessage(e.what());
+			return E_FAIL;
+		} catch (const std::exception &e) {
+			ErrorMessage(UtilUTF8toUNICODE(e.what()));
+			return E_FAIL;
 		}
-		pItem->Model.SetDirStack(dirStack);
+		pItem->Model.setCurrentDirPath(currentDir);
 
 		// ツリービューにフォーカスを持たせる
 //		m_lpCurrentTab->TreeView.SetFocus();
@@ -373,49 +356,11 @@ HRESULT CFileListTabClient::ReopenArchiveFile(FILELISTMODE flMode,int nPage)
 
 bool CFileListTabClient::ReopenArchiveFileAll()
 {
-	//「お待ちください」ダイアログを表示
-	CWaitDialog waitDialog;
-	waitDialog.Prepare(m_rFrameWnd,UtilLoadString(IDS_FILELIST_SEARCH), 1000/*TODO: move to config*/);
-
-	m_rFrameWnd.EnableWindow(FALSE);
 	int size=GetPageCount();
 	for(int i=0;i<size;i++){
-		CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(i);
-		if(pItem){
-			pItem->ListView.DeleteAllItems();
-			pItem->ListView.SetItemCount(0);
-
-			//カレントディレクトリの保存と復元を行う
-			std::stack<CString> dirStack;
-			pItem->Model.GetDirStack(dirStack);
-
-			//---解析
-			CString strErr;
-			HRESULT hr=pItem->Model.ReopenArchiveFile(m_ListMode,strErr,&waitDialog);
-			if(FAILED(hr)){
-				if(hr==E_ABORT){
-					m_rFrameWnd.EnableWindow(TRUE);
-					waitDialog.DestroyWindow();
-					return false;
-				}
-				//WaitDialog.DestroyWindow();
-				//return false;
-				continue;
-			}
-			pItem->Model.SetDirStack(dirStack);
-		}
+		ReopenArchiveFile(i);
 	}
-	m_rFrameWnd.EnableWindow(TRUE);
-	waitDialog.DestroyWindow();
 	return true;
-}
-
-FILELISTMODE CFileListTabClient::GetFileListMode()
-{
-	CFileListTabItem* pItem=GetCurrentTab();
-	if(pItem){
-		return pItem->Model.GetListMode();
-	}else return FILELIST_TREE;
 }
 
 DWORD CFileListTabClient::GetListViewStyle()
@@ -506,7 +451,7 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 		RemoveTabExcept(idx);
 		break;
 	case ID_TABMENU_RELOAD:
-		ReopenArchiveFile(m_ListMode,idx);
+		ReopenArchiveFile(idx);
 		break;
 	case ID_TABMENU_RELOADALL:
 		ReopenArchiveFileAll();
@@ -541,7 +486,7 @@ void CFileListTabClient::OnExtractArchive(UINT,int nID,HWND)
 		//ウィンドウを使用不可に
 		::EnableWindow(m_rFrameWnd,FALSE);
 
-		bool bRet=pItem->Model.ExtractArchive();
+		bool bRet=pItem->Model.ExtractArchive(CLFProgressHandlerGUI(m_hWnd));
 
 		//ウィンドウを使用可能に
 		::EnableWindow(m_rFrameWnd,TRUE);
@@ -565,7 +510,7 @@ void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
 		SetCurrentTab(tabIndex);
 		CFileListTabItem* pItem=GetCurrentTab();
 		if(pItem){
-			bool bRet=pItem->Model.ExtractArchive();
+			bool bRet=pItem->Model.ExtractArchive(CLFProgressHandlerGUI(m_hWnd));
 			if(!bRet){
 				break;
 			}
@@ -594,7 +539,7 @@ void CFileListTabClient::OnTestArchive(UINT,int,HWND)
 		//ウィンドウを使用不可に
 		::EnableWindow(m_rFrameWnd,FALSE);
 
-		pItem->Model.TestArchive();
+		pItem->Model.TestArchive(CLFProgressHandlerGUI(m_hWnd));
 
 		//ウィンドウを使用可能に
 		::EnableWindow(m_rFrameWnd,TRUE);
@@ -627,7 +572,7 @@ void CFileListTabClient::UpdateFileListConfig(const CConfigFileListWindow& ConfF
 	for(int i=0;i<size;i++){
 		CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(i);
 		if(pItem){
-			pItem->UpdateFileListConfig(ConfFLW);
+			pItem->UpdateFileListConfig();
 		}
 	}
 }

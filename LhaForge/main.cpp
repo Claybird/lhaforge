@@ -138,6 +138,7 @@ bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 		cli.CompressType,
 		(LF_WRITE_OPTIONS)cli.Options,
 		CLFProgressHandlerGUI(nullptr),
+		ConfigManager,
 		cli);
 }
 

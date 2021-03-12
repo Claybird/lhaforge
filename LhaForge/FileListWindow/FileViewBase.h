@@ -4,66 +4,79 @@
 #include "MenuCommand.h"
 #include "resource.h"
 #include "OLE/DropTarget.h"
+#include "ConfigCode/ConfigFileListWindow.h"
+#include "Dialogs/LogListDialog.h"
 
 //common part of CFileListView and CFileTreeView
-template<typename T, typename BASE>
-class CFileViewBase:public CWindowImpl<T, BASE>, public ILFDropCommunicator {
+template<typename TBase, typename TWinTraits>
+class CFileViewBase:public CWindowImpl<TBase, TWinTraits>, public ILFDropCommunicator {
 protected:
 	CFileListModel &mr_Model;
 	HWND m_hFrameWnd;
 	//---accepting file drops
 	CLFDropTarget m_DropTarget;
+	const CConfigFileListWindow &mr_confFLW;
+
+	struct HIGHLIGHT {
+		HTREEITEM itemTree;
+		int itemList;
+		HIGHLIGHT() { invalidate(); }
+		virtual ~HIGHLIGHT() {}
+		void invalidate() { itemTree = nullptr; itemList = -1; }
+		bool isValid()const { return itemTree != nullptr || itemList != -1; }
+		HTREEITEM operator=(HTREEITEM n) { itemTree = n; return n; }
+		int operator=(int n) { itemList = n; return n; }
+		operator HTREEITEM()const { return itemTree; }
+		operator int()const { return itemList; }
+		bool operator==(const HIGHLIGHT& a)const { return a.itemTree == itemTree || a.itemList == itemList; }
+		bool operator!=(const HIGHLIGHT& a)const { return a.itemTree != itemTree && a.itemList != itemList; }
+	}m_dropHighlight;
 
 protected:
-	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems() = 0;
-	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool OpenAssociation(bool bOverwrite, bool bOpen) {
-		if (!mr_Model.CheckArchiveExists()) {	//存在しないならエラー
-			CString msg;
-			msg.Format(IDS_ERROR_FILE_NOT_FOUND, mr_Model.GetArchiveFileName());
-			ErrorMessage((const wchar_t*)msg);
-			return false;
-		}
-
-		//選択されたアイテムを列挙
-		std::vector<ARCHIVE_ENTRY_INFO*> items;
-		GetSelectedItems(items);
-		std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
-
-		if (!items.empty()) {
-			std::vector<std::wstring> filesList;
-			std::wstring strLog;
-			if (!mr_Model.MakeSureItemsExtracted(NULL, bOverwrite, mr_Model.GetRootNode(), itemsTmp, filesList, strLog)) {
-				//TODO
-				CLogListDialog LogDlg(L"Log");
-				std::vector<ARCLOG> logs;
-				logs.resize(1);
-				logs.back().logs.resize(1);
-				logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-				logs.back().logs.back().message = strLog;
-				LogDlg.SetLogArray(logs);
-				LogDlg.DoModal(m_hFrameWnd);
-			}
-			if (bOpen)OpenAssociation(filesList);
-		}
-
-		return true;
+	virtual void displayLog(ARCLOG& arcLog) {
+		CLogListDialog LogDlg(L"Log");
+		std::vector<ARCLOG> logs;
+		logs.push_back(arcLog);
+		LogDlg.SetLogArray(logs);
+		LogDlg.DoModal(m_hFrameWnd);
 	}
+	virtual std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems() = 0;
+	virtual std::vector<std::filesystem::path> extractItemToTemporary(bool bOverwrite, std::vector<const ARCHIVE_ENTRY_INFO*>& items) {
+		if (!mr_Model.CheckArchiveExists()) {	//Error: file not exist
+			ErrorMessage(Format(UtilLoadString(IDS_ERROR_FILE_NOT_FOUND), mr_Model.GetArchiveFileName().c_str()));
+			return {};
+		}
 
-	void OpenAssociation(const std::vector<std::wstring> &filesList) {
+		if (items.empty()) {
+			return {};
+		}
+
+		ARCLOG arcLog;
+		auto options = bOverwrite ? overwrite_options::overwrite : overwrite_options::skip;
+		try {
+			auto extracted = mr_Model.MakeSureItemsExtracted(
+				items,
+				mr_Model.getTempDir(),
+				mr_Model.GetRootNode(),
+				CLFProgressHandlerGUI(m_hFrameWnd),
+				options,
+				arcLog);
+			return extracted;
+		} catch (...) {
+			displayLog(arcLog);
+			return {};
+		}
+	}
+	virtual void openAssociation(const std::vector<std::filesystem::path> &filesList)const {
 		for (const auto& file : filesList) {
-			//拒否されたら上書きも追加解凍もしない;ディレクトリなら拒否のみチェック
-			bool bDenyOnly = BOOL2bool(::PathIsDirectory(file.c_str()));//lpNode->bDir;
-			if (mr_Model.IsPathAcceptableToOpenAssoc(file.c_str(), bDenyOnly)) {
-				::ShellExecute(GetDesktopWindow(), NULL, file.c_str(), NULL, NULL, SW_SHOW);
-				TRACE(_T("%s\n"), file.c_str());
-				//::ShellExecute(GetDesktopWindow(),_T("explore"),*ite,NULL,NULL,SW_SHOW);
+			bool bDenyOnly = std::filesystem::is_directory(file);
+			if (mr_confFLW.isPathAcceptableToOpenAssoc(file.c_str(), bDenyOnly)) {
+				::ShellExecuteW(GetDesktopWindow(), nullptr, file.c_str(), nullptr, nullptr, SW_SHOW);
 			} else {
 				::MessageBeep(MB_ICONEXCLAMATION);
 			}
 		}
 	}
-
 
 protected:
 	void OnOpenWithUserApp(UINT uNotifyCode, int nID, HWND hWndCtrl) {
@@ -75,176 +88,109 @@ protected:
 			OnSendToApp(nID - ID_MENUITEM_USERAPP_END);
 		}
 	}
-	void OnOpenAssociation(UINT uNotifyCode, int nID, HWND hWndCtrl)
-	{
-		//trueなら存在するテンポラリファイルを削除してから解凍する
-		const bool bOverwrite = (nID == ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE);
-		OpenAssociation(bOverwrite, true);
+	void OnOpenAssociation(UINT uNotifyCode, int nID, HWND hWndCtrl){
+		bool bOverwrite = (nID == ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE);
+		auto files = extractItemToTemporary(bOverwrite, GetSelectedItems());
+		openAssociation(files);
 	}
 
-	void OnExtractTemporary(UINT uNotifyCode, int nID, HWND hWndCtrl)
-	{
-		//上書きはするが、開かない
-		OpenAssociation(true, false);
+	void OnExtractTemporary(UINT uNotifyCode, int nID, HWND hWndCtrl){
+		//just overwrite, not to open
+		extractItemToTemporary(true, GetSelectedItems());
 	}
 
-
-	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray, UINT nID)	//「プログラムで開く」のハンドラ
-	{
+	bool OnUserApp(const std::vector<CLFMenuCommandItem> &menuCommandArray, UINT nID){
 		ASSERT(!menuCommandArray.empty());
 		ASSERT(nID < menuCommandArray.size());
 		if (nID >= menuCommandArray.size())return false;
 
 		if (!mr_Model.IsOK())return false;
 
-		auto items = GetSelectedItems();
-		std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
+		auto files = extractItemToTemporary(false, GetSelectedItems());
 
-		std::vector<std::wstring> filesList;
-		if (!items.empty()) {
-			std::wstring strLog;
-			if (!mr_Model.MakeSureItemsExtracted(NULL, mr_Model.GetRootNode(), false, itemsTmp, filesList, strLog)) {
-				//TODO
-				CLogListDialog LogDlg(L"Log");
-				std::vector<ARCLOG> logs;
-				logs.resize(1);
-				logs.back().logs.resize(1);
-				logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-				logs.back().logs.back().message = strLog;
-				LogDlg.SetLogArray(logs);
-				LogDlg.DoModal(m_hFrameWnd);
-				return false;
-			}
-		}
-
-		//---実行情報取得
-		//パラメータ展開に必要な情報
+		//expand commands and parameters
 		auto envInfo = LF_make_expand_information(nullptr, nullptr);
+		auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);
+		auto strParam = UtilExpandTemplateString(menuCommandArray[nID].Param, envInfo);
+		auto strDir = UtilExpandTemplateString(menuCommandArray[nID].Dir, envInfo);
 
-		//コマンド・パラメータ展開
-		auto strCmd = UtilExpandTemplateString(menuCommandArray[nID].Path, envInfo);	//コマンド
-		auto strParam = UtilExpandTemplateString(menuCommandArray[nID].Param, envInfo);	//パラメータ
-		auto strDir = UtilExpandTemplateString(menuCommandArray[nID].Dir, envInfo);	//ディレクトリ
-
-		//引数置換
 		if (std::wstring::npos != strParam.find(L"%F")) {
-			//ファイル一覧を連結して作成
-			CString strFileList;
-			for (const auto& file : filesList) {
-				CPath path = file.c_str();
-				path.QuoteSpaces();
-				strFileList += (LPCTSTR)path;
-				strFileList += _T(" ");
+			//join filenames
+			std::wstring strFileList;
+			for (const auto& file : files) {
+				strFileList += Format(L"\"%s\" ", file.c_str());
 			}
 			strParam = replace(strParam, L"%F", strFileList);
-			//---実行
-			::ShellExecuteW(GetDesktopWindow(), NULL, strCmd.c_str(), strParam.c_str(), strDir.c_str(), SW_SHOW);
+			//---exec
+			::ShellExecuteW(GetDesktopWindow(), nullptr, strCmd.c_str(), strParam.c_str(), strDir.c_str(), SW_SHOW);
 		} else if (std::wstring::npos != strParam.find(L"%S")) {
-			for (const auto& file : filesList) {
-				CPath path = file.c_str();
-				path.QuoteSpaces();
-
-				CString strParamTmp = strParam.c_str();
-				strParamTmp.Replace(_T("%S"), (LPCTSTR)path);
-				//---実行
-				::ShellExecuteW(GetDesktopWindow(), NULL, strCmd.c_str(), strParamTmp, strDir.c_str(), SW_SHOW);
+			for (const auto& file : files) {
+				auto path = Format(L"\"%s\"", file.c_str());
+				auto strParamTmp = replace(strParam, L"%S", path);
+				//---exec
+				::ShellExecuteW(GetDesktopWindow(), nullptr, strCmd.c_str(), strParamTmp.c_str(), strDir.c_str(), SW_SHOW);
 			}
 		} else {
-			::ShellExecuteW(GetDesktopWindow(), NULL, strCmd.c_str(), strParam.c_str(), strDir.c_str(), SW_SHOW);
+			::ShellExecuteW(GetDesktopWindow(), nullptr, strCmd.c_str(), strParam.c_str(), strDir.c_str(), SW_SHOW);
 		}
 
 		return true;
 	}
 
-	bool OnSendToApp(UINT nID)	//「プログラムで開く」のハンドラ
-	{
+	bool OnSendToApp(UINT nID){
 		ASSERT(nID < MenuCommand_GetSendToCmdArray().size());
 		if (nID >= MenuCommand_GetSendToCmdArray().size())return false;
 
 		if (!mr_Model.IsOK())return false;
 
-		//---選択解凍開始
-		//選択されたアイテムを列挙
-		std::vector<ARCHIVE_ENTRY_INFO*> items;
-		GetSelectedItems(items);
-		std::vector<ARCHIVE_ENTRY_INFO*> itemsTmp(items.begin(), items.end());
+		auto files = extractItemToTemporary(false, GetSelectedItems());
 
-		std::vector<std::wstring> filesList;
-		if (!items.empty()) {
-			std::wstring strLog;
-			if (!mr_Model.MakeSureItemsExtracted(NULL, false, mr_Model.GetRootNode(), itemsTmp, filesList, strLog)) {
-				//TODO
-				CLogListDialog LogDlg(L"Log");
-				std::vector<ARCLOG> logs;
-				logs.resize(1);
-				logs.back().logs.resize(1);
-				logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-				logs.back().logs.back().message = strLog;
-				LogDlg.SetLogArray(logs);
-				LogDlg.DoModal(m_hFrameWnd);
-				return false;
-			}
-		}
-
-		//引数置換
 		const auto& sendToCmd = MenuCommand_GetSendToCmdArray();
-		if (PathIsDirectory(sendToCmd[nID].cmd.c_str())) {
-			//対象はディレクトリなので、コピー
-			CString strFiles;
-			for (const auto& file : filesList) {
-				CPath file_ = file.c_str();
-				file_.RemoveBackslash();
-				strFiles += file_;
-				strFiles += _T('|');
+		if (std::filesystem::is_directory(sendToCmd[nID].cmd)) {
+			//---destination is directory
+			std::wstring strFiles;
+			for (const auto& file : files) {
+				strFiles += UtilPathRemoveLastSeparator(file);
+				strFiles += L'|';
 			}
-			strFiles += _T('|');
-			//TRACE(strFiles);
-			auto filter = UtilMakeFilterString((const wchar_t*)strFiles);
+			strFiles += L'|';
+			auto filter = UtilMakeFilterString(strFiles);
 
-			CPath destDir = sendToCmd[nID].cmd.c_str();
-			destDir.AddBackslash();
-			//Windows標準のコピー動作
-			SHFILEOPSTRUCT fileOp = { 0 };
+			auto destDir = UtilPathAddLastSeparator(sendToCmd[nID].cmd);
+			//copy file
+			SHFILEOPSTRUCTW fileOp = { 0 };
 			fileOp.wFunc = FO_COPY;
 			fileOp.fFlags = FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS | FOF_NO_CONNECTED_ELEMENTS;
 			fileOp.pFrom = &filter[0];
-			fileOp.pTo = destDir;
+			fileOp.pTo = destDir.c_str();
 
-			//コピー実行
-			if (::SHFileOperation(&fileOp)) {
-				//エラー
-				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILE_COPY)));
+			if (::SHFileOperationW(&fileOp)) {
+				ErrorMessage(UtilLoadString(IDS_ERROR_FILE_COPY));
 				return false;
 			} else if (fileOp.fAnyOperationsAborted) {
-				//キャンセル
-				ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_USERCANCEL)));
+				//cancel
+				ErrorMessage(UtilLoadString(IDS_ERROR_USERCANCEL));
 				return false;
 			}
 			return true;
 		} else {
-			//送り先はプログラム
-			//ファイル一覧を連結して作成
-			CString strFileList;
-			for (const auto& file : filesList) {
-				CPath path = file.c_str();
-				path.QuoteSpaces();
-				strFileList += (LPCTSTR)path;
-				strFileList += _T(" ");
+			//---destination is a program
+			std::wstring strFileList;
+			for (const auto& file : files) {
+				strFileList += Format(L"\"%s\" ", file.c_str());
 			}
-			CString strParam = CString(sendToCmd[nID].param.c_str()) + _T(" ") + strFileList;
-			//---実行
-			CPath cmd = sendToCmd[nID].cmd.c_str();
-			cmd.QuoteSpaces();
-			CPath workDir = sendToCmd[nID].workingDir.c_str();
-			workDir.QuoteSpaces();
-			::ShellExecute(GetDesktopWindow(), NULL, cmd, strParam, workDir, SW_SHOW);
+			auto strParam = L"\"" + sendToCmd[nID].param + L"\" " + strFileList;
+
+			auto cmd = L"\"" + sendToCmd[nID].cmd + L"\"";
+			auto workDir = L"\"" + sendToCmd[nID].workingDir + L"\"";
+			::ShellExecuteW(GetDesktopWindow(), nullptr, cmd.c_str(), strParam.c_str(), workDir.c_str(), SW_SHOW);
 		}
 
 		return true;
 	}
 	void OnContextMenu(HWND hWndCtrl, CPoint &Point) {
 		//enumerate selected items
-		std::vector<const ARCHIVE_ENTRY_INFO*> items = GetSelectedItems();
+		auto items = GetSelectedItems();
 		if (items.empty())return;
 		const ARCHIVE_ENTRY_INFO* item = items.front();
 
@@ -256,7 +202,7 @@ protected:
 
 		CMenu cMenu;
 		CMenuHandle cSubMenu;
-		HWND hWndSendTo = NULL;
+		HWND hWndSendTo = nullptr;
 		if (item->_parent) {
 			hWndSendTo = m_hWnd;
 			//standard menu
@@ -283,7 +229,7 @@ protected:
 			cMenu.LoadMenu(IDR_ARCHIVE_POPUP);
 			cSubMenu = cMenu.GetSubMenu(0);
 		}
-		cSubMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, Point.x, Point.y, hWndSendTo, NULL);
+		cSubMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, Point.x, Point.y, hWndSendTo, nullptr);
 	}
 	void OnDelete(UINT uNotifyCode, int nID, HWND hWndCtrl){
 		auto items = GetSelectedItems();
@@ -328,6 +274,42 @@ protected:
 		//request content re-scan
 		::PostMessage(m_hFrameWnd, WM_FILELIST_REFRESH, 0, 0);
 	}
+	virtual void OnExtractItem(UINT, int nID, HWND){
+		if (!mr_Model.IsOK()) {
+			return;// false;
+		}
+
+		auto items = GetSelectedItems();
+		if (items.empty()) {
+			//no file selected
+			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
+			return;// false;
+		}
+
+		const bool bSameDir = (ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR == nID);
+		std::filesystem::path pathOutputDir = mr_Model.GetArchiveFileName().parent_path();
+		if (!bSameDir) {
+			//show dialog
+			LFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			if (IDOK != dlg.DoModal()) {
+				return;	//cancel
+			}
+			CString tmp;
+			dlg.GetFilePath(tmp);
+			pathOutputDir = tmp.operator LPCWSTR();
+		}
+
+		ARCLOG arcLog;
+		try {
+			mr_Model.ExtractItems(items, pathOutputDir, mr_Model.getCurrentDir(), false, CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
+		} catch (...) {
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs = { arcLog };
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
+		}
+	}
+
 	void EnableDropTarget(bool bEnable) {
 		if (bEnable) {
 			::RegisterDragDrop(m_hWnd, &m_DropTarget);
@@ -337,133 +319,73 @@ protected:
 	}
 
 public:
-	CFileViewBase(): m_DropTarget(this){}
+	CFileViewBase(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW):
+		mr_Model(rModel),
+		mr_confFLW(r_confFLW),
+		m_DropTarget(this){}
 	virtual ~CFileViewBase() {}
-	void SetFrameWnd(HWND hWnd) { m_hFrameWnd = hWnd; }
+	virtual void SetFrameWnd(HWND hWnd) { m_hFrameWnd = hWnd; }
 
 	//---ILFDropCommunicator
-	HRESULT DragEnter(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)
-	{
+	virtual HRESULT DragEnter(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {
 		return DragOver(lpDataObject, pt, dwEffect);
 	}
-
-	HRESULT DragLeave()
-	{
-		//全てのハイライトを無効に
-		if (m_hDropHilight) {
-			SetItemState(m_hDropHilight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
+	virtual HRESULT DragLeave()override {
+		//disable all highlights
+		if (m_dropHighlight.isValid()) {
+			SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 		}
-		m_hDropHilight = NULL;
+		m_dropHighlight.invalidate();
 		return S_OK;
 	}
-
-	HRESULT DragOver(IDataObject *, POINTL &pt, DWORD &dwEffect)
-	{
-		//フォーマットに対応した処理をする
-		if (!m_DropTarget.QueryFormat(CF_HDROP) || !mr_Model.IsModifySupported()) {	//ファイル専用
-			//ファイルではないので拒否
+	virtual bool IsValidDropTarget(const HIGHLIGHT&)const = 0;
+	virtual HRESULT DragOver(IDataObject *, POINTL &pt, DWORD &dwEffect)override {
+		if (!mr_Model.IsModifySupported()) {
+			dwEffect = DROPEFFECT_NONE;
+		} else if (!m_DropTarget.QueryFormat(CF_HDROP)) {
+			//not a file nor directory, reject
 			dwEffect = DROPEFFECT_NONE;
 		} else {
-			//---ドロップ先アイテムを取得
+			//get drop target
 			CPoint ptTemp(pt.x, pt.y);
 			ScreenToClient(&ptTemp);
-			HTREEITEM hItem = HitTest(ptTemp, NULL);
+			HIGHLIGHT target;
+			target = HitTest(ptTemp, NULL);
+			if (!IsValidDropTarget(target))target.invalidate();
 
-			//---ちらつきを押さえるため、前と同じアイテムがハイライトされるならハイライトをクリアしない
-			if (hItem != m_hDropHilight) {
-				//前のハイライトを無効に
-				if (m_hDropHilight) {
-					SetItemState(m_hDropHilight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
+			//---stop flicker
+			if (target != m_dropHighlight) {
+				if (m_dropHighlight.isValid()) {
+					SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 				}
-				//新しいハイライト
-				if (hItem) {
-					SelectDropTarget(hItem);
-					m_hDropHilight = hItem;
+				if (target.isValid()) {
+					SetItemState(target, LVIS_DROPHILITED, LVIS_DROPHILITED);
 				}
+				m_dropHighlight = target;
 			}
-			dwEffect = hItem ? DROPEFFECT_COPY : DROPEFFECT_NONE;
+			dwEffect = target.isValid() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
 		}
 		return S_OK;
 	}
+	virtual HRESULT AddItemsToDirectory(const ARCHIVE_ENTRY_INFO* target, const std::vector<std::filesystem::path>& files) {
+		ASSERT(target);
 
-	//ファイルのドロップ
-	HRESULT Drop(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)
-	{
-		//前のハイライトを無効に
-		if (m_hDropHilight) {
-			SetItemState(m_hDropHilight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
-		} else {
-			return E_HANDLE;
+		//::EnableWindow(m_hFrameWnd,FALSE);	TODO: is this necessary? modal dialog will disable the frame automatically
+		ARCLOG arcLog;
+		try {
+			mr_Model.AddItem(files, target, CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
+		} catch (...) {
+			CLogListDialog LogDlg(L"Log");
+			std::vector<ARCLOG> logs = { arcLog };
+			LogDlg.SetLogArray(logs);
+			LogDlg.DoModal(m_hFrameWnd);
 		}
+		//::EnableWindow(m_hFrameWnd,TRUE);
+		//SetForegroundWindow(m_hFrameWnd);
 
-		//ファイル取得
-		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
-		if (S_OK == hr) {
-			//ファイルがドロップされた
-			dwEffect = DROPEFFECT_COPY;
-
-			//---ドロップ先を特定
-			CPoint ptTemp(pt.x, pt.y);
-			ScreenToClient(&ptTemp);
-			HTREEITEM hItem = HitTest(ptTemp, NULL);
-
-			CString strDest;	//放り込む先
-			ARCHIVE_ENTRY_INFO* lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
-			if (lpNode) {		//アイテム上にDnD
-				//アイテムがフォルダだったらそのフォルダに追加
-				ASSERT(lpNode->is_directory());
-				strDest = lpNode->getRelativePath(mr_Model.GetRootNode()).c_str();
-			} else {
-				return E_HANDLE;
-			}
-			TRACE(_T("Target:%s\n"), (LPCTSTR)strDest);
-
-			//追加開始
-			::EnableWindow(m_hFrameWnd, FALSE);
-			CString strLog;
-
-			HRESULT hr = mr_Model.AddItem(files, strDest, strLog);
-
-			::EnableWindow(m_hFrameWnd, TRUE);
-			::SetForegroundWindow(m_hFrameWnd);
-
-			if (FAILED(hr) || S_FALSE == hr) {
-				CString msg;
-				switch (hr) {
-				case E_LF_SAME_INPUT_AND_OUTPUT:	//アーカイブ自身を追加しようとした
-					msg.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT, mr_Model.GetArchiveFileName());
-					ErrorMessage((const wchar_t*)msg);
-					break;
-				case E_LF_UNICODE_NOT_SUPPORTED:	//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-					ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-					break;
-				case S_FALSE:	//追加処理に問題
-				{
-					//TODO
-					CLogListDialog LogDlg(L"Log");
-					std::vector<ARCLOG> logs;
-					logs.resize(1);
-					logs.back().logs.resize(1);
-					logs.back().logs.back().entryPath = mr_Model.GetArchiveFileName();
-					logs.back().logs.back().message = strLog;
-					LogDlg.SetLogArray(logs);
-					LogDlg.DoModal(m_hFrameWnd);
-				}
-				break;
-				default:
-					ASSERT(!"This code cannot be run");
-				}
-				return E_INVALIDARG;
-			}
-			//アーカイブ更新
-			::PostMessage(m_hFrameWnd, WM_FILELIST_REFRESH, 0, 0);
-			return S_OK;
-		} else {
-			//受け入れできない形式
-			dwEffect = DROPEFFECT_NONE;
-			return S_FALSE;	//S_OK
-		}
+		//request content re-scan
+		::PostMessage(m_hFrameWnd, WM_FILELIST_REFRESH, 0, 0);
+		return S_OK;
 	}
-
 };
 

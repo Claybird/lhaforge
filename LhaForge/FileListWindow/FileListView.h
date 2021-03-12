@@ -76,16 +76,12 @@ protected:
 	*/
 
 
-	CConfigManager&				mr_Config;
 	CLFShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
 	bool	m_bDisplayFileSizeInByte;
 	bool	m_bPathOnly;
 
 	CLFDnDSource	m_DnDSource;	//DnDハンドラ
-	CLFDropTarget		m_DropTarget;	//ドロップ受け入れに使う
-	int				m_nDropHilight;		//ドロップハイライト状態にあるアイテムのインデックス
-
 protected:
 	//---イベントハンドラ
 	LRESULT OnCreate(LPCREATESTRUCT lpcs);
@@ -100,10 +96,11 @@ protected:
 	LRESULT OnBeginDrag(LPNMHDR pnmh);
 	LRESULT OnDblClick(LPNMHDR pnmh);
 	void OnSelectAll(UINT,int,HWND);
-	void OnExtractItem(UINT,int,HWND);	//選択ファイルを解凍
 	void OnFindItem(UINT,int,HWND);	//ファイル検索
 	void OnShowCustomizeColumn(UINT,int,HWND);	//カラムヘッダ編集メニューを表示
-	void OnClearTemporary(UINT,int,HWND);	//一時フォルダを空にする
+	void OnClearTemporary(UINT, int, HWND) {
+		mr_Model.ClearTempDir();
+	}
 	void OnAddItems(UINT,int,HWND);
 
 	//コマンドハンドラ
@@ -119,10 +116,9 @@ protected:
 	//ファイル情報取得
 	static void FormatFileSizeInBytes(CString&, UINT64);
 	void FormatFileSize(CString&, UINT64);
-	HRESULT AddItems(const std::vector<std::wstring> &fileList,LPCTSTR strDest);
 	void UpdateSortIcon();
 public:
-	CFileListView(CConfigManager&,CFileListModel& rModel);
+	CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW);
 	virtual ~CFileListView(){}
 	bool SetColumnState(const int* pColumnOrderArray, const int* pFileInfoWidthArray);	//リストビューのカラムをセットする
 	void GetColumnState(int* pColumnOrderArray, int* pFileInfoWidthArray);
@@ -130,5 +126,56 @@ public:
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}
 
-	void GetSelectedItems(std::vector<ARCHIVE_ENTRY_INFO*>&);
+	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override;
+
+	bool IsValidDropTarget(const HIGHLIGHT& item)const override { 
+		if (item.isValid()) {
+			auto lpNode = mr_Model.GetFileListItemByIndex(item);
+			if (lpNode) {		//Drop on target
+				//is target directory?
+				if (lpNode->is_directory()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	//dropped
+	virtual HRESULT Drop(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {
+		if (m_dropHighlight.isValid()) {
+			//disable drop highlight
+			SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
+		}
+		m_dropHighlight.invalidate();
+
+		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+		if (S_OK == hr) {
+			dwEffect = DROPEFFECT_COPY;
+
+			//---destination
+			CPoint ptTemp(pt.x, pt.y);
+			ScreenToClient(&ptTemp);
+			auto target = HitTest(ptTemp, nullptr);
+
+			auto lpNode = mr_Model.GetFileListItemByIndex(target);
+			if (lpNode) {
+				if (lpNode->is_directory()) {
+					//onto directory
+					return AddItemsToDirectory(lpNode, files);
+				} else {
+					//onto file
+					return AddItemsToDirectory(mr_Model.getCurrentDir(), files);
+				}
+			} else {
+				//onto empty space
+				return AddItemsToDirectory(mr_Model.getCurrentDir(), files);
+			}
+		} else {
+			//not acceptable
+			dwEffect = DROPEFFECT_NONE;
+			return S_FALSE;
+		}
+	}
+
 };

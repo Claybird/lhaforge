@@ -38,20 +38,20 @@ protected:
 	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
-	CConfigManager&		m_rConfig;
 	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
 	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
 	bool				m_bShowTab;			//タブ表示?
 	bool				m_bShowTreeView;	//ツリービュー表示ならTrue
 
 	CFileListTabItem*	m_lpPrevTab;
+	const CConfigFileListWindow& m_confFLW;
+	const CConfigManager& mr_Config;
 
 	//各リストビューで共通化する設定
 	int		m_nTreeWidth;
 	bool	m_bSortDescending;
 	int		m_nSortKeyType;
 	DWORD	m_dwListStyle;
-	FILELISTMODE	m_ListMode;//タブ間で共有はせず、保存のためだけに使用する
 protected:
 	BEGIN_MSG_MAP_EX(CFileListTabClient)
 		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
@@ -95,7 +95,7 @@ protected:
 	void OnToggleTreeView(UINT,int,HWND);
 	void OnExtractAll(UINT,int,HWND);
 protected:
-	int CreateNewTab(const CConfigFileListWindow& ConfFLW);
+	int CreateNewTab();
 	void ClearAllTabs();
 	void RemoveTab(int);
 	void RemoveTabExcept(int);
@@ -105,16 +105,15 @@ protected:
 	void GetTabSettingsToClient(CFileListTabItem*);	//指定したタブの設定をメンバ変数に読み込む
 	void UpdateClientArea();
 public:
-	CFileListTabClient(CConfigManager&,CFileListFrame&);
+	CFileListTabClient(const CConfigManager&, const CConfigFileListWindow&, CFileListFrame&);
 	virtual ~CFileListTabClient(){ClearAllTabs();}
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
-	HRESULT ReopenArchiveFile(FILELISTMODE,int nPage=-1);
+	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
+	HRESULT ReopenArchiveFile(int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);
 	bool ReopenArchiveFileAll();
-	FILELISTMODE GetFileListMode();
 
 	void StoreSettings(CConfigFileListWindow&);
 

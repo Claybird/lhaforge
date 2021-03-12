@@ -56,7 +56,6 @@
     <ClCompile Include="FileListWindow\FileListModel.cpp" />
     <ClCompile Include="FileListWindow\FileListTabClient.cpp" />
     <ClCompile Include="FileListWindow\FileListView.cpp" />
-    <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp" />
     <ClCompile Include="main.cpp" />

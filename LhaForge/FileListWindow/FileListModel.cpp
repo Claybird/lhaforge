@@ -59,10 +59,16 @@ std::wstring CFileListModel::getCurrentDirPath()const
 
 void CFileListModel::setCurrentDirPath(const std::wstring& path)
 {
+	//try to restore path
 	auto pathElements = UtilSplitString(path, L"/");
 	m_lpCurrentDir = m_Content.getRootNode();
 	for (const auto& p : pathElements) {
-		m_lpCurrentDir = m_lpCurrentDir->getChild(p);
+		auto c = m_lpCurrentDir->getChild(p);
+		if (c) {
+			m_lpCurrentDir = c;
+		} else {
+			break;
+		}
 	}
 	dispatchEvent(WM_FILELIST_NEWCONTENT);
 	SortCurrentEntries();

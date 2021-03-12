@@ -41,9 +41,10 @@ CString CFileListFrame::ms_strPropString(CString(MAKEINTRESOURCE(IDS_MESSAGE_CAP
 
 CFileListFrame::CFileListFrame(CConfigManager &conf):
 	mr_Config(conf),
-	m_TabClientWnd(conf,*this),
+	m_TabClientWnd(conf, m_ConfFLW, *this),
 	m_DropTarget(this)
 {
+	m_ConfFLW.load(mr_Config);
 }
 
 
@@ -62,8 +63,6 @@ BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 
 LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 {
-	CConfigFileListWindow ConfFLW;
-	ConfFLW.load(mr_Config);
 //========================================
 //      フレームウィンドウの初期化
 //========================================
@@ -71,18 +70,18 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	::SetProp(m_hWnd,ms_strPropString,m_hWnd);
 
 	//ウィンドウのサイズの設定
-	if(ConfFLW.StoreSetting){
-		if(ConfFLW.StoreWindowPosition){	//ウィンドウ位置を復元する場合
-			MoveWindow(ConfFLW.WindowPos_x,ConfFLW.WindowPos_y,ConfFLW.Width,ConfFLW.Height);
+	if(m_ConfFLW.StoreSetting){
+		if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置を復元する場合
+			MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y, m_ConfFLW.Width, m_ConfFLW.Height);
 		}else{
 			CRect Rect;
 			GetWindowRect(Rect);
-			MoveWindow(Rect.left,Rect.top,ConfFLW.Width,ConfFLW.Height);
+			MoveWindow(Rect.left,Rect.top, m_ConfFLW.Width, m_ConfFLW.Height);
 		}
-	}else if(ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ復元する場合
+	}else if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ復元する場合
 		CRect Rect;
 		GetWindowRect(Rect);
-		MoveWindow(ConfFLW.WindowPos_x,ConfFLW.WindowPos_y,Rect.Width(),Rect.Height());
+		MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y,Rect.Width(),Rect.Height());
 	}
 	//ウィンドウサイズ取得
 	GetWindowRect(m_WindowRect);
@@ -94,14 +93,14 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	if(ConfFLW.ShowToolbar){
+	if(m_ConfFLW.ShowToolbar){
 		// リバーを作成
 		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 		// ツールバーを作成してバンドに追加
 		HIMAGELIST hImageList=NULL;
-		if(!ConfFLW.strCustomToolbarImage.empty()){
+		if(!m_ConfFLW.strCustomToolbarImage.empty()){
 			//カスタムツールバー
-			hImageList = ImageList_LoadImage(NULL, ConfFLW.strCustomToolbarImage.c_str(), 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
+			hImageList = ImageList_LoadImage(NULL, m_ConfFLW.strCustomToolbarImage.c_str(), 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
 		}
 		HWND hWndToolBar=CreateToolBarCtrl(m_hWnd,IDR_MAINFRAME,hImageList);//CreateSimpleToolBarCtrl(m_hWnd,IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 		AddSimpleReBarBand(hWndToolBar);
@@ -120,9 +119,6 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
 	}
 
-	//===関連づけで開く許可/拒否の設定
-	SetOpenAssocLimitation(ConfFLW);
-
 //========================================
 //      タブコントロールの初期化
 //========================================
@@ -130,7 +126,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	m_TabClientWnd.addEventListener(m_hWnd);
 
 	//タブを使わないなら非表示に
-	if(ConfFLW.DisableTab)m_TabClientWnd.ShowTabCtrl(false);
+	if(m_ConfFLW.DisableTab)m_TabClientWnd.ShowTabCtrl(false);
 
 	//---------
 	//リストビュースタイル選択用メニューバーのラジオチェックを有効にする
@@ -150,9 +146,9 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	}
 
 	//リストビュースタイルの設定
-	if(ConfFLW.StoreSetting){
+	if(m_ConfFLW.StoreSetting){
 		//現在の表示設定のメニューにチェックを付ける
-		switch(ConfFLW.ListStyle){
+		switch(m_ConfFLW.ListStyle){
 		case LVS_SMALLICON:
 			UISetCheck(ID_MENUITEM_LISTVIEW_SMALLICON, TRUE);
 			break;
@@ -164,21 +160,6 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 			break;
 		case LVS_REPORT:
 			UISetCheck(ID_MENUITEM_LISTVIEW_REPORT, TRUE);
-			break;
-		default:
-			ASSERT(!"Error");
-			break;
-		}
-		//現在の表示モードにチェックをつける
-		switch(ConfFLW.FileListMode){
-		case FILELIST_TREE:
-			UISetCheck(ID_MENUITEM_LISTMODE_TREE, TRUE);
-			break;
-		case FILELIST_FLAT:
-			UISetCheck(ID_MENUITEM_LISTMODE_FLAT, TRUE);
-			break;
-		case FILELIST_FLAT_FILESONLY:
-			UISetCheck(ID_MENUITEM_LISTMODE_FLAT_FILESONLY, TRUE);
 			break;
 		default:
 			ASSERT(!"Error");
@@ -203,7 +184,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //========================================
 //      追加のキーボードアクセラレータ
 //========================================
-	if(ConfFLW.ExitWithEscape){
+	if(m_ConfFLW.ExitWithEscape){
 		m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 	}
 
@@ -216,7 +197,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //    ファイル一覧ウィンドウのコマンド
 //========================================
 	MenuCommand_MakeSendToCommands();
-	MenuCommand_UpdateUserAppCommands(ConfFLW);
+	MenuCommand_UpdateUserAppCommands(m_ConfFLW);
 
 	MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
 	MenuCommand_MakeSendToMenu(GetSendToMenuHandle());
@@ -275,30 +256,29 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	//ウィンドウプロパティの解除
 	RemoveProp(m_hWnd,ms_strPropString);
 
-	CConfigFileListWindow ConfFLW;
-	ConfFLW.load(mr_Config);
+	m_ConfFLW.load(mr_Config);
 
 	bool bSave=false;
 	//ウィンドウ設定の保存
-	if(ConfFLW.StoreSetting){
+	if(m_ConfFLW.StoreSetting){
 		//ウィンドウサイズ
-		ConfFLW.Width=m_WindowRect.Width();
-		ConfFLW.Height=m_WindowRect.Height();
+		m_ConfFLW.Width=m_WindowRect.Width();
+		m_ConfFLW.Height=m_WindowRect.Height();
 
-		m_TabClientWnd.StoreSettings(ConfFLW);
+		m_TabClientWnd.StoreSettings(m_ConfFLW);
 
-		if(ConfFLW.StoreWindowPosition){	//ウィンドウ位置を保存
-			ConfFLW.WindowPos_x=m_WindowRect.left;
-			ConfFLW.WindowPos_y=m_WindowRect.top;
+		if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置を保存
+			m_ConfFLW.WindowPos_x=m_WindowRect.left;
+			m_ConfFLW.WindowPos_y=m_WindowRect.top;
 		}
 
-		ConfFLW.store(mr_Config);
+		m_ConfFLW.store(mr_Config);
 		bSave=true;
 	}
-	if(ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ保存
-		ConfFLW.WindowPos_x=m_WindowRect.left;
-		ConfFLW.WindowPos_y=m_WindowRect.top;
-		ConfFLW.store(mr_Config);
+	if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ保存
+		m_ConfFLW.WindowPos_x=m_WindowRect.left;
+		m_ConfFLW.WindowPos_y=m_WindowRect.top;
+		m_ConfFLW.store(mr_Config);
 		bSave=true;
 	}
 	if(bSave){
@@ -336,11 +316,8 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 			return E_FAIL;
 		}else return S_OK;
 	}else{
-		CConfigFileListWindow ConfFLW;
-		ConfFLW.load(mr_Config);
-
 		//ウィンドウを一つに保つ?
-		if(bAllowRelayOpen && ConfFLW.KeepSingleInstance){
+		if(bAllowRelayOpen && m_ConfFLW.KeepSingleInstance){
 			g_hFirstWindow=NULL;
 			EnumWindows(EnumFirstFileListWindowProc,(LPARAM)m_hWnd);
 			if(g_hFirstWindow){
@@ -379,7 +356,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 
 		//ファイル一覧作成
 		CString strErr;
-		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,ConfFLW,strMutex,hMutex,strErr);
+		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,strMutex,hMutex,strErr);
 
 		EnableWindow(TRUE);
 		//SetForegroundWindow(m_hWnd);
@@ -549,17 +526,14 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		}catch(const LF_EXCEPTION& e){
 			ErrorMessage(e.what());
 		}
-		CConfigFileListWindow ConfFLW;
-		ConfFLW.load(mr_Config);
+		m_ConfFLW.load(mr_Config);
 
-		MenuCommand_UpdateUserAppCommands(ConfFLW);
+		MenuCommand_UpdateUserAppCommands(m_ConfFLW);
 		MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
-		//===関連づけで開く許可/拒否の設定
-		SetOpenAssocLimitation(ConfFLW);
-		m_TabClientWnd.UpdateFileListConfig(ConfFLW);
+		m_TabClientWnd.UpdateFileListConfig(m_ConfFLW);
 
 		//アクセラレータの読み直し
-		if(ConfFLW.ExitWithEscape){
+		if(m_ConfFLW.ExitWithEscape){
 			if(m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 		}else{
 			m_AccelEx.DestroyObject();
@@ -728,7 +702,7 @@ void CFileListFrame::UpdateWindowTitle()
 			Title.Format(_T("[%s] %s - %s"),CString(MAKEINTRESOURCE(IDS_ENCRYPTED_ARCHIVE)),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
 		}else{
 			//通常アーカイブ
-			Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+			Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName().c_str(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
 		}
 		SetWindowText(Title);
 	}else{
@@ -800,8 +774,8 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 
 		//UI更新
 		EnableEntryExtractOperationMenu(bFileListActive && bSelected);
-		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsDeleteItemsSupported() && bSelected);
-		EnableAddItemsMenu(pTab->Model.IsAddItemsSupported());
+		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsModifySupported() && bSelected);
+		EnableAddItemsMenu(pTab->Model.IsModifySupported());
 
 		//ステータスバー更新
 		CString Text;
@@ -831,44 +805,20 @@ void CFileListFrame::OnToggleFocus(UINT,int,HWND)
 //ファイルリスト更新
 void CFileListFrame::OnRefresh(UINT,int,HWND)
 {
-	ReopenArchiveFile(m_TabClientWnd.GetFileListMode());
+	ReopenArchiveFile();
 }
 
 //ファイルリスト更新
 LRESULT CFileListFrame::OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-	ReopenArchiveFile(m_TabClientWnd.GetFileListMode());
+	ReopenArchiveFile();
 	return 0;
 }
 
 
-void CFileListFrame::ReopenArchiveFile(FILELISTMODE flMode)
+void CFileListFrame::ReopenArchiveFile()
 {
-	m_TabClientWnd.ReopenArchiveFile(flMode);
-}
-
-void CFileListFrame::OnListMode(UINT uNotifyCode,int nID,HWND hWndCtrl)
-{
-	FILELISTMODE newMode;
-	switch(nID){
-	case ID_MENUITEM_LISTMODE_TREE:
-		newMode=FILELIST_TREE;
-		break;
-	case ID_MENUITEM_LISTMODE_FLAT:
-		newMode=FILELIST_FLAT;
-		break;
-	case ID_MENUITEM_LISTMODE_FLAT_FILESONLY:
-		newMode=FILELIST_FLAT_FILESONLY;
-		break;
-	}
-
-	if(m_TabClientWnd.GetFileListMode()!=newMode){
-		ReopenArchiveFile(newMode);
-		UISetCheck(ID_MENUITEM_LISTMODE_TREE, false);
-		UISetCheck(ID_MENUITEM_LISTMODE_FLAT, false);
-		UISetCheck(ID_MENUITEM_LISTMODE_FLAT_FILESONLY, false);
-		UISetCheck(nID, true);
-	}
+	m_TabClientWnd.ReopenArchiveFile();
 }
 
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)

@@ -34,6 +34,8 @@ struct CFileListTabItem{
 public:
 	CLFPassphraseGUI _passphrase;
 	CFileListModel	Model;
+	const CConfigFileListWindow &_confFLW;
+	const CConfigManager &_confMan;
 
 	CSplitterWindow	Splitter;
 	CFileListView	ListView;
@@ -46,28 +48,28 @@ public:
 	std::wstring strMutexName;
 protected:
 	//---internal functions
-	bool CreateListView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow& ConfFLW) {
+	bool CreateListView(HWND hParentWnd, HWND hFrameWnd) {
 		ListView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | /*WS_VISIBLE | */WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_OWNERDATA | LVS_AUTOARRANGE | LVS_SHAREIMAGELISTS | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
 		ListView.SetFrameWnd(hFrameWnd);
 
 		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
 
-		if (!ListView.SetColumnState(ConfFLW.ColumnOrderArray, ConfFLW.ColumnWidthArray))return false;
+		if (!ListView.SetColumnState(_confFLW.ColumnOrderArray, _confFLW.ColumnWidthArray))return false;
 
-		UpdateFileListConfig(ConfFLW);
+		UpdateFileListConfig();
 
-		if (ConfFLW.StoreSetting) {
-			Model.SetSortKeyType(ConfFLW.SortColumn);
-			Model.SetSortMode(0 != ConfFLW.SortDescending);
+		if (_confFLW.StoreSetting) {
+			Model.SetSortKeyType(_confFLW.SortColumn);
+			Model.SetSortMode(0 != _confFLW.SortDescending);
 		} else {
 			Model.SetSortKeyType(-1);
 			Model.SetSortMode(true);
 		}
 
-		if (ConfFLW.StoreSetting) {
+		if (_confFLW.StoreSetting) {
 			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
 			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
-			ListView.SetWindowLong(GWL_STYLE, Style | ConfFLW.ListStyle);
+			ListView.SetWindowLong(GWL_STYLE, Style | _confFLW.ListStyle);
 		} else {
 			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
 			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
@@ -75,18 +77,21 @@ protected:
 		}
 		return true;
 	}
-	bool CreateTreeView(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow&) {
+	bool CreateTreeView(HWND hParentWnd, HWND hFrameWnd) {
 		TreeView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
 		TreeView.SetFrameWnd(hFrameWnd);
 		return true;
 	}
 public:
-	CFileListTabItem(CConfigManager &rMan): Model(rMan, _passphrase),
-		ListView(rMan, Model),
-		TreeView(Model),
+	CFileListTabItem(const CConfigManager &rMan, const CConfigFileListWindow &confFLW):
+		_confMan(rMan),
+		_confFLW(confFLW),
+		Model(rMan, _passphrase),
+		ListView(Model, confFLW),
+		TreeView(Model, confFLW),
 		hMutex(NULL){}
 	virtual ~CFileListTabItem(){DestroyWindow();}
-	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd, const CConfigFileListWindow &ConfFLW) {
+	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd) {
 		m_hFrameWnd = hFrameWnd;
 
 		CRect rc;
@@ -94,21 +99,27 @@ public:
 		Splitter.Create(hParentWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		Splitter.SetSplitterExtendedStyle(0);
 
-		if (!CreateTreeView(Splitter, hFrameWnd, ConfFLW))return false;
-		if (!CreateListView(Splitter, hFrameWnd, ConfFLW))return false;
+		if (!CreateTreeView(Splitter, hFrameWnd))return false;
+		if (!CreateListView(Splitter, hFrameWnd))return false;
 
 		Splitter.SetSplitterPanes(TreeView, ListView);
-		Splitter.SetSplitterPos(ConfFLW.TreeWidth);
+		Splitter.SetSplitterPos(_confFLW.TreeWidth);
 		Splitter.UpdateSplitterLayout();
 		return true;
 	}
-	void OpenArchive(const std::filesystem::path &arcpath, const CConfigFileListWindow& ConfFLW) {
+	bool OpenArchive(const std::filesystem::path &arcpath) {
 		CLFScanProgressHandlerGUI progress(m_hFrameWnd);
-		Model.Open(arcpath, progress);
+		try {
+			Model.Open(arcpath, progress);
+		} catch(const LF_EXCEPTION& e){
+			ErrorMessage(e.what());
+			return false;
+		}
 
 		//construct tree view structure
 		TreeView.ConstructTree();
-		if (ConfFLW.ExpandTree)TreeView.ExpandTree();
+		if (_confFLW.ExpandTree)TreeView.ExpandTree();
+		return true;
 	}
 
 	void DestroyWindow() {
@@ -144,9 +155,9 @@ public:
 		dwStyle &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
 		ListView.SetWindowLong(GWL_STYLE, dwStyle | dwStyleNew);
 	}
-	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW) {
-		ListView.SetDisplayFileSizeInByte(ConfFLW.DisplayFileSizeInByte);
-		ListView.SetDisplayPathOnly(ConfFLW.DisplayPathOnly);
+	void UpdateFileListConfig() {
+		ListView.SetDisplayFileSizeInByte(_confFLW.DisplayFileSizeInByte);
+		ListView.SetDisplayPathOnly(_confFLW.DisplayPathOnly);
 		ListView.Invalidate();
 	}
 
