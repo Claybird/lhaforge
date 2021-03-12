@@ -42,7 +42,7 @@ class CTemporaryDirectoryManager
 {
 	enum { NUM_DIR_LIMIT = 10000 };
 protected:
-	std::wstring m_path;
+	std::filesystem::path m_path;
 public:
 	CTemporaryDirectoryManager(){
 		//%TEMP%/tmp%05d/filename...
@@ -65,8 +65,8 @@ public:
 		UtilDeleteDir(m_path, true);
 	}
 
-	const wchar_t* path()const {
-		return m_path.c_str();
+	std::filesystem::path path()const {
+		return m_path;
 	}
 };
 

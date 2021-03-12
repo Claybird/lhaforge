@@ -207,7 +207,7 @@ public:
 	const ARCHIVE_ENTRY_INFO* getRootNode()const { return m_pRoot.get(); }
 	ARCHIVE_ENTRY_INFO* getRootNode() { return m_pRoot.get(); }
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findItem(
-		const wchar_t* name_or_pattern,
+		const std::wstring& name_or_pattern,
 		const ARCHIVE_ENTRY_INFO* parent = nullptr
 	)const {
 		if (!parent)parent = m_pRoot.get();

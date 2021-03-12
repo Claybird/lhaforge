@@ -97,7 +97,7 @@ public:
 		fmt.tymed = TYMED_HGLOBAL;
 		return S_OK == m_lpDataObject->QueryGetData(&fmt);
 	}
-	std::pair<HRESULT,std::vector<std::wstring> > GetDroppedFiles(IDataObject *lpDataObject) {
+	std::pair<HRESULT,std::vector<std::filesystem::path> > GetDroppedFiles(IDataObject *lpDataObject) {
 		FORMATETC fmt;
 		STGMEDIUM medium;
 
@@ -107,7 +107,7 @@ public:
 		fmt.lindex = -1;
 		fmt.tymed = TYMED_HGLOBAL;
 
-		std::vector<std::wstring> files;
+		std::vector<std::filesystem::path> files;
 
 		HRESULT hr = lpDataObject->GetData(&fmt, &medium);
 		if (S_OK == hr) {
