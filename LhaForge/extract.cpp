@@ -59,8 +59,8 @@ std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const std::wstring& arc
 }
 
 //GUICallback(default directory)->output directory
-std::wstring determineExtractBaseDir(
-	const std::wstring& archive_path,
+std::filesystem::path determineExtractBaseDir(
+	const std::filesystem::path& archive_path,
 	LF_EXTRACT_ARGS& args)
 {
 	args.output_dir_callback.setArchivePath(archive_path);
@@ -136,10 +136,10 @@ TEST(extract, PRE_EXTRACT_CHECK) {
 
 #endif
 
-std::wstring determineExtractDir(
+std::filesystem::path determineExtractDir(
 	ILFArchiveFile& arc,
-	const std::wstring& archive_path,
-	const std::wstring& output_base_dir,
+	const std::filesystem::path& archive_path,
+	const std::filesystem::path& output_base_dir,
 	const LF_EXTRACT_ARGS& args)
 {
 	bool needToCreateDir;
@@ -167,7 +167,7 @@ std::wstring determineExtractDir(
 
 	if (needToCreateDir) {
 		auto subdir = trimArchiveName(args.extract.RemoveSymbolAndNumber, archive_path);
-		return std::filesystem::path(output_base_dir) / subdir;
+		return output_base_dir / subdir;
 	} else {
 		return output_base_dir;
 	}

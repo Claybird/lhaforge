@@ -33,7 +33,7 @@ TEST(extract, trimArchiveName) {
 }
 
 TEST(extract, determineExtractBaseDir) {
-	std::wstring determineExtractBaseDir(const std::wstring& archive_path, LF_EXTRACT_ARGS& args);
+	std::filesystem::path determineExtractBaseDir(const std::filesystem::path& archive_path, LF_EXTRACT_ARGS& args);
 	LF_EXTRACT_ARGS fakeArg;
 	fakeArg.extract.OutputDirType = OUTPUT_TO::OUTPUT_TO_SPECIFIC_DIR;
 	fakeArg.extract.OutputDirUserSpecified = std::filesystem::current_path().c_str();
@@ -46,10 +46,10 @@ TEST(extract, determineExtractBaseDir) {
 }
 
 TEST(extract, determineExtractDir) {
-	std::wstring determineExtractDir(
+	std::filesystem::path determineExtractDir(
 		ILFArchiveFile& arc,
-		const std::wstring& archive_path,
-		const std::wstring& output_base_dir,
+		const std::filesystem::path& archive_path,
+		const std::filesystem::path& output_base_dir,
 		const LF_EXTRACT_ARGS& args);
 	LF_EXTRACT_ARGS fakeArg;
 	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_NEVER;
