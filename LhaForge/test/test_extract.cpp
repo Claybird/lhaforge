@@ -79,7 +79,7 @@ TEST(extract, extractOneArchive) {
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 	std::filesystem::create_directories(tempDir);
-	auto archiveFile = std::filesystem::path(__FILEW__).parent_path() / L"test_extract.zip";
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_extract.zip";
 	ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 	ARCLOG arcLog;
@@ -112,11 +112,11 @@ TEST(extract, extractOneArchive_broken_files) {
 	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
 
 	for (const auto& file : files) {
-		auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_extractOneArchive");
+		auto tempDir = std::filesystem::path(UtilGetTempPath()) / L"test_extractOneArchive";
 		UtilDeleteDir(tempDir, true);
 		EXPECT_FALSE(std::filesystem::exists(tempDir));
 		std::filesystem::create_directories(tempDir);
-		auto archiveFile = std::filesystem::path(__FILEW__).parent_path() / file;
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
 		ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 		ARCLOG arcLog;

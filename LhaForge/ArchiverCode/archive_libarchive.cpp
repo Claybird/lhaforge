@@ -671,6 +671,9 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 {
 	if (LA_FILE_TO_READ::is_known_format(arcname)) {
+		return true;
+		/*
+		the following test is goes too deep into file. checking header should be enough
 		LA_FILE_TO_READ arc;
 		try {
 			arc.open(arcname, CLFPassphraseNULL());
@@ -683,7 +686,7 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 			return true;
 		} catch (const ARCHIVE_EXCEPTION&) {
 			return false;
-		}
+		}*/
 	} else {
 		return false;
 	}
