@@ -815,6 +815,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigManager());
 		fake_args.compress.IgnoreTopDirectory = false;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -857,6 +858,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigManager());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = true;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -888,6 +890,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"a");
 
 		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigManager());
 		fake_args.compress.IgnoreTopDirectory = false;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -914,6 +917,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigManager());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -940,6 +944,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigManager());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = true;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -1002,6 +1007,7 @@ TEST(compress, compressOneArchive)
 	}
 
 	LF_COMPRESS_ARGS fake_args;
+	fake_args.load(CConfigManager());
 	fake_args.compress.IgnoreTopDirectory = false;
 	fake_args.compress.IgnoreTopDirectoryRecursively = false;
 
@@ -1104,6 +1110,8 @@ TEST(compress, copyArchive)
 	auto tempFile = UtilGetTemporaryFileName();
 	CLFArchive src;
 	LF_COMPRESS_ARGS fake_args;
+	fake_args.load(CConfigManager());
+	src.read_open(src_filename, CLFPassphraseNULL());
 	auto dest = src.make_copy_archive(tempFile, fake_args, [](const LF_ENTRY_STAT& entry) {
 		if (entry.path.wstring().find(L"dirC") == std::wstring::npos) {
 			return true;
