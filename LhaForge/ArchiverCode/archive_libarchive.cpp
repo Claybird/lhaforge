@@ -699,7 +699,7 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 
 TEST(CLFArchiveLA, isKnownArchive)
 {
-	const auto dir = std::filesystem::path(__FILEW__).parent_path();
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.gz"));
 	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.bz2"));
 	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.xz"));
@@ -719,6 +719,8 @@ TEST(CLFArchiveLA, isKnownArchive)
 TEST(CLFArchiveLA, getLAOptionsFromConfig)
 {
 	LF_COMPRESS_ARGS fake_args;
+	CConfigManager mngr;
+	fake_args.load(mngr);
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
 		EXPECT_EQ(4, la_options.size());
@@ -785,7 +787,7 @@ TEST(CLFArchiveLA, getLAOptionsFromConfig)
 TEST(CLFArchiveLA, mimic_archive_property)
 {
 	{
-		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test_extract.zip";
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test_extract.zip";
 		LA_FILE_TO_READ src;
 		src.open(fileToRead, CLFPassphraseNULL());
 		src.begin();	//need to scan
@@ -796,7 +798,7 @@ TEST(CLFArchiveLA, mimic_archive_property)
 		EXPECT_FALSE(is_encrypted);
 	}
 	{
-		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test_gzip.gz";
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test_gzip.gz";
 		LA_FILE_TO_READ src;
 		src.open(fileToRead, CLFPassphraseNULL());
 		src.begin();	//need to scan
@@ -808,7 +810,7 @@ TEST(CLFArchiveLA, mimic_archive_property)
 		EXPECT_FALSE(is_encrypted);
 	}
 	{
-		auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test.tar.gz";
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test.tar.gz";
 		LA_FILE_TO_READ src;
 		src.open(fileToRead, CLFPassphraseNULL());
 		src.begin();	//need to scan

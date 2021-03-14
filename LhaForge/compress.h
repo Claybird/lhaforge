@@ -45,10 +45,22 @@ struct LF_COMPRESS_ARGS {
 		CConfigCompressFormatLZMA lzma;
 		CConfigCompressFormatXZ xz;
 		CConfigCompressFormatZSTD zstd;
+
+		void load(const CConfigManager& mngr) {
+			zip.load(mngr);
+			sevenzip.load(mngr);
+			tar.load(mngr);
+			gz.load(mngr);
+			bz2.load(mngr);
+			lzma.load(mngr);
+			xz.load(mngr);
+			zstd.load(mngr);
+		}
 	}formats;
 	void load(const CConfigManager& mngr) {
 		general.load(mngr);
 		compress.load(mngr);
+		formats.load(mngr);
 	}
 };
 
