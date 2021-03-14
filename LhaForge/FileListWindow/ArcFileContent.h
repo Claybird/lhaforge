@@ -45,6 +45,11 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 		const wchar_t* FOLDER_EXTENSION_STRING = L"***directory/dummy/extension***";
 		return FOLDER_EXTENSION_STRING;
 	}
+	bool is_directory()const override{
+		//in case the directory is just a ghost entry that is not stored in the archive
+		//ex. in zip, dirA/fileA.txt, does not include dirA as an entry
+		return __super::is_directory() || !_children.empty();
+	}
 
 	std::wstring getExt()const {
 		if (is_directory()) {
@@ -145,7 +150,7 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 	//enumerate myself and children
 	std::vector<const ARCHIVE_ENTRY_INFO*> enumChildren()const {
 		std::vector<const ARCHIVE_ENTRY_INFO*> children;
-		if (is_directory()) {
+		if (!_parent || is_directory()) {
 			for (const auto &entry: _children) {
 				auto subFiles = entry->enumChildren();
 				children.insert(children.end(), subFiles.begin(), subFiles.end());

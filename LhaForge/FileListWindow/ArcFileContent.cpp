@@ -334,6 +334,15 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 		item._originalSize = 10;
 		item.stat.st_mtime = time(nullptr);
 	}
+	/*
+		/dirA
+		|-- dirB
+			|-- dirC
+			|   |-- file1.txt
+			|-- file2.txt
+			|-- あいうえお.txt
+	*/
+
 	EXPECT_EQ(1, root.getNumChildren());
 	EXPECT_EQ(L"dirA", root.getChild(0)->_entryName);
 	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->_entryName);
@@ -345,7 +354,7 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 	EXPECT_EQ(L".txt", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"file2.txt")->getExt());
 	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->calcFullpath());
 	EXPECT_EQ(L"dirA/dirB/dirC", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->calcFullpath());
-	EXPECT_EQ(6, root.getNumChildren());
+	EXPECT_EQ(6, root.enumChildren().size());
 
 	auto file1 = root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->getChild(L"file1.txt");
 	EXPECT_EQ(L"dirB/dirC/file1.txt", file1->getRelativePath(root.getChild(L"dirA")));
@@ -363,7 +372,7 @@ TEST(ArcFileContent, scanArchiveStruct)
 	CLFPassphraseNULL no_passphrase;
 	CArchiveFileContent content(no_passphrase);
 
-	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", CLFScanProgressHandlerNULL());
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
 	EXPECT_TRUE(content.isOK());
 
 	const auto* root = content.getRootNode();
@@ -385,7 +394,7 @@ TEST(ArcFileContent, findItem)
 	CLFPassphraseNULL no_passphrase;
 	CArchiveFileContent content(no_passphrase);
 
-	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test_content.zip", CLFScanProgressHandlerNULL());
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
 	EXPECT_TRUE(content.isOK());
 	auto result = content.findItem(L"*");
 	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());

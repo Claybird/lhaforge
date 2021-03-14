@@ -239,7 +239,7 @@ struct LF_ENTRY_STAT {
 	std::filesystem::path path;	//stored-as
 	std::wstring method_name;
 	bool is_encrypted;
-	bool is_directory()const { return stat.st_mode & S_IFDIR; }
+	virtual bool is_directory()const { return stat.st_mode & S_IFDIR; }
 };
 
 struct LF_COMPRESS_ARGS;
