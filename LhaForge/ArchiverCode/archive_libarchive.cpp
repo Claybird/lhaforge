@@ -217,8 +217,10 @@ struct LA_FILE_TO_READ
 		_arc = nullptr;
 	}
 	void rewind() {
-		if (_arc && _rewind.need_rewind) {
-			open(_rewind.arcpath, *_rewind.passphrase);
+		if (_arc){
+			if (_rewind.need_rewind) {
+				open(_rewind.arcpath, *_rewind.passphrase);
+			}
 		} else {
 			throw ARCHIVE_EXCEPTION(EFAULT);
 		}
