@@ -57,6 +57,34 @@ std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const std::wstring& arc
 
 	return dirname;
 }
+#ifdef UNIT_TEST
+
+TEST(extract, trimArchiveName) {
+	EXPECT_EQ(L"", trimArchiveName(true, L""));
+
+	EXPECT_EQ(L"123", trimArchiveName(true, L"123"));	//restore original
+	EXPECT_EQ(L"123", trimArchiveName(false, L"123"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456"));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456[1]"));
+	EXPECT_EQ(L"123abc456[1]", trimArchiveName(false, L"123abc456[1]"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456."));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456."));
+
+	EXPECT_EQ(L"", trimArchiveName(true, L"123abc456\\"));
+	EXPECT_EQ(L"", trimArchiveName(false, L"123abc456\\"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456 "));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456 "));
+
+	//full-width space
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456　"));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456　"));
+}
+#endif
 
 //GUICallback(default directory)->output directory
 std::filesystem::path determineExtractBaseDir(
@@ -98,6 +126,22 @@ std::filesystem::path determineExtractBaseDir(
 	return outputDir;
 }
 
+#ifdef UNIT_TEST
+
+TEST(extract, determineExtractBaseDir) {
+	LF_EXTRACT_ARGS fakeArg;
+	fakeArg.load(CConfigManager());
+	fakeArg.extract.OutputDirType = OUTPUT_TO::OUTPUT_TO_SPECIFIC_DIR;
+	fakeArg.extract.OutputDirUserSpecified = std::filesystem::current_path().c_str();
+	fakeArg.general.WarnNetwork = FALSE;
+	fakeArg.general.WarnRemovable = FALSE;
+	fakeArg.general.OnDirNotFound = LOSTDIR_FORCE_CREATE;
+
+	auto out = determineExtractBaseDir(L"path_to_archive/archive.ext", fakeArg);
+	EXPECT_EQ(std::filesystem::current_path(), out);
+}
+#endif
+
 struct PRE_EXTRACT_CHECK {
 	bool allInOneDir;	//true if all the contents are under one root directory
 	std::wstring baseDirName;	//valid if allInOneDir is true
@@ -114,8 +158,13 @@ struct PRE_EXTRACT_CHECK {
 			if (path_components.empty())continue;
 
 			if (bFirst) {
-				this->baseDirName = path_components.front();
-				this->allInOneDir = true;
+				if (entry->is_directory() || path_components.size() > 1) {
+					this->baseDirName = path_components.front();
+					this->allInOneDir = true;
+				} else {
+					this->allInOneDir = false;
+					return;
+				}
 				bFirst = false;
 			} else {
 				if (0 != _wcsicmp(this->baseDirName.c_str(), path_components.front().c_str())) {
@@ -129,9 +178,34 @@ struct PRE_EXTRACT_CHECK {
 };
 
 #ifdef UNIT_TEST
-#include <gtest/gtest.h>
 TEST(extract, PRE_EXTRACT_CHECK) {
-	//TODO
+	{
+		PRE_EXTRACT_CHECK c;
+		c.check(CLFArchiveNULL());
+		EXPECT_FALSE(c.allInOneDir);
+	}
+	{
+		PRE_EXTRACT_CHECK c;
+		CLFArchive a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		c.check(a);
+		EXPECT_FALSE(c.allInOneDir);
+	}
+	{
+		PRE_EXTRACT_CHECK c;
+		CLFArchive a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFPassphraseNULL());
+		c.check(a);
+		EXPECT_FALSE(c.allInOneDir);
+	}
+	{
+		PRE_EXTRACT_CHECK c;
+		CLFArchive a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		c.check(a);
+		EXPECT_TRUE(c.allInOneDir);
+		EXPECT_EQ(L"test", c.baseDirName);
+	}
 }
 
 #endif
@@ -173,12 +247,35 @@ std::filesystem::path determineExtractDir(
 	}
 }
 
+#ifdef UNIT_TEST
+TEST(extract, determineExtractDir) {
+	LF_EXTRACT_ARGS fakeArg;
+	fakeArg.load(CConfigManager());
+	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_NEVER;
+	fakeArg.extract.RemoveSymbolAndNumber = false;
+	CLFArchiveNULL arc;
+	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+	EXPECT_EQ(L"path_to_output",
+		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+
+	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+	EXPECT_EQ(L"path_to_output",
+		determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
+
+	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_ALWAYS;
+	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+	EXPECT_EQ(L"path_to_output/archive",
+		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+	EXPECT_EQ(L"path_to_output/archive",
+		determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
+}
+#endif
 
 //load configuration from file, then overwrites with command line arguments.
 void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLINEINFO* lpCmdLineInfo)
 {
-	args.general.load(mngr);
-	args.extract.load(mngr);
+	args.load(mngr);
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
@@ -196,7 +293,6 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLI
 			}
 		}
 	}
-
 }
 
 #include "Dialogs/ConfirmOverwriteDlg.h"
@@ -329,6 +425,71 @@ void extractCurrentEntry(
 	}
 }
 
+#ifdef UNIT_TEST
+TEST(extract, extractCurrentEntry) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_extractCurrentEntry");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_extract.zip";
+	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
+	EXPECT_NO_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
+
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+
+TEST(extract, extractCurrentEntry_broken_files) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
+
+	for (const auto& file : files) {
+		auto tempDir = std::filesystem::path(UtilGetTempPath()) / L"test_extractCurrentEntry";
+		UtilDeleteDir(tempDir, true);
+		EXPECT_FALSE(std::filesystem::exists(tempDir));
+		std::filesystem::create_directories(tempDir);
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+		ARCLOG arcLog;
+		CLFArchive arc;
+		CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+		EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
+		EXPECT_THROW(
+			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+					CLFProgressHandlerNULL());
+			}
+		, LF_EXCEPTION);
+
+		UtilDeleteDir(tempDir, true);
+		EXPECT_FALSE(std::filesystem::exists(tempDir));
+	}
+}
+#endif
+
 //enumerate archives to delete
 std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original_archive)
 {
@@ -359,6 +520,57 @@ std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original
 	}
 }
 
+#ifdef UNIT_TEST
+TEST(extract, enumerateOriginalArchives)
+{
+	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_enumerateOriginalArchives");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+
+	auto touch = [&](const std::wstring& fname) {
+		CAutoFile fp;
+		fp.open(tempDir / fname, L"w");
+	};
+
+	//fake archives
+	for (int i = 0; i < 12; i++) {
+		if (i % 2 == 0) {
+			touch(Format(L"TEST.PART%d.RAR", i + 1));
+		} else {
+			touch(Format(L"test.part%d.rar", i + 1));
+		}
+	}
+	touch(Format(L"do_not_detect_this.part1.rar"));
+	touch(Format(L"test.part1.rar.txt"));
+	touch(Format(L"test.part1.rar.rar"));
+	touch(Format(L"test2.rar"));
+	touch(Format(L"test3.zip"));
+
+	auto files = enumerateOriginalArchives(tempDir / L"test.part3.rar");
+	ASSERT_EQ(12, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART5.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part6.rar").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART11.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part12.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"do_not_detect_this.part1.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test.part1.rar.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test2.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test2.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test3.zip");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test3.zip").make_preferred()));
+
+	UtilDeleteDir(tempDir, true);
+}
+#endif
 
 bool GUI_extract_multiple_files(
 	const std::vector<std::wstring> &archive_files,
@@ -540,6 +752,45 @@ void testOneArchive(
 	//end
 	arc.close();
 }
+
+#ifdef UNIT_TEST
+TEST(extract, testOneArchive) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto files = { L"test_extract.zip", L"test_gzip.gz" };
+
+	for (const auto &file : files) {
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+		ARCLOG arcLog;
+		EXPECT_NO_THROW(
+			testOneArchive(archiveFile, arcLog,
+				CLFProgressHandlerNULL(),
+				CLFPassphraseNULL()
+			));
+	}
+}
+
+TEST(extract, testOneArchive_broken_files) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip",__FILEW__ };
+
+	for (const auto& file : files) {
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+		ARCLOG arcLog;
+		EXPECT_THROW(
+			testOneArchive(archiveFile, arcLog,
+				CLFProgressHandlerNULL(),
+				CLFPassphraseNULL()
+			), LF_EXCEPTION);
+	}
+}
+
+#endif
+
 
 
 bool GUI_test_multiple_files(

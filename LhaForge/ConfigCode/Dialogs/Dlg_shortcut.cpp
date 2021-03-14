@@ -167,7 +167,7 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(std::filesystem::path &Path,CSt
 			}
 			Path /= Buf.operator LPCWSTR();
 			//パラメータ
-			Param = L"/c:" + CString(args.name);
+			Param = (L"/c:" + args.name).c_str();
 			if (bSingleCompression) {
 				//一つずつ圧縮
 				Param += _T(" /s");

@@ -37,6 +37,10 @@ struct LF_EXTRACT_ARGS {
 	CConfigGeneral general;
 	CConfigExtract extract;
 	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
+	void load(const CConfigManager& mngr) {
+		general.load(mngr);
+		extract.load(mngr);
+	}
 };
 
 enum class overwrite_options {

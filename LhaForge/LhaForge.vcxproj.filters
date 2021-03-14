@@ -112,9 +112,6 @@
     <ClCompile Include="Utilities\Utility.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="test\test_extract.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
     <ClCompile Include="test\test_commonutil.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
     </ClCompile>
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
       <Filter>FileListWindow\test</Filter>
-    </ClCompile>
-    <ClCompile Include="test\test_compress.cpp">
-      <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="test\test_cmdlineinfo.cpp">
       <Filter>Source Files\test</Filter>

@@ -105,7 +105,7 @@ bool GUI_compress_multiple_files(
 
 //command line parameter table
 struct COMPRESS_COMMANDLINE_PARAMETER{
-	const wchar_t* name;
+	const std::wstring name;
 	LF_ARCHIVE_FORMAT Type;
 	int Options;
 	WORD FormatName;

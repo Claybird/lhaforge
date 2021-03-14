@@ -66,8 +66,6 @@
     </ClCompile>
     <ClCompile Include="test\test_cmdlineinfo.cpp" />
     <ClCompile Include="test\test_commonutil.cpp" />
-    <ClCompile Include="test\test_compress.cpp" />
-    <ClCompile Include="test\test_extract.cpp" />
     <ClCompile Include="test\test_main.cpp" />
     <ClCompile Include="Utilities\FileOperation.cpp" />
     <ClCompile Include="Utilities\OSUtil.cpp" />
