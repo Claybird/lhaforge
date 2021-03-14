@@ -182,3 +182,11 @@ struct LF_USER_CANCEL_EXCEPTION: LF_EXCEPTION {
 #include <io.h>
 
 #include "SimpleIni.h"
+
+#ifdef UNIT_TEST
+#include <gtest/gtest.h>
+inline std::filesystem::path LF_PROJECT_DIR() {
+	return std::filesystem::path(__FILEW__).parent_path();
+}
+#endif
+

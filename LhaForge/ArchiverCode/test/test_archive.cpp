@@ -1,12 +1,11 @@
 ﻿#include "stdafx.h"
 #ifdef UNIT_TEST
-#include <gtest/gtest.h>
 #include "ArchiverCode/archive.h"
 #include "CommonUtil.h"
 
 TEST(CLFArchive, is_known_format)
 {
-	const auto dir = std::filesystem::path(__FILEW__).parent_path();
+	const auto dir = LF_PROJECT_DIR();
 
 	EXPECT_FALSE(CLFArchive::is_known_format(__FILEW__));
 	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"test_extract.zip"));
@@ -17,7 +16,7 @@ TEST(CLFArchive, is_known_format)
 
 TEST(CLFArchive, get_num_entries)
 {
-	const auto dir = std::filesystem::path(__FILEW__).parent_path();
+	const auto dir = LF_PROJECT_DIR();
 
 	CLFArchive arc;
 	arc.read_open(dir / L"test_extract.zip", CLFPassphraseNULL());
