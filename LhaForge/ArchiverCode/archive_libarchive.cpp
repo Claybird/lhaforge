@@ -403,6 +403,15 @@ struct LA_FILE_TO_WRITE
 	//get most similar option
 	static std::tuple<int/*la_format*/, std::vector<int>/*filters*/, bool /*is_encrypted*/>
 	mimic_archive_property(LA_FILE_TO_READ& src_archive) {
+		//scan for file content; to know archive information
+		bool is_src_encrypted = false;
+		for (LF_LA_ENTRY* entry = src_archive.begin(); entry; entry = src_archive.next()) {
+			if (entry->_lf_stat.is_encrypted) {
+				is_src_encrypted = true;
+				break;
+			}
+		}
+
 		int la_format = archive_format(src_archive);
 
 		std::vector<int> filters;
@@ -412,13 +421,6 @@ struct LA_FILE_TO_WRITE
 			filters.push_back(code);
 		}
 
-		bool is_src_encrypted = false;
-		for (LF_LA_ENTRY* entry = src_archive.begin(); entry; entry = src_archive.next()) {
-			if (entry->_lf_stat.is_encrypted) {
-				is_src_encrypted = true;
-				break;
-			}
-		}
 		src_archive.rewind();
 
 		return { la_format, filters, is_src_encrypted };
@@ -632,7 +634,6 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 {
 	if (_arc_read) {
 		ASSERT(_arc_read->_rewind.passphrase);
-
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(*_arc_read);
 		std::unique_ptr<CLFArchiveLA> dest_archive = std::make_unique<CLFArchiveLA>();
 		dest_archive->_arc_write = std::make_unique<LA_FILE_TO_WRITE>();
