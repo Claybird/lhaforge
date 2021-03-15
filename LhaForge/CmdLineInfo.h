@@ -54,8 +54,8 @@ struct CMDLINEINFO{
 		OutputToOverride(OUTPUT_TO_DEFAULT),
 		CreateDirOverride(CREATE_OUTPUT_DIR_DEFAULT),
 		IgnoreTopDirOverride(ACTION::Default),
-		DeleteAfterProcess(ACTION::Default),
-		PriorityOverride(LFPRIOTITY_DEFAULT) {}
+		DeleteAfterProcess(ACTION::Default)
+		{}
 
 	std::vector<std::wstring> FileList;
 	std::wstring OutputDir;
@@ -68,7 +68,6 @@ struct CMDLINEINFO{
 	CREATE_OUTPUT_DIR CreateDirOverride;
 	ACTION IgnoreTopDirOverride;
 	ACTION DeleteAfterProcess;
-	LFPROCESS_PRIORITY PriorityOverride;
 };
 
 

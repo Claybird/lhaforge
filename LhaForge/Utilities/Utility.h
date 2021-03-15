@@ -30,8 +30,6 @@ int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType);
 
 std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), DWORD errorCode = GetLastError());
 
-#define BOOL2bool(x)	(FALSE!=x)
-
 //read filelist from response file
 std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage);
 

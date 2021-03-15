@@ -55,7 +55,7 @@ TEST(commandLineInfo, ParseCommandLine)
 	//compression
 	{
 		for (const auto &p : g_CompressionCmdParams) {
-			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:%s %s", p.name, dir.c_str()), errorHandler);
+			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:%s %s", p.name.c_str(), dir.c_str()), errorHandler);
 			EXPECT_EQ(PROCESS_COMPRESS, mode);
 			EXPECT_EQ(1, cli.FileList.size());
 			EXPECT_EQ(p.Type, cli.CompressType);
@@ -153,7 +153,6 @@ TEST(commandLineInfo, ParseCommandLine)
 		//default values
 		EXPECT_EQ(CMDLINEINFO::ACTION::Default, cli.IgnoreTopDirOverride);
 		EXPECT_EQ(CMDLINEINFO::ACTION::Default, cli.DeleteAfterProcess);
-		EXPECT_EQ(LFPRIOTITY_DEFAULT, cli.PriorityOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /e /o:%s %s", UtilGetTempPath().c_str(), dir.c_str()), errorHandler);
@@ -233,38 +232,6 @@ TEST(commandLineInfo, ParseCommandLine)
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /delete:no " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::False, cli.DeleteAfterProcess);
-	}
-
-	//process priority
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_NORMAL, cli.PriorityOverride);
-	}
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority:low ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_LOW, cli.PriorityOverride);
-	}
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority:lower ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_LOWER, cli.PriorityOverride);
-	}
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority:NORMAL ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_NORMAL, cli.PriorityOverride);
-	}
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority:higher ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_HIGHER, cli.PriorityOverride);
-	}
-	{
-		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /priority:high ", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
-		EXPECT_EQ(LFPRIOTITY_HIGH, cli.PriorityOverride);
 	}
 
 	UtilDeletePath(UtilGetTempPath() + L"lhaforge_test/");

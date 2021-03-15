@@ -48,22 +48,6 @@ void UtilNavigateDirectory(const std::wstring& dir);
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 
-//convert icon into bitmap with alpha information
-void UtilMakeDIBFromIcon(CBitmap&,HICON);
-
-enum LFPROCESS_PRIORITY {
-	LFPRIOTITY_DEFAULT = 0,
-	LFPRIOTITY_LOW = 1,
-	LFPRIOTITY_LOWER = 2,
-	LFPRIOTITY_NORMAL = 3,
-	LFPRIOTITY_HIGHER = 4,
-	LFPRIOTITY_HIGH = 5,
-	LFPRIOTITY_MAX_NUM = LFPRIOTITY_HIGH,
-};
-
-//Process priority
-void UtilSetPriorityClass(DWORD dwPriorityClass);
-
 //Copy text to clipboard
 void UtilSetTextOnClipboard(const std::wstring& text);
 

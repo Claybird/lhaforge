@@ -42,7 +42,6 @@ public:
 	bool NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
 	LOSTDIR OnDirNotFound;
 	LOGVIEW LogViewEvent;
-	int/*LFPROCESS_PRIORITY*/ ProcessPriority;
 
 	std::wstring TempPath;
 protected:

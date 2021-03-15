@@ -84,7 +84,6 @@ void CConfigGeneral::loadGeneral(const CConfigManager &Config)
 {
 	const auto section = L"General";
 	NotifyShellAfterProcess=Config.getBool(section, L"NotifyShell", false);
-	ProcessPriority = (LFPROCESS_PRIORITY)Config.getIntRange(section, L"ProcessPriority", LFPRIOTITY_DEFAULT, LFPRIOTITY_MAX_NUM, LFPRIOTITY_DEFAULT);
 
 	TempPath = Config.getText(section, L"TempPath", L"");
 }
@@ -93,7 +92,6 @@ void CConfigGeneral::storeGeneral(CConfigManager &Config)const
 {
 	const auto section = L"General";
 	Config.setValue(section, L"NotifyShell", NotifyShellAfterProcess);
-	Config.setValue(section, L"ProcessPriority", ProcessPriority);
 
 	Config.setValue(section, L"TempPath", TempPath);
 }

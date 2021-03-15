@@ -115,7 +115,7 @@ bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 			cli.Options = ConfCompress.DefaultOptions;
 		}else{	//not default parameter
 			CSelectDialog SelDlg;
-			SelDlg.SetDeleteAfterCompress(BOOL2bool(ConfCompress.DeleteAfterCompress));
+			SelDlg.SetDeleteAfterCompress(ConfCompress.DeleteAfterCompress);
 			cli.CompressType = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
 			if(LF_FMT_INVALID ==cli.CompressType){	//cancel
 				return false;
@@ -283,30 +283,6 @@ void procMain()
 
 	CConfigGeneral ConfGeneral;
 	ConfGeneral.load(ConfigManager);
-	{
-		//process priority
-		LFPROCESS_PRIORITY priority = (LFPROCESS_PRIORITY)ConfGeneral.ProcessPriority;
-		//override
-		if (cli.PriorityOverride != LFPRIOTITY_DEFAULT) {
-			priority = cli.PriorityOverride;
-		}
-		switch (priority) {
-		case LFPRIOTITY_LOW:
-			UtilSetPriorityClass(IDLE_PRIORITY_CLASS); break;
-		case LFPRIOTITY_LOWER:
-			UtilSetPriorityClass(BELOW_NORMAL_PRIORITY_CLASS); break;
-		case LFPRIOTITY_NORMAL:
-			UtilSetPriorityClass(NORMAL_PRIORITY_CLASS); break;
-		case LFPRIOTITY_HIGHER:
-			UtilSetPriorityClass(ABOVE_NORMAL_PRIORITY_CLASS); break;
-		case LFPRIOTITY_HIGH:
-			UtilSetPriorityClass(HIGH_PRIORITY_CLASS); break;
-		case LFPRIOTITY_DEFAULT:
-		default:
-			//nothing to do
-			break;
-		}
-	}
 
 	{
 		//To use custom temporary directory, if necessary

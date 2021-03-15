@@ -211,21 +211,6 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 				} else {
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
-			} else if (L"/priority" == key) {	//process priority
-				value = toLower(value);
-				if (L"low" == value) {
-					cli.PriorityOverride = LFPRIOTITY_LOW;
-				} else if (L"lower" == value){
-					cli.PriorityOverride = LFPRIOTITY_LOWER;
-				} else if (L"normal" == value || value.empty()) {
-					cli.PriorityOverride = LFPRIOTITY_NORMAL;
-				} else if (L"higher" == value) {
-					cli.PriorityOverride = LFPRIOTITY_HIGHER;
-				} else if (L"high" == value) {
-					cli.PriorityOverride = LFPRIOTITY_HIGH;
-				} else {
-					throw LF_INVALID_PARAMETER(arg.first, arg.second);
-				}
 			} else {	//unknown parameter
 				throw LF_INVALID_PARAMETER(arg.first, arg.second);
 			}

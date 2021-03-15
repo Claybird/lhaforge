@@ -114,7 +114,7 @@ LRESULT CConfigDlgShellExt::OnApply()
 LRESULT CConfigDlgShellExt::OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		bool bActive=BOOL2bool(Check_ShellExt.GetCheck());
+		bool bActive = (FALSE != Check_ShellExt.GetCheck());
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_COMPRESS),	  bActive);
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_EXTRACT),		  bActive);
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_LIST),		  bActive);

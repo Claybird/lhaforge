@@ -71,11 +71,7 @@
     <ClCompile Include="Utilities\OSUtil.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_FileOperation.cpp" />
-    <ClCompile Include="Utilities\test\test_OSUtil.cpp" />
     <ClCompile Include="Utilities\test\test_Semaphore.cpp" />
-    <ClCompile Include="Utilities\test\test_StringUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_Utility.cpp" />
     <ClCompile Include="Utilities\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
