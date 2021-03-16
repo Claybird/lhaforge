@@ -57,13 +57,13 @@ struct CMDLINEINFO{
 		DeleteAfterProcess(ACTION::Default)
 		{}
 
-	std::vector<std::wstring> FileList;
-	std::wstring OutputDir;
-	std::wstring OutputFileName;
+	std::vector<std::filesystem::path> FileList;
+	std::filesystem::path OutputDir;
+	std::filesystem::path OutputFileName;
 	LF_ARCHIVE_FORMAT CompressType;
 	int Options;
 	bool bSingleCompression;
-	std::wstring ConfigPath;
+	std::filesystem::path ConfigPath;
 	OUTPUT_TO OutputToOverride;
 	CREATE_OUTPUT_DIR CreateDirOverride;
 	ACTION IgnoreTopDirOverride;

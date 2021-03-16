@@ -35,14 +35,14 @@
 #include "CommonUtil.h"
 
 
-std::wstring trimArchiveName(bool RemoveSymbolAndNumber, const std::wstring& archive_path)
+std::filesystem::path trimArchiveName(bool RemoveSymbolAndNumber, const std::filesystem::path& archive_path)
 {
 	//Symbols to be deleted
 	//last two characters are "half-width space" and "full-width space"
 	const wchar_t* symbols = L"0123456789./*-+{}[]@`:;!\"#$%&\'()_><=~^|,\\ 　";
 
 	std::filesystem::path an = archive_path;
-	std::wstring dirname = an.stem();	//pure filename; no directory path, no extensions
+	std::filesystem::path dirname = an.stem();	//pure filename; no directory path, no extensions
 
 	// trims trailing symbols
 	if (RemoveSymbolAndNumber) {
@@ -144,7 +144,7 @@ TEST(extract, determineExtractBaseDir) {
 
 struct PRE_EXTRACT_CHECK {
 	bool allInOneDir;	//true if all the contents are under one root directory
-	std::wstring baseDirName;	//valid if allInOneDir is true
+	std::filesystem::path baseDirName;	//valid if allInOneDir is true
 
 	PRE_EXTRACT_CHECK() :allInOneDir(false){}
 	void check(ILFArchiveFile &arc) {
@@ -338,7 +338,7 @@ overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path
 void extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,
-	const std::wstring& output_dir,
+	const std::filesystem::path& output_dir,
 	ARCLOG &arcLog,
 	ILFOverwriteConfirm& preExtractHandler,
 	ILFProgressHandler& progressHandler
@@ -429,7 +429,7 @@ void extractCurrentEntry(
 TEST(extract, extractCurrentEntry) {
 	_wsetlocale(LC_ALL, L"");	//default locale
 
-	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_extractCurrentEntry");
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_extractCurrentEntry");
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 	std::filesystem::create_directories(tempDir);
@@ -463,7 +463,7 @@ TEST(extract, extractCurrentEntry) {
 TEST(extract, extractCurrentEntry_broken_files) {
 	_wsetlocale(LC_ALL, L"");	//default locale
 
-	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
+	const std::vector<std::filesystem::path> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
 
 	for (const auto& file : files) {
 		auto tempDir = std::filesystem::path(UtilGetTempPath()) / L"test_extractCurrentEntry";
@@ -491,20 +491,20 @@ TEST(extract, extractCurrentEntry_broken_files) {
 #endif
 
 //enumerate archives to delete
-std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original_archive)
+std::vector<std::filesystem::path> enumerateOriginalArchives(const std::filesystem::path& original_archive)
 {
 	ASSERT(!std::filesystem::is_directory(original_archive));
-	if (std::filesystem::is_directory(original_archive))return std::vector<std::wstring>();
+	if (std::filesystem::is_directory(original_archive))return {};
 
 	//currently, only rar is supported
 	auto rar_pattern = std::wregex(LR"(\.part\d+.*\.rar$)", std::regex_constants::icase);
-	if (std::regex_search(original_archive, rar_pattern)) {
+	if (std::regex_search(original_archive.wstring(), rar_pattern)) {
 		//---RAR
 		auto path = std::filesystem::path(original_archive);
 		path.make_preferred();
 		auto stem = path.stem().stem();
 
-		std::vector<std::wstring> files;
+		std::vector<std::filesystem::path> files;
 		for (const auto& entry : std::filesystem::directory_iterator(path.parent_path())) {
 			auto p = entry.path();
 			p.make_preferred();
@@ -523,29 +523,24 @@ std::vector<std::wstring> enumerateOriginalArchives(const std::wstring& original
 #ifdef UNIT_TEST
 TEST(extract, enumerateOriginalArchives)
 {
-	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_enumerateOriginalArchives");
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_enumerateOriginalArchives");
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 	std::filesystem::create_directories(tempDir);
 
-	auto touch = [&](const std::wstring& fname) {
-		CAutoFile fp;
-		fp.open(tempDir / fname, L"w");
-	};
-
 	//fake archives
 	for (int i = 0; i < 12; i++) {
 		if (i % 2 == 0) {
-			touch(Format(L"TEST.PART%d.RAR", i + 1));
+			touchFile(tempDir / Format(L"TEST.PART%d.RAR", i + 1));
 		} else {
-			touch(Format(L"test.part%d.rar", i + 1));
+			touchFile(tempDir / Format(L"test.part%d.rar", i + 1));
 		}
 	}
-	touch(Format(L"do_not_detect_this.part1.rar"));
-	touch(Format(L"test.part1.rar.txt"));
-	touch(Format(L"test.part1.rar.rar"));
-	touch(Format(L"test2.rar"));
-	touch(Format(L"test3.zip"));
+	touchFile(tempDir / Format(L"do_not_detect_this.part1.rar"));
+	touchFile(tempDir / Format(L"test.part1.rar.txt"));
+	touchFile(tempDir / Format(L"test.part1.rar.rar"));
+	touchFile(tempDir / Format(L"test2.rar"));
+	touchFile(tempDir / Format(L"test3.zip"));
 
 	auto files = enumerateOriginalArchives(tempDir / L"test.part3.rar");
 	ASSERT_EQ(12, files.size());
@@ -573,7 +568,7 @@ TEST(extract, enumerateOriginalArchives)
 #endif
 
 bool GUI_extract_multiple_files(
-	const std::vector<std::wstring> &archive_files,
+	const std::vector<std::filesystem::path> &archive_files,
 	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 )
@@ -595,7 +590,7 @@ bool GUI_extract_multiple_files(
 	for (const auto &archive_path : archive_files) {
 		progressHandler.reset();
 		progressHandler.setArchive(archive_path);
-		std::wstring output_dir;
+		std::filesystem::path output_dir;
 		try {
 			//determine output base directory
 			auto output_base_dir = determineExtractBaseDir(archive_path, args);
@@ -706,7 +701,7 @@ bool GUI_extract_multiple_files(
 
 //test an archive by reading whole archive
 void testOneArchive(
-	const std::wstring& archive_path,
+	const std::filesystem::path& archive_path,
 	ARCLOG &arcLog,
 	ILFProgressHandler &progressHandler,
 	ILFPassphrase &passphrase_callback
@@ -774,7 +769,7 @@ TEST(extract, testOneArchive) {
 TEST(extract, testOneArchive_broken_files) {
 	_wsetlocale(LC_ALL, L"");	//default locale
 
-	const std::vector<std::wstring> files = { L"test_broken_file.zip" , L"test_broken_crc.zip",__FILEW__ };
+	const std::vector<std::filesystem::path> files = { L"test_broken_file.zip" , L"test_broken_crc.zip",__FILEW__ };
 
 	for (const auto& file : files) {
 		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
@@ -794,7 +789,7 @@ TEST(extract, testOneArchive_broken_files) {
 
 
 bool GUI_test_multiple_files(
-	const std::vector<std::wstring> &archive_files,
+	const std::vector<std::filesystem::path> &archive_files,
 	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 )

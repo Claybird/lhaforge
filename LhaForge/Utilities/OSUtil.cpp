@@ -63,10 +63,10 @@ void makeDIBFromIcon(CBitmap &bitmap, HICON icon)
 }
 
 HRESULT UtilCreateShortcut(
-	const std::wstring& pathLink,
-	const std::wstring& pathTarget,
+	const std::filesystem::path& pathLink,
+	const std::filesystem::path& pathTarget,
 	const std::wstring& args,
-	const std::wstring& iconPath,
+	const std::filesystem::path& iconPath,
 	int iIcon,
 	LPCTSTR lpszDescription)
 {
@@ -88,7 +88,7 @@ HRESULT UtilCreateShortcut(
 	}
 }
 
-HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
+HRESULT UtilGetShortcutInfo(const std::filesystem::path& path, UTIL_SHORTCUTINFO& info)
 {
 	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
@@ -99,7 +99,7 @@ HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info)
 	if(pFile){
 		hr = pFile->Load(path.c_str(), STGM_READ);
 		if (FAILED(hr))return hr;
-		info.title = std::filesystem::path(path).stem().c_str();
+		info.title = path.stem().c_str();
 
 		{
 			//The maximum path size that can be returned is MAX_PATH
@@ -163,7 +163,7 @@ TEST(OSUtil, UtilCreateShortcut_UtilGetShortcutInfo) {
 }
 #endif
 
-void UtilNavigateDirectory(const std::wstring& dir)
+void UtilNavigateDirectory(const std::filesystem::path& dir)
 {
 	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs.
 	//This value should be set to MAX_PATH.
@@ -271,7 +271,7 @@ TEST(OSUtil, UtilSetTextOnClipboard)
 }
 #endif
 
-std::pair<std::wstring, int> UtilPathParseIconLocation(const std::wstring& path_and_index)
+std::pair<std::filesystem::path, int> UtilPathParseIconLocation(const std::wstring& path_and_index)
 {
 	std::wregex re_path(L"^(.+?),(-?\\d+)$");
 

@@ -28,19 +28,19 @@
 #include "Utilities/OSUtil.h"
 
 struct I_LF_GET_OUTPUT_DIR_CALLBACK {
-	virtual std::wstring operator()() = 0;
+	virtual std::filesystem::path operator()() = 0;
 	virtual ~I_LF_GET_OUTPUT_DIR_CALLBACK() {}
 };
 struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
-	std::wstring _default_path;
+	std::filesystem::path _default_path;
 	bool _skip_user_input;	//true if use _default_path without asking; will be set true by user
 	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK() : _skip_user_input(false) {}
-	void setArchivePath(const std::wstring& archivePath) {
+	void setArchivePath(const std::filesystem::path& archivePath) {
 		if (_default_path.empty()) {
 			_default_path = std::filesystem::path(archivePath).parent_path();
 		}
 	}
-	std::wstring operator()()override {
+	std::filesystem::path operator()()override {
 		if (_skip_user_input) {
 			return _default_path;
 		} else {
@@ -52,7 +52,7 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 				}
 				CString tmp;
 				dlg.GetFilePath(tmp);
-				_default_path = tmp;
+				_default_path = tmp.operator LPCWSTR();
 				return _default_path;
 			} else {
 				CANCEL_EXCEPTION();
@@ -62,9 +62,9 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 };
 
 //returns output directory that corresponds to outputDirType
-std::wstring LF_get_output_dir(
+std::filesystem::path LF_get_output_dir(
 	OUTPUT_TO outputDirType,
-	const std::wstring& original_file_path,
+	const std::filesystem::path& original_file_path,
 	const wchar_t* user_specified_path,
 	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback);
 
@@ -72,8 +72,8 @@ std::wstring LF_get_output_dir(
 struct CConfigGeneral;
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
-bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn);
-void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound);
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesystem::path& outputDirIn);
+void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputDir, LOSTDIR OnDirNotFound);
 
 
 //prepare envInfo map for UtilExpandTemplateString()
@@ -81,9 +81,9 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* l
 
 
 //replace filenames that could be harmful
-std::wstring LF_sanitize_pathname(const std::wstring &rawPath);
+std::filesystem::path LF_sanitize_pathname(const std::filesystem::path &rawPath);
 
-void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files);
+void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::filesystem::path>& original_files);
 
 
 struct CLFPassphraseGUI:public ILFPassphrase {

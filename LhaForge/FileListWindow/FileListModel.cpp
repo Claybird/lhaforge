@@ -222,14 +222,14 @@ void CFileListModel::SortCurrentEntries()
 
 bool CFileListModel::ExtractArchive(ILFProgressHandler &progressHandler)
 {
-	std::vector<std::wstring> archiveList;
+	std::vector<std::filesystem::path> archiveList;
 	archiveList.push_back(GetArchiveFileName());
 	return GUI_extract_multiple_files(archiveList, progressHandler, nullptr);
 }
 
 bool CFileListModel::TestArchive(ILFProgressHandler &progressHandler)
 {
-	std::vector<std::wstring> archiveList;
+	std::vector<std::filesystem::path> archiveList;
 	archiveList.push_back(GetArchiveFileName());
 	return GUI_test_multiple_files(archiveList, progressHandler, nullptr);
 }

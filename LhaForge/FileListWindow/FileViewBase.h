@@ -181,8 +181,8 @@ protected:
 			}
 			auto strParam = L"\"" + sendToCmd[nID].param + L"\" " + strFileList;
 
-			auto cmd = L"\"" + sendToCmd[nID].cmd + L"\"";
-			auto workDir = L"\"" + sendToCmd[nID].workingDir + L"\"";
+			auto cmd = L"\"" + sendToCmd[nID].cmd.wstring() + L"\"";
+			auto workDir = L"\"" + sendToCmd[nID].workingDir.wstring() + L"\"";
 			::ShellExecuteW(GetDesktopWindow(), nullptr, cmd.c_str(), strParam.c_str(), workDir.c_str(), SW_SHOW);
 		}
 

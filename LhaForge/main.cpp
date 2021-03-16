@@ -42,11 +42,11 @@ CAppModule _Module;
 
 
 //enumerates files, removes directory
-std::vector<std::wstring> enumerateFiles(const std::vector<std::wstring>& input, const std::vector<std::wstring>& denyExts)
+std::vector<std::filesystem::path> enumerateFiles(const std::vector<std::filesystem::path>& input, const std::vector<std::wstring>& denyExts)
 {
-	std::vector<std::wstring> out;
+	std::vector<std::filesystem::path> out;
 	for (const auto &item: input) {
-		std::vector<std::wstring> children;
+		std::vector<std::filesystem::path> children;
 		if (std::filesystem::is_directory(item)) {
 			children = UtilRecursiveEnumFile(item);
 		} else {
@@ -71,7 +71,7 @@ std::vector<std::wstring> enumerateFiles(const std::vector<std::wstring>& input,
 #ifdef UNIT_TEST
 TEST(main, enumerateFiles)
 {
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/enumerateFiles";
+	auto dir = UtilGetTempPath() / L"lhaforge_test/enumerateFiles";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir / L"abc");

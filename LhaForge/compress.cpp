@@ -71,14 +71,14 @@ void parseCompressOption(const CConfigManager& config, LF_COMPRESS_ARGS& args, c
 }
 
 //retrieves common path name of containing directories
-std::wstring getSourcesBasePath(const std::vector<std::wstring> &sources)
+std::wstring getSourcesBasePath(const std::vector<std::filesystem::path> &sources)
 {
 	std::unordered_set<std::wstring> directories;
 	for (const auto &item : sources) {
 		if (std::filesystem::is_directory(item)) {
 			directories.insert(item);
 		} else {
-			directories.insert(std::filesystem::path(item).parent_path());
+			directories.insert(item.parent_path());
 		}
 	}
 
@@ -114,19 +114,19 @@ std::wstring getSourcesBasePath(const std::vector<std::wstring> &sources)
 #ifdef UNIT_TEST
 TEST(compress, getSourcesBasePath)
 {
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/getSourcesBasePath";
+	auto dir = UtilGetTempPath() / L"lhaforge_test/getSourcesBasePath";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir / L"abc");
 	std::filesystem::create_directories(dir / L"ghi");
 
 	{
-		EXPECT_EQ(L"", getSourcesBasePath(std::vector<std::wstring>({ })));
-		EXPECT_EQ(dir / L"abc", getSourcesBasePath(std::vector<std::wstring>({ dir / L"abc/" })));
-		EXPECT_EQ(dir / L"abc", getSourcesBasePath(std::vector<std::wstring>({ dir / L"abc/",dir / L"ABC/ghi/" })));
-		EXPECT_EQ(dir, getSourcesBasePath(std::vector<std::wstring>({ dir / L"abc",dir / L"ghi/" })));
-		EXPECT_EQ(dir / L"abc", getSourcesBasePath(std::vector<std::wstring>({ dir / L"abc",dir / L"abc/" })));
-		EXPECT_EQ(std::filesystem::path(L"c:/windows"), getSourcesBasePath(std::vector<std::wstring>({ L"c:/windows",L"c:/windows/system32" })));
+		EXPECT_EQ(L"", getSourcesBasePath({ }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc/" }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc/",dir / L"ABC/ghi/" }));
+		EXPECT_EQ(dir, getSourcesBasePath({ dir / L"abc",dir / L"ghi/" }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc",dir / L"abc/" }));
+		EXPECT_EQ(std::filesystem::path(L"c:/windows"), getSourcesBasePath({ L"c:/windows",L"c:/windows/system32" }));
 	}
 
 	UtilDeletePath(dir);
@@ -194,13 +194,12 @@ TEST(compress, determineDefaultArchiveTitle)
 //---
 //get relative path of source files, from basePath
 std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
-	const std::wstring& basePath,
-	const std::vector<std::wstring>& sourcePathList)
+	const std::filesystem::path& basePath,
+	const std::vector<std::filesystem::path>& sourcePathList)
 {
-	auto base = std::filesystem::path(basePath);
 	std::vector<COMPRESS_SOURCES::PATH_PAIR> out;
 	for (const auto& path : sourcePathList) {
-		if (base != path) {
+		if (basePath != path) {
 			COMPRESS_SOURCES::PATH_PAIR rp;
 			rp.originalFullPath = path;
 			rp.entryPath = std::filesystem::relative(path, basePath);
@@ -226,9 +225,9 @@ TEST(compress, getRelativePathList)
 }
 #endif
 
-std::vector<std::wstring> getAllSourceFiles(const std::vector<std::wstring> &sourcePathList)
+std::vector<std::filesystem::path> getAllSourceFiles(const std::vector<std::filesystem::path> &sourcePathList)
 {
-	std::vector<std::wstring> out;
+	std::vector<std::filesystem::path> out;
 	for (const auto& path : sourcePathList) {
 		out.push_back(path);
 		if (std::filesystem::is_directory(path)) {
@@ -245,7 +244,7 @@ std::vector<std::wstring> getAllSourceFiles(const std::vector<std::wstring> &sou
 TEST(compress, getAllSourceFiles)
 {
 	//delete directory
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/getAllSourceFiles";
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/getAllSourceFiles";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -275,11 +274,11 @@ TEST(compress, getAllSourceFiles)
 
 COMPRESS_SOURCES buildCompressSources(
 	const LF_COMPRESS_ARGS &args,
-	const std::vector<std::wstring> &givenFiles
+	const std::vector<std::filesystem::path> &givenFiles
 )
 {
 	COMPRESS_SOURCES targets;
-	std::vector<std::wstring> sourcePathList = getAllSourceFiles(givenFiles);
+	std::vector<std::filesystem::path> sourcePathList = getAllSourceFiles(givenFiles);
 	targets.basePath = getSourcesBasePath(givenFiles);
 	try {
 		if (givenFiles.size() == 1 && std::filesystem::is_directory(givenFiles[0])) {
@@ -321,18 +320,19 @@ COMPRESS_SOURCES buildCompressSources(
 }
 
 
-std::wstring confirmOutputFile(
-	const std::wstring &default_archive_path,
+std::filesystem::path confirmOutputFile(
+	const std::filesystem::path &default_archive_path,
 	const COMPRESS_SOURCES &original_source_list,
 	const std::wstring& ext,	//with '.'
 	bool bInputFilenameFirst)	//Compress.SpecifyOutputFilename;
 {
-	std::unordered_set<std::wstring> sourceFiles;
+	std::set<std::filesystem::path> sourceFiles;
 	for (const auto& src : original_source_list.pathPair) {
 		sourceFiles.insert(toLower(src.originalFullPath));
 	}
 
-	auto archive_path = std::filesystem::path(default_archive_path).make_preferred();
+	auto archive_path = default_archive_path;
+	archive_path.make_preferred();
 	bool bForceOverwrite = false;
 	
 	//if file exists
@@ -369,7 +369,7 @@ std::wstring confirmOutputFile(
 TEST(compress, buildCompressSources_confirmOutputFile)
 {
 	//delete directory
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/compressSources";
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/compressSources";
 	UtilDeletePath(dir);
 	//subject files
 	EXPECT_FALSE(std::filesystem::exists(dir));
@@ -388,7 +388,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 	}
 
 	{
-		std::vector<std::wstring> givenFiles;
+		std::vector<std::filesystem::path> givenFiles;
 		givenFiles.push_back(dir / L"a");
 		givenFiles.push_back(dir / L"b");
 
@@ -422,16 +422,11 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 
 		//---
-		std::wstring confirmOutputFile(
-			const std::wstring &default_archive_path,
-			const COMPRESS_SOURCES &original_source_list,
-			const std::wstring& ext,	//with '.'
-			bool bInputFilenameFirst);	//Compress.SpecifyOutputFilename;
 		auto output_path = confirmOutputFile(dir / L"test.archive", sources, L".archive", false);
 		EXPECT_EQ(dir / L"test.archive", output_path);
 	}
 	{
-		std::vector<std::wstring> givenFiles;
+		std::vector<std::filesystem::path> givenFiles;
 		givenFiles.push_back(dir / L"a");
 		givenFiles.push_back(dir / L"b");
 
@@ -464,7 +459,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		}
 	}
 	{
-		std::vector<std::wstring> givenFiles;
+		std::vector<std::filesystem::path> givenFiles;
 		givenFiles.push_back(dir / L"a");
 
 		LF_COMPRESS_ARGS fake_args;
@@ -491,7 +486,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		}
 	}
 	{
-		std::vector<std::wstring> givenFiles;
+		std::vector<std::filesystem::path> givenFiles;
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
@@ -518,7 +513,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 	}
 	//---
 	{
-		std::vector<std::wstring> givenFiles;
+		std::vector<std::filesystem::path> givenFiles;
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
@@ -552,13 +547,13 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 std::wstring determineDefaultArchiveDir(
 	OUTPUT_TO outputDirType,
-	const std::wstring& original_file_path,
+	const std::filesystem::path& original_file_path,
 	const wchar_t* user_specified_dirpath
 	)
 {
 	struct FILE_CALLBACK :I_LF_GET_OUTPUT_DIR_CALLBACK {
-		std::wstring defaultPath;
-		virtual std::wstring operator()() { return defaultPath; }	//called in case OUTPUT_TO_ALWAYS_ASK_WHERE
+		std::filesystem::path defaultPath;
+		virtual std::filesystem::path operator()() { return defaultPath; }	//called in case OUTPUT_TO_ALWAYS_ASK_WHERE
 		virtual ~FILE_CALLBACK() {}
 	};
 	FILE_CALLBACK fileCallback;
@@ -644,14 +639,14 @@ TEST(compress, compressOneArchive)
 	_wsetlocale(LC_ALL, L"");	//default locale
 
 	//delete directory
-	std::filesystem::path source_dir = UtilGetTempPath() + L"lhaforge_test/compress";
+	std::filesystem::path source_dir = UtilGetTempPath() / L"lhaforge_test/compress";
 	UtilDeletePath(source_dir);
 	EXPECT_FALSE(std::filesystem::exists(source_dir));
 	std::filesystem::create_directories(source_dir);
 	std::filesystem::create_directories(source_dir / L"a");
 	std::filesystem::create_directories(source_dir / L"b/c");
 
-	std::vector<std::wstring> givenFiles;
+	std::vector<std::filesystem::path> givenFiles;
 	givenFiles.push_back(source_dir / L"a");
 	givenFiles.push_back(source_dir / L"b");
 	for (int i = 0; i < 3; i++) {
@@ -698,7 +693,7 @@ TEST(compress, compressOneArchive)
 		{L"output.uue",	LF_FMT_UUE, LF_WOPT_STANDARD},
 	};
 	for (const auto &p : patterns) {
-		std::filesystem::path archive = UtilGetTempPath() + L"lhaforge_test/" + p.archive_name;
+		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / p.archive_name;
 		ARCLOG arcLog;
 
 		const auto& cap = CLFArchive::get_compression_capability(p.format);
@@ -738,7 +733,7 @@ TEST(compress, compressOneArchive)
 #endif
 
 void compress_helper(
-	const std::vector<std::wstring> &givenFiles,
+	const std::vector<std::filesystem::path> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	CMDLINEINFO& CmdLineInfo,
@@ -893,7 +888,7 @@ void compress_helper(
 #endif
 
 bool GUI_compress_multiple_files(
-	const std::vector<std::wstring> &givenFiles,
+	const std::vector<std::filesystem::path> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
@@ -1162,7 +1157,7 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 
 	EXPECT_TRUE(CLFArchive::is_known_format(tempFile));
 
-	auto tempDir = std::filesystem::path(UtilGetTempPath() + L"test_copyArchive");
+	auto tempDir = UtilGetTempPath() / L"test_copyArchive";
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 	std::filesystem::create_directories(tempDir);

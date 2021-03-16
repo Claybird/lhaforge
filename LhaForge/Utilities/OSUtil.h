@@ -25,25 +25,25 @@
 #pragma once
 
 HRESULT UtilCreateShortcut(
-	const std::wstring& pathLink,
-	const std::wstring& pathTarget,
+	const std::filesystem::path& pathLink,
+	const std::filesystem::path& pathTarget,
 	const std::wstring& args,
-	const std::wstring& iconPath,
+	const std::filesystem::path& iconPath,
 	int iIcon,
 	LPCTSTR lpszDescription);
 
 struct UTIL_SHORTCUTINFO {
 	std::wstring title;
-	std::wstring cmd;
+	std::filesystem::path cmd;
 	std::wstring param;
-	std::wstring workingDir;
+	std::filesystem::path workingDir;
 	CBitmap cIconBmpSmall;
 };
 
-HRESULT UtilGetShortcutInfo(const std::wstring& path, UTIL_SHORTCUTINFO& info);
+HRESULT UtilGetShortcutInfo(const std::filesystem::path& path, UTIL_SHORTCUTINFO& info);
 
 //Open a folder with explorer
-void UtilNavigateDirectory(const std::wstring& dir);
+void UtilNavigateDirectory(const std::filesystem::path& dir);
 
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
@@ -51,7 +51,7 @@ std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 //Copy text to clipboard
 void UtilSetTextOnClipboard(const std::wstring& text);
 
-std::pair<std::wstring, int> UtilPathParseIconLocation(const std::wstring& path_and_index);
+std::pair<std::filesystem::path, int> UtilPathParseIconLocation(const std::wstring& path_and_index);
 
 //moves to a directory, and comes back to the previous directory on destructor
 class CCurrentDirManager
@@ -60,7 +60,7 @@ class CCurrentDirManager
 protected:
 	std::filesystem::path _prevDir;
 public:
-	CCurrentDirManager(const std::wstring& chdirTo) {
+	CCurrentDirManager(const std::filesystem::path& chdirTo) {
 		_prevDir = std::filesystem::current_path();
 		try {
 			std::filesystem::current_path(chdirTo);

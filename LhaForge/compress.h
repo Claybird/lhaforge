@@ -83,7 +83,7 @@ struct RAW_FILE_READER {
 		}
 		return ibi;
 	}
-	void open(const std::wstring& path) {
+	void open(const std::filesystem::path& path) {
 		close();
 		fp.open(path, L"rb");
 	}
@@ -96,7 +96,7 @@ struct RAW_FILE_READER {
 struct CMDLINEINFO;
 
 bool GUI_compress_multiple_files(
-	const std::vector<std::wstring> &givenFiles,
+	const std::vector<std::filesystem::path> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
@@ -115,9 +115,9 @@ const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT 
 struct COMPRESS_SOURCES {
 	virtual ~COMPRESS_SOURCES() {}
 	struct PATH_PAIR {
-		std::wstring originalFullPath;
-		std::wstring entryPath;
+		std::filesystem::path originalFullPath;
+		std::filesystem::path entryPath;
 	};
-	std::wstring basePath;
+	std::filesystem::path basePath;
 	std::vector<PATH_PAIR> pathPair;
 };

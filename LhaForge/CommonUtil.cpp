@@ -30,16 +30,16 @@
 #include "Utilities/Utility.h"
 
 //returns output directory that corresponds to outputDirType
-std::wstring LF_get_output_dir(
+std::filesystem::path LF_get_output_dir(
 	OUTPUT_TO outputDirType,
-	const std::wstring& original_file_path,
+	const std::filesystem::path& original_file_path,
 	const wchar_t* user_specified_path,
 	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback)
 {
 	switch (outputDirType) {
 	case OUTPUT_TO_SAME_DIR:
 		//directory is same as the original file path
-		return std::filesystem::path(original_file_path).parent_path().generic_wstring();
+		return original_file_path.parent_path().generic_wstring();
 	case OUTPUT_TO_ALWAYS_ASK_WHERE:
 		return ask_callback();
 	case OUTPUT_TO_SPECIFIC_DIR:	//use provided path
@@ -58,13 +58,13 @@ std::wstring LF_get_output_dir(
 #ifdef UNIT_TEST
 TEST(CommonUtil, LF_get_output_dir) {
 	struct LF_GET_OUTPUT_DIR_TEST_CALLBACK :I_LF_GET_OUTPUT_DIR_CALLBACK {
-		std::wstring _default_path;
-		void setArchivePath(const wchar_t* archivePath) {
+		std::filesystem::path _default_path;
+		void setArchivePath(const std::filesystem::path archivePath) {
 			if (_default_path.empty()) {
-				_default_path = std::filesystem::path(archivePath).parent_path();
+				_default_path = archivePath.parent_path();
 			}
 		}
-		std::wstring operator()()override {
+		std::filesystem::path operator()()override {
 			return _default_path;
 		}
 	};
@@ -76,9 +76,9 @@ TEST(CommonUtil, LF_get_output_dir) {
 #endif
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
-bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn)
+bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesystem::path& outputDirIn)
 {
-	auto outputDir = std::filesystem::path(outputDirIn) / L"/";
+	auto outputDir = UtilPathAddLastSeparator(outputDirIn);
 
 	for (;;) {
 		auto status = std::filesystem::status(outputDir);
@@ -133,7 +133,7 @@ TEST(CommonUtil, LF_confirm_output_dir_type) {
 }
 #endif
 
-void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound)
+void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputDir, LOSTDIR OnDirNotFound)
 {
 	auto status = std::filesystem::status(outputDir);
 	if (status.type() == std::filesystem::file_type::not_found) {
@@ -169,7 +169,7 @@ void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTD
 
 #ifdef UNIT_TEST
 TEST(CommonUtil, LF_ask_and_make_sure_output_dir_exists) {
-	auto target = UtilGetTempPath() + L"make_sure_test";
+	auto target = UtilGetTempPath() / L"make_sure_test";
 	EXPECT_FALSE(std::filesystem::exists(target));
 	EXPECT_THROW(LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_ERROR), LF_EXCEPTION);
 	EXPECT_FALSE(std::filesystem::exists(target));
@@ -230,7 +230,7 @@ TEST(CommonUtil, LF_make_expand_information) {
 #endif
 
 //replace filenames that could be harmful
-std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
+std::filesystem::path LF_sanitize_pathname(const std::filesystem::path &rawPath)
 {
 	const std::pair<std::wregex, wchar_t*> pattern[] = {
 		//backslashes "\\" -> "/" ; libarchive will use only "/" for directory separator
@@ -264,7 +264,7 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 			L"_(UNICODE_CTRL)_"},
 	};
 
-	auto buf = rawPath;
+	auto buf = rawPath.wstring();
 	for (;;) {
 		bool modified = false;
 		for (const auto &p : pattern) {
@@ -317,12 +317,13 @@ TEST(CommonUtil, LF_sanitize_pathname) {
 }
 #endif
 
-void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files)
+void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::filesystem::path>& original_files)
 {
 	const size_t max_limit = 10;
-	std::wstring files;
+	std::filesystem::path files;
 	if (!noConfirm) {
-		files = join(L"\n", original_files, max_limit);
+		std::vector<std::wstring> tmp(original_files.begin(), original_files.end());
+		files = join(L"\n", tmp, max_limit);
 		if (original_files.size() > max_limit) {
 			files += Format(UtilLoadString(IDS_NUM_EXTRA_FILES), original_files.size() - max_limit);
 		}

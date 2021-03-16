@@ -287,28 +287,28 @@ public:
 struct ARCLOG {
 	ARCLOG() :_overallResult(LF_RESULT::OK) {}
 	virtual ~ARCLOG() {}
-	void setArchivePath(const std::wstring& archivePath) {
+	void setArchivePath(const std::filesystem::path& archivePath) {
 		_archivePath = archivePath;
 		_archiveFilename = std::filesystem::path(archivePath).filename().generic_wstring().c_str();
 	}
-	std::wstring _archivePath;
-	std::wstring _archiveFilename;
+	std::filesystem::path _archivePath;
+	std::filesystem::path _archiveFilename;
 	LF_RESULT _overallResult;
 
 	struct LOGENTRY {
-		std::wstring entryPath;
+		std::filesystem::path entryPath;
 		std::wstring message;
 	};
 	std::vector<LOGENTRY> logs;
 
-	void operator()(const std::wstring& entryPath, const std::wstring& message) {
+	void operator()(const std::filesystem::path& entryPath, const std::wstring& message) {
 		LOGENTRY e = { entryPath,message };
 		logs.push_back(e);
 	}
 	std::wstring toString()const {
 		std::wstring out;
 		for (const auto& log : logs) {
-			out += log.entryPath + L" -> " + log.message + L"\r\n";
+			out += log.entryPath.wstring() + L" -> " + log.message + L"\r\n";
 		}
 		return out;
 	}

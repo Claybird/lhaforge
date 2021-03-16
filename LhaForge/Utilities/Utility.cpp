@@ -66,7 +66,7 @@ TEST(Utility, UtilGetLastErrorMessage) {
 }
 #endif
 
-std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage)
+std::vector<std::wstring> UtilReadFromResponseFile(const std::filesystem::path& respFile, UTIL_CODEPAGE uSrcCodePage)
 {
 	std::vector<BYTE> cReadBuffer = UtilReadFile(respFile);
 
@@ -114,7 +114,7 @@ TEST(Utility, UtilReadFromResponseFile) {
 
 //checks if path extension matches specific patterns
 //pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
-bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string)
+bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string)
 {
 	if (pattern_string.empty())return false;
 	//characters to be escaped
@@ -147,7 +147,7 @@ bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_stri
 	regex_str += L"$";
 
 	std::wregex re(regex_str, std::regex_constants::icase);
-	return std::regex_search(path, re);
+	return std::regex_search(path.wstring(), re);
 }
 
 #ifdef UNIT_TEST
@@ -193,7 +193,7 @@ TEST(Utility, UtilExtMatchSpec) {
 
 //checks if path matches specific patterns
 //pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
-bool UtilPathMatchSpec(const std::wstring& path, const std::wstring& pattern_string)
+bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string)
 {
 	if (pattern_string.empty())return false;
 	//characters to be escaped

@@ -24,17 +24,17 @@
 
 #pragma once
 
-std::wstring UtilGetDesktopPath();
-std::wstring UtilGetSendToPath();
+std::filesystem::path UtilGetDesktopPath();
+std::filesystem::path UtilGetSendToPath();
 
 //returns a temp dir exclusive use of lhaforge
-std::wstring UtilGetTempPath();
-std::wstring UtilGetTemporaryFileName();
-bool UtilDeletePath(const std::wstring& path);
+std::filesystem::path UtilGetTempPath();
+std::filesystem::path UtilGetTemporaryFileName();
+bool UtilDeletePath(const std::filesystem::path& path);
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
-bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent);
+bool UtilDeleteDir(const std::filesystem::path& path, bool bDeleteParent);
 
 
 //delete temporary directory automatically
@@ -71,33 +71,33 @@ public:
 };
 
 
-bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList);
+bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList);
 
 //recursively enumerates files (no directories) in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root);
+std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root);
 
 //recursively enumerates files and directories in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& root);
+std::vector<std::filesystem::path> UtilRecursiveEnumFileAndDirectory(const std::filesystem::path& root);
 
-std::vector<std::wstring> UtilEnumSubFileAndDirectory(const std::wstring& root);
+std::vector<std::filesystem::path> UtilEnumSubFileAndDirectory(const std::filesystem::path& root);
 
 
-bool UtilPathIsRoot(const std::wstring& path);
-std::wstring UtilPathAddLastSeparator(const std::wstring& path);
-std::wstring UtilPathRemoveLastSeparator(const std::wstring& path);
+bool UtilPathIsRoot(const std::filesystem::path& path);
+std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path);
+std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& path);
 
 //get full & absolute path
-std::wstring UtilGetCompletePathName(const std::wstring& filePath);
+std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& filePath);
 
 //returns filenames that matches to the given pattern
-std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern);
+std::vector<std::filesystem::path> UtilPathExpandWild(const std::filesystem::path& pattern);
 
 //executable name
-std::wstring UtilGetModulePath();
-std::wstring UtilGetModuleDirectoryPath();
+std::filesystem::path UtilGetModulePath();
+std::filesystem::path UtilGetModuleDirectoryPath();
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const std::wstring& filePath);
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath);
 
 
 class CAutoFile {
@@ -118,7 +118,7 @@ public:
 			_fp = NULL;
 		}
 	}
-	void open(const std::wstring& fname, const std::wstring& mode = L"r") {
+	void open(const std::filesystem::path& fname, const std::wstring& mode = L"r") {
 		close();
 		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
 		if (err==0 && _fp) {
@@ -129,4 +129,4 @@ public:
 };
 
 
-void touchFile(const std::wstring& path);
+void touchFile(const std::filesystem::path& path);

@@ -35,7 +35,7 @@
 
 struct RAW_CMDLINE{
 	std::vector<std::pair<std::wstring, std::wstring>> switches;
-	std::vector<std::wstring> files;
+	std::vector<std::filesystem::path> files;
 };
 
 RAW_CMDLINE getCommandLineArgs(const std::wstring& cmdline)
@@ -257,7 +257,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 
 	{
 		//expand filename pattern
-		std::vector<std::wstring> tmp;
+		std::vector<std::filesystem::path> tmp;
 		for (const auto& item : cli.FileList) {
 			auto out = UtilPathExpandWild(item.c_str());
 			tmp.insert(tmp.end(), out.begin(), out.end());
@@ -292,7 +292,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 #ifdef UNIT_TEST
 TEST(commandLineInfo, ParseCommandLine)
 {
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/ParseCommandLine";
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/ParseCommandLine";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -489,7 +489,7 @@ TEST(commandLineInfo, ParseCommandLine)
 		EXPECT_EQ(CMDLINEINFO::ACTION::False, cli.DeleteAfterProcess);
 	}
 
-	UtilDeletePath(UtilGetTempPath() + L"lhaforge_test/");
+	UtilDeletePath(UtilGetTempPath() / L"lhaforge_test/");
 	EXPECT_FALSE(std::filesystem::exists(dir));
 }
 #endif

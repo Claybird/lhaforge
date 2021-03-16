@@ -31,13 +31,13 @@ int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType);
 std::wstring UtilGetLastErrorMessage(DWORD langID = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), DWORD errorCode = GetLastError());
 
 //read filelist from response file
-std::vector<std::wstring> UtilReadFromResponseFile(const std::wstring& respFile, UTIL_CODEPAGE uSrcCodePage);
+std::vector<std::wstring> UtilReadFromResponseFile(const std::filesystem::path& respFile, UTIL_CODEPAGE uSrcCodePage);
 
 //checks if path extension matches specific patterns
 //pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
-bool UtilExtMatchSpec(const std::wstring& path, const std::wstring& pattern_string);
+bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string);
 //checks if path matches specific patterns
-bool UtilPathMatchSpec(const std::wstring& path, const std::wstring& pattern_string);
+bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string);
 
 //Message loop utility
 bool UtilDoMessageLoop();

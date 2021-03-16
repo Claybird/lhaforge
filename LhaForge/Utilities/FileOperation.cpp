@@ -29,11 +29,11 @@
 #include "OSUtil.h"
 #include "resource.h"
 
-std::wstring UtilGetDesktopPath()
+std::filesystem::path UtilGetDesktopPath()
 {
 	wchar_t* ptr = nullptr;
 	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &ptr))) {
-		std::wstring path = ptr;
+		std::filesystem::path path = ptr;
 		CoTaskMemFree(ptr);
 		ptr = nullptr;
 		return path;
@@ -48,11 +48,11 @@ TEST(FileOperation, UtilGetDesktopPath) {
 }
 #endif
 
-std::wstring UtilGetSendToPath()
+std::filesystem::path UtilGetSendToPath()
 {
 	wchar_t* ptr = nullptr;
 	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_SendTo, 0, nullptr, &ptr))) {
-		std::wstring path = ptr;
+		std::filesystem::path path = ptr;
 		CoTaskMemFree(ptr);
 		ptr = nullptr;
 		return path;
@@ -68,7 +68,7 @@ TEST(FileOperation, UtilGetSendToPath) {
 #endif
 
 //returns a temp dir exclusive use of lhaforge
-std::wstring UtilGetTempPath()
+std::filesystem::path UtilGetTempPath()
 {
 	auto tempDir = std::filesystem::temp_directory_path() / L"lhaforge";
 	std::filesystem::create_directories(tempDir);
@@ -80,7 +80,7 @@ TEST(FileOperation, UtilGetTempPath) {
 }
 #endif
 
-std::wstring UtilGetTemporaryFileName()
+std::filesystem::path UtilGetTemporaryFileName()
 {
 	for (size_t index = 0; ;index++){
 		auto path = std::filesystem::path(UtilGetTempPath()) / Format(L"tmp%d.tmp", index);
@@ -98,7 +98,7 @@ TEST(FileOperation, UtilGetTemporaryFileName) {
 }
 #endif
 
-bool UtilDeletePath(const std::wstring& path)
+bool UtilDeletePath(const std::filesystem::path& path)
 {
 	if( std::filesystem::is_directory(path) ) {
 		//directory
@@ -121,16 +121,16 @@ TEST(FileOperation, UtilDeletePath) {
 	EXPECT_FALSE(UtilDeletePath(path));
 
 	//delete directory
-	auto dir = UtilGetTempPath() + L"lhaforge_test/UtilDeletePath";
+	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilDeletePath";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 	for (int i = 0; i < 100; i++) {
-		touchFile(dir + Format(L"/a%03d.txt", i));
+		touchFile(dir / Format(L"a%03d.txt", i));
 	}
-	std::filesystem::create_directories(dir + L"/testDir");
+	std::filesystem::create_directories(dir / L"testDir");
 	for (int i = 0; i < 100; i++) {
-		touchFile(dir + Format(L"/testDir/b%03d.txt", i));
+		touchFile(dir / Format(L"testDir/b%03d.txt", i));
 	}
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
@@ -139,9 +139,9 @@ TEST(FileOperation, UtilDeletePath) {
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
-bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent)
+bool UtilDeleteDir(const std::filesystem::path& path, bool bDeleteParent)
 {
-	std::wstring FindParam = std::filesystem::path(path) / L"*";
+	auto FindParam = std::filesystem::path(path) / L"*";
 
 	bool bRet = true;
 
@@ -172,18 +172,18 @@ bool UtilDeleteDir(const std::wstring& path, bool bDeleteParent)
 #ifdef UNIT_TEST
 TEST(FileOperation, UtilDeleteDir) {
 	//delete file
-	auto path = UtilGetTempPath() + L"test_UtilDeleteDir";
+	auto path = UtilGetTempPath() / L"test_UtilDeleteDir";
 	EXPECT_FALSE(std::filesystem::exists(path));
 	std::filesystem::create_directories(path);
 	EXPECT_TRUE(std::filesystem::exists(path));
 
-	touchFile(path + L"/test.txt");
+	touchFile(path / L"test.txt");
 	EXPECT_TRUE(UtilDeleteDir(path, true));
 	EXPECT_FALSE(std::filesystem::exists(path));
 }
 #endif
 
-bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
+bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList)
 {
 	ASSERT(!fileList.empty());
 	if(fileList.empty())return false;
@@ -208,15 +208,15 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::wstring>& fileList)
 }
 #ifdef UNIT_TEST
 TEST(FileOperation, UtilMoveFileToRecycleBin) {
-	std::vector<std::wstring> fileList;
+	std::vector<std::filesystem::path> fileList;
 	//delete directory
-	auto dir = UtilGetTempPath() + L"lhaforge_test/UtilMoveFileToRecycleBin";
+	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilMoveFileToRecycleBin";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 	for (int i = 0; i < 3; i++) {
-		fileList.push_back(dir + Format(L"/a%03d.txt", i));
-		touchFile(dir + Format(L"/a%03d.txt", i));
+		fileList.push_back(dir / Format(L"a%03d.txt", i));
+		touchFile(dir / Format(L"a%03d.txt", i));
 	}
 	EXPECT_TRUE(UtilMoveFileToRecycleBin(fileList));
 	UtilDeletePath(dir);
@@ -226,12 +226,12 @@ TEST(FileOperation, UtilMoveFileToRecycleBin) {
 
 
 //recursively enumerates files (no directories) in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root)
+std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root)
 {
 	CFindFile cFindFile;
 
-	std::vector<std::wstring> files;
-	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
+	std::vector<std::filesystem::path> files;
+	BOOL bContinue = cFindFile.FindFile((root / L"*").c_str());
 	while(bContinue){
 		if(!cFindFile.IsDots()){
 			if(cFindFile.IsDirectory()){
@@ -248,12 +248,12 @@ std::vector<std::wstring> UtilRecursiveEnumFile(const std::wstring& root)
 }
 
 //recursively enumerates files and directories in specified directory
-std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& root)
+std::vector<std::filesystem::path> UtilRecursiveEnumFileAndDirectory(const std::filesystem::path& root)
 {
 	CFindFile cFindFile;
 
-	std::vector<std::wstring> files;
-	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
+	std::vector<std::filesystem::path> files;
+	BOOL bContinue = cFindFile.FindFile((root / L"*").c_str());
 	while (bContinue) {
 		if (!cFindFile.IsDots()) {
 			files.push_back((const wchar_t*)cFindFile.GetFilePath());
@@ -269,11 +269,11 @@ std::vector<std::wstring> UtilRecursiveEnumFileAndDirectory(const std::wstring& 
 }
 
 //enumerates files and directories in specified directory
-std::vector<std::wstring> UtilEnumSubFileAndDirectory(const std::wstring& root)
+std::vector<std::filesystem::path> UtilEnumSubFileAndDirectory(const std::filesystem::path& root)
 {
 	CFindFile cFindFile;
 
-	std::vector<std::wstring> files;
+	std::vector<std::filesystem::path> files;
 	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
 	while (bContinue) {
 		if (!cFindFile.IsDots()) {
@@ -286,9 +286,9 @@ std::vector<std::wstring> UtilEnumSubFileAndDirectory(const std::wstring& root)
 }
 
 //returns filenames that matches to the given pattern
-std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern)
+std::vector<std::filesystem::path> UtilPathExpandWild(const std::filesystem::path& pattern)
 {
-	std::vector<std::wstring> out;
+	std::vector<std::filesystem::path> out;
 	//expand wild
 	CFindFile cFindFile;
 	BOOL bContinue = cFindFile.FindFile(pattern.c_str());
@@ -303,7 +303,7 @@ std::vector<std::wstring> UtilPathExpandWild(const std::wstring& pattern)
 #ifdef UNIT_TEST
 TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 	//prepare files
-	std::vector<std::wstring> fileList, fileAndDir;
+	std::vector<std::filesystem::path> fileList, fileAndDir;
 	auto dir = std::filesystem::path(UtilGetTempPath()) / L"lhaforge_test/UtilRecursiveEnumXXX_UtilPathExpandWild";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
@@ -382,7 +382,7 @@ TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
 }
 #endif
 
-bool UtilPathIsRoot(const std::wstring& path)
+bool UtilPathIsRoot(const std::filesystem::path& path)
 {
 	auto p = std::filesystem::path(path);
 	p.make_preferred();
@@ -399,9 +399,9 @@ TEST(FileOperation, UtilPathIsRoot) {
 }
 #endif
 
-std::wstring UtilPathAddLastSeparator(const std::wstring& path)
+std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path)
 {
-	std::wstring p = path;
+	std::wstring p = path.wstring();
 	if (p.empty() || (p.back() != L'/' && p.back() != L'\\')) {
 		p += std::filesystem::path::preferred_separator;
 	}
@@ -421,7 +421,7 @@ TEST(FileOperation, UtilPathAddLastSeparator) {
 }
 #endif
 
-std::wstring UtilPathRemoveLastSeparator(const std::wstring& path)
+std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& path)
 {
 	std::wstring p = path;
 	if (!p.empty() && (p.back() == L'/' || p.back() == L'\\')) {
@@ -445,9 +445,9 @@ TEST(FileOperation, UtilPathRemoveLastSeparator) {
 
 
 //get full & absolute path
-std::wstring UtilGetCompletePathName(const std::wstring& filePath)
+std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& filePath)
 {
-	if(filePath.length()==0){
+	if(filePath.empty()){
 		RAISE_EXCEPTION(L"empty pathname");
 	}
 
@@ -495,7 +495,7 @@ TEST(FileOperation, UtilGetCompletePathName) {
 #endif
 
 //executable name
-std::wstring UtilGetModulePath()
+std::filesystem::path UtilGetModulePath()
 {
 	std::wstring name;
 	name.resize(256);
@@ -511,7 +511,7 @@ std::wstring UtilGetModulePath()
 	return name.c_str();
 }
 
-std::wstring UtilGetModuleDirectoryPath()
+std::filesystem::path UtilGetModuleDirectoryPath()
 {
 	return std::filesystem::path(UtilGetModulePath()).parent_path();
 }
@@ -527,9 +527,9 @@ TEST(FileOperation, UtilGetModulePath_UtilGetModuleDirectoryPath) {
 #endif
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const std::wstring& filePath)
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath)
 {
-	if (filePath.length()==0)RAISE_EXCEPTION(L"Invalid Argument");
+	if (filePath.empty())RAISE_EXCEPTION(L"Invalid Argument");
 	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(L"File not found");
 
 	struct _stat64 stat = {};
@@ -553,7 +553,7 @@ std::vector<BYTE> UtilReadFile(const std::wstring& filePath)
 #ifdef UNIT_TEST
 TEST(FileOperation, UtilReadFile) {
 	//prepare
-	auto fname = UtilGetTempPath() + L"lhaforge_test_file.tmp";
+	auto fname = UtilGetTempPath() / L"lhaforge_test_file.tmp";
 	{
 		CAutoFile fp;
 		fp.open(fname, L"w");
@@ -570,7 +570,7 @@ TEST(FileOperation, UtilReadFile) {
 
 #endif
 
-void touchFile(const std::wstring& path)
+void touchFile(const std::filesystem::path& path)
 {
 	CAutoFile fp;
 	fp.open(path, L"w");
@@ -580,7 +580,7 @@ void touchFile(const std::wstring& path)
 #ifdef UNIT_TEST
 TEST(FileOperation, touchFile_CAutoFile)
 {
-	std::filesystem::path dir = UtilGetTempPath() + L"lhaforge_test/touchFile";
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/touchFile";
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
@@ -599,7 +599,7 @@ TEST(FileOperation, touchFile_CAutoFile)
 
 #ifdef UNIT_TEST
 TEST(FileOperation, CTemporaryDirectoryManager) {
-	std::wstring path;
+	std::filesystem::path path;
 	{
 		CTemporaryDirectoryManager tmpMngr;
 		path = tmpMngr.path();
