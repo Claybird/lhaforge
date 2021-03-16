@@ -4,9 +4,6 @@
     <ClCompile Include="ConfigCode\AssocSettings.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigManager.cpp">
-      <Filter>Configs\Other</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Configwnd.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -130,6 +127,9 @@
     <ClCompile Include="Utilities\Semaphore.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigFile.cpp">
+      <Filter>Configs\Other</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -177,9 +177,6 @@
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\AssocSettings.h">
-      <Filter>Configs\Other</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigManager.h">
       <Filter>Configs\Other</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Configwnd.h">
@@ -349,6 +346,9 @@
     </ClInclude>
     <ClInclude Include="FileListWindow\FileViewBase.h">
       <Filter>FileListWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigFile.h">
+      <Filter>Configs\Other</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

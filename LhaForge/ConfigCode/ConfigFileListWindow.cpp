@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "FileListWindow/FileListModel.h"
 #include "FileListWindow/FileListFrame.h"
 #include "FileListWindow/FileListTabClient.h"
@@ -32,7 +32,7 @@
 #include "ConfigFileListWindow.h"
 #include "resource.h"
 
-void CConfigFileListWindow::load_sub(const CConfigManager& Config)
+void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 {
 	const auto section = L"FileListWindow";
 	//ウィンドウの設定を保存
@@ -144,7 +144,7 @@ void CConfigFileListWindow::load_sub(const CConfigManager& Config)
 	ShowTreeView=Config.getBool(section, L"ShowTreeView", true);
 }
 
-void CConfigFileListWindow::loadMenuCommand(const CConfigManager &Config)
+void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
 {
 	//「プログラムで開く」メニューのコマンド
 	//古い情報の破棄
@@ -172,7 +172,7 @@ void CConfigFileListWindow::loadMenuCommand(const CConfigManager &Config)
 }
 
 
-void CConfigFileListWindow::store_sub(CConfigManager &Config)const
+void CConfigFileListWindow::store_sub(CConfigFile &Config)const
 {
 	const auto section = L"FileListWindow";
 	//ウィンドウの設定を保存
@@ -256,7 +256,7 @@ void CConfigFileListWindow::store_sub(CConfigManager &Config)const
 	Config.setValue(section, L"ShowTreeView", ShowTreeView);
 }
 
-void CConfigFileListWindow::storeMenuCommand(CConfigManager &Config)const
+void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
 {
 	//「プログラムで開く」メニューのコマンド
 	//---古いセクションの破棄

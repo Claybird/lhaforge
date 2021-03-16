@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "FileListModel.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 #include "ConfigCode/ConfigExtract.h"
 #include "Utilities/StringUtil.h"

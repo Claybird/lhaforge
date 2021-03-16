@@ -25,7 +25,7 @@
 #pragma once
 #include "../Utilities/Utility.h"
 #include "../resource.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "./Dialogs/Dlg_Base.h"
 #include "./Dialogs/Dlg_version.h"
 #include "./Dialogs/Dlg_general.h"
@@ -61,7 +61,7 @@ protected:
 	//ダイアログを貼り付けるためのスクロールコンテナ
 	CScrollContainer			ScrollWindow;
 
-	CConfigManager				&mr_Config;
+	CConfigFile				&mr_Config;
 
 	CString						m_strAssistINI;	//アシスタントを呼び出すために使うINI名
 	UINT						m_nAssistRequireCount;//アシスタントを呼ぶ必要があれば非0;参照カウンタ方式
@@ -90,7 +90,7 @@ public:
 		DLGRESIZE_CONTROL(IDCANCEL,							DLSZ_MOVE_X | DLSZ_MOVE_Y)
 	END_DLGRESIZE_MAP()
 
-	CConfigDialog(CConfigManager &cfg);
+	CConfigDialog(CConfigFile &cfg);
 	virtual ~CConfigDialog();
 
 	LRESULT OnTreeSelect(LPNMHDR pnmh);

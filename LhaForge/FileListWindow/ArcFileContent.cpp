@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/Utility.h"

@@ -268,7 +268,7 @@ LRESULT CConfigDlgAssociation::OnApply()
 {
 	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
 
-	CConfigManager tmp;
+	CConfigFile tmp;
 	tmp.setPath(strIniName);
 	try {
 		tmp.load();

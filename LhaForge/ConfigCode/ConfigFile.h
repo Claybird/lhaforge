@@ -24,17 +24,17 @@
 
 #pragma once
 
-struct CConfigManager
+struct CConfigFile
 {
 	std::filesystem::path m_iniPath;
 	bool m_bUserCommon;	//true to use user common configuration
 	CSimpleIniW m_Config;
 
-	CConfigManager() {
+	CConfigFile() {
 		m_Config.SetUnicode(true);
 		setDefaultPath();
 	}
-	virtual ~CConfigManager() {}
+	virtual ~CConfigFile() {}
 	void setDefaultPath();
 	void setPath(const std::wstring& path);
 	void load();
@@ -83,7 +83,7 @@ struct CConfigManager
 
 struct IConfigIO {
 	virtual ~IConfigIO() {}
-	virtual void load(const CConfigManager&) = 0;
-	virtual void store(CConfigManager&)const = 0;
+	virtual void load(const CConfigFile&) = 0;
+	virtual void store(CConfigFile&)const = 0;
 };
 

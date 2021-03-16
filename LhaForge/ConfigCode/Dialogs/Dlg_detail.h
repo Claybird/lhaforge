@@ -56,7 +56,7 @@ public:
 
 		return TRUE;
 	}
-	void LoadConfig(CConfigManager&){}
-	void StoreConfig(CConfigManager&){}
+	void LoadConfig(CConfigFile&){}
+	void StoreConfig(CConfigFile&){}
 };
 

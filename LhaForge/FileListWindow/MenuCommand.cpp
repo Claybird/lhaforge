@@ -26,7 +26,7 @@
 #include "menucommand.h"
 #include "FileListModel.h"
 #include "Utilities/OSUtil.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 #include "resource.h"
 

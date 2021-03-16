@@ -27,7 +27,7 @@
 #include "CmdLineInfo.h"
 #include "CommonUtil.h"
 
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigExtract.h"
 
@@ -37,7 +37,7 @@ struct LF_EXTRACT_ARGS {
 	CConfigGeneral general;
 	CConfigExtract extract;
 	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
-	void load(const CConfigManager& mngr) {
+	void load(const CConfigFile& mngr) {
 		general.load(mngr);
 		extract.load(mngr);
 	}

@@ -35,7 +35,7 @@ public:
 	CLFPassphraseGUI _passphrase;
 	CFileListModel	Model;
 	const CConfigFileListWindow &_confFLW;
-	const CConfigManager &_confMan;
+	const CConfigFile &_confMan;
 
 	CSplitterWindow	Splitter;
 	CFileListView	ListView;
@@ -83,7 +83,7 @@ protected:
 		return true;
 	}
 public:
-	CFileListTabItem(const CConfigManager &rMan, const CConfigFileListWindow &confFLW):
+	CFileListTabItem(const CConfigFile &rMan, const CConfigFileListWindow &confFLW):
 		_confMan(rMan),
 		_confFLW(confFLW),
 		Model(rMan, _passphrase),

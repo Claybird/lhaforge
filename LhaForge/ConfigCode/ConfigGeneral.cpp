@@ -25,10 +25,10 @@
 #include "stdafx.h"
 #include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigGeneral.h"
 
-void CConfigGeneral::loadOutput(const CConfigManager &Config)
+void CConfigGeneral::loadOutput(const CConfigFile &Config)
 {
 	const auto section = L"Output";
 	// 出力先種類に対する警告
@@ -39,7 +39,7 @@ void CConfigGeneral::loadOutput(const CConfigManager &Config)
 	OnDirNotFound = (LOSTDIR)Config.getIntRange(section, L"OnDirNotFound", 0, LOSTDIR_LAST_ITEM, LOSTDIR_ERROR);
 }
 
-void CConfigGeneral::storeOutput(CConfigManager &Config)const
+void CConfigGeneral::storeOutput(CConfigFile &Config)const
 {
 	const auto section = L"Output";
 	// 出力先種類に対する警告
@@ -50,19 +50,19 @@ void CConfigGeneral::storeOutput(CConfigManager &Config)const
 	Config.setValue(section, L"OnDirNotFound", OnDirNotFound);
 }
 
-void CConfigGeneral::loadLogView(const CConfigManager &Config)
+void CConfigGeneral::loadLogView(const CConfigFile &Config)
 {
 	const auto section = L"LogView";
 	LogViewEvent = (LOGVIEW)Config.getIntRange(section, L"LogViewEvent", 0, LOGVIEW_LAST_ITEM, LOGVIEW_ON_ERROR);
 }
 
-void CConfigGeneral::storeLogView(CConfigManager &Config)const
+void CConfigGeneral::storeLogView(CConfigFile &Config)const
 {
 	const auto section = L"LogView";
 	Config.setValue(section, L"LogViewEvent", LogViewEvent);
 }
 
-void CConfigGeneral::loadFiler(const CConfigManager &Config)
+void CConfigGeneral::loadFiler(const CConfigFile &Config)
 {
 	const auto section = L"Filer";
 	Filer.UseFiler = Config.getBool(section, L"UseFiler", false);
@@ -71,7 +71,7 @@ void CConfigGeneral::loadFiler(const CConfigManager &Config)
 	Filer.Param = Config.getText(section, L"Param", L"");
 }
 
-void CConfigGeneral::storeFiler(CConfigManager &Config)const
+void CConfigGeneral::storeFiler(CConfigFile &Config)const
 {
 	const auto section = L"Filer";
 	Config.setValue(section, L"UseFiler", Filer.UseFiler);
@@ -80,7 +80,7 @@ void CConfigGeneral::storeFiler(CConfigManager &Config)const
 	Config.setValue(section, L"Param", Filer.Param);
 }
 
-void CConfigGeneral::loadGeneral(const CConfigManager &Config)
+void CConfigGeneral::loadGeneral(const CConfigFile &Config)
 {
 	const auto section = L"General";
 	NotifyShellAfterProcess=Config.getBool(section, L"NotifyShell", false);
@@ -88,7 +88,7 @@ void CConfigGeneral::loadGeneral(const CConfigManager &Config)
 	TempPath = Config.getText(section, L"TempPath", L"");
 }
 
-void CConfigGeneral::storeGeneral(CConfigManager &Config)const
+void CConfigGeneral::storeGeneral(CConfigFile &Config)const
 {
 	const auto section = L"General";
 	Config.setValue(section, L"NotifyShell", NotifyShellAfterProcess);

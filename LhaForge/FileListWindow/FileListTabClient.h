@@ -45,7 +45,7 @@ protected:
 
 	CFileListTabItem*	m_lpPrevTab;
 	const CConfigFileListWindow& m_confFLW;
-	const CConfigManager& mr_Config;
+	const CConfigFile& mr_Config;
 
 	//各リストビューで共通化する設定
 	int		m_nTreeWidth;
@@ -105,7 +105,7 @@ protected:
 	void GetTabSettingsToClient(CFileListTabItem*);	//指定したタブの設定をメンバ変数に読み込む
 	void UpdateClientArea();
 public:
-	CFileListTabClient(const CConfigManager&, const CConfigFileListWindow&, CFileListFrame&);
+	CFileListTabClient(const CConfigFile&, const CConfigFileListWindow&, CFileListFrame&);
 	virtual ~CFileListTabClient(){ClearAllTabs();}
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();

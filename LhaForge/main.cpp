@@ -124,7 +124,7 @@ PROCESS_MODE selectOpenAction()
 
 //---------------------------------------------
 
-bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
+bool DoCompress(CConfigFile &ConfigManager, CMDLINEINFO &cli)
 {
 	CConfigCompress ConfCompress;
 	CConfigGeneral ConfGeneral;
@@ -164,7 +164,7 @@ bool DoCompress(CConfigManager &ConfigManager, CMDLINEINFO &cli)
 		cli);
 }
 
-bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
+bool DoExtract(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
@@ -180,7 +180,7 @@ bool DoExtract(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	return GUI_extract_multiple_files(tmp, CLFProgressHandlerGUI(nullptr), &cli);
 }
 
-bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
+bool DoList(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
@@ -214,7 +214,7 @@ bool DoList(CConfigManager &ConfigManager,CMDLINEINFO &cli)
 	return true;
 }
 
-bool DoTest(CConfigManager &ConfigManager,CMDLINEINFO &cli)
+bool DoTest(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
 	ConfExtract.load(ConfigManager);
@@ -237,7 +237,7 @@ void procMain()
 		return;
 	}
 
-	CConfigManager ConfigManager;
+	CConfigFile ConfigManager;
 	if (cli.ConfigPath.empty()) {
 		ConfigManager.setDefaultPath();
 	} else {

@@ -29,7 +29,7 @@
 #include "FileListWindow/MenuCommand.h"
 
 
-CConfigDialog::CConfigDialog(CConfigManager &cfg)
+CConfigDialog::CConfigDialog(CConfigFile &cfg)
 	:mr_Config(cfg),
 	hActiveDialogWnd(NULL),
 	PageShellExt(*this),

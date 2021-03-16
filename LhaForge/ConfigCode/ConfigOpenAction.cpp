@@ -23,11 +23,11 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigOpenAction.h"
 
 // 関連付け動作設定
-void CConfigOpenAction::load(const CConfigManager &Config)
+void CConfigOpenAction::load(const CConfigFile &Config)
 {
 	const auto section = L"OpenAction";
 	//動作選択
@@ -36,7 +36,7 @@ void CConfigOpenAction::load(const CConfigManager &Config)
 	OpenAction_Ctrl = (OPENACTION)Config.getIntRange(section, L"OpenAction_Ctrl", 0, OPENACTION_LAST_ITEM, OPENACTION_TEST);
 }
 
-void CConfigOpenAction::store(CConfigManager &Config)const
+void CConfigOpenAction::store(CConfigFile &Config)const
 {
 	const auto section = L"OpenAction";
 	//動作選択

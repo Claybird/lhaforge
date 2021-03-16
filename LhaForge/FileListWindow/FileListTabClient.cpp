@@ -31,7 +31,7 @@
 #include "Dialogs/WaitDialog.h"
 
 CFileListTabClient::CFileListTabClient(
-	const CConfigManager& rConfig,
+	const CConfigFile& rConfig,
 	const CConfigFileListWindow& confFLW,
 	CFileListFrame& rFrame
 ):

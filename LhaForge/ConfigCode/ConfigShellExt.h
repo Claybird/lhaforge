@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 struct CConfigShellExt:public IConfigIO{
 public:
@@ -38,23 +38,23 @@ public:
 	bool ForceExtraMenu;
 	bool UseCustomMenu;
 protected:
-	void loadShellMenu(const CConfigManager&);
-	void storeShellMenu(CConfigManager&)const;
-	void loadDragMenu(const CConfigManager&);
-	void storeDragMenu(CConfigManager&)const;
-	void loadExtraMenu(const CConfigManager&);
-	void storeExtraMenu(CConfigManager&)const;
-	void loadCustomMenu(const CConfigManager&);
-	void storeCustomMenu(CConfigManager&)const;
+	void loadShellMenu(const CConfigFile&);
+	void storeShellMenu(CConfigFile&)const;
+	void loadDragMenu(const CConfigFile&);
+	void storeDragMenu(CConfigFile&)const;
+	void loadExtraMenu(const CConfigFile&);
+	void storeExtraMenu(CConfigFile&)const;
+	void loadCustomMenu(const CConfigFile&);
+	void storeCustomMenu(CConfigFile&)const;
 public:
 	virtual ~CConfigShellExt(){}
-	virtual void load(const CConfigManager& Config) {
+	virtual void load(const CConfigFile& Config) {
 		loadShellMenu(Config);
 		loadDragMenu(Config);
 		loadExtraMenu(Config);
 		loadCustomMenu(Config);
 	}
-	virtual void store(CConfigManager& Config)const {
+	virtual void store(CConfigFile& Config)const {
 		storeShellMenu(Config);
 		storeDragMenu(Config);
 		storeExtraMenu(Config);

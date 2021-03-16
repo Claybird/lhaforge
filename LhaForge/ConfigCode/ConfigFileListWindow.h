@@ -24,7 +24,7 @@
 
 #pragma once
 #include "FileListWindow/MenuCommand.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 struct CConfigFileListWindow:public IConfigIO{
 public:
@@ -65,18 +65,18 @@ public:
 
 	std::vector<CLFMenuCommandItem> MenuCommandArray;	//「プログラムで開く」のコマンド
 protected:
-	void loadMenuCommand(const CConfigManager&);
-	void storeMenuCommand(CConfigManager&)const;
+	void loadMenuCommand(const CConfigFile&);
+	void storeMenuCommand(CConfigFile&)const;
 
-	void load_sub(const CConfigManager&);
-	void store_sub(CConfigManager&)const;
+	void load_sub(const CConfigFile&);
+	void store_sub(CConfigFile&)const;
 public:
 	virtual ~CConfigFileListWindow(){}
-	virtual void load(const CConfigManager &Config) {
+	virtual void load(const CConfigFile &Config) {
 		load_sub(Config);
 		loadMenuCommand(Config);
 	}
-	virtual void store(CConfigManager& Config)const {
+	virtual void store(CConfigFile& Config)const {
 		store_sub(Config);
 		storeMenuCommand(Config);
 	}

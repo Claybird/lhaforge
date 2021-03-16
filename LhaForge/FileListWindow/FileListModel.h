@@ -46,7 +46,7 @@ enum FILEINFO_TYPE{
 	ENUM_COUNT_AND_LASTITEM(FILEINFO),
 };
 
-struct CConfigManager;	//TODO: remove
+struct CConfigFile;	//TODO: remove
 class CFileListModel:public CEventDispatcher
 {
 protected:
@@ -65,7 +65,7 @@ protected:
 	//---internal functions
 	void SortCurrentEntries();
 public:
-	CFileListModel(const CConfigManager& mngr, ILFPassphrase& passphrase) :
+	CFileListModel(const CConfigFile& mngr, ILFPassphrase& passphrase) :
 		m_lpCurrentDir(nullptr),
 		m_bSortDescending(true),
 		m_nSortKeyType(FILEINFO_INVALID),
@@ -74,7 +74,7 @@ public:
 		setConfig(mngr);
 	}
 	virtual ~CFileListModel() {}
-	void setConfig(const CConfigManager& mngr) {
+	void setConfig(const CConfigFile& mngr) {
 		m_compressArgs.load(mngr);
 	}
 

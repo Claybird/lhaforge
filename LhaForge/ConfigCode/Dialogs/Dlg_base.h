@@ -70,14 +70,14 @@ public:
 	}
 };
 
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 
 class IConfigDlgBase {
 public:
 	virtual ~IConfigDlgBase() {}
 	virtual LRESULT OnApply() = 0;
-	virtual void LoadConfig(CConfigManager&) = 0;
-	virtual void StoreConfig(CConfigManager&) = 0;
+	virtual void LoadConfig(CConfigFile&) = 0;
+	virtual void StoreConfig(CConfigFile&) = 0;
 };
 
 

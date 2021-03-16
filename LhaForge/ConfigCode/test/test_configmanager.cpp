@@ -1,12 +1,12 @@
 ﻿#include "stdafx.h"
 #ifdef UNIT_TEST
 #include <gtest/gtest.h>
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "Utilities/FileOperation.h"
 
 TEST(ConfigManager, basic)
 {
-	CConfigManager conf;
+	CConfigFile conf;
 	conf.setDefaultPath();
 	EXPECT_EQ(std::filesystem::path(conf.m_iniPath).filename(), L"LhaForge.ini");
 
@@ -77,7 +77,7 @@ TEST(ConfigManager, basic)
 TEST(ConfigManager, get_set)
 {
 	auto path = UtilGetTemporaryFileName();
-	CConfigManager conf;
+	CConfigFile conf;
 	conf.setPath(path);
 
 	//empty data set

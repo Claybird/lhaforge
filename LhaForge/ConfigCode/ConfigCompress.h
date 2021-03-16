@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 enum OUTPUT_TO;
 enum LF_ARCHIVE_FORMAT;
@@ -48,7 +48,7 @@ public:
 	bool IgnoreTopDirectoryRecursively;	//「再帰的にフォルダより下のファイルを圧縮」:TODO
 public:
 	virtual ~CConfigCompress(){}
-	virtual void load(const CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile&);
+	virtual void store(CConfigFile&)const;
 };
 

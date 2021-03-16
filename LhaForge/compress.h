@@ -27,7 +27,7 @@
 #include "Utilities/FileOperation.h"
 #include "ArchiverCode/archive.h"
 
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigCompress.h"
 #include "ConfigCode/ConfigCompressFormat.h"
@@ -46,7 +46,7 @@ struct LF_COMPRESS_ARGS {
 		CConfigCompressFormatXZ xz;
 		CConfigCompressFormatZSTD zstd;
 
-		void load(const CConfigManager& mngr) {
+		void load(const CConfigFile& mngr) {
 			zip.load(mngr);
 			sevenzip.load(mngr);
 			tar.load(mngr);
@@ -57,7 +57,7 @@ struct LF_COMPRESS_ARGS {
 			zstd.load(mngr);
 		}
 	}formats;
-	void load(const CConfigManager& mngr) {
+	void load(const CConfigFile& mngr) {
 		general.load(mngr);
 		compress.load(mngr);
 		formats.load(mngr);
@@ -100,7 +100,7 @@ bool GUI_compress_multiple_files(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
-	const CConfigManager& config,
+	const CConfigFile& config,
 	CMDLINEINFO& CmdLineInfo);
 
 //command line parameter table

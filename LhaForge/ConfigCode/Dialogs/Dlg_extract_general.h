@@ -24,7 +24,7 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigManager.h"
+#include "../ConfigFile.h"
 #include "../../resource.h"
 #include "../ConfigExtract.h"
 #include "ArchiverCode/archive.h"
@@ -92,11 +92,11 @@ public:
 		return TRUE;
 	}
 
-	void LoadConfig(CConfigManager& Config){
+	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 		DenyExt = m_Config.DenyExt.c_str();
 	}
-	void StoreConfig(CConfigManager& Config){
+	void StoreConfig(CConfigFile& Config){
 		m_Config.store(Config);
 		m_Config.DenyExt = (const wchar_t*)DenyExt;
 	}

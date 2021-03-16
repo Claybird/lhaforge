@@ -92,12 +92,12 @@ void CLFArchive::write_open(
 
 #ifdef UNIT_TEST
 #include "compress.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 TEST(CLFArchive, write_open)
 {
 	auto temp = std::filesystem::path(UtilGetTempPath());
 	LF_COMPRESS_ARGS arg;
-	arg.load(CConfigManager());
+	arg.load(CConfigFile());
 	std::filesystem::create_directories(temp / L"test_write_open");
 	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
 	{

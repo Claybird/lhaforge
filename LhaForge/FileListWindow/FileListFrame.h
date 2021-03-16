@@ -24,7 +24,7 @@
 
 #pragma once
 #include "../resource.h"
-#include "../ConfigCode/ConfigManager.h"
+#include "../ConfigCode/ConfigFile.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"
 #include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
@@ -45,7 +45,7 @@ protected:
 	//bool m_bFirst;		//初回表示
 	//DLL_ID m_idForceDLL;	//強制使用するDLL
 
-	CConfigManager		&mr_Config;
+	CConfigFile		&mr_Config;
 	CConfigFileListWindow m_ConfFLW;
 
 	//----------------------
@@ -197,7 +197,7 @@ public:
 	END_UPDATE_UI_MAP()
 
 	//---
-	CFileListFrame(CConfigManager &conf);
+	CFileListFrame(CConfigFile &conf);
 	virtual ~CFileListFrame(){}
 
 	BOOL OnIdle(){

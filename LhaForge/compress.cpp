@@ -33,7 +33,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigCompress.h"
 #include "ConfigCode/ConfigCompressFormat.h"
 #include "ConfigCode/ConfigGeneral.h"
@@ -44,7 +44,7 @@
 #include "extract.h"	//for extract test
 #endif
 
-void parseCompressOption(const CConfigManager& config, LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
+void parseCompressOption(const CConfigFile& config, LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
 {
 	args.load(config);
 
@@ -393,7 +393,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
-		fake_args.load(CConfigManager());
+		fake_args.load(CConfigFile());
 		fake_args.compress.IgnoreTopDirectory = false;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -431,7 +431,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
-		fake_args.load(CConfigManager());
+		fake_args.load(CConfigFile());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = true;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -463,7 +463,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"a");
 
 		LF_COMPRESS_ARGS fake_args;
-		fake_args.load(CConfigManager());
+		fake_args.load(CConfigFile());
 		fake_args.compress.IgnoreTopDirectory = false;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -490,7 +490,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
-		fake_args.load(CConfigManager());
+		fake_args.load(CConfigFile());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = false;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -517,7 +517,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 		givenFiles.push_back(dir / L"b");
 
 		LF_COMPRESS_ARGS fake_args;
-		fake_args.load(CConfigManager());
+		fake_args.load(CConfigFile());
 		fake_args.compress.IgnoreTopDirectory = true;
 		fake_args.compress.IgnoreTopDirectoryRecursively = true;
 		auto sources = buildCompressSources(fake_args, givenFiles);
@@ -661,7 +661,7 @@ TEST(compress, compressOneArchive)
 	}
 
 	LF_COMPRESS_ARGS fake_args;
-	fake_args.load(CConfigManager());
+	fake_args.load(CConfigFile());
 	fake_args.compress.IgnoreTopDirectory = false;
 	fake_args.compress.IgnoreTopDirectoryRecursively = false;
 
@@ -892,7 +892,7 @@ bool GUI_compress_multiple_files(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
-	const CConfigManager& config,
+	const CConfigFile& config,
 	CMDLINEINFO& CmdLineInfo)
 {
 	LF_COMPRESS_ARGS args;
@@ -1141,7 +1141,7 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 	auto tempFile = UtilGetTemporaryFileName();
 	CLFArchive src;
 	LF_COMPRESS_ARGS fake_args;
-	fake_args.load(CConfigManager());
+	fake_args.load(CConfigFile());
 	src.read_open(src_filename, CLFPassphraseNULL());
 	auto dest = src.make_copy_archive(tempFile, fake_args, [](const LF_ENTRY_STAT& entry) {
 		if (entry.path.wstring().find(L"dirC") == std::wstring::npos) {

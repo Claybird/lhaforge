@@ -24,12 +24,12 @@
 
 #include "stdafx.h"
 #include "ArchiverCode/archive.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigExtract.h"
 #include "Utilities/FileOperation.h"
 #include "resource.h"
 
-void CConfigExtract::load(const CConfigManager &Config)
+void CConfigExtract::load(const CConfigFile &Config)
 {
 	const auto section = L"Extract";
 	OutputDirType = (OUTPUT_TO)Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
@@ -85,7 +85,7 @@ void CConfigExtract::load(const CConfigManager &Config)
 	DenyExt = Config.getText(section, L"DenyExt", UtilLoadString(IDS_DENYEXT_DEFAULT));
 }
 
-void CConfigExtract::store(CConfigManager &Config)const
+void CConfigExtract::store(CConfigFile &Config)const
 {
 	const auto section = L"Extract";
 	Config.setValue(section, L"OutputDirType", OutputDirType);

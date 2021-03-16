@@ -6,7 +6,7 @@
 #include <libarchive/archive_entry.h>
 #include <errno.h>
 
-#include "ConfigCode/ConfigManager.h"
+#include "ConfigCode/ConfigFile.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 
@@ -539,7 +539,7 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 TEST(archive_libarchive, getLAOptionsFromConfig)
 {
 	LF_COMPRESS_ARGS fake_args;
-	CConfigManager mngr;
+	CConfigFile mngr;
 	fake_args.load(mngr);
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);

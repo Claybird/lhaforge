@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
@@ -47,7 +47,7 @@ public:
 	std::wstring DenyExt;		//解凍対象から外す拡張子
 public:
 	virtual ~CConfigExtract(){}
-	virtual void load(const CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile&);
+	virtual void store(CConfigFile&)const;
 };
 

@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 enum LOSTDIR;
 enum LOGVIEW;
@@ -45,23 +45,23 @@ public:
 
 	std::wstring TempPath;
 protected:
-	void loadOutput(const CConfigManager&);
-	void storeOutput(CConfigManager&)const;
-	void loadFiler(const CConfigManager&);
-	void storeFiler(CConfigManager&)const;
-	void loadLogView(const CConfigManager&);
-	void storeLogView(CConfigManager&)const;
-	void loadGeneral(const CConfigManager&);
-	void storeGeneral(CConfigManager&)const;
+	void loadOutput(const CConfigFile&);
+	void storeOutput(CConfigFile&)const;
+	void loadFiler(const CConfigFile&);
+	void storeFiler(CConfigFile&)const;
+	void loadLogView(const CConfigFile&);
+	void storeLogView(CConfigFile&)const;
+	void loadGeneral(const CConfigFile&);
+	void storeGeneral(CConfigFile&)const;
 public:
 	virtual ~CConfigGeneral(){}
-	virtual void load(const CConfigManager& Config) {
+	virtual void load(const CConfigFile& Config) {
 		loadOutput(Config);
 		loadLogView(Config);
 		loadFiler(Config);
 		loadGeneral(Config);
 	}
-	virtual void store(CConfigManager& Config)const {
+	virtual void store(CConfigFile& Config)const {
 		storeOutput(Config);
 		storeLogView(Config);
 		storeFiler(Config);

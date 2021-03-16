@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 enum OPENACTION{
 	OPENACTION_EXTRACT,
@@ -41,6 +41,6 @@ public:
 	OPENACTION OpenAction_Ctrl;
 public:
 	virtual ~CConfigOpenAction(){}
-	virtual void load(const CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile&);
+	virtual void store(CConfigFile&)const;
 };

@@ -25,7 +25,7 @@
 #include "stdafx.h"
 #include "FileListFrame.h"
 #include "../ConfigCode/configwnd.h"
-#include "../ConfigCode/ConfigManager.h"
+#include "../ConfigCode/ConfigFile.h"
 #include "../ConfigCode/ConfigFileListWindow.h"
 #include "../resource.h"
 #include "Dialogs/LogListDialog.h"
@@ -39,7 +39,7 @@ CString g_FileToOpen;
 
 CString CFileListFrame::ms_strPropString(CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION))+CString(MAKEINTRESOURCE(IDS_LHAFORGE_VERSION_STRING)));
 
-CFileListFrame::CFileListFrame(CConfigManager &conf):
+CFileListFrame::CFileListFrame(CConfigFile &conf):
 	mr_Config(conf),
 	m_TabClientWnd(conf, m_ConfFLW, *this),
 	m_DropTarget(this)

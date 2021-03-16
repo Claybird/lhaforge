@@ -130,7 +130,7 @@ std::filesystem::path determineExtractBaseDir(
 
 TEST(extract, determineExtractBaseDir) {
 	LF_EXTRACT_ARGS fakeArg;
-	fakeArg.load(CConfigManager());
+	fakeArg.load(CConfigFile());
 	fakeArg.extract.OutputDirType = OUTPUT_TO::OUTPUT_TO_SPECIFIC_DIR;
 	fakeArg.extract.OutputDirUserSpecified = std::filesystem::current_path().c_str();
 	fakeArg.general.WarnNetwork = FALSE;
@@ -250,7 +250,7 @@ std::filesystem::path determineExtractDir(
 #ifdef UNIT_TEST
 TEST(extract, determineExtractDir) {
 	LF_EXTRACT_ARGS fakeArg;
-	fakeArg.load(CConfigManager());
+	fakeArg.load(CConfigFile());
 	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_NEVER;
 	fakeArg.extract.RemoveSymbolAndNumber = false;
 	CLFArchiveNULL arc;
@@ -273,7 +273,7 @@ TEST(extract, determineExtractDir) {
 #endif
 
 //load configuration from file, then overwrites with command line arguments.
-void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigManager &mngr, const CMDLINEINFO* lpCmdLineInfo)
+void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEINFO* lpCmdLineInfo)
 {
 	args.load(mngr);
 
@@ -574,7 +574,7 @@ bool GUI_extract_multiple_files(
 )
 {
 	LF_EXTRACT_ARGS args;
-	CConfigManager mngr;
+	CConfigFile mngr;
 	try {
 		mngr.load();
 		// load configuration, then override them with command line args
@@ -795,7 +795,7 @@ bool GUI_test_multiple_files(
 )
 {
 	LF_EXTRACT_ARGS args;
-	CConfigManager mngr;
+	CConfigFile mngr;
 	try {
 		mngr.load();
 		// load configuration, then override them with command line args

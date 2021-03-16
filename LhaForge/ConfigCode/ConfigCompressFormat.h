@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 
 struct CConfigCompressFormatBase :public IConfigIO {
 public:
@@ -39,7 +39,7 @@ public:
 		const std::map<std::wstring, std::vector<std::wstring>>& _knd
 	) :section_name(_section_name), key_and_valid_values(_knd) {}
 	virtual ~CConfigCompressFormatBase() {}
-	virtual void load(const CConfigManager& Config) override{
+	virtual void load(const CConfigFile& Config) override{
 		for (const auto& ite : key_and_valid_values) {
 			const auto &key = ite.first;
 			auto key_utf8 = UtilToUTF8(key);
@@ -56,7 +56,7 @@ public:
 			}
 		}
 	}
-	virtual void store(CConfigManager& Config)const override {
+	virtual void store(CConfigFile& Config)const override {
 		for (const auto& ite : params) {
 			auto key = UtilUTF8toUNICODE(ite.first);
 			auto value = UtilUTF8toUNICODE(ite.second);
@@ -171,7 +171,7 @@ protected:
 public:
 	CConfigCompressFormats() {}
 	virtual ~CConfigCompressFormats() {}
-	virtual void load(CConfigManager& mngr) override {
+	virtual void load(CConfigFile& mngr) override {
 		_fmt7z.load(mngr);
 		_fmtbz2.load(mngr);
 		_fmtgz.load(mngr);
@@ -181,7 +181,7 @@ public:
 		_fmtzip.load(mngr);
 		_fmtzstd.load(mngr);
 	}
-	virtual void store(CConfigManager& mngr)const override {
+	virtual void store(CConfigFile& mngr)const override {
 		_fmt7z.store(mngr);
 		_fmtbz2.store(mngr);
 		_fmtgz.store(mngr);

@@ -89,10 +89,10 @@ public:
 		return TRUE;
 	}
 
-	void LoadConfig(CConfigManager& Config){
+	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigManager& Config){
+	void StoreConfig(CConfigFile& Config){
 		m_Config.store(Config);
 	}
 };

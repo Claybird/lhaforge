@@ -23,10 +23,10 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigShellExt.h"
 
-void CConfigShellExt::loadShellMenu(const CConfigManager &Config)
+void CConfigShellExt::loadShellMenu(const CConfigFile &Config)
 {
 	const auto section = L"ShellMenu";
 	// 右クリックメニューの表示・非表示
@@ -39,7 +39,7 @@ void CConfigShellExt::loadShellMenu(const CConfigManager &Config)
 	ShellMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
-void CConfigShellExt::storeShellMenu(CConfigManager &Config)const
+void CConfigShellExt::storeShellMenu(CConfigFile &Config)const
 {
 	const auto section = L"ShellMenu";
 	// 右クリックメニューの表示・非表示
@@ -52,7 +52,7 @@ void CConfigShellExt::storeShellMenu(CConfigManager &Config)const
 	Config.setValue(section, L"UnderSubMenu", ShellMenuUnderSubMenu);
 }
 
-void CConfigShellExt::loadDragMenu(const CConfigManager &Config)
+void CConfigShellExt::loadDragMenu(const CConfigFile &Config)
 {
 	const auto section = L"DragMenu";
 	// 右ドラッグメニューの表示・非表示
@@ -62,7 +62,7 @@ void CConfigShellExt::loadDragMenu(const CConfigManager &Config)
 	DragMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
-void CConfigShellExt::storeDragMenu(CConfigManager &Config)const
+void CConfigShellExt::storeDragMenu(CConfigFile &Config)const
 {
 	const auto section = L"DragMenu";
 	// 右ドラッグメニューの表示・非表示
@@ -72,28 +72,28 @@ void CConfigShellExt::storeDragMenu(CConfigManager &Config)const
 	Config.setValue(section, L"UnderSubMenu", DragMenuUnderSubMenu);
 }
 
-void CConfigShellExt::loadExtraMenu(const CConfigManager &Config)
+void CConfigShellExt::loadExtraMenu(const CConfigFile &Config)
 {
 	const auto section = L"ExtraMenu";
 	// 拡張メニューの表示
 	ForceExtraMenu=Config.getBool(section, L"ForceExtraMenu", false);
 }
 
-void CConfigShellExt::storeExtraMenu(CConfigManager &Config)const
+void CConfigShellExt::storeExtraMenu(CConfigFile &Config)const
 {
 	const auto section = L"ExtraMenu";
 	// 拡張メニューの表示
 	Config.setValue(section, L"ForceExtraMenu", ForceExtraMenu);
 }
 
-void CConfigShellExt::loadCustomMenu(const CConfigManager &Config)
+void CConfigShellExt::loadCustomMenu(const CConfigFile &Config)
 {
 	const auto section = L"CustomMenu";
 	// カスタマイズメニューの使用
 	UseCustomMenu=Config.getBool(section, L"UseCustom", true);
 }
 
-void CConfigShellExt::storeCustomMenu(CConfigManager &Config)const
+void CConfigShellExt::storeCustomMenu(CConfigFile &Config)const
 {
 	const auto section = L"CustomMenu";
 	// カスタマイズメニューの使用

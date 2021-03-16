@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "../ConfigManager.h"
+#include "../ConfigFile.h"
 #include "Dlg_shellext.h"
 #include "../../Utilities/shellmanager.h"
 #include "../configwnd.h"
@@ -82,7 +82,7 @@ LRESULT CConfigDlgShellExt::OnApply()
 	//依頼内容を記述
 	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
 	//---登録or解除
-	CConfigManager tmp;
+	CConfigFile tmp;
 	tmp.setPath(strIniName);
 	try {
 		tmp.load();

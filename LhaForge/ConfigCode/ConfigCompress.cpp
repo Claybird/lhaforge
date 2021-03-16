@@ -24,11 +24,11 @@
 
 #include "stdafx.h"
 #include "ArchiverCode/archive.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigCompress.h"
 #include "Utilities/FileOperation.h"
 
-void CConfigCompress::load(const CConfigManager &Config)
+void CConfigCompress::load(const CConfigFile &Config)
 {
 	const auto section = L"Compress";
 	//出力先の種類
@@ -79,7 +79,7 @@ void CConfigCompress::load(const CConfigManager &Config)
 	IgnoreTopDirectory=Config.getBool(section, L"IgnoreTopDirectory", false);
 }
 
-void CConfigCompress::store(CConfigManager &Config)const
+void CConfigCompress::store(CConfigFile &Config)const
 {
 	const auto section = L"Compress";
 	//出力先の種類

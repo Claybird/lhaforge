@@ -26,7 +26,7 @@
     <ClCompile Include="ConfigCode\ConfigExtract.cpp" />
     <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp" />
     <ClCompile Include="ConfigCode\ConfigGeneral.cpp" />
-    <ClCompile Include="ConfigCode\ConfigManager.cpp" />
+    <ClCompile Include="ConfigCode\ConfigFile.cpp" />
     <ClCompile Include="ConfigCode\ConfigOpenAction.cpp" />
     <ClCompile Include="ConfigCode\ConfigShellExt.cpp" />
     <ClCompile Include="ConfigCode\Configwnd.cpp" />
@@ -83,7 +83,7 @@
     <ClInclude Include="ConfigCode\ConfigExtract.h" />
     <ClInclude Include="ConfigCode\ConfigFileListWindow.h" />
     <ClInclude Include="ConfigCode\ConfigGeneral.h" />
-    <ClInclude Include="ConfigCode\ConfigManager.h" />
+    <ClInclude Include="ConfigCode\ConfigFile.h" />
     <ClInclude Include="ConfigCode\ConfigOpenAction.h" />
     <ClInclude Include="ConfigCode\ConfigShellExt.h" />
     <ClInclude Include="ConfigCode\Configwnd.h" />

@@ -24,7 +24,7 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigManager.h"
+#include "../ConfigFile.h"
 #include "../../resource.h"
 #include "ArchiverCode/archive.h"
 #include "../ConfigGeneral.h"
@@ -82,10 +82,10 @@ public:
 	}
 
 
-	void LoadConfig(CConfigManager& Config){
+	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigManager& Config){
+	void StoreConfig(CConfigFile& Config){
 		m_Config.store(Config);
 	}
 };

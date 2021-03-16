@@ -23,11 +23,11 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "Utilities/FileOperation.h"
 #include "resource.h"
 
-void CConfigManager::setDefaultPath()
+void CConfigFile::setDefaultPath()
 {
 	const wchar_t* INI_FILE_NAME = L"LhaForge.ini";
 	const wchar_t* PROGRAMDIR_NAME = L"LhaForge";	//directory name in ApplicationData
@@ -75,7 +75,7 @@ void CConfigManager::setDefaultPath()
 	m_bUserCommon = true;
 }
 
-void CConfigManager::setPath(const std::wstring& path)
+void CConfigFile::setPath(const std::wstring& path)
 {
 	m_bUserCommon=false;
 	try {
@@ -85,7 +85,7 @@ void CConfigManager::setPath(const std::wstring& path)
 	}
 }
 
-void CConfigManager::load()
+void CConfigFile::load()
 {
 	if (std::filesystem::is_regular_file(m_iniPath)) {
 		auto rc = m_Config.LoadFile(m_iniPath.c_str());
@@ -98,7 +98,7 @@ void CConfigManager::load()
 	}
 }
 
-void CConfigManager::save()
+void CConfigFile::save()
 {
 	//version
 	m_Config.SetValue(L"lhaforge", L"version", UtilLoadString(IDS_LHAFORGE_VERSION_STRING).c_str());
