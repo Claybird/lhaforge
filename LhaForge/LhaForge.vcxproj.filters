@@ -82,9 +82,6 @@
     <ClCompile Include="CmdLineInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommonUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="compress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -112,20 +109,8 @@
     <ClCompile Include="Utilities\Utility.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="test\test_commonutil.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\test\test_Semaphore.cpp">
-      <Filter>Utilities\test</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
       <Filter>FileListWindow\test</Filter>
-    </ClCompile>
-    <ClCompile Include="test\test_cmdlineinfo.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
-    <ClCompile Include="test\test_main.cpp">
-      <Filter>Source Files\test</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\test\test_configmanager.cpp">
       <Filter>Configs\Other\test</Filter>
@@ -139,8 +124,11 @@
     <ClCompile Include="ArchiverCode\archive.cpp">
       <Filter>ArchiverCode</Filter>
     </ClCompile>
-    <ClCompile Include="ArchiverCode\test\test_archive.cpp">
-      <Filter>ArchiverCode\test</Filter>
+    <ClCompile Include="CommonUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Semaphore.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -174,20 +162,11 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{ad63b314-6e29-434f-9089-61d3aca1e0a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\test">
-      <UniqueIdentifier>{3559a591-0f4f-4924-b151-8a73952c5604}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utilities\test">
-      <UniqueIdentifier>{4e1f840c-e4d7-48ff-b12a-722ae5cac635}</UniqueIdentifier>
-    </Filter>
     <Filter Include="FileListWindow\test">
       <UniqueIdentifier>{12106ed9-2803-4993-b85e-f05a1976e42c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ArchiverCode\test">
-      <UniqueIdentifier>{9f3bc7a5-b028-417f-b3a7-18b3199f7edd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Configs\Other\test">
       <UniqueIdentifier>{5ddd1314-39a1-46a4-8078-4cfcc104a9a4}</UniqueIdentifier>

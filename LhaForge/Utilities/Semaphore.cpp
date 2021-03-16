@@ -1,6 +1,5 @@
 ﻿#include "stdafx.h"
 #ifdef UNIT_TEST
-#include <gtest/gtest.h>
 #include "Utilities/Semaphore.h"
 
 TEST(semaphore, semaphore) {

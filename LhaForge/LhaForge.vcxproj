@@ -17,7 +17,6 @@
   <ItemGroup>
     <ClCompile Include="ArchiverCode\archive.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -64,14 +63,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug UnitTest|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="test\test_cmdlineinfo.cpp" />
-    <ClCompile Include="test\test_commonutil.cpp" />
-    <ClCompile Include="test\test_main.cpp" />
     <ClCompile Include="Utilities\FileOperation.cpp" />
     <ClCompile Include="Utilities\OSUtil.cpp" />
+    <ClCompile Include="Utilities\Semaphore.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_Semaphore.cpp" />
     <ClCompile Include="Utilities\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>

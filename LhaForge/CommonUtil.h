@@ -27,11 +27,6 @@
 #include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
 
-//設定から出力先フォルダを読み込む
-//r_bUseForAll:今後も同じフォルダ設定を使うならtrue
-[[deprecated("will be removed; use LF_get_output_dir instead")]]
-HRESULT GetOutputDirPathFromConfig(OUTPUT_TO,LPCTSTR lpszOrgFile,LPCTSTR lpszSpecific,CPath &r_pathOutputDir,bool &r_bUseForAll,CString &strErr);
-
 struct I_LF_GET_OUTPUT_DIR_CALLBACK {
 	virtual std::wstring operator()() = 0;
 	virtual ~I_LF_GET_OUTPUT_DIR_CALLBACK() {}
@@ -75,10 +70,6 @@ std::wstring LF_get_output_dir(
 
 
 struct CConfigGeneral;
-
-//S_FALSEが返ったときには、何らかの方法で新しい出力先を選択させる(「名前をつけて保存」ダイアログを開く)
-[[deprecated("will be removed; use LF_confirm_output_dir_type and LF_ask_and_make_sure_output_dir_exists instead")]]
-HRESULT ConfirmOutputDir(const CConfigGeneral &Config,LPCTSTR lpszOutputDir,CString &strErr);
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
 bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn);

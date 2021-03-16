@@ -24,68 +24,10 @@
 
 #include "stdafx.h"
 #include "CommonUtil.h"
-#include "ConfigCode/ConfigManager.h"
 #include "ConfigCode/ConfigGeneral.h"
-#include "ArchiverCode/archive.h"
 #include "resource.h"
 #include "Utilities/FileOperation.h"
-#include "Utilities/OSUtil.h"
 #include "Utilities/Utility.h"
-
-//設定から出力先フォルダを読み込む
-//r_bUseForAll:今後も同じフォルダ設定を使うならtrue
-HRESULT GetOutputDirPathFromConfig(OUTPUT_TO outputDirType,LPCTSTR lpszOrgFile,LPCTSTR lpszSpecific,CPath &r_pathOutputDir,bool &r_bUseForAll,CString &strErr)
-{
-	switch(outputDirType){
-	case OUTPUT_TO_SPECIFIC_DIR:	//Specific Directory
-		//TRACE(_T("Specific Dir:%s\n"),Config.Common.Extract.OutputDir);
-		r_pathOutputDir=lpszSpecific;
-		if(_tcslen(r_pathOutputDir)>0){
-			return S_OK;
-		}else{
-			//出力先がかかれていなければ、デスクトップに出力する
-		}
-		//FALLTHROUGH
-	case OUTPUT_TO_DESKTOP:	//Desktop
-		try{
-			r_pathOutputDir = UtilGetDesktopPath().c_str();
-		}catch(const LF_EXCEPTION&){	//デスクトップがない？
-			strErr=CString(MAKEINTRESOURCE(IDS_ERROR_GET_DESKTOP));
-			return E_FAIL;
-		}
-		return S_OK;
-	case OUTPUT_TO_SAME_DIR:	//Same Directory
-		r_pathOutputDir = std::filesystem::path(lpszOrgFile).parent_path().c_str();
-		return S_OK;
-	case OUTPUT_TO_ALWAYS_ASK_WHERE:	//出力先を毎回聞く
-		TRACE(_T("Always ask\n"));
-		{
-			//元のファイルと同じ場所にする;2回目以降は前回出力場所を使用する
-			static CString s_strLastOutput;
-			CPath pathTmp;
-			if(s_strLastOutput.IsEmpty()){
-				pathTmp=lpszOrgFile;
-				pathTmp.RemoveFileSpec();
-			}else{
-				pathTmp=(LPCTSTR)s_strLastOutput;
-			}
-
-			LFShellFileOpenDialog dlg(pathTmp, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
-			if(IDOK==dlg.DoModal()){
-				r_bUseForAll=(GetKeyState(VK_SHIFT)<0);	//TODO
-				dlg.GetFilePath(r_pathOutputDir);
-				s_strLastOutput=(LPCTSTR)r_pathOutputDir;
-				return S_OK;
-			}else{
-				return E_ABORT;	//キャンセルされた
-			}
-		}
-		break;
-	default:
-		ASSERT(!"This code cannot be run");
-		return E_NOTIMPL;
-	}
-}
 
 //returns output directory that corresponds to outputDirType
 std::wstring LF_get_output_dir(
@@ -113,66 +55,25 @@ std::wstring LF_get_output_dir(
 	}
 }
 
-
-//S_FALSEが返ったときには、「名前をつけて保存」ダイアログを開く
-HRESULT ConfirmOutputDir(const CConfigGeneral &Conf,LPCTSTR lpszOutputDir,CString &strErr)
-{
-	//---
-	// 出力先がネットワークドライブ/リムーバブルディスクであるなら、出力先を選択させる
-	if(Conf.WarnNetwork || Conf.WarnRemovable){
-		//ルートドライブ名取得
-		CPath pathDrive=lpszOutputDir;
-		pathDrive.StripToRoot();
-
-		switch(GetDriveType(pathDrive)){
-		case DRIVE_REMOVABLE://ドライブからディスクを抜くことができます。
-		case DRIVE_CDROM://CD-ROM
-			if(Conf.WarnRemovable){
-				if(IDNO== UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)),MB_YESNO|MB_ICONQUESTION)){
-					return S_FALSE;
-				}
+#ifdef UNIT_TEST
+TEST(CommonUtil, LF_get_output_dir) {
+	struct LF_GET_OUTPUT_DIR_TEST_CALLBACK :I_LF_GET_OUTPUT_DIR_CALLBACK {
+		std::wstring _default_path;
+		void setArchivePath(const wchar_t* archivePath) {
+			if (_default_path.empty()) {
+				_default_path = std::filesystem::path(archivePath).parent_path();
 			}
-			break;
-		case DRIVE_REMOTE://リモート (ネットワーク) ドライブです。
-		case DRIVE_NO_ROOT_DIR:
-			if(Conf.WarnNetwork){
-				if(IDNO== UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)),MB_YESNO|MB_ICONQUESTION)){
-					return S_FALSE;
-				}
-			}
-			break;
 		}
-	}
-
-	//---
-	//出力先のチェック
-	if(!PathIsDirectory(lpszOutputDir)){
-		//パスが存在しない場合
-		CString strMsg;
-		switch(Conf.OnDirNotFound){
-		case LOSTDIR_ASK_TO_CREATE:	//作成するかどうか聞く
-			strMsg.Format(IDS_ASK_CREATE_DIR,lpszOutputDir);
-			if(IDNO== UtilMessageBox(NULL, (const wchar_t*)strMsg,MB_YESNO|MB_ICONQUESTION)){
-				return E_ABORT;
-			}
-			//FALLTHROUGH
-		case LOSTDIR_FORCE_CREATE:	//ディレクトリ作成
-			try {
-				std::filesystem::create_directories(lpszOutputDir);
-			} catch (std::filesystem::filesystem_error) {
-				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR,lpszOutputDir);
-				//ErrorMessage(strMsg);
-				return E_FAIL;
-			}
-			break;
-		default://エラーと見なす
-			strErr.Format(IDS_ERROR_DIR_NOTFOUND,lpszOutputDir);
-			return E_FAIL;
+		std::wstring operator()()override {
+			return _default_path;
 		}
-	}
-
-	return S_OK;
+	};
+	LF_GET_OUTPUT_DIR_TEST_CALLBACK output_dir_callback;
+	output_dir_callback.setArchivePath(L"C:/path_to/test_archive.ext");
+	auto outputDir = LF_get_output_dir(OUTPUT_TO_SAME_DIR, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
+	EXPECT_EQ(L"C:/path_to", outputDir);
 }
+#endif
 
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
 bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& outputDirIn)
@@ -222,6 +123,15 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::wstring& 
 		}
 	}
 }
+#ifdef UNIT_TEST
+TEST(CommonUtil, LF_confirm_output_dir_type) {
+	CConfigGeneral conf;
+	conf.WarnRemovable = false;
+	conf.WarnNetwork = false;
+	EXPECT_TRUE(LF_confirm_output_dir_type(conf, L"C:/"));
+	EXPECT_TRUE(LF_confirm_output_dir_type(conf, L"C:/temp"));
+}
+#endif
 
 void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTDIR OnDirNotFound)
 {
@@ -257,6 +167,18 @@ void LF_ask_and_make_sure_output_dir_exists(const std::wstring& outputDir, LOSTD
 	}
 }
 
+#ifdef UNIT_TEST
+TEST(CommonUtil, LF_ask_and_make_sure_output_dir_exists) {
+	auto target = UtilGetTempPath() + L"make_sure_test";
+	EXPECT_FALSE(std::filesystem::exists(target));
+	EXPECT_THROW(LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_ERROR), LF_EXCEPTION);
+	EXPECT_FALSE(std::filesystem::exists(target));
+	LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_FORCE_CREATE);
+	EXPECT_TRUE(std::filesystem::exists(target));
+	UtilDeleteDir(target, true);
+}
+#endif
+
 //prepare envInfo map for UtilExpandTemplateString()
 std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* lpOpenDir, const wchar_t* lpOutputFile)
 {
@@ -287,6 +209,25 @@ std::map<std::wstring, std::wstring> LF_make_expand_information(const wchar_t* l
 	}
 	return templateParams;
 }
+
+#ifdef UNIT_TEST
+TEST(CommonUtil, LF_make_expand_information) {
+	const auto open_dir = LR"(C:\test\)";
+	const auto output_path = LR"(D:\test\output.ext)";
+	auto envInfo = LF_make_expand_information(open_dir, output_path);
+	EXPECT_TRUE(has_key(envInfo, toLower(L"PATH")));
+	EXPECT_TRUE(has_key(envInfo, toLower(L"tmp")));
+	EXPECT_EQ(UtilGetModulePath(), envInfo[toLower(L"ProgramPath")]);
+	EXPECT_EQ(std::filesystem::path(UtilGetModulePath()).parent_path().wstring(), envInfo[toLower(L"ProgramDir")]);
+
+	EXPECT_EQ(open_dir, envInfo[toLower(L"dir")]);
+	EXPECT_EQ(open_dir, envInfo[toLower(L"OutputDir")]);
+	EXPECT_EQ(L"C:", envInfo[toLower(L"OutputDrive")]);
+
+	EXPECT_EQ(output_path, envInfo[toLower(L"OutputFile")]);
+	EXPECT_EQ(L"output.ext", envInfo[toLower(L"OutputFileName")]);
+}
+#endif
 
 //replace filenames that could be harmful
 std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
@@ -338,6 +279,44 @@ std::wstring LF_sanitize_pathname(const std::wstring &rawPath)
 	return buf;
 }
 
+#ifdef UNIT_TEST
+TEST(CommonUtil, LF_sanitize_pathname) {
+	EXPECT_EQ(L"", LF_sanitize_pathname(L""));
+	EXPECT_EQ(L"", LF_sanitize_pathname(L"//"));
+	EXPECT_EQ(L"", LF_sanitize_pathname(L"\\"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"/a"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"//a"));
+	EXPECT_EQ(L"a", LF_sanitize_pathname(L"\\a"));
+	EXPECT_EQ(L"a/", LF_sanitize_pathname(L"//a////"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a\\b"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a//b"));
+	EXPECT_EQ(L"a/b", LF_sanitize_pathname(L"a/./././b"));
+	EXPECT_EQ(L"c/_@@@_/d", LF_sanitize_pathname(L"c/../d"));
+	EXPECT_EQ(L"e/_@@@_/f", LF_sanitize_pathname(L"e/....../f"));
+	EXPECT_EQ(L"a/b/c", LF_sanitize_pathname(L"a/b/c"));
+	EXPECT_EQ(L"a/b/c/", LF_sanitize_pathname(L"a/b/c/"));
+
+	EXPECT_EQ(L"abc_(UNICODE_CTRL)_def", LF_sanitize_pathname(L"abc\u202Edef"));
+
+	EXPECT_EQ(L"あいうえお", LF_sanitize_pathname(L"あいうえお"));
+	EXPECT_EQ(L"あいう/えお", LF_sanitize_pathname(L"あいう//えお"));
+
+	EXPECT_EQ(L"c_/", LF_sanitize_pathname(L"c:/"));
+	EXPECT_EQ(L"c_/AUX_/", LF_sanitize_pathname(L"c:/AUX/"));
+	EXPECT_EQ(L"c_/AUX_", LF_sanitize_pathname(L"c:/AUX"));
+	EXPECT_EQ(L"AUX_", LF_sanitize_pathname(L"AUX"));
+
+	EXPECT_EQ(L"c_/com1_/", LF_sanitize_pathname(L"c:/com1/"));
+	EXPECT_EQ(L"c_/CON_/", LF_sanitize_pathname(L"c:/CON/"));
+	EXPECT_EQ(L"c_/lpt1_/", LF_sanitize_pathname(L"c:/lpt1/"));
+	EXPECT_EQ(L"c_/nul_/", LF_sanitize_pathname(L"c:/nul/"));
+	EXPECT_EQ(L"c_/PRN_/", LF_sanitize_pathname(L"c:/PRN/"));
+	EXPECT_EQ(L"c_/COM1_/CON_/PRN_/", LF_sanitize_pathname(L"c:/COM1/CON/PRN/"));
+
+	EXPECT_EQ(L"_______", LF_sanitize_pathname(L":*?\"<>|"));
+}
+#endif
+
 void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::wstring>& original_files)
 {
 	const size_t max_limit = 10;
@@ -370,6 +349,13 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 		}
 	}
 }
+
+#ifdef UNIT_TEST
+/*TEST(CommonUtil, LF_sanitize_pathname) {
+	LF_deleteOriginalArchives();
+}*/
+#endif
+
 
 #include "Dialogs/TextInputDlg.h"
 

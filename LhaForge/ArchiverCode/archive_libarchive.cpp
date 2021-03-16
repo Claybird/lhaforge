@@ -427,6 +427,48 @@ struct LA_FILE_TO_WRITE
 	}
 };
 
+#ifdef UNIT_TEST
+#include "CommonUtil.h"
+TEST(CLFArchiveLA, mimic_archive_property)
+{
+	{
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test_extract.zip";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
+		EXPECT_EQ(filters.size(), 1);
+		EXPECT_EQ(filters.back(), ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+	{
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test_gzip.gz";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+	{
+		auto fileToRead = LF_PROJECT_DIR() / L"test/test.tar.gz";
+		LA_FILE_TO_READ src;
+		src.open(fileToRead, CLFPassphraseNULL());
+		src.begin();	//need to scan
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
+		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
+		EXPECT_EQ(filters.size(), 2);
+		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
+		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
+		EXPECT_FALSE(is_encrypted);
+	}
+}
+#endif
+
 #include "compress.h"
 
 std::map<std::string, std::string> getLAOptionsFromConfig(
@@ -492,6 +534,76 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	bool encrypt = (options & LF_WOPT_DATA_ENCRYPTION) != 0;
 	return getLAOptionsFromConfig(la_format, la_filters, encrypt, args);
 }
+
+#ifdef UNIT_TEST
+TEST(archive_libarchive, getLAOptionsFromConfig)
+{
+	LF_COMPRESS_ARGS fake_args;
+	CConfigManager mngr;
+	fake_args.load(mngr);
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+		EXPECT_EQ(4, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+		EXPECT_EQ(5, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		EXPECT_EQ("enabled", la_options.at("zip64"));
+	}
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_7Z, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("deflate", la_options.at("compression"));
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_TAR, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_GZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_BZ2, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_XZ, LF_WOPT_STANDARD);
+		EXPECT_EQ(2, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+		EXPECT_EQ("0", la_options.at("threads"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_LZMA, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("9", la_options.at("compression-level"));
+	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZSTD, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("3", la_options.at("compression-level"));
+	}
+}
+#endif
 
 //------
 
@@ -695,10 +807,8 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 
 
 #ifdef UNIT_TEST
-#include <gtest/gtest.h>
-#include "ArchiverCode/archive.h"
 
-TEST(CLFArchiveLA, isKnownArchive)
+TEST(CLFArchiveLA, is_known_format)
 {
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.gz"));
@@ -715,113 +825,6 @@ TEST(CLFArchiveLA, isKnownArchive)
 
 	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(__FILEW__));
 	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(L"some_non_existing_file"));
-}
-
-TEST(CLFArchiveLA, getLAOptionsFromConfig)
-{
-	LF_COMPRESS_ARGS fake_args;
-	CConfigManager mngr;
-	fake_args.load(mngr);
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
-		EXPECT_EQ(4, la_options.size());
-		EXPECT_EQ("deflate", la_options.at("compression"));
-		EXPECT_EQ("9", la_options.at("compression-level"));
-		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
-		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("enabled", la_options.at("zip64"));
-	}
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
-		EXPECT_EQ(5, la_options.size());
-		EXPECT_EQ("deflate", la_options.at("compression"));
-		EXPECT_EQ("9", la_options.at("compression-level"));
-		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
-		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("enabled", la_options.at("zip64"));
-	}
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_7Z, LF_WOPT_STANDARD);
-		EXPECT_EQ(2, la_options.size());
-		EXPECT_EQ("deflate", la_options.at("compression"));
-		EXPECT_EQ("9", la_options.at("compression-level"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_TAR, LF_WOPT_STANDARD);
-		EXPECT_EQ(1, la_options.size());
-		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_GZ, LF_WOPT_STANDARD);
-		EXPECT_EQ(1, la_options.size());
-		EXPECT_EQ("9", la_options.at("compression-level"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_BZ2, LF_WOPT_STANDARD);
-		EXPECT_EQ(1, la_options.size());
-		EXPECT_EQ("9", la_options.at("compression-level"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_XZ, LF_WOPT_STANDARD);
-		EXPECT_EQ(2, la_options.size());
-		EXPECT_EQ("9", la_options.at("compression-level"));
-		EXPECT_EQ("0", la_options.at("threads"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_LZMA, LF_WOPT_STANDARD);
-		EXPECT_EQ(1, la_options.size());
-		EXPECT_EQ("9", la_options.at("compression-level"));
-	}
-
-	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZSTD, LF_WOPT_STANDARD);
-		EXPECT_EQ(1, la_options.size());
-		EXPECT_EQ("3", la_options.at("compression-level"));
-	}
-}
-
-TEST(CLFArchiveLA, mimic_archive_property)
-{
-	{
-		auto fileToRead = LF_PROJECT_DIR() / L"test/test_extract.zip";
-		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
-		src.begin();	//need to scan
-		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
-		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
-		EXPECT_EQ(filters.size(), 1);
-		EXPECT_EQ(filters.back(), ARCHIVE_FILTER_NONE);
-		EXPECT_FALSE(is_encrypted);
-	}
-	{
-		auto fileToRead = LF_PROJECT_DIR() / L"test/test_gzip.gz";
-		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
-		src.begin();	//need to scan
-		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
-		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
-		EXPECT_EQ(filters.size(), 2);
-		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
-		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
-		EXPECT_FALSE(is_encrypted);
-	}
-	{
-		auto fileToRead = LF_PROJECT_DIR() / L"test/test.tar.gz";
-		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
-		src.begin();	//need to scan
-		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
-		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
-		EXPECT_EQ(filters.size(), 2);
-		EXPECT_EQ(filters[0], ARCHIVE_FILTER_GZIP);
-		EXPECT_EQ(filters[1], ARCHIVE_FILTER_NONE);
-		EXPECT_FALSE(is_encrypted);
-	}
 }
 
 #endif
