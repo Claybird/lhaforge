@@ -132,7 +132,7 @@ public:
 	const ARCHIVE_ENTRY_INFO* GetRootNode()const{return m_Content.getRootNode();}
 
 	bool IsArchiveEncrypted()const{return m_Content.isArchiveEncrypted();}
-	[[deprecated("just a placeholder")]] bool IsModifySupported()const { return true; }
+	bool IsModifySupported()const { return m_Content.isModifySupported(); }
 	BOOL CheckArchiveExists()const{return m_Content.checkArchiveExists();}
 
 	void AddItem(

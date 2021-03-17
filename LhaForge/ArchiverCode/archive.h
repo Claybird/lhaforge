@@ -253,6 +253,7 @@ public:
 	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase) = 0;
 	virtual void close() = 0;
 
+	virtual bool is_modify_supported() const = 0;
 	//make a copy, and returns in "write_open" state
 	virtual std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
@@ -360,6 +361,7 @@ public:
 		m_numEntries = -1;
 	}
 
+	bool is_modify_supported() const override { _LFA_SAFE_CALL(is_modify_supported()); }
 	//make a copy, and returns in "write_open" state
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
@@ -417,6 +419,7 @@ public:
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override {}
 	void close()override {}
 
+	bool is_modify_supported()const override { return false; }
 	//make a copy, and returns in "write_open" state
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
@@ -435,7 +438,6 @@ public:
 	LF_ENTRY_STAT* read_entry_next()override { return nullptr; }
 	void read_entry_end()override {}
 	bool is_bypass_io_supported() const override { return false; }
-
 	//read entry block; should be called until returned buffer becomes eof
 	LF_BUFFER_INFO read_file_entry_block()override {
 		LF_BUFFER_INFO buf;

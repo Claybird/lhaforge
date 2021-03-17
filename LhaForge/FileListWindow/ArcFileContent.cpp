@@ -66,7 +66,7 @@ void CArchiveFileContent::scanArchiveStruct(
 		progressHandler.onNextEntry(entry->path);
 	}
 	m_bEncrypted = bEncrypted;
-	m_bReadOnly = GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY;
+	m_bModifySupported = (!(GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY)) && arc.is_modify_supported();
 	m_pathArchive = archiveName;
 	postScanArchive(nullptr);
 }

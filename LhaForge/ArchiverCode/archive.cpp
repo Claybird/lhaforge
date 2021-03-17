@@ -75,6 +75,7 @@ TEST(CLFArchive, read_open)
 	const auto dir = LF_PROJECT_DIR() / L"test";
 	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zip", CLFPassphraseNULL()));
 	EXPECT_NO_THROW(a.read_open(dir / L"test_broken_crc.zip", CLFPassphraseNULL()));
+	EXPECT_NO_THROW(a.read_open(dir / L"test.lzh", CLFPassphraseNULL()));
 }
 #endif
 

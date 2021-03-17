@@ -642,6 +642,60 @@ void CLFArchiveLA::close()
 	}
 }
 
+bool CLFArchiveLA::is_modify_supported()const
+{
+	if (!_arc_read)return false;
+	try {
+		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(*_arc_read);
+		if ((la_format & ARCHIVE_FORMAT_BASE_MASK) == ARCHIVE_FORMAT_TAR)return true;
+		if ((la_format & ARCHIVE_FORMAT_BASE_MASK) == ARCHIVE_FORMAT_RAW)return false;
+		for (const auto &c : g_la_capabilities) {
+			if ((c.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK) == la_format) {
+				if (!c.contains_multiple_files) {
+					return false;
+				}
+				return true;
+			}
+		}
+		return false;
+	} catch(...){
+		return false;
+	}
+}
+
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveLA, is_modify_supported)
+{
+	const auto dir = LF_PROJECT_DIR();
+	auto check=[](const std::filesystem::path &p)->bool {
+		CLFArchiveLA a;
+		a.read_open(p, CLFPassphraseNULL());
+		return a.is_modify_supported();
+	};
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.gz"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.bz2"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.xz"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.lzma"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.zst"));
+
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.gz"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.bz2"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.xz"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.lzma"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.zst"));
+
+	//EXPECT_FALSE(check(__FILEW__));
+	//EXPECT_FALSE(check(L"some_non_existing_file"));
+
+	EXPECT_TRUE(check(dir / L"test/test_extract.zip"));
+	EXPECT_FALSE(check(dir / L"test/test.lzh"));
+	EXPECT_TRUE(check(dir / L"test/test.tar.gz"));
+}
+
+#endif
+
+
 //archive property
 std::wstring CLFArchiveLA::get_format_name()
 {

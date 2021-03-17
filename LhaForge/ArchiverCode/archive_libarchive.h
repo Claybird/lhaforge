@@ -40,6 +40,7 @@ public:
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
 	void close()override;
 
+	bool is_modify_supported()const override;
 	//make a copy, and returns in "write_open" state
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,

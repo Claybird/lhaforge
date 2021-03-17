@@ -171,7 +171,7 @@ protected:
 
 	std::filesystem::path m_pathArchive;
 	int64_t m_numFiles;
-	bool m_bReadOnly;
+	bool m_bModifySupported;
 	bool m_bEncrypted;	//true if at least one entry is encrypted
 protected:
 	//---internal functions
@@ -191,7 +191,7 @@ protected:
 public:
 	CArchiveFileContent(ILFPassphrase &pf) :
 		m_passphrase(pf),
-		m_bReadOnly(false),
+		m_bModifySupported(false),
 		m_bEncrypted(false)
 	{
 		clear();
@@ -199,13 +199,14 @@ public:
 	virtual ~CArchiveFileContent() {}
 	void clear() {
 		m_pRoot.reset();
-		m_bReadOnly = false;
+		m_bModifySupported = false;
 		m_pathArchive.clear();
 		m_bEncrypted = false;
 		m_numFiles = 0;
 	}
 	std::filesystem::path getArchivePath()const { return m_pathArchive; }
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
+	bool isModifySupported()const { return !m_bModifySupported; }
 	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
 	bool isOK()const { return m_pRoot.get() != nullptr; }
 
