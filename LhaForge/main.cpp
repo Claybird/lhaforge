@@ -124,12 +124,12 @@ PROCESS_MODE selectOpenAction()
 
 //---------------------------------------------
 
-bool DoCompress(CConfigFile &ConfigManager, CMDLINEINFO &cli)
+bool DoCompress(CConfigFile &config, CMDLINEINFO &cli)
 {
 	CConfigCompress ConfCompress;
 	CConfigGeneral ConfGeneral;
-	ConfCompress.load(ConfigManager);
-	ConfGeneral.load(ConfigManager);
+	ConfCompress.load(config);
+	ConfGeneral.load(config);
 
 	while(LF_FMT_INVALID == cli.CompressType){
 		if(ConfCompress.UseDefaultParameter){
@@ -160,14 +160,14 @@ bool DoCompress(CConfigFile &ConfigManager, CMDLINEINFO &cli)
 		cli.CompressType,
 		(LF_WRITE_OPTIONS)cli.Options,
 		CLFProgressHandlerGUI(nullptr),
-		ConfigManager,
+		config,
 		cli);
 }
 
-bool DoExtract(CConfigFile &ConfigManager,CMDLINEINFO &cli)
+bool DoExtract(CConfigFile &config,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
-	ConfExtract.load(ConfigManager);
+	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
@@ -180,10 +180,10 @@ bool DoExtract(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 	return GUI_extract_multiple_files(tmp, CLFProgressHandlerGUI(nullptr), &cli);
 }
 
-bool DoList(CConfigFile &ConfigManager,CMDLINEINFO &cli)
+bool DoList(CConfigFile &config,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
-	ConfExtract.load(ConfigManager);
+	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
@@ -194,7 +194,7 @@ bool DoList(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 		return false;
 	}
 
-	CFileListFrame ListWindow(ConfigManager);
+	CFileListFrame ListWindow(config);
 	ListWindow.CreateEx();
 	ListWindow.ShowWindow(SW_SHOW);
 	ListWindow.UpdateWindow();
@@ -214,10 +214,10 @@ bool DoList(CConfigFile &ConfigManager,CMDLINEINFO &cli)
 	return true;
 }
 
-bool DoTest(CConfigFile &ConfigManager,CMDLINEINFO &cli)
+bool DoTest(CConfigFile &config,CMDLINEINFO &cli)
 {
 	CConfigExtract ConfExtract;
-	ConfExtract.load(ConfigManager);
+	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
 	auto tmp = enumerateFiles(cli.FileList, denyList);
@@ -237,14 +237,14 @@ void procMain()
 		return;
 	}
 
-	CConfigFile ConfigManager;
+	CConfigFile config;
 	if (cli.ConfigPath.empty()) {
-		ConfigManager.setDefaultPath();
+		config.setDefaultPath();
 	} else {
-		ConfigManager.setPath(cli.ConfigPath.c_str());
+		config.setPath(cli.ConfigPath.c_str());
 	}
 	try{
-		ConfigManager.load();
+		config.load();
 	} catch (const LF_EXCEPTION &e) {
 		ErrorMessage(e.what());
 	}
@@ -271,7 +271,7 @@ void procMain()
 		case PROCESS_MANAGED:
 		{
 			CConfigOpenAction ConfOpenAction;
-			ConfOpenAction.load(ConfigManager);
+			ConfOpenAction.load(config);
 			OPENACTION OpenAction;
 			if (shift) {	//---when shift is pressed
 				OpenAction = ConfOpenAction.OpenAction_Shift;
@@ -304,7 +304,7 @@ void procMain()
 	}
 
 	CConfigGeneral ConfGeneral;
-	ConfGeneral.load(ConfigManager);
+	ConfGeneral.load(config);
 
 	{
 		//To use custom temporary directory, if necessary
@@ -333,38 +333,38 @@ void procMain()
 
 	switch (ProcessMode) {
 	case PROCESS_COMPRESS:
-		DoCompress(ConfigManager, cli);
+		DoCompress(config, cli);
 		break;
 	case PROCESS_EXTRACT:
-		DoExtract(ConfigManager, cli);
+		DoExtract(config, cli);
 		break;
 	case PROCESS_AUTOMATIC:
 		if (std::filesystem::is_directory(cli.FileList.front())) {
-			DoCompress(ConfigManager, cli);
+			DoCompress(config, cli);
 		} else {
 			CConfigExtract ConfExtract;
-			ConfExtract.load(ConfigManager);
+			ConfExtract.load(config);
 			bool isDenied = toLower(ConfExtract.DenyExt).find(toLower(std::filesystem::path(cli.FileList.front()).extension())) == -1;
 			if (!isDenied && CLFArchive::is_known_format(cli.FileList.front())) {
-				DoExtract(ConfigManager, cli);
+				DoExtract(config, cli);
 			} else {
-				DoCompress(ConfigManager, cli);
+				DoCompress(config, cli);
 			}
 		}
 		break;
 	case PROCESS_LIST:
-		DoList(ConfigManager, cli);
+		DoList(config, cli);
 		break;
 	case PROCESS_TEST:
-		DoTest(ConfigManager, cli);
+		DoTest(config, cli);
 		break;
 	case PROCESS_CONFIGURE:
 	default:
 	{
-		CConfigDialog confdlg(ConfigManager);
+		CConfigDialog confdlg(config);
 		if (IDOK == confdlg.DoModal()) {
 			try {
-				ConfigManager.save();
+				config.save();
 			}catch(const LF_EXCEPTION& e){
 				ErrorMessage(e.what());
 			}
