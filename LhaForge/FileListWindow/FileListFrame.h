@@ -52,7 +52,7 @@ protected:
 	// ウィンドウ関係メンバ
 	//----------------------
 	CAccelerator			m_AccelEx;		//追加のウィンドウアクセラレータ:[ESC]でウィンドウを閉じる、等を担当
-	CFileListTabClient		m_TabClientWnd;
+	std::unique_ptr<CFileListTabClient>		m_TabClientWnd;
 	CMultiPaneStatusBarCtrl m_StatusBar;		//ステータスバー
 	CRect					m_WindowRect;		// ウィンドウサイズ
 

@@ -41,10 +41,10 @@ CString CFileListFrame::ms_strPropString(CString(MAKEINTRESOURCE(IDS_MESSAGE_CAP
 
 CFileListFrame::CFileListFrame(CConfigFile &conf):
 	mr_Config(conf),
-	m_TabClientWnd(conf, m_ConfFLW, *this),
 	m_DropTarget(this)
 {
 	m_ConfFLW.load(mr_Config);
+	m_TabClientWnd = std::make_unique<CFileListTabClient>(conf, m_ConfFLW, *this);
 }
 
 
@@ -57,7 +57,7 @@ BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 	if(!m_AccelEx.IsNull()&&m_AccelEx.TranslateAccelerator(m_hWnd, pMsg)){
 		return TRUE;
 	}
-	if(m_TabClientWnd.PreTranslateMessage(pMsg))return TRUE;
+	if(m_TabClientWnd->PreTranslateMessage(pMsg))return TRUE;
 	return FALSE;
 }
 
@@ -122,11 +122,11 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //========================================
 //      タブコントロールの初期化
 //========================================
-	m_TabClientWnd.Create(m_hWnd,rcDefault,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN );
-	m_TabClientWnd.addEventListener(m_hWnd);
+	m_TabClientWnd->Create(m_hWnd,rcDefault,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN );
+	m_TabClientWnd->addEventListener(m_hWnd);
 
 	//タブを使わないなら非表示に
-	if(m_ConfFLW.DisableTab)m_TabClientWnd.ShowTabCtrl(false);
+	if(m_ConfFLW.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
 
 	//---------
 	//リストビュースタイル選択用メニューバーのラジオチェックを有効にする
@@ -170,7 +170,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		UISetCheck(ID_MENUITEM_LISTMODE_TREE, TRUE);
 	}
 
-	m_hWndClient = m_TabClientWnd;
+	m_hWndClient = *m_TabClientWnd;
 	UpdateLayout();
 
 //========================================
@@ -265,7 +265,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 		m_ConfFLW.Width=m_WindowRect.Width();
 		m_ConfFLW.Height=m_WindowRect.Height();
 
-		m_TabClientWnd.StoreSettings(m_ConfFLW);
+		m_TabClientWnd->StoreSettings(m_ConfFLW);
 
 		if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置を保存
 			m_ConfFLW.WindowPos_x=m_WindowRect.left;
@@ -290,7 +290,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 	}
 
 
-	if(m_TabClientWnd.IsWindow())m_TabClientWnd.DestroyWindow();
+	if(m_TabClientWnd->IsWindow())m_TabClientWnd->DestroyWindow();
 
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->RemoveMessageFilter(this);
@@ -304,7 +304,7 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 
 HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 {
-	if(m_TabClientWnd.GetPageCount()>0 && !m_TabClientWnd.IsTabEnabled()){
+	if(m_TabClientWnd->GetPageCount()>0 && !m_TabClientWnd->IsTabEnabled()){
 		//タブ機能が無効なので、自分自身を重複起動し表示させる
 		CString strParam(_T("/l "));
 
@@ -356,7 +356,7 @@ HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
 
 		//ファイル一覧作成
 		CString strErr;
-		HRESULT hr=m_TabClientWnd.OpenArchiveInTab(fname,strMutex,hMutex,strErr);
+		HRESULT hr=m_TabClientWnd->OpenArchiveInTab(fname,strMutex,hMutex,strErr);
 
 		EnableWindow(TRUE);
 		//SetForegroundWindow(m_hWnd);
@@ -384,7 +384,7 @@ LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam
 	DWORD dwID=wParam;
 	g_FileToOpen=_T("");
 	EnumPropsEx(m_hWnd,EnumPropProc,dwID);
-	if(!g_FileToOpen.IsEmpty() && m_TabClientWnd.IsTabEnabled()){
+	if(!g_FileToOpen.IsEmpty() && m_TabClientWnd->IsTabEnabled()){
 		return OpenArchiveFile(g_FileToOpen,false);
 	}else{
 		return E_FAIL;
@@ -460,7 +460,7 @@ BOOL CALLBACK CFileListFrame::EnumFirstFileListWindowProc(HWND hWnd,LPARAM lPara
 
 LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	m_TabClientWnd.SetCurrentTab((HANDLE)wParam);
+	m_TabClientWnd->SetCurrentTab((HANDLE)wParam);
 	ShowWindow(SW_RESTORE);
 	SetForegroundWindow(m_hWnd);
 
@@ -530,7 +530,7 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 		MenuCommand_UpdateUserAppCommands(m_ConfFLW);
 		MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
-		m_TabClientWnd.UpdateFileListConfig(m_ConfFLW);
+		m_TabClientWnd->UpdateFileListConfig(m_ConfFLW);
 
 		//アクセラレータの読み直し
 		if(m_ConfFLW.ExitWithEscape){
@@ -582,7 +582,7 @@ void CFileListFrame::OnMove(const CPoint&)
 
 void CFileListFrame::OnUpDir(UINT,int,HWND)
 {
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab)pTab->Model.MoveUpDir();
 }
 
@@ -606,7 +606,7 @@ void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		break;
 	}
 
-	m_TabClientWnd.SetListViewStyle(dwStyle);
+	m_TabClientWnd->SetListViewStyle(dwStyle);
 
 	UISetCheck(ID_MENUITEM_LISTVIEW_SMALLICON, false);
 	UISetCheck(ID_MENUITEM_LISTVIEW_LARGEICON, false);
@@ -619,7 +619,7 @@ void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
 void CFileListFrame::UpdateUpDirButtonState()
 {
 	//「上に上る」ボタンの有効/無効
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
 		if(pTab->Model.IsRoot()){
 			UIEnable(ID_MENUITEM_UPDIR,false);
@@ -633,8 +633,8 @@ void CFileListFrame::UpdateUpDirButtonState()
 
 void CFileListFrame::UpdateMenuState()
 {
-	bool bActive=m_TabClientWnd.GetActivePage()!=-1;
-	bool bTabActive=m_TabClientWnd.IsTabEnabled();
+	bool bActive=m_TabClientWnd->GetActivePage()!=-1;
+	bool bTabActive=m_TabClientWnd->IsTabEnabled();
 
 	UIEnable(ID_MENUITEM_CLOSETAB,bActive);
 	UIEnable(ID_MENUITEM_EXTRACT_ARCHIVE,bActive);
@@ -693,7 +693,7 @@ void CFileListFrame::UpdateMenuState()
 
 void CFileListFrame::UpdateWindowTitle()
 {
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
 		//ウィンドウタイトルにファイル名設定
 		CString Title;
@@ -712,7 +712,7 @@ void CFileListFrame::UpdateWindowTitle()
 
 void CFileListFrame::UpdateStatusBar()
 {
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
 		CString Text;
 		//---DLL情報
@@ -765,7 +765,7 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 	UpdateMenuState();
 	UpdateUpDirButtonState();
 
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab && pTab->Model.IsOK()){
 		bool bFileListActive=(::GetFocus()==pTab->ListView);
 
@@ -796,7 +796,7 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 //リストビューとツリービューでフォーカス切り替え
 void CFileListFrame::OnToggleFocus(UINT,int,HWND)
 {
-	CFileListTabItem* pTab=m_TabClientWnd.GetCurrentTab();
+	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
 		pTab->Splitter.ActivateNextPane();
 	}
@@ -818,7 +818,7 @@ LRESULT CFileListFrame::OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled)
 
 void CFileListFrame::ReopenArchiveFile()
 {
-	m_TabClientWnd.ReopenArchiveFile();
+	m_TabClientWnd->ReopenArchiveFile();
 }
 
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
@@ -842,34 +842,34 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListFrame::OnCloseTab(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	m_TabClientWnd.CloseCurrentTab();
-	if(!m_TabClientWnd.IsTabEnabled()){
+	m_TabClientWnd->CloseCurrentTab();
+	if(!m_TabClientWnd->IsTabEnabled()){
 		DestroyWindow();
 	}
 }
 
 void CFileListFrame::OnNextTab(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	int size=m_TabClientWnd.GetPageCount();
+	int size=m_TabClientWnd->GetPageCount();
 	if(m_TabClientWnd && size>0){
-		int nActive=m_TabClientWnd.GetActivePage();
+		int nActive=m_TabClientWnd->GetActivePage();
 		if(ID_MENUITEM_NEXTTAB==nID){
-			m_TabClientWnd.SetCurrentTab((nActive+1)%size);
+			m_TabClientWnd->SetCurrentTab((nActive+1)%size);
 		}else{
-			m_TabClientWnd.SetCurrentTab((nActive+size-1)%size);
+			m_TabClientWnd->SetCurrentTab((nActive+size-1)%size);
 		}
 	}
 }
 
 LRESULT CFileListFrame::OnMouseWheel(UINT uCode,short delta,CPoint&)
 {
-	int size=m_TabClientWnd.GetPageCount();
+	int size=m_TabClientWnd->GetPageCount();
 	if(m_TabClientWnd && size>0 && uCode & MK_CONTROL){
 		int step=-delta/WHEEL_DELTA;
 		while(step<-size)step+=size;
 
-		int nActive=m_TabClientWnd.GetActivePage();
-		m_TabClientWnd.SetCurrentTab((nActive+size+step)%size);
+		int nActive=m_TabClientWnd->GetActivePage();
+		m_TabClientWnd->SetCurrentTab((nActive+size+step)%size);
 	}else{
 		SetMsgHandled(FALSE);
 	}

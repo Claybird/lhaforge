@@ -69,7 +69,7 @@ protected:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 protected:
-	int m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//カラムインデックスとサブアイテム番号の対応
+	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//カラムインデックスとサブアイテム番号の対応
 	/*
 		Config.FileListWindow.ColumnOrderArray?には、カラムが並び順にFILEINFO_TYPEの値で入っている(非表示項目は-1)。
 		m_ColumnIndexArray[colIdx] = FILEINFO_TYPE

@@ -38,7 +38,7 @@ protected:
 	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
-	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
+	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//リストビューカラムの並び順
 	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
 	bool				m_bShowTab;			//タブ表示?
 	bool				m_bShowTreeView;	//ツリービュー表示ならTrue

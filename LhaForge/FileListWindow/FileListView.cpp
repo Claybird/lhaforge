@@ -106,7 +106,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 	m_ColumnIndexArray[nIndex]=FILEINFO_##x;\
 }}
 
-	memset(m_ColumnIndexArray,-1,sizeof(m_ColumnIndexArray));
+	m_ColumnIndexArray.fill(-1);
 
 	//ファイル名
 	ADD_COLUMNITEM(FILENAME,100,LVCFMT_LEFT);
@@ -145,7 +145,7 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 		TemporaryArray[i]=pColumnOrderArray[i];
 	}
 	for(int i=0;i<Count;i++){
-		int nIndex=index_of(m_ColumnIndexArray,FILEINFO_ITEM_COUNT,TemporaryArray[i]);
+		int nIndex=index_of(m_ColumnIndexArray,TemporaryArray[i]);
 		ASSERT(-1!=nIndex);
 		if(-1!=nIndex){
 			TemporaryArray[i]=nIndex;

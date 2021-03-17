@@ -54,7 +54,7 @@ protected:
 
 		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
 
-		if (!ListView.SetColumnState(_confFLW.ColumnOrderArray, _confFLW.ColumnWidthArray))return false;
+		if (!ListView.SetColumnState(&_confFLW.ColumnOrderArray[0], _confFLW.ColumnWidthArray))return false;
 
 		UpdateFileListConfig();
 

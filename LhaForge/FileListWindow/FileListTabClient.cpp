@@ -41,8 +41,7 @@ CFileListTabClient::CFileListTabClient(
 	m_lpPrevTab(NULL),
 	m_bShowTab(true)
 {
-	ASSERT(sizeof(m_ColumnIndexArray)==sizeof(m_confFLW.ColumnOrderArray));
-	memcpy(m_ColumnIndexArray, m_confFLW.ColumnOrderArray, sizeof(m_confFLW.ColumnOrderArray));
+	m_ColumnIndexArray = m_confFLW.ColumnOrderArray;
 	memcpy(m_FileInfoWidth, m_confFLW.ColumnWidthArray, sizeof(m_FileInfoWidth));
 
 	if (m_confFLW.StoreSetting) {
@@ -233,7 +232,7 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(newIdx);
 	if(pItem){
 		pItem->ShowWindow(SW_SHOW);
-		pItem->ListView.SetColumnState(m_ColumnIndexArray, m_FileInfoWidth);
+		pItem->ListView.SetColumnState(&m_ColumnIndexArray[0], m_FileInfoWidth);
 
 		pItem->SetTreeWidth(m_nTreeWidth);
 		pItem->Model.SetSortMode(m_bSortDescending);
@@ -256,7 +255,7 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 void CFileListTabClient::GetTabSettingsToClient(CFileListTabItem* pItem)
 {
 	if(pItem){
-		pItem->ListView.GetColumnState(m_ColumnIndexArray, m_FileInfoWidth);
+		pItem->ListView.GetColumnState(&m_ColumnIndexArray[0], m_FileInfoWidth);
 		m_nTreeWidth	 =pItem->GetTreeWidth();
 		m_bSortDescending=pItem->Model.GetSortMode();
 		m_nSortKeyType	 =pItem->Model.GetSortKeyType();
@@ -314,7 +313,7 @@ void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
 	ConfFLW.ListStyle=m_dwListStyle;
 
 	//カラムの並び順
-	memcpy(ConfFLW.ColumnOrderArray, m_ColumnIndexArray, sizeof(m_ColumnIndexArray));
+	ConfFLW.ColumnOrderArray = m_ColumnIndexArray;
 	//カラムの幅
 	memcpy(ConfFLW.ColumnWidthArray, m_FileInfoWidth, sizeof(m_FileInfoWidth));
 
