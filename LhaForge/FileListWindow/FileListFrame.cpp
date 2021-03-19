@@ -33,11 +33,10 @@
 #include "../Utilities/StringUtil.h"
 #include "../CommonUtil.h"
 
-HWND g_hFirstWindow=NULL;
-CString g_FileToOpen;
+HWND g_hFirstWindow = nullptr;
+std::wstring g_FileToOpen;
 
-
-CString CFileListFrame::ms_strPropString(CString(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION))+CString(MAKEINTRESOURCE(IDS_LHAFORGE_VERSION_STRING)));
+std::wstring CFileListFrame::ms_strPropIdentifier(UtilLoadString(IDS_MESSAGE_CAPTION) + UtilLoadString(IDS_LHAFORGE_VERSION_STRING));
 
 CFileListFrame::CFileListFrame(CConfigFile &conf):
 	mr_Config(conf),
@@ -50,14 +49,13 @@ CFileListFrame::CFileListFrame(CConfigFile &conf):
 
 BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 {
-	if(CFrameWindowImpl<CFileListFrame>::PreTranslateMessage(pMsg)){
+	if (CFrameWindowImpl<CFileListFrame>::PreTranslateMessage(pMsg)) {
 		return TRUE;
 	}
-	//追加のアクセラレータ
-	if(!m_AccelEx.IsNull()&&m_AccelEx.TranslateAccelerator(m_hWnd, pMsg)){
+	if (!m_AccelEx.IsNull() && m_AccelEx.TranslateAccelerator(m_hWnd, pMsg)) {
 		return TRUE;
 	}
-	if(m_TabClientWnd->PreTranslateMessage(pMsg))return TRUE;
+	if (m_TabClientWnd->PreTranslateMessage(pMsg))return TRUE;
 	return FALSE;
 }
 
@@ -67,7 +65,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 //      フレームウィンドウの初期化
 //========================================
 	//ウィンドウプロパティの設定:LhaForgeウィンドウである事を示す
-	::SetProp(m_hWnd,ms_strPropString,m_hWnd);
+	::SetPropW(m_hWnd, ms_strPropIdentifier.c_str(), m_hWnd);
 
 	//ウィンドウのサイズの設定
 	if(m_ConfFLW.StoreSetting){
@@ -253,8 +251,7 @@ HMENU CFileListFrame::GetSendToMenuHandle()
 
 LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-	//ウィンドウプロパティの解除
-	RemoveProp(m_hWnd,ms_strPropString);
+	RemoveProp(m_hWnd, ms_strPropIdentifier.c_str());
 
 	m_ConfFLW.load(mr_Config);
 
@@ -302,70 +299,64 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 }
 
 
-HRESULT CFileListFrame::OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen)
+HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool bAllowRelayOpen)
 {
 	if(m_TabClientWnd->GetPageCount()>0 && !m_TabClientWnd->IsTabEnabled()){
-		//タブ機能が無効なので、自分自身を重複起動し表示させる
-		CString strParam(_T("/l "));
+		//tab is disabled; clone instance
+		std::wstring strParam(L"/l ");
 
-		CPath filePath=fname;
-		filePath.QuoteSpaces();
-		strParam+=(LPCTSTR)filePath;
-		int ret=(int)ShellExecute(NULL,NULL,UtilGetModulePath().c_str(),strParam,NULL,SW_RESTORE);
+		auto filePath=fname;
+		strParam += L"\"" + filePath.wstring() + L"\"";
+		int ret = (int)ShellExecuteW(nullptr, nullptr, UtilGetModulePath().c_str(), strParam.c_str(), nullptr, SW_RESTORE);
 		if(ret<=32){
 			return E_FAIL;
-		}else return S_OK;
+		} else {
+			return S_OK;
+		}
 	}else{
-		//ウィンドウを一つに保つ?
+		//keep single instance
 		if(bAllowRelayOpen && m_ConfFLW.KeepSingleInstance){
-			g_hFirstWindow=NULL;
+			g_hFirstWindow = nullptr;
 			EnumWindows(EnumFirstFileListWindowProc,(LPARAM)m_hWnd);
 			if(g_hFirstWindow){
 				/*
-				 * 1.相手のウィンドウに{ファイル名,自分のプロセスID}でプロパティを設定
-				 * 2.相手のウィンドウに自分のプロセスIDを持つプロパティを見つけさせる
-				 * 3.見つけたプロパティをファイル名として開く
-				 * 4.プロパティ削除
+				 * 1. set property {filename, my process id} to subject window
+				 * 2. request subject window to find property containing my process id
+				 * 3. open file found in property
+				 * 4. remove my propety
 				 */
-				DWORD dwID=GetCurrentProcessId();
-				::SetProp(g_hFirstWindow,fname,(HANDLE)dwID);
-				HRESULT hr=::SendMessage(g_hFirstWindow,WM_FILELIST_OPEN_BY_PROPNAME,dwID,0);
-				::RemoveProp(g_hFirstWindow,fname);
-				if(SUCCEEDED(hr))return S_FALSE;
-				//else return hr;	拒否されたので自分で開く
+				DWORD dwID = GetCurrentProcessId();
+				::SetPropW(g_hFirstWindow, fname.c_str(), (HANDLE)dwID);
+				HRESULT hr = ::SendMessageW(g_hFirstWindow, WM_FILELIST_OPEN_BY_PROPNAME, dwID, 0);
+				::RemovePropW(g_hFirstWindow, fname.c_str());
+				if (SUCCEEDED(hr))return S_FALSE;
 			}
-		}//else
+		}
 
-		//重複オープン防止
-		CString strMutex(fname);
-		strMutex.MakeLower();	//小文字に統一
-		strMutex.Replace(_T('\\'),_T('/'));
-		strMutex=_T("LF")+strMutex;
+		//prevent duplicated open
+		std::wstring strMutex = L"LF" + replace(toLower(fname), L'\\', L'/');
 
 		HANDLE hMutex=GetMultiOpenLockMutex(strMutex);
-		if(!hMutex){
-			//すでに同じファイルが閲覧されていた場合
-			//そのファイルを表示しているウィンドウを強調する
-			EnumWindows(EnumFileListWindowProc,(LPARAM)(LPCTSTR)strMutex);
+		if (hMutex) {
+			//set title
+			SetWindowTextW(UtilLoadString(IDR_MAINFRAME).c_str());
+			EnableWindow(FALSE);
+
+			//list content
+			ARCLOG arcLog;
+			try {
+				m_TabClientWnd->OpenArchiveInTab(fname, strMutex, hMutex, arcLog);
+			} catch (...) {
+				//TODO
+				ErrorMessage(arcLog.toString());
+			}
+
+			EnableWindow(TRUE);
+		}else{
+			//same file is opened; highlight existing window
+			EnumWindows(EnumFileListWindowProc, (LPARAM)strMutex.c_str());
 			return S_FALSE;
 		}
-
-		CString Title(MAKEINTRESOURCE(IDR_MAINFRAME));
-		SetWindowText(Title);
-		EnableWindow(FALSE);
-
-		//ファイル一覧作成
-		CString strErr;
-		HRESULT hr=m_TabClientWnd->OpenArchiveInTab(fname,strMutex,hMutex,strErr);
-
-		EnableWindow(TRUE);
-		//SetForegroundWindow(m_hWnd);
-
-		if(FAILED(hr)){
-			ErrorMessage((const wchar_t*)strErr);
-			//EnableAll(false);
-		}
-		return hr;
 	}
 }
 
@@ -382,9 +373,9 @@ BOOL CALLBACK CFileListFrame::EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hD
 LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	DWORD dwID=wParam;
-	g_FileToOpen=_T("");
+	g_FileToOpen.clear();
 	EnumPropsEx(m_hWnd,EnumPropProc,dwID);
-	if(!g_FileToOpen.IsEmpty() && m_TabClientWnd->IsTabEnabled()){
+	if(!g_FileToOpen.empty() && m_TabClientWnd->IsTabEnabled()){
 		return OpenArchiveFile(g_FileToOpen,false);
 	}else{
 		return E_FAIL;
@@ -392,14 +383,13 @@ LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam
 }
 
 
-HANDLE CFileListFrame::GetMultiOpenLockMutex(LPCTSTR lpszMutex)
+HANDLE CFileListFrame::GetMultiOpenLockMutex(const std::wstring& strMutex)
 {
-	//ミューテックス作成
-	HANDLE hMutex=::CreateMutex(NULL, TRUE, lpszMutex);
+	HANDLE hMutex=::CreateMutexW(nullptr, TRUE, strMutex.c_str());
 	if(ERROR_ALREADY_EXISTS==GetLastError()){
-		//すでに閲覧されている場合
+		//already exists
 		CloseHandle(hMutex);
-		return NULL;
+		return nullptr;
 	}else{
 		return hMutex;
 	}
@@ -430,10 +420,10 @@ BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
 		return TRUE;
 	}
 
-	if(GetProp(hWnd,ms_strPropString)){
-		HANDLE hProp=GetProp(hWnd,(LPCTSTR)lParam);
+	if(GetPropW(hWnd,ms_strPropIdentifier.c_str())){
+		HANDLE hProp=GetPropW(hWnd,(const wchar_t*)lParam);
 		if(hProp){
-			::SendMessage(hWnd,WM_LHAFORGE_FILELIST_ACTIVATE_FILE,(WPARAM)hProp,NULL);
+			::SendMessageW(hWnd, WM_LHAFORGE_FILELIST_ACTIVATE_FILE, (WPARAM)hProp, NULL);
 			return FALSE;
 		}
 	}
@@ -636,59 +626,60 @@ void CFileListFrame::UpdateMenuState()
 	bool bActive=m_TabClientWnd->GetActivePage()!=-1;
 	bool bTabActive=m_TabClientWnd->IsTabEnabled();
 
-	UIEnable(ID_MENUITEM_CLOSETAB,bActive);
-	UIEnable(ID_MENUITEM_EXTRACT_ARCHIVE,bActive);
-	UIEnable(ID_MENUITEM_TEST_ARCHIVE,bActive);
-	UIEnable(ID_MENUITEM_UPDIR,bActive);
-	UIEnable(ID_MENUITEM_REFRESH,bActive);
-	UIEnable(ID_MENUITEM_SELECT_ALL,bActive);
-	UIEnable(ID_MENUITEM_CLEAR_TEMPORARY,bActive);
-	UIEnable(ID_MENUITEM_EXTRACT_SELECTED,bActive);
-	UIEnable(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,bActive);
-	UIEnable(ID_MENUITEM_DELETE_SELECTED,bActive);
-	UIEnable(ID_MENUITEM_OPEN_ASSOCIATION,bActive);
-	UIEnable(ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,bActive);
-	UIEnable(ID_MENUITEM_EXTRACT_TEMPORARY,bActive);
-	UIEnable(ID_MENUITEM_FINDITEM,bActive);
-	UIEnable(ID_MENUITEM_FINDITEM_END,bActive);
+	std::vector<int> subjects = {
+		ID_MENUITEM_CLOSETAB,
+		ID_MENUITEM_EXTRACT_ARCHIVE,
+		ID_MENUITEM_TEST_ARCHIVE,
+		ID_MENUITEM_UPDIR,
+		ID_MENUITEM_REFRESH,
+		ID_MENUITEM_SELECT_ALL,
+		ID_MENUITEM_CLEAR_TEMPORARY,
+		ID_MENUITEM_EXTRACT_SELECTED,
+		ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,
+		ID_MENUITEM_DELETE_SELECTED,
+		ID_MENUITEM_OPEN_ASSOCIATION,
+		ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,
+		ID_MENUITEM_EXTRACT_TEMPORARY,
+		ID_MENUITEM_FINDITEM,
+		ID_MENUITEM_FINDITEM_END,
+		ID_MENUITEM_LISTVIEW_SMALLICON,
+		ID_MENUITEM_LISTVIEW_LARGEICON,
+		ID_MENUITEM_LISTVIEW_REPORT,
+		ID_MENUITEM_LISTVIEW_LIST,
+		ID_MENUITEM_SHOW_COLUMNHEADER_MENU,
+		ID_MENUITEM_LISTMODE_TREE,
+		ID_MENUITEM_LISTMODE_FLAT,
+		ID_MENUITEM_LISTMODE_FLAT_FILESONLY,
+		ID_MENUITEM_SORT_FILENAME,
+		ID_MENUITEM_SORT_FULLPATH,
+		ID_MENUITEM_SORT_ORIGINALSIZE,
+		ID_MENUITEM_SORT_TYPENAME,
+		ID_MENUITEM_SORT_FILETIME,
+		ID_MENUITEM_SORT_ATTRIBUTE,
+		ID_MENUITEM_SORT_COMPRESSEDSIZE,
+		ID_MENUITEM_SORT_METHOD,
+		ID_MENUITEM_SORT_RATIO,
+		ID_MENUITEM_SORT_CRC,
+	};
 
-	UIEnable(ID_MENUITEM_LISTVIEW_SMALLICON,bActive);
-	UIEnable(ID_MENUITEM_LISTVIEW_LARGEICON,bActive);
-	UIEnable(ID_MENUITEM_LISTVIEW_REPORT,bActive);
-	UIEnable(ID_MENUITEM_LISTVIEW_LIST,bActive);
+	for (auto id : subjects) {
+		UIEnable(id, bActive);
+	}
 
-	UIEnable(ID_MENUITEM_SHOW_COLUMNHEADER_MENU,bActive);
-	UIEnable(ID_MENUITEM_LISTMODE_TREE,bActive);
-	UIEnable(ID_MENUITEM_LISTMODE_FLAT,bActive);
-	UIEnable(ID_MENUITEM_LISTMODE_FLAT_FILESONLY,bActive);
-
-
-	UIEnable(ID_MENUITEM_SORT_FILENAME,bActive);
-	UIEnable(ID_MENUITEM_SORT_FULLPATH,bActive);
-	UIEnable(ID_MENUITEM_SORT_ORIGINALSIZE,bActive);
-	UIEnable(ID_MENUITEM_SORT_TYPENAME,bActive);
-	UIEnable(ID_MENUITEM_SORT_FILETIME,bActive);
-	UIEnable(ID_MENUITEM_SORT_ATTRIBUTE,bActive);
-	UIEnable(ID_MENUITEM_SORT_COMPRESSEDSIZE,bActive);
-	UIEnable(ID_MENUITEM_SORT_METHOD,bActive);
-	UIEnable(ID_MENUITEM_SORT_RATIO,bActive);
-	UIEnable(ID_MENUITEM_SORT_CRC,bActive);
-
-	//タブ関連メニュー
+	//tab menu
 	UIEnable(ID_MENUITEM_NEXTTAB,bActive && bTabActive);
 	UIEnable(ID_MENUITEM_PREVTAB,bActive && bTabActive);
-
 	UIEnable(ID_MENUITEM_ADD_FILE,bActive && bTabActive);
 	UIEnable(ID_MENUITEM_ADD_DIRECTORY,bActive && bTabActive);
 
-	//プログラムから開く/送るのメニュー
-	CMenuHandle cMenu[]={GetUserAppMenuHandle(),GetSendToMenuHandle()};
+	// open with program / sendto
+	CMenuHandle cMenu[] = { GetUserAppMenuHandle(),GetSendToMenuHandle() };
 	for(int iMenu=0;iMenu<COUNTOF(cMenu);iMenu++){
 		int size=cMenu[iMenu].GetMenuItemCount();
 		for(int i=0;i<size;i++){
-			cMenu[iMenu].EnableMenuItem(i,MF_BYPOSITION | (bActive ? MF_ENABLED : MF_GRAYED));
+			cMenu[iMenu].EnableMenuItem(i, MF_BYPOSITION | (bActive ? MF_ENABLED : MF_GRAYED));
 		}
-	};
+	}
 }
 
 void CFileListFrame::UpdateWindowTitle()
@@ -821,22 +812,21 @@ void CFileListFrame::ReopenArchiveFile()
 	m_TabClientWnd->ReopenArchiveFile();
 }
 
-void CFileListFrame::OnOpenArchive(UINT uNotifyCode,int nID,HWND hWndCtrl)
+void CFileListFrame::OnOpenArchive(UINT uNotifyCode, int nID, HWND hWndCtrl)
 {
 	const COMDLG_FILTERSPEC filter[] = {
 		{ L"All Files", L"*.*" },
 	};
 
 	LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
-	if(IDCANCEL==dlg.DoModal()){	//キャンセル
+	if (IDCANCEL == dlg.DoModal()) {	//cancel
 		return;
 	}
-	//ファイル名取り出し
 	auto files = dlg.GetMultipleFiles();
 
-	for(const auto &file:files){
+	for (const auto &file : files) {
 		HRESULT hr = OpenArchiveFile(file, false);
-		if(E_ABORT==hr)break;
+		if (E_ABORT == hr)break;
 	}
 }
 
@@ -880,17 +870,15 @@ LRESULT CFileListFrame::OnMouseWheel(UINT uCode,short delta,CPoint&)
 void CFileListFrame::EnableDropTarget(bool bEnable)
 {
 	if(bEnable){
-		//ドロップ受け入れ設定
-		::RegisterDragDrop(m_hWnd,&m_DropTarget);
+		//enable drop
+		::RegisterDragDrop(m_hWnd, &m_DropTarget);
 	}else{
-		//ドロップを受け入れない
+		//disable drop
 		::RevokeDragDrop(m_hWnd);
 	}
 }
 
-//---------------------------------------------------------
-//    IDropCommunicatorの実装:ドラッグ&ドロップによる閲覧
-//---------------------------------------------------------
+// IDropCommunicator
 HRESULT CFileListFrame::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
 	return DragOver(lpDataObject,pt,dwEffect);

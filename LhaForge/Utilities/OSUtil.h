@@ -100,8 +100,8 @@ public:
 
 	virtual ~LFShellFileOpenDialog()
 	{ }
-	std::vector<CString> GetMultipleFiles() {
-		std::vector<CString> files;
+	std::vector<std::filesystem::path> GetMultipleFiles() {
+		std::vector<std::filesystem::path> files;
 		{
 			auto ptr = GetPtr();
 			ATL::CComPtr<IShellItemArray> spArray;
@@ -115,7 +115,7 @@ public:
 					spArray->GetItemAt(i, &spItem);
 					CString path;
 					GetFileNameFromShellItem(spItem, SIGDN_FILESYSPATH, path);
-					files.push_back(path);
+					files.push_back(path.operator LPCWSTR());
 				}
 			}
 		}

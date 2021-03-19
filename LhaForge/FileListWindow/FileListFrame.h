@@ -23,40 +23,31 @@
 */
 
 #pragma once
-#include "../resource.h"
-#include "../ConfigCode/ConfigFile.h"
+#include "resource.h"
+#include "ConfigCode/ConfigFile.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"
-#include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
+#include "OLE/DropTarget.h"
 
-const LPCTSTR LHAFORGE_FILE_LIST_CLASS=_T("LhaForgeFileList");
-
-#define FILELISTWINDOW_DEFAULT_WIDTH	760
-#define FILELISTWINDOW_DEFAULT_HEIGHT	500
+const auto LHAFORGE_FILE_LIST_CLASS = L"LhaForgeFileList";
 
 class CFileListFrame:
 	public CFrameWindowImpl<CFileListFrame>,
 	public CUpdateUI<CFileListFrame>,
 	public CMessageFilter,
 	public CIdleHandler,
-	public ILFDropCommunicator//自前のDnDインターフェイス
+	public ILFDropCommunicator
 {
 protected:
-	//bool m_bFirst;		//初回表示
-	//DLL_ID m_idForceDLL;	//強制使用するDLL
-
-	CConfigFile		&mr_Config;
+	CConfigFile &mr_Config;
 	CConfigFileListWindow m_ConfFLW;
 
-	//----------------------
-	// ウィンドウ関係メンバ
-	//----------------------
-	CAccelerator			m_AccelEx;		//追加のウィンドウアクセラレータ:[ESC]でウィンドウを閉じる、等を担当
-	std::unique_ptr<CFileListTabClient>		m_TabClientWnd;
+	CAccelerator m_AccelEx;		//追加のウィンドウアクセラレータ:[ESC]でウィンドウを閉じる、等を担当
+	std::unique_ptr<CFileListTabClient> m_TabClientWnd;
 	CMultiPaneStatusBarCtrl m_StatusBar;		//ステータスバー
-	CRect					m_WindowRect;		// ウィンドウサイズ
+	CRect m_WindowRect;		// ウィンドウサイズ
 
-	static CString			ms_strPropString;	// SetPropの識別名:LhaForgeのウィンドウである事を示す
+	static std::wstring ms_strPropIdentifier;	// SetProp identifier
 protected:
 	//---ドロップ受け入れ
 	CLFDropTarget m_DropTarget;	//ドロップ受け入れに使う
@@ -76,7 +67,7 @@ protected:
 	void UpdateWindowTitle();
 	void UpdateStatusBar();
 	void UpdateMenuState();
-	HANDLE GetMultiOpenLockMutex(LPCTSTR lpszMutex);
+	HANDLE GetMultiOpenLockMutex(const std::wstring& strMutex);
 
 	HMENU GetUserAppMenuHandle();
 	HMENU GetSendToMenuHandle();
@@ -207,7 +198,7 @@ public:
 	}
 	BOOL PreTranslateMessage(MSG* pMsg);
 
-	HRESULT OpenArchiveFile(LPCTSTR fname,bool bAllowRelayOpen=true);
+	HRESULT OpenArchiveFile(const std::filesystem::path& fname,bool bAllowRelayOpen=true);
 
 	void GetFreeClientRect(CRect &rc){
 		GetClientRect(rc);

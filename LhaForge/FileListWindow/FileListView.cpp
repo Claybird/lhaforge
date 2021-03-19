@@ -693,13 +693,10 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 		if(IDOK==dlg.DoModal()){
-			//ファイル名取り出し
-			auto files = dlg.GetMultipleFiles();
-			for (const auto &f : files) {
-				files.push_back(f.operator LPCWSTR());
-			}
+			files = dlg.GetMultipleFiles();
 		}
-	}else{		//フォルダ追加
+	}else{
+		//add directory
 		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
 			CString path;
@@ -709,7 +706,6 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 
 	if(!files.empty()){
-		//追加開始
 		AddItemsToDirectory(dest, files);
 	}
 }

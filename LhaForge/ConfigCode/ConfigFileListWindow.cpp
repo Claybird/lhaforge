@@ -32,6 +32,10 @@
 #include "ConfigFileListWindow.h"
 #include "resource.h"
 
+
+#define FILELISTWINDOW_DEFAULT_WIDTH	760
+#define FILELISTWINDOW_DEFAULT_HEIGHT	500
+
 void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 {
 	const auto section = L"FileListWindow";

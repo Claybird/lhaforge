@@ -36,7 +36,6 @@ public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 protected:
 	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
-	//HWND				m_hFrameWnd;
 	CFileListFrame&		m_rFrameWnd;
 	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//リストビューカラムの並び順
 	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
@@ -54,7 +53,6 @@ protected:
 	DWORD	m_dwListStyle;
 protected:
 	BEGIN_MSG_MAP_EX(CFileListTabClient)
-		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		NOTIFY_CODE_HANDLER_EX(NM_SETFOCUS, OnWndStateChanged)
@@ -110,7 +108,7 @@ public:
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
+	HRESULT OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG arcLog);
 	HRESULT ReopenArchiveFile(int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);
 	bool ReopenArchiveFileAll();

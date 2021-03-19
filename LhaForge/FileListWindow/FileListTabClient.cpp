@@ -75,31 +75,30 @@ LRESULT CFileListTabClient::OnDestroy()
 	return 0;
 }
 
-HRESULT CFileListTabClient::OpenArchiveInTab(LPCTSTR lpszArc,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr)
+HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG arcLog)
 {
-	int idx=CreateNewTab();
-	ASSERT(idx>=0);
-	if(idx<0)return E_HANDLE;
-	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
+	int idx = CreateNewTab();
+	ASSERT(idx >= 0);
+	if (idx < 0)return E_HANDLE;
+	CFileListTabItem* pItem = (CFileListTabItem*)GetPageData(idx);
 	ASSERT(pItem);
-	if(!pItem)return E_HANDLE;
+	if (!pItem)return E_HANDLE;
 
-	//重複オープン防止オブジェクトをセット
+	//prepare duplicated window
 	pItem->hMutex=hMutex;
-	pItem->strMutexName=lpMutexName;
+	pItem->strMutexName = mutexName;
 
-	//---解析
-	if(!pItem->OpenArchive(lpszArc))RemoveTab(idx);
+	if(!pItem->OpenArchive(arcpath))RemoveTab(idx);
 
-	SetPageTitle(idx,pItem->Model.GetArchiveFileName().filename().c_str());
-	// ツリービューにフォーカスを持たせる
+	SetPageTitle(idx, pItem->Model.GetArchiveFileName().filename().c_str());
+	// focus on treeview
 	pItem->TreeView.SetFocus();
 	pItem->ShowTreeView(m_bShowTreeView);
 	dispatchEvent(WM_FILELIST_MODELCHANGED);
 	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 
-	//フレームウィンドウのプロパティとして登録
-	::SetProp(m_rFrameWnd,lpMutexName,pItem);
+	//set property to frame window
+	::SetPropW(m_rFrameWnd, mutexName.c_str(), pItem);
 
 	FitClient();
 	return S_OK;
