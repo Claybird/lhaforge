@@ -514,9 +514,9 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if(m_bPathOnly){
 				//'\\'ではなく'/'でパスが区切られていればtrue
-				bool bSlash = (std::wstring::npos!=lpNode->_fullpath.find(_T('/')));
+				bool bSlash = (std::wstring::npos!=lpNode->_entry.path.wstring().find(_T('/')));
 				//一度置き換え
-				strBuffer = lpNode->_fullpath.c_str();
+				strBuffer = lpNode->_entry.path.c_str();
 				strBuffer.Replace(_T('/'),_T('\\'));
 
 				//ファイル名除去
@@ -535,7 +535,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 				}
 				lpText = strBuffer;
 			}else{
-				lpText=lpNode->_fullpath.c_str();
+				lpText=lpNode->_entry.path.c_str();
 			}
 		}
 		break;
@@ -553,7 +553,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			strBuffer = UtilFormatTime(lpNode->stat.st_mtime).c_str();
+			strBuffer = UtilFormatTime(lpNode->_entry.stat.st_mtime).c_str();
 			lpText=strBuffer;
 		}
 		break;
@@ -590,7 +590,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	strInfo+=_T(" : ");	strInfo+=lpNode->_entryName.c_str();		strInfo+=_T("\n");
 	//格納パス
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FULLPATH));
-	strInfo+=_T(" : ");	strInfo+=lpNode->_fullpath.c_str();	strInfo+=_T("\n");
+	strInfo+=_T(" : ");	strInfo+=lpNode->_entry.path.c_str();	strInfo+=_T("\n");
 	//圧縮前サイズ
 	FormatFileSize(strBuffer,lpNode->_originalSize);
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_ORIGINALSIZE));
@@ -599,7 +599,7 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_TYPENAME));
 	strInfo+=_T(" : ");	strInfo+=m_ShellDataManager.GetTypeName(lpNode->getExt().c_str()).c_str();	strInfo+=_T("\n");
 	//ファイル日時
-	strBuffer = UtilFormatTime(lpNode->stat.st_mtime).c_str();
+	strBuffer = UtilFormatTime(lpNode->_entry.stat.st_mtime).c_str();
 	strInfo+=CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILETIME));
 	strInfo+=_T(" : ");	strInfo+=strBuffer;		strInfo+=_T("\n");
 
@@ -779,7 +779,7 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		break;
 	case ID_MENUITEM_COPY_PATH:
 		for (const auto &item : items) {
-			info.AppendFormat(_T("%s\n"), item->_fullpath.c_str());
+			info.AppendFormat(_T("%s\n"), item->_entry.path.c_str());
 		}
 		break;
 	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
@@ -794,7 +794,7 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		break;
 	case ID_MENUITEM_COPY_FILETIME:
 		for (const auto &item : items) {
-			CString strBuffer = UtilFormatTime(item->stat.st_mtime).c_str();
+			CString strBuffer = UtilFormatTime(item->_entry.stat.st_mtime).c_str();
 			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
 		}
 		break;
@@ -809,11 +809,11 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	case ID_MENUITEM_COPY_ALL:
 		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
 		for (const auto &item : items) {
-			CString strFileTime = UtilFormatTime(item->stat.st_mtime).c_str();
+			CString strFileTime = UtilFormatTime(item->_entry.stat.st_mtime).c_str();
 
 			info.AppendFormat(L"%s\t%s\t%I64d\t%s\t%s\n",
 				(LPCTSTR)item->_entryName.c_str(),
-				(LPCTSTR)item->_fullpath.c_str(),
+				(LPCTSTR)item->_entry.path.c_str(),
 				item->_originalSize,
 				m_ShellDataManager.GetTypeName(item->getExt().c_str()),
 				(LPCTSTR)strFileTime);

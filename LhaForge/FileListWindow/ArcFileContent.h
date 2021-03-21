@@ -27,12 +27,12 @@
 #include "CommonUtil.h"
 
 //reconstructed archive content structure
-struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
+struct ARCHIVE_ENTRY_INFO {
+	LF_ENTRY_STAT _entry;
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > _children;
 	ARCHIVE_ENTRY_INFO*	_parent;
 
 	std::wstring _entryName;
-	std::wstring _fullpath;	//not the original path
 
 	//for file, original file size. for directory, sum of children file size
 	UINT64		_originalSize;
@@ -45,17 +45,17 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 		const wchar_t* FOLDER_EXTENSION_STRING = L"***directory/dummy/extension***";
 		return FOLDER_EXTENSION_STRING;
 	}
-	bool is_directory()const override{
+	bool is_directory()const{
 		//in case the directory is just a ghost entry that is not stored in the archive
 		//ex. in zip, dirA/fileA.txt, does not include dirA as an entry
-		return __super::is_directory() || !_children.empty();
+		return _entry.is_directory() || !_children.empty();
 	}
 
 	std::wstring getExt()const {
 		if (is_directory()) {
 			return dirDummyExt();
 		} else {
-			auto fname = std::filesystem::path(_fullpath).filename();
+			auto fname = _entry.path.filename();
 			if (!fname.empty() && fname.wstring()[0]==L'.') {
 				//ex. ".gitignore"
 				return fname;
@@ -92,7 +92,6 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 		auto s = std::make_shared<ARCHIVE_ENTRY_INFO>();
 		s->_entryName = entryName;
 		s->_parent = this;
-		s->_fullpath = s->calcFullpath();
 		_children.push_back(s);
 		return s.get();
 	}
@@ -104,7 +103,7 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 			auto p = makeSureItemExists(entryName);
 			auto sub = std::vector<std::wstring>(std::next(pathElements.begin()), pathElements.end());
 			if (!sub.empty()) {
-				p->stat.st_mode &= S_IFDIR;
+				p->_entry.stat.st_mode &= S_IFDIR;
 			}
 			return p->addEntry(sub);
 		}
@@ -113,25 +112,20 @@ struct ARCHIVE_ENTRY_INFO:public LF_ENTRY_STAT {
 		_children.clear();
 		_parent = nullptr;
 		_entryName.clear();
-		_fullpath.clear();
 
 		_originalSize = -1;
 	}
 
 	std::wstring calcFullpath()const {
-		if (_fullpath.empty()) {
-			if (_parent) {
-				auto parent_name = _parent->calcFullpath();
-				if (parent_name.empty()) {
-					return _entryName;
-				} else {
-					return parent_name + L"/" + _entryName;
-				}
+		if (_parent) {
+			auto parent_name = _parent->calcFullpath();
+			if (parent_name.empty()) {
+				return _entryName;
 			} else {
-				return L"";
+				return parent_name + L"/" + _entryName;
 			}
 		} else {
-			return _fullpath;
+			return L"";
 		}
 	}
 	//returns pathname from base to this
@@ -206,7 +200,7 @@ public:
 	}
 	std::filesystem::path getArchivePath()const { return m_pathArchive; }
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
-	bool isModifySupported()const { return !m_bModifySupported; }
+	bool isModifySupported()const { return m_bModifySupported; }
 	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
 	bool isOK()const { return m_pRoot.get() != nullptr; }
 
@@ -223,11 +217,10 @@ public:
 
 	void scanArchiveStruct(const std::filesystem::path& archiveName, ILFScanProgressHandler& progressHandler);
 
-	void extractEntries(
+	std::vector<std::filesystem::path> extractEntries(
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 		const std::filesystem::path& outputDir,
 		const ARCHIVE_ENTRY_INFO* lpBase,
-		bool bCollapseDir,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
 	void addEntries(

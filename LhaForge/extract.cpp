@@ -335,7 +335,7 @@ overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path
 	}
 }
 
-void extractCurrentEntry(
+std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,
 	const std::filesystem::path& output_dir,
@@ -374,7 +374,7 @@ void extractCurrentEntry(
 				break;
 			case overwrite_options::skip:
 				arcLog(originalPath, L"skipped");
-				return;
+				return {};
 			case overwrite_options::abort:
 				//abort
 				arcLog(originalPath, L"cancelled by user");
@@ -416,6 +416,7 @@ void extractCurrentEntry(
 		}
 
 		entry->write_file_stat(outputPath);
+		return outputPath;
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 		arcLog(originalPath, e.what());
 		throw e;

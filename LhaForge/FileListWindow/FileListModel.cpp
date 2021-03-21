@@ -52,7 +52,7 @@ std::wstring CFileListModel::getCurrentDirPath()const
 {
 	std::wstring path;
 	if(m_lpCurrentDir){
-		path = m_lpCurrentDir->path;
+		path = m_lpCurrentDir->_entry.path;
 	}
 	return path;
 }
@@ -151,17 +151,17 @@ struct FILELIST_SORT_COMPARATOR{
 				int result = _tcsicmp(x->_entryName.c_str(), y->_entryName.c_str());
 				if(result == 0){
 					//sort by pathname
-					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 				}else{
 					return (result<0);
 				}
 			}
 		case FILEINFO_FULLPATH:
-			return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+			return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 		case FILEINFO_ORIGINALSIZE:
 			if(x->_originalSize == y->_originalSize){
 				//sort by pathname
-				return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+				return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 			}else{
 				return (x->_originalSize < y->_originalSize);
 			}
@@ -170,26 +170,26 @@ struct FILELIST_SORT_COMPARATOR{
 				int result = _tcsicmp(x->getExt().c_str(), y->getExt().c_str());
 				if(result == 0){
 					//sort by pathname
-					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 				}else{
 					return (result < 0);
 				}
 			}
 		case FILEINFO_FILETIME:
 			{
-				if(x->stat.st_mtime == y->stat.st_mtime){
+				if(x->_entry.stat.st_mtime == y->_entry.stat.st_mtime){
 					//sort by pathname
-					return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 				}else{
-					return (x->stat.st_mtime < y->stat.st_mtime);
+					return (x->_entry.stat.st_mtime < y->_entry.stat.st_mtime);
 				}
 			}
 		case FILEINFO_ATTRIBUTE:
-			if(x->stat.st_mode == y->stat.st_mode){
+			if(x->_entry.stat.st_mode == y->_entry.stat.st_mode){
 				//sort by pathname
-				return (_tcsicmp(x->_fullpath.c_str(), y->_fullpath.c_str())<0);
+				return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 			}else{
-				return (x->stat.st_mode < y->stat.st_mode);
+				return (x->_entry.stat.st_mode < y->_entry.stat.st_mode);
 			}
 		case FILEINFO_COMPRESSEDSIZE:
 		case FILEINFO_METHOD:

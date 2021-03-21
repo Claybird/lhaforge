@@ -76,7 +76,7 @@ struct CLFOverwriteConfirmFORCED : public ILFOverwriteConfirm {
 	}
 };
 
-void extractCurrentEntry(
+std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,
 	const std::filesystem::path& output_dir,
