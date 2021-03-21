@@ -308,7 +308,7 @@ CArchiveFileContent::subDeleteEntries(
 		[&](const LF_ENTRY_STAT& entry) {
 		progressHandler.onNextEntry(entry.path, entry.stat.st_size);
 		progressHandler.onEntryIO(0);	//TODO
-		if (isIn(items_to_delete, toLower(entry.path))) {
+		if (isIn(items_to_delete, std::filesystem::path(toLower(entry.path)))) {
 			arcLog(entry.path, L"Removed");
 			return false;
 		} else {
@@ -382,6 +382,83 @@ void CArchiveFileContent::addEntries(
 	std::filesystem::rename(tempFile, m_pathArchive);
 }
 
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, addEntries)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		CLFPassphraseNULL passphrase;
+		CArchiveFileContent content(passphrase);
+		ARCLOG arcLog;
+		auto src = UtilGetTemporaryFileName();
+		{
+			CAutoFile f;
+			f.open(src, L"w");
+			fputs("abcde12345", f);
+		}
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.addEntries(args, { src }, content.getRootNode()->getChild(L"dirA"), CLFProgressHandlerNULL(), arcLog);
+		UtilDeletePath(src);
+		EXPECT_FALSE(std::filesystem::exists(src));
+
+		CLFArchive a;
+		a.read_open(temp, CLFPassphraseNULL());
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA" / src.filename(), e->path);
+		EXPECT_EQ(10, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+#endif
+
 void CArchiveFileContent::deleteEntries(
 	LF_COMPRESS_ARGS& args,
 	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
@@ -404,6 +481,69 @@ void CArchiveFileContent::deleteEntries(
 	UtilDeletePath(m_pathArchive);
 	std::filesystem::rename(tempFile, m_pathArchive);
 }
+
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, deleteEntries)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		CLFPassphraseNULL passphrase;
+		CArchiveFileContent content(passphrase);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.deleteEntries(args,
+			{ content.getRootNode()->getChild(L"かきくけこ")->getChild(L"file3.txt") },
+			CLFProgressHandlerNULL(), arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, CLFPassphraseNULL());
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+#endif
 
 std::vector<std::filesystem::path>
 CArchiveFileContent::makeSureItemsExtracted(	//returns list of extracted files
@@ -599,19 +739,5 @@ TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 	EXPECT_FALSE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
 }
-
-/*void addEntries(
-	LF_COMPRESS_ARGS& args,
-	const std::vector<std::filesystem::path> &files,
-	const ARCHIVE_ENTRY_INFO* lpParent,
-	ILFProgressHandler& progressHandler,
-	ARCLOG &arcLog);
-void deleteEntries(
-	LF_COMPRESS_ARGS& args,
-	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
-	ILFProgressHandler& progressHandler,
-	ARCLOG &arcLog);
-*/
-
 #endif
 
