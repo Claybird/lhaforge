@@ -700,15 +700,41 @@ TEST(CLFArchiveLA, is_modify_supported)
 std::wstring CLFArchiveLA::get_format_name()
 {
 	if (_arc_read) {
-		auto p = archive_format_name(*_arc_read);	//differ on each entry
+		//scan for file content; to know archive information
+		bool is_src_encrypted = false;
+		for (auto entry = read_entry_begin(); entry; entry = read_entry_next()) {
+			continue;
+		}
+		auto p = archive_format_name(*_arc_read);
 		if (p)return UtilUTF8toUNICODE(p);
 	}
 	if (_arc_write) {
-		auto p = archive_format_name(*_arc_write);	//differ on each entry
+		auto p = archive_format_name(*_arc_write);
 		if (p)return UtilUTF8toUNICODE(p);
 	}
 	return L"---";
 }
+
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveLA, get_format_name)
+{
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveLA a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
+
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		a.write_open(temp, LF_FMT_ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+#endif
 
 std::vector<LF_COMPRESS_CAPABILITY> CLFArchiveLA::get_compression_capability()const
 {
@@ -754,6 +780,45 @@ void CLFArchiveLA::read_entry_end()
 }
 
 
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveLA, read_entry)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveLA a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+	for (int i = 0; i < 2; i++) {
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/dirC/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"あいうえお.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"かきくけこ/file3.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_EQ(nullptr, entry);
+	}
+}
+
+#endif
+
 //read file entry
 LF_BUFFER_INFO CLFArchiveLA::read_file_entry_block()
 {
@@ -791,6 +856,42 @@ void CLFArchiveLA::add_directory_entry(const LF_ENTRY_STAT& lf_stat)
 	}
 }
 
+
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveLA, add_entry)
+{
+	auto temp = UtilGetTemporaryFileName();
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+	{
+		CLFArchiveLA a;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		a.write_open(temp, LF_FMT_ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		LF_ENTRY_STAT e;
+		e.read_file_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
+		a.add_directory_entry(e);
+
+		RAW_FILE_READER provider;
+		provider.open(src);
+		e.read_file_stat(src, L"test/file.txt");
+		a.add_file_entry(e, [&]() {
+			auto data = provider();
+			return data;
+		});
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
+
+#endif
 
 //make a copy, and returns in "write_open" state
 std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
