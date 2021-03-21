@@ -157,10 +157,9 @@ public:
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 		const std::filesystem::path &outputDir,
 		const ARCHIVE_ENTRY_INFO* lpBase,
-		bool bCollapseDir,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
-		m_Content.extractEntries(items, outputDir, lpBase, bCollapseDir, progressHandler, arcLog);
+		m_Content.extractEntries(items, outputDir, lpBase, progressHandler, arcLog);
 	}
 
 	std::vector<std::filesystem::path> MakeSureItemsExtracted(

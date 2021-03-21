@@ -301,7 +301,7 @@ protected:
 
 		ARCLOG arcLog;
 		try {
-			mr_Model.ExtractItems(items, pathOutputDir, mr_Model.getCurrentDir(), false, CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
+			mr_Model.ExtractItems(items, pathOutputDir, mr_Model.getCurrentDir(), CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
 		} catch (...) {
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs = { arcLog };
