@@ -70,7 +70,6 @@ void CArchiveFileContent::scanArchiveStruct(
 	postScanArchive(nullptr);
 }
 
-
 void CArchiveFileContent::postScanArchive(ARCHIVE_ENTRY_INFO* pNode)
 {
 	if (!pNode)pNode = m_pRoot.get();
@@ -94,6 +93,38 @@ void CArchiveFileContent::postScanArchive(ARCHIVE_ENTRY_INFO* pNode)
 }
 
 
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, scanArchiveStruct)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFPassphraseNULL no_passphrase;
+	CArchiveFileContent content(no_passphrase);
+
+	auto arcpath = std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip";
+	content.scanArchiveStruct(arcpath, CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+	EXPECT_EQ(arcpath, content.getArchivePath());
+
+	const auto* root = content.getRootNode();
+	EXPECT_EQ(3, root->getNumChildren());
+	EXPECT_EQ(L"dirA", root->getChild(0)->_entryName);
+	EXPECT_EQ(L"dirA", root->getChild(L"dirA")->_entryName);
+	EXPECT_TRUE(root->getChild(L"dirA")->_entry.path.empty());
+	EXPECT_EQ(L"dirB", root->getChild(L"dirA")->getChild(L"dirB")->_entryName);
+	EXPECT_EQ(L"dirA/dirB/", root->getChild(L"dirA")->getChild(L"dirB")->_entry.path);
+	EXPECT_EQ(8, root->enumChildren().size());
+	EXPECT_EQ(L"file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entryName);
+	EXPECT_EQ(L"かきくけこ/file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entry.path);
+	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entryName);
+	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entry.path);
+
+	content.clear();
+	EXPECT_FALSE(content.isOK());
+}
+#endif
+
+
 std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubItem(
 	const std::wstring& pattern,
 	const ARCHIVE_ENTRY_INFO* parent)const
@@ -114,6 +145,30 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubIt
 	}
 	return found;
 }
+
+#ifdef UNIT_TEST
+TEST(ArcFileContent, findItem)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFPassphraseNULL no_passphrase;
+	CArchiveFileContent content(no_passphrase);
+
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+	auto result = content.findItem(L"*");
+	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
+	result = content.findItem(L"*.*");
+	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
+	result = content.findItem(L".txt");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"*.txt");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"*.TXT");
+	EXPECT_EQ(4, result.size());
+	result = content.findItem(L"dirB");
+	EXPECT_EQ(1, result.size());
+}
+#endif
 
 //extracts one entry; for directories, caller should expand and add children to items
 std::vector<std::filesystem::path> CArchiveFileContent::extractEntries(
@@ -148,6 +203,95 @@ std::vector<std::filesystem::path> CArchiveFileContent::extractEntries(
 	arc.close();
 	return extracted;
 }
+
+#ifdef UNIT_TEST
+TEST(ArcFileContent, extractEntries)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto tempDir = UtilGetTempPath() / L"arcfilecontent_extractEntries";
+	tempDir.make_preferred();
+	{
+		CLFPassphraseNULL no_passphrase;
+		CArchiveFileContent content(no_passphrase);
+		ARCLOG arcLog;
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+
+		EXPECT_FALSE(content.checkArchiveExists());
+
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+		auto entries = content.findItem(L"*");
+		EXPECT_EQ(8, entries.size());
+		entriesSub.clear();
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(), CLFProgressHandlerNULL(), arcLog);
+		EXPECT_EQ(6, extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"あいうえお.txt",
+			//tempDir / L"dirA",	implicit entry
+			tempDir / L"dirA/dirB/",
+			tempDir / L"dirA/dirB/file2.txt",
+			tempDir / L"dirA/dirB/dirC/",
+			tempDir / L"dirA/dirB/dirC/file1.txt",
+			//tempDir / L"かきくけこ",	implicit entry
+			tempDir / L"かきくけこ/file3.txt",
+		};
+		//all entries are returned as extracted
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
+	}
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+
+	{
+		CLFPassphraseConst passphrase(L"abcde");
+		CArchiveFileContent content(passphrase);
+		ARCLOG arcLog;
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+
+		EXPECT_FALSE(content.checkArchiveExists());
+
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
+		EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
+		auto entries = content.findItem(L"*.txt");
+		EXPECT_EQ(1, entries.size());
+		entriesSub.clear();
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(), CLFProgressHandlerNULL(), arcLog);
+		EXPECT_EQ(entries.size(), extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"test.txt",
+		};
+		//all entries are returned as extracted, even if the directory is not stored explicitly
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
+	}
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+#endif
 
 std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
 CArchiveFileContent::subDeleteEntries(
@@ -300,11 +444,62 @@ CArchiveFileContent::makeSureItemsExtracted(	//returns list of extracted files
 	}
 }
 
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, makeSureItemsExtracted)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto tempDir = UtilGetTempPath() / L"arcfilecontent_makeSureItemsExtracted";
+	tempDir.make_preferred();
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+
+	{
+		CLFPassphraseNULL no_passphrase;
+		CArchiveFileContent content(no_passphrase);
+		ARCLOG arcLog;
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+
+		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+		auto entries = content.findItem(L"*");
+		EXPECT_EQ(8, entries.size());
+
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.makeSureItemsExtracted(entriesSub, tempDir, nullptr, CLFProgressHandlerNULL(), overwrite_options::abort, arcLog);
+		EXPECT_EQ(6, extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"あいうえお.txt",
+			//tempDir / L"dirA",	implicit entry
+			tempDir / L"dirA/dirB/",
+			tempDir / L"dirA/dirB/file2.txt",
+			tempDir / L"dirA/dirB/dirC/",
+			tempDir / L"dirA/dirB/dirC/file1.txt",
+			//tempDir / L"かきくけこ",	implicit entry
+			tempDir / L"かきくけこ/file3.txt",
+		};
+		//all entries are returned as extracted, even if the directory is not stored explicitly
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
+	}
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+#endif
+
 
 #ifdef UNIT_TEST
-#include <gtest/gtest.h>
-#include "FileListWindow/ArcFileContent.h"
-#include "extract.h"
 
 TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 {
@@ -363,55 +558,6 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 	EXPECT_EQ(L"dirA/dirB/あいうえお.txt", aiueo->getRelativePath(&root));
 }
 
-TEST(ArcFileContent, scanArchiveStruct)
-{
-	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
-
-	auto arcpath = std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip";
-	content.scanArchiveStruct(arcpath, CLFScanProgressHandlerNULL());
-	EXPECT_TRUE(content.isOK());
-	EXPECT_EQ(arcpath, content.getArchivePath());
-
-	const auto* root = content.getRootNode();
-	EXPECT_EQ(3, root->getNumChildren());
-	EXPECT_EQ(L"dirA", root->getChild(0)->_entryName);
-	EXPECT_EQ(L"dirA", root->getChild(L"dirA")->_entryName);
-	EXPECT_TRUE(root->getChild(L"dirA")->_entry.path.empty());
-	EXPECT_EQ(L"dirB", root->getChild(L"dirA")->getChild(L"dirB")->_entryName);
-	EXPECT_EQ(L"dirA/dirB/", root->getChild(L"dirA")->getChild(L"dirB")->_entry.path);
-	EXPECT_EQ(8, root->enumChildren().size());
-	EXPECT_EQ(L"file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entryName);
-	EXPECT_EQ(L"かきくけこ/file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entry.path);
-	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entryName);
-	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entry.path);
-
-	content.clear();
-	EXPECT_FALSE(content.isOK());
-}
-
-TEST(ArcFileContent, findItem)
-{
-	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
-
-	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
-	EXPECT_TRUE(content.isOK());
-	auto result = content.findItem(L"*");
-	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
-	result = content.findItem(L"*.*");
-	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
-	result = content.findItem(L".txt");
-	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"*.txt");
-	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"*.TXT");
-	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"dirB");
-	EXPECT_EQ(1, result.size());
-}
 
 TEST(ArcFileContent, isArchiveEncrypted)
 {
@@ -454,147 +600,7 @@ TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 	EXPECT_TRUE(content.checkArchiveExists());
 }
 
-TEST(ArcFileContent, extractEntries)
-{
-	_wsetlocale(LC_ALL, L"");	//default locale
-	auto tempDir = UtilGetTempPath() / L"arcfilecontent_extractEntries";
-	tempDir.make_preferred();
-	{
-		CLFPassphraseNULL no_passphrase;
-		CArchiveFileContent content(no_passphrase);
-		ARCLOG arcLog;
-		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
-
-		EXPECT_FALSE(content.checkArchiveExists());
-
-		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
-		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*");
-		EXPECT_EQ(8, entries.size());
-		entriesSub.clear();
-		for (auto entry : entries) {
-			entriesSub.push_back(entry.get());
-		}
-		EXPECT_EQ(entries.size(), entriesSub.size());
-		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(),CLFProgressHandlerNULL(), arcLog);
-		EXPECT_EQ(6, extracted.size());
-
-		for (auto f : extracted) {
-			EXPECT_TRUE(std::filesystem::exists(f));
-			//extracted file should be in tempDir
-			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
-		}
-
-		const std::vector<std::filesystem::path> expectedPath = {
-			tempDir / L"あいうえお.txt",
-			//tempDir / L"dirA",	implicit entry
-			tempDir / L"dirA/dirB/",
-			tempDir / L"dirA/dirB/file2.txt",
-			tempDir / L"dirA/dirB/dirC/",
-			tempDir / L"dirA/dirB/dirC/file1.txt",
-			//tempDir / L"かきくけこ",	implicit entry
-			tempDir / L"かきくけこ/file3.txt",
-		};
-		//all entries are returned as extracted
-		for (const auto p : expectedPath) {
-			EXPECT_TRUE(isIn(extracted, p));
-		}
-	}
-	UtilDeleteDir(tempDir, true);
-	EXPECT_FALSE(std::filesystem::exists(tempDir));
-
-	{
-		CLFPassphraseConst passphrase(L"abcde");
-		CArchiveFileContent content(passphrase);
-		ARCLOG arcLog;
-		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
-
-		EXPECT_FALSE(content.checkArchiveExists());
-
-		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
-		EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*.txt");
-		EXPECT_EQ(1, entries.size());
-		entriesSub.clear();
-		for (auto entry : entries) {
-			entriesSub.push_back(entry.get());
-		}
-		EXPECT_EQ(entries.size(), entriesSub.size());
-		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(), CLFProgressHandlerNULL(), arcLog);
-		EXPECT_EQ(entries.size(), extracted.size());
-
-		for (auto f : extracted) {
-			EXPECT_TRUE(std::filesystem::exists(f));
-			//extracted file should be in tempDir
-			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
-		}
-
-		const std::vector<std::filesystem::path> expectedPath = {
-			tempDir / L"test.txt",
-		};
-		//all entries are returned as extracted, even if the directory is not stored explicitly
-		for (const auto p : expectedPath) {
-			EXPECT_TRUE(isIn(extracted, p));
-		}
-	}
-	UtilDeleteDir(tempDir, true);
-	EXPECT_FALSE(std::filesystem::exists(tempDir));
-}
-
-TEST(ArcFileContent, makeSureItemsExtracted)
-{
-	_wsetlocale(LC_ALL, L"");	//default locale
-	auto tempDir = UtilGetTempPath() / L"arcfilecontent_makeSureItemsExtracted";
-	tempDir.make_preferred();
-	EXPECT_FALSE(std::filesystem::exists(tempDir));
-
-	{
-		CLFPassphraseNULL no_passphrase;
-		CArchiveFileContent content(no_passphrase);
-		ARCLOG arcLog;
-		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
-
-		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*");
-		EXPECT_EQ(8, entries.size());
-
-		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
-		for (auto entry : entries) {
-			entriesSub.push_back(entry.get());
-		}
-
-		EXPECT_EQ(entries.size(), entriesSub.size());
-		auto extracted = content.makeSureItemsExtracted(entriesSub, tempDir, nullptr, CLFProgressHandlerNULL(), overwrite_options::abort, arcLog);
-		EXPECT_EQ(6, extracted.size());
-
-		for (auto f : extracted) {
-			EXPECT_TRUE(std::filesystem::exists(f));
-			//extracted file should be in tempDir
-			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
-		}
-
-		const std::vector<std::filesystem::path> expectedPath = {
-			tempDir / L"あいうえお.txt",
-			//tempDir / L"dirA",	implicit entry
-			tempDir / L"dirA/dirB/",
-			tempDir / L"dirA/dirB/file2.txt",
-			tempDir / L"dirA/dirB/dirC/",
-			tempDir / L"dirA/dirB/dirC/file1.txt",
-			//tempDir / L"かきくけこ",	implicit entry
-			tempDir / L"かきくけこ/file3.txt",
-		};
-		//all entries are returned as extracted, even if the directory is not stored explicitly
-		for (const auto p : expectedPath) {
-			EXPECT_TRUE(isIn(extracted, p));
-		}
-	}
-	UtilDeleteDir(tempDir, true);
-	EXPECT_FALSE(std::filesystem::exists(tempDir));
-}
-
-/*
-
-void addEntries(
+/*void addEntries(
 	LF_COMPRESS_ARGS& args,
 	const std::vector<std::filesystem::path> &files,
 	const ARCHIVE_ENTRY_INFO* lpParent,
@@ -605,7 +611,7 @@ void deleteEntries(
 	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 	ILFProgressHandler& progressHandler,
 	ARCLOG &arcLog);
+*/
 
-	*/
 #endif
 
