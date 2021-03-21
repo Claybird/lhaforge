@@ -54,14 +54,21 @@ protected:
 		ARCLOG arcLog;
 		auto options = bOverwrite ? overwrite_options::overwrite : overwrite_options::skip;
 		try {
-			auto extracted = mr_Model.MakeSureItemsExtracted(
+			auto output_dir = mr_Model.getTempDir();
+			//this will return all entries of extracted items; not of the selected item
+			mr_Model.MakeSureItemsExtracted(
 				items,
-				mr_Model.getTempDir(),
+				output_dir,
 				mr_Model.GetRootNode(),
 				CLFProgressHandlerGUI(m_hFrameWnd),
 				options,
 				arcLog);
-			return extracted;
+
+			std::vector<std::filesystem::path> selected_extracted;
+			for (const auto item : items) {
+				selected_extracted.push_back(output_dir / LF_sanitize_pathname(item->_entry.path));
+			}
+			return selected_extracted;
 		} catch (...) {
 			displayLog(arcLog);
 			return {};

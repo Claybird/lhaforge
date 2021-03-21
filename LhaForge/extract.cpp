@@ -350,7 +350,7 @@ std::filesystem::path extractCurrentEntry(
 	//filetime
 	auto cFileTime = entry->stat.st_mtime;
 
-	auto outputPath = std::filesystem::path(output_dir) / LF_sanitize_pathname(originalPath);
+	auto outputPath = output_dir / LF_sanitize_pathname(originalPath);
 
 	//original file size (before compression)
 	progressHandler.onNextEntry(outputPath, entry->stat.st_size);

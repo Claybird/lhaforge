@@ -352,6 +352,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 			}
 
 			EnableWindow(TRUE);
+			return S_OK;
 		}else{
 			//same file is opened; highlight existing window
 			EnumWindows(EnumFileListWindowProc, (LPARAM)strMutex.c_str());
