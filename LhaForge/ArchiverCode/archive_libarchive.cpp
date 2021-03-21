@@ -885,6 +885,18 @@ TEST(CLFArchiveLA, add_entry)
 			return data;
 		});
 	}
+	{
+		CLFArchiveLA a;
+		a.read_open(temp, CLFPassphraseNULL());
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/file.txt", entry->path);
+		EXPECT_EQ(10, entry->stat.st_size);
+	}
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 	UtilDeletePath(src);
@@ -933,6 +945,81 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 		throw ARCHIVE_EXCEPTION(EFAULT);
 	}
 }
+
+
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveLA, make_copy_archive)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	{
+		auto temp = UtilGetTemporaryFileName();
+		{
+			CLFArchiveLA a;
+			a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+			{
+				LF_COMPRESS_ARGS args;
+				args.load(CConfigFile());
+				auto out = a.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
+			}
+			a.read_open(temp, CLFPassphraseNULL());
+
+			auto entry = a.read_entry_begin();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"dirA/dirB/", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"dirA/dirB/dirC/", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"dirA/dirB/file2.txt", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"あいうえお.txt", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"かきくけこ/file3.txt", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_EQ(nullptr, entry);
+		}
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+	}
+	{
+		auto temp = UtilGetTemporaryFileName();
+		{
+			CLFArchiveLA a;
+			auto passphrase = CLFPassphraseConst(L"abcde");
+			a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", passphrase);
+			{
+				LF_COMPRESS_ARGS args;
+				args.load(CConfigFile());
+				auto out = a.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
+			}
+			a.read_open(temp, passphrase);
+
+			auto entry = a.read_entry_begin();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"test.txt", entry->path);
+
+			entry = a.read_entry_next();
+			EXPECT_EQ(nullptr, entry);
+		}
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+	}
+}
+
+#endif
 
 #include "CommonUtil.h"
 
