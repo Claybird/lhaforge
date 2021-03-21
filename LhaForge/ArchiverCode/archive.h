@@ -210,7 +210,7 @@ struct LF_ENTRY_STAT {
 		is_encrypted = false;
 	}
 	virtual ~LF_ENTRY_STAT() {}
-	void read_file_stat(const std::filesystem::path& src_path, const std::filesystem::path& stored_as) {
+	void read_stat(const std::filesystem::path& src_path, const std::filesystem::path& stored_as) {
 		int e = _wstat64(src_path.c_str(), &stat);
 		if (e != 0) {
 			throw ARCHIVE_EXCEPTION(errno);
@@ -221,7 +221,7 @@ struct LF_ENTRY_STAT {
 		method_name.clear();
 		is_encrypted = false;
 	}
-	void write_file_stat(const std::filesystem::path& dest_path)const {
+	void write_stat(const std::filesystem::path& dest_path)const {
 		struct __utimbuf64 ut;
 		ut.actime = stat.st_atime;
 		ut.modtime = stat.st_mtime;

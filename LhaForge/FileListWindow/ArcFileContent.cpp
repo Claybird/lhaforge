@@ -344,7 +344,7 @@ void CArchiveFileContent::addEntries(
 		try {
 			LF_ENTRY_STAT entry;
 			auto entryPath = destDir / std::filesystem::path(file).filename();
-			entry.read_file_stat(file, entryPath);
+			entry.read_stat(file, entryPath);
 			progressHandler.onNextEntry(entry.path, entry.stat.st_size);
 
 			if (std::filesystem::is_regular_file(file)) {

@@ -597,7 +597,7 @@ void compressOneArchive(
 	for (const auto &source : source_files.pathPair) {
 		try {
 			LF_ENTRY_STAT entry;
-			entry.read_file_stat(source.originalFullPath, source.entryPath);
+			entry.read_stat(source.originalFullPath, source.entryPath);
 			progressHandler.onNextEntry(source.originalFullPath, entry.stat.st_size);
 
 			if (std::filesystem::is_regular_file(source.originalFullPath)) {

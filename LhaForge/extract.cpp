@@ -305,7 +305,7 @@ overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path
 
 			//existing file
 			LF_ENTRY_STAT existing;
-			existing.read_file_stat(pathToWrite, pathToWrite);
+			existing.read_stat(pathToWrite, pathToWrite);
 			CConfirmOverwriteDialog dlg;
 			dlg.SetFileInfo(
 				entry->path,entry->stat.st_size,entry->stat.st_mtime,
@@ -415,7 +415,7 @@ std::filesystem::path extractCurrentEntry(
 			fp.close();
 		}
 
-		entry->write_file_stat(outputPath);
+		entry->write_stat(outputPath);
 		return outputPath;
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 		arcLog(originalPath, e.what());

@@ -874,12 +874,12 @@ TEST(CLFArchiveLA, add_entry)
 		args.load(CConfigFile());
 		a.write_open(temp, LF_FMT_ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
 		LF_ENTRY_STAT e;
-		e.read_file_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
+		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
 		a.add_directory_entry(e);
 
 		RAW_FILE_READER provider;
 		provider.open(src);
-		e.read_file_stat(src, L"test/file.txt");
+		e.read_stat(src, L"test/file.txt");
 		a.add_file_entry(e, [&]() {
 			auto data = provider();
 			return data;
