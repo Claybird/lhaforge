@@ -240,6 +240,8 @@ public:
 			if (lpNode) {
 				if (lpNode->is_directory()) {
 					return AddItemsToDirectory(lpNode, files);
+				} else {
+					return E_HANDLE;
 				}
 			} else {
 				return E_HANDLE;
