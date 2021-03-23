@@ -108,7 +108,7 @@ public:
 	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	HRESULT OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG arcLog);
+	HRESULT OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG &arcLog);
 	HRESULT ReopenArchiveFile(int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);
 	bool ReopenArchiveFileAll();

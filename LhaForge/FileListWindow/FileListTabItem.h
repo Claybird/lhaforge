@@ -44,7 +44,7 @@ public:
 	HWND			m_hFrameWnd;
 
 	//for detect same file opened in different window/tab
-	HANDLE hMutex;
+	CHandle hMutex;
 	std::wstring strMutexName;
 protected:
 	//---internal functions
@@ -88,8 +88,7 @@ public:
 		_confFLW(confFLW),
 		Model(rMan, _passphrase),
 		ListView(Model, confFLW),
-		TreeView(Model, confFLW),
-		hMutex(NULL){}
+		TreeView(Model, confFLW){}
 	virtual ~CFileListTabItem(){DestroyWindow();}
 	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd) {
 		m_hFrameWnd = hFrameWnd;
@@ -128,8 +127,7 @@ public:
 		if (Splitter.IsWindow())Splitter.DestroyWindow();
 
 		if (hMutex) {
-			CloseHandle(hMutex);
-			hMutex = NULL;
+			hMutex.Close();
 		}
 	}
 	void ShowWindow(int nCmdShow) {

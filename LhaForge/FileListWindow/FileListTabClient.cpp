@@ -75,7 +75,7 @@ LRESULT CFileListTabClient::OnDestroy()
 	return 0;
 }
 
-HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG arcLog)
+HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG &arcLog)
 {
 	int idx = CreateNewTab();
 	ASSERT(idx >= 0);
@@ -85,7 +85,7 @@ HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpat
 	if (!pItem)return E_HANDLE;
 
 	//prepare duplicated window
-	pItem->hMutex=hMutex;
+	pItem->hMutex.Attach(hMutex);
 	pItem->strMutexName = mutexName;
 
 	if(!pItem->OpenArchive(arcpath))RemoveTab(idx);
