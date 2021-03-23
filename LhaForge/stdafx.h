@@ -116,7 +116,6 @@ typedef std::string stdString;
 //個数を数えるマクロ
 #define COUNTOF(x) (sizeof(x)/sizeof(x[0]))
 
-#define FILL_ZERO(x)	::ZeroMemory(&x,sizeof(x))
 #define ASSERT(x)	assert(x)
 
 #include "Utilities/StringUtil.h"
