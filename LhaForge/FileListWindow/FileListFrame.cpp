@@ -23,20 +23,18 @@
 */
 
 #include "stdafx.h"
-#include "FileListFrame.h"
-#include "../ConfigCode/configwnd.h"
-#include "../ConfigCode/ConfigFile.h"
-#include "../ConfigCode/ConfigFileListWindow.h"
-#include "../resource.h"
+#include "ConfigCode/configwnd.h"
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigFileListWindow.h"
 #include "Dialogs/LogListDialog.h"
-#include "../Utilities/OSUtil.h"
-#include "../Utilities/StringUtil.h"
-#include "../CommonUtil.h"
+#include "Utilities/OSUtil.h"
+#include "Utilities/StringUtil.h"
+#include "CommonUtil.h"
+#include "resource.h"
+#include "FileListFrame.h"
 
-HWND g_hFirstWindow = nullptr;
-std::wstring g_FileToOpen;
-
-std::wstring CFileListFrame::ms_strPropIdentifier(UtilLoadString(IDS_MESSAGE_CAPTION) + UtilLoadString(IDS_LHAFORGE_VERSION_STRING));
+// SetProp identifier
+std::wstring g_strPropIdentifier = UtilLoadString(IDS_MESSAGE_CAPTION) + UtilLoadString(IDS_LHAFORGE_VERSION_STRING);
 
 CFileListFrame::CFileListFrame(CConfigFile &conf):
 	mr_Config(conf),
@@ -45,7 +43,6 @@ CFileListFrame::CFileListFrame(CConfigFile &conf):
 	m_ConfFLW.load(mr_Config);
 	m_TabClientWnd = std::make_unique<CFileListTabClient>(conf, m_ConfFLW, *this);
 }
-
 
 BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 {
@@ -61,43 +58,37 @@ BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
 
 LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 {
-//========================================
-//      フレームウィンドウの初期化
-//========================================
-	//ウィンドウプロパティの設定:LhaForgeウィンドウである事を示す
-	::SetPropW(m_hWnd, ms_strPropIdentifier.c_str(), m_hWnd);
+	//Set window prop: set identity of LhaForge window
+	::SetPropW(m_hWnd, g_strPropIdentifier.c_str(), m_hWnd);
 
-	//ウィンドウのサイズの設定
+	//Window size
 	if(m_ConfFLW.StoreSetting){
-		if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置を復元する場合
+		if(m_ConfFLW.StoreWindowPosition){	//restore window position and size
 			MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y, m_ConfFLW.Width, m_ConfFLW.Height);
 		}else{
 			CRect Rect;
 			GetWindowRect(Rect);
 			MoveWindow(Rect.left,Rect.top, m_ConfFLW.Width, m_ConfFLW.Height);
 		}
-	}else if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ復元する場合
+	}else if(m_ConfFLW.StoreWindowPosition){	//restore window position only
 		CRect Rect;
 		GetWindowRect(Rect);
 		MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y,Rect.Width(),Rect.Height());
 	}
-	//ウィンドウサイズ取得
 	GetWindowRect(m_WindowRect);
 
-	// 大きいアイコン設定
+	// icons
 	HICON hIcon = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXICON),::GetSystemMetrics(SM_CYICON));
 	SetIcon(hIcon, TRUE);
-	// 小さいアイコン設定
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
 	if(m_ConfFLW.ShowToolbar){
-		// リバーを作成
+		//toolbar
 		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
-		// ツールバーを作成してバンドに追加
 		HIMAGELIST hImageList=NULL;
 		if(!m_ConfFLW.strCustomToolbarImage.empty()){
-			//カスタムツールバー
+			//custom toolbar image
 			hImageList = ImageList_LoadImage(NULL, m_ConfFLW.strCustomToolbarImage.c_str(), 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
 		}
 		HWND hWndToolBar=CreateToolBarCtrl(m_hWnd,IDR_MAINFRAME,hImageList);//CreateSimpleToolBarCtrl(m_hWnd,IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
@@ -106,28 +97,27 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		SizeSimpleReBarBands();
 	}
 
-	// ステータスバーを作成
-	m_hWndStatusBar=m_StatusBar.Create(m_hWnd);
-	UIAddStatusBar(m_hWndStatusBar);
-	int nPanes[] = {ID_DEFAULT_PANE, IDS_PANE_ITEMCOUNT_INITIAL,IDS_PANE_DLL_NAME_INITIAL};
-	m_StatusBar.SetPanes(nPanes, COUNTOF(nPanes));
+	// status bar
 	{
-		CString Text;
-		Text.Format(IDS_PANE_ITEMCOUNT,0,0);
-		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
+		m_hWndStatusBar = m_StatusBar.Create(m_hWnd);
+		UIAddStatusBar(m_hWndStatusBar);
+		int nPanes[] = { ID_DEFAULT_PANE, IDS_PANE_ITEMCOUNT_INITIAL };
+		m_StatusBar.SetPanes(nPanes, COUNTOF(nPanes));
+		auto text = Format(UtilLoadString(IDS_PANE_ITEMCOUNT), 0, 0);
+		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL, text.c_str());
 	}
 
-//========================================
-//      タブコントロールの初期化
-//========================================
-	m_TabClientWnd->Create(m_hWnd,rcDefault,NULL,WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN );
-	m_TabClientWnd->addEventListener(m_hWnd);
+	// tab control
+	{
+		m_TabClientWnd->Create(m_hWnd, rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+		m_TabClientWnd->addEventListener(m_hWnd);
 
-	//タブを使わないなら非表示に
-	if(m_ConfFLW.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
+		//hide tab if disabled
+		if (m_ConfFLW.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
+	}
 
 	//---------
-	//リストビュースタイル選択用メニューバーのラジオチェックを有効にする
+	//Enable/disable list view style selector
 	{
 		CMenuHandle menuView = GetMenu();
 		CMenuItemInfo mii;
@@ -143,9 +133,9 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		menuView.SetMenuItemInfo(ID_MENUITEM_LISTMODE_FLAT_FILESONLY, FALSE, &mii);
 	}
 
-	//リストビュースタイルの設定
+	//list view style
 	if(m_ConfFLW.StoreSetting){
-		//現在の表示設定のメニューにチェックを付ける
+		//current status
 		switch(m_ConfFLW.ListStyle){
 		case LVS_SMALLICON:
 			UISetCheck(ID_MENUITEM_LISTVIEW_SMALLICON, TRUE);
@@ -164,6 +154,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 			break;
 		}
 	}else{
+		//default status
 		UISetCheck(ID_MENUITEM_LISTVIEW_LARGEICON, TRUE);
 		UISetCheck(ID_MENUITEM_LISTMODE_TREE, TRUE);
 	}
@@ -171,112 +162,88 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	m_hWndClient = *m_TabClientWnd;
 	UpdateLayout();
 
-//========================================
-//      メッセージハンドラの設定
-//========================================
-	// メッセージループにメッセージフィルタとアイドルハンドラを追加
+	//message handler
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 	pLoop->AddIdleHandler(this);
 
-//========================================
-//      追加のキーボードアクセラレータ
-//========================================
+	//keyboard accelerator
 	if(m_ConfFLW.ExitWithEscape){
 		m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 	}
 
-	//メニュー更新
+	//update menu
 	EnableEntryExtractOperationMenu(false);
 	EnableEntryDeleteOperationMenu(false);
 	EnableAddItemsMenu(false);
 
-//========================================
-//    ファイル一覧ウィンドウのコマンド
-//========================================
+	// build commands on file list window
 	MenuCommand_MakeSendToCommands();
 	MenuCommand_UpdateUserAppCommands(m_ConfFLW);
 
-	MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
-	MenuCommand_MakeSendToMenu(GetSendToMenuHandle());
+	MenuCommand_MakeUserAppMenu(GetAdditionalMenuHandle(MENUTYPE::UserApp));
+	MenuCommand_MakeSendToMenu(GetAdditionalMenuHandle(MENUTYPE::SendTo));
 	DrawMenuBar();
 
-//==============================
-// ウィンドウをアクティブにする
-//==============================
+	// activate window
 	SetForegroundWindow(m_hWnd);
 	UpdateLayout();
 
-	//DnDによるファイル閲覧を可能に
+	// enable Drag & Drop
 	EnableDropTarget(true);
 	return 0;
 }
 
-HMENU CFileListFrame::GetUserAppMenuHandle()
+HMENU CFileListFrame::GetAdditionalMenuHandle(MENUTYPE type)
 {
+	const int nPos = 1;
 	CMenuHandle cMenu=GetMenu();
-	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:マジックナンバー
+	CMenuHandle cSubMenu=cMenu.GetSubMenu(nPos);
 	int MenuCount=cSubMenu.GetMenuItemCount();
-	int iIndex=-1;
-	for(int i=0;i<=MenuCount;i++){
-		if(-1==cSubMenu.GetMenuItemID(i)){	//ポップアップの親
-			iIndex=i;
+	for (int i = 0; i <= MenuCount; i++) {
+		if (-1 == cSubMenu.GetMenuItemID(i)) {	//parent item for popup
+			switch (type) {
+			case MENUTYPE::SendTo:
+				return cSubMenu.GetSubMenu(i + 1);
+			case MENUTYPE::UserApp:
+			default:
+				return cSubMenu.GetSubMenu(i);
+			}
 			break;
 		}
 	}
-	ASSERT(-1!=iIndex);
-	if(-1!=iIndex){
-		return cSubMenu.GetSubMenu(iIndex);
-	}else return NULL;
-}
-
-HMENU CFileListFrame::GetSendToMenuHandle()
-{
-	CMenuHandle cMenu=GetMenu();
-	CMenuHandle cSubMenu=cMenu.GetSubMenu(1);	//TODO:マジックナンバー
-	int MenuCount=cSubMenu.GetMenuItemCount();
-	int iIndex=-1;
-	for(int i=0;i<=MenuCount;i++){
-		if(-1==cSubMenu.GetMenuItemID(i)){	//ポップアップの親
-			iIndex=i;
-			break;
-		}
-	}
-	ASSERT(-1!=iIndex);
-	if(-1!=iIndex){
-		return cSubMenu.GetSubMenu(iIndex+1);
-	}else return NULL;
+	return nullptr;
 }
 
 
 LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
-	RemoveProp(m_hWnd, ms_strPropIdentifier.c_str());
+	::RemovePropW(m_hWnd, g_strPropIdentifier.c_str());
 
 	m_ConfFLW.load(mr_Config);
 
 	bool bSave=false;
-	//ウィンドウ設定の保存
-	if(m_ConfFLW.StoreSetting){
-		//ウィンドウサイズ
-		m_ConfFLW.Width=m_WindowRect.Width();
-		m_ConfFLW.Height=m_WindowRect.Height();
+	//store window settings
+	if (m_ConfFLW.StoreSetting) {
+		//window size
+		m_ConfFLW.Width = m_WindowRect.Width();
+		m_ConfFLW.Height = m_WindowRect.Height();
 
 		m_TabClientWnd->StoreSettings(m_ConfFLW);
 
-		if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置を保存
-			m_ConfFLW.WindowPos_x=m_WindowRect.left;
-			m_ConfFLW.WindowPos_y=m_WindowRect.top;
+		if (m_ConfFLW.StoreWindowPosition) {
+			m_ConfFLW.WindowPos_x = m_WindowRect.left;
+			m_ConfFLW.WindowPos_y = m_WindowRect.top;
 		}
 
 		m_ConfFLW.store(mr_Config);
-		bSave=true;
+		bSave = true;
 	}
-	if(m_ConfFLW.StoreWindowPosition){	//ウィンドウ位置だけ保存
-		m_ConfFLW.WindowPos_x=m_WindowRect.left;
-		m_ConfFLW.WindowPos_y=m_WindowRect.top;
+	if (m_ConfFLW.StoreWindowPosition) {
+		m_ConfFLW.WindowPos_x = m_WindowRect.left;
+		m_ConfFLW.WindowPos_y = m_WindowRect.top;
 		m_ConfFLW.store(mr_Config);
-		bSave=true;
+		bSave = true;
 	}
 	if(bSave){
 		try {
@@ -285,7 +252,6 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 			ErrorMessage(e.what());
 		}
 	}
-
 
 	if(m_TabClientWnd->IsWindow())m_TabClientWnd->DestroyWindow();
 
@@ -309,6 +275,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 		strParam += L"\"" + filePath.wstring() + L"\"";
 		int ret = (int)ShellExecuteW(nullptr, nullptr, UtilGetModulePath().c_str(), strParam.c_str(), nullptr, SW_RESTORE);
 		if(ret<=32){
+			//If the function succeeds, it returns a value greater than 32
 			return E_FAIL;
 		} else {
 			return S_OK;
@@ -316,9 +283,22 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 	}else{
 		//keep single instance
 		if(bAllowRelayOpen && m_ConfFLW.KeepSingleInstance){
-			g_hFirstWindow = nullptr;
-			EnumWindows(EnumFirstFileListWindowProc,(LPARAM)m_hWnd);
-			if(g_hFirstWindow){
+			static HWND s_hFirstWindow;
+			
+			s_hFirstWindow = nullptr;
+			EnumWindows([](HWND hWnd, LPARAM lParam)->BOOL {
+				if (hWnd != (HWND)lParam) {
+					auto className = UtilGetWindowClassName(hWnd);
+					if (LHAFORGE_FILE_LIST_CLASS == className) {
+						if (!s_hFirstWindow) {
+							s_hFirstWindow = hWnd;
+							return FALSE;
+						}
+					}
+				}
+				return TRUE;//continue
+			}, (LPARAM)m_hWnd);
+			if(s_hFirstWindow){
 				/*
 				 * 1. set property {filename, my process id} to subject window
 				 * 2. request subject window to find property containing my process id
@@ -326,9 +306,9 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 				 * 4. remove my propety
 				 */
 				DWORD dwID = GetCurrentProcessId();
-				::SetPropW(g_hFirstWindow, fname.c_str(), (HANDLE)dwID);
-				HRESULT hr = ::SendMessageW(g_hFirstWindow, WM_FILELIST_OPEN_BY_PROPNAME, dwID, 0);
-				::RemovePropW(g_hFirstWindow, fname.c_str());
+				::SetPropW(s_hFirstWindow, fname.c_str(), (HANDLE)dwID);
+				HRESULT hr = ::SendMessageW(s_hFirstWindow, WM_FILELIST_OPEN_BY_PROPNAME, dwID, 0);
+				::RemovePropW(s_hFirstWindow, fname.c_str());
 				if (SUCCEEDED(hr))return S_FALSE;
 			}
 		}
@@ -336,7 +316,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 		//prevent duplicated open
 		std::wstring strMutex = L"LF" + replace(toLower(fname), L'\\', L'/');
 
-		HANDLE hMutex=GetMultiOpenLockMutex(strMutex);
+		auto hMutex = GetMultiOpenLockMutex(strMutex);
 		if (hMutex) {
 			//set title
 			SetWindowTextW(UtilLoadString(IDR_MAINFRAME).c_str());
@@ -354,30 +334,41 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 			EnableWindow(TRUE);
 			return S_OK;
 		}else{
-			//same file is opened; highlight existing window
-			EnumWindows(EnumFileListWindowProc, (LPARAM)strMutex.c_str());
+			//same file is already opened in another window; highlight existing window
+			EnumWindows([](HWND hWnd, LPARAM lParam)->BOOL {
+				auto className = UtilGetWindowClassName(hWnd);
+				if (LHAFORGE_FILE_LIST_CLASS == className) {
+					if (::GetPropW(hWnd, g_strPropIdentifier.c_str())) {
+						HANDLE hProp = ::GetPropW(hWnd, (const wchar_t*)lParam);
+						if (hProp) {
+							::SendMessageW(hWnd, WM_LHAFORGE_FILELIST_ACTIVATE_FILE, (WPARAM)hProp, NULL);
+							return FALSE;	//found it
+						}
+					}
+				}
+				return TRUE;	//continue
+			}, (LPARAM)strMutex.c_str());
 			return S_FALSE;
 		}
-	}
-}
-
-//ウィンドウプロパティの列挙
-BOOL CALLBACK CFileListFrame::EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hData,ULONG_PTR dwData)
-{
-	if(dwData!=(ULONG_PTR)hData)return TRUE;
-	else{
-		g_FileToOpen=lpszString;
-		return FALSE;
 	}
 }
 
 LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	DWORD dwID=wParam;
-	g_FileToOpen.clear();
-	EnumPropsEx(m_hWnd,EnumPropProc,dwID);
-	if(!g_FileToOpen.empty() && m_TabClientWnd->IsTabEnabled()){
-		return OpenArchiveFile(g_FileToOpen,false);
+	static std::wstring fileToOpen;
+	fileToOpen.clear();
+
+	::EnumPropsExW(m_hWnd, [](HWND hWnd, LPTSTR lpszString, HANDLE hData, ULONG_PTR dwData)->BOOL {
+		if (dwData != (ULONG_PTR)hData) {
+			return TRUE;	//continue
+		} else {
+			fileToOpen = lpszString;
+			return FALSE;
+		}
+	}, dwID);
+	if(!fileToOpen.empty() && m_TabClientWnd->IsTabEnabled()){
+		return OpenArchiveFile(fileToOpen,false);
 	}else{
 		return E_FAIL;
 	}
@@ -396,58 +387,6 @@ HANDLE CFileListFrame::GetMultiOpenLockMutex(const std::wstring& strMutex)
 	}
 }
 
-std::wstring GetClassNameHelper(HWND hWnd)
-{
-	std::wstring name;
-	name.resize(256);
-	for (;;) {
-		int bufsize = (int)name.size();
-		auto nCopied = GetClassNameW(hWnd, &name[0], bufsize);
-		if (nCopied < bufsize) {
-			break;
-		} else {
-			name.resize(name.size() * 2);
-		}
-	}
-	return name.c_str();
-}
-
-
-//ファイル一覧ウィンドウの列挙
-BOOL CALLBACK CFileListFrame::EnumFileListWindowProc(HWND hWnd,LPARAM lParam)
-{
-	auto className = GetClassNameHelper(hWnd);
-	if(LHAFORGE_FILE_LIST_CLASS == className){
-		return TRUE;
-	}
-
-	if(GetPropW(hWnd,ms_strPropIdentifier.c_str())){
-		HANDLE hProp=GetPropW(hWnd,(const wchar_t*)lParam);
-		if(hProp){
-			::SendMessageW(hWnd, WM_LHAFORGE_FILELIST_ACTIVATE_FILE, (WPARAM)hProp, NULL);
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
-
-//最初のファイル一覧ウィンドウの列挙
-BOOL CALLBACK CFileListFrame::EnumFirstFileListWindowProc(HWND hWnd,LPARAM lParam)
-{
-	if(hWnd!=(HWND)lParam){
-		auto className = GetClassNameHelper(hWnd);
-		if(LHAFORGE_FILE_LIST_CLASS == className){
-			return TRUE;
-		}
-
-		//最初に見つけたLhaForgeのファイル一覧ウィンドウを記録する
-		if(!g_hFirstWindow){
-			g_hFirstWindow=hWnd;
-			return FALSE;
-		}
-	}
-	return TRUE;
-}
 
 LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
@@ -455,9 +394,8 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 	ShowWindow(SW_RESTORE);
 	SetForegroundWindow(m_hWnd);
 
-	//点滅
-	FLASHWINFO fi;
-	FILL_ZERO(fi);
+	//flash
+	FLASHWINFO fi = {};
 	fi.dwFlags=FLASHW_ALL;
 	fi.hwnd=m_hWnd;
 	fi.cbSize=sizeof(fi);
@@ -469,114 +407,78 @@ LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 void CFileListFrame::EnableEntryExtractOperationMenu(bool bActive)
 {
-	// ファイルが選択されていないと無効なメニュー
-	UINT menuList[]={
+	UINT menuList[] = {
 		ID_MENUITEM_EXTRACT_SELECTED,
 		ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,
 		ID_MENUITEM_OPEN_ASSOCIATION,
 		ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,
 		ID_MENUITEM_EXTRACT_TEMPORARY,
 	};
-	for(size_t i=0;i<COUNTOF(menuList);i++){
-		UIEnable(menuList[i],bActive);
+	for (auto item : menuList) {
+		UIEnable(item, bActive);
 	}
 
-	//プログラムから開く/送るのメニュー
-	CMenuHandle cMenu[]={GetUserAppMenuHandle(),GetSendToMenuHandle()};
-	for(int iMenu=0;iMenu<COUNTOF(cMenu);iMenu++){
-		int size=cMenu[iMenu].GetMenuItemCount();
-		for(int i=0;i<size;i++){
-			cMenu[iMenu].EnableMenuItem(i,MF_BYPOSITION | (bActive ? MF_ENABLED : MF_GRAYED));
-		}
-	};
-}
-
-void CFileListFrame::EnableEntryDeleteOperationMenu(bool bActive)
-{
-	UIEnable(ID_MENUITEM_DELETE_SELECTED,bActive);
-}
-
-void CFileListFrame::EnableAddItemsMenu(bool bActive)
-{
-	UIEnable(ID_MENUITEM_ADD_FILE,bActive);
-	UIEnable(ID_MENUITEM_ADD_DIRECTORY,bActive);
-}
-
-void CFileListFrame::OnCommandCloseWindow(UINT uNotifyCode, int nID, HWND hWndCtl)
-{
-	DestroyWindow();
+	// open with program / sendto
+	EnableSendTo_OpenAppMenu(bActive);
 }
 
 void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
-	//mr_Config.SaveConfig();
 	CConfigDialog confdlg(mr_Config);
-	if(IDOK==confdlg.DoModal()){
+	if (IDOK == confdlg.DoModal()) {
 		try {
 			mr_Config.save();
-		}catch(const LF_EXCEPTION& e){
+		} catch (const LF_EXCEPTION& e) {
 			ErrorMessage(e.what());
 		}
 		m_ConfFLW.load(mr_Config);
 
 		MenuCommand_UpdateUserAppCommands(m_ConfFLW);
-		MenuCommand_MakeUserAppMenu(GetUserAppMenuHandle());
+		MenuCommand_MakeUserAppMenu(GetAdditionalMenuHandle(MENUTYPE::UserApp));
 		m_TabClientWnd->UpdateFileListConfig(m_ConfFLW);
 
-		//アクセラレータの読み直し
-		if(m_ConfFLW.ExitWithEscape){
-			if(m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
-		}else{
+		//reload accelerator
+		if (m_ConfFLW.ExitWithEscape) {
+			if (m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
+		} else {
 			m_AccelEx.DestroyObject();
 		}
-	}else{
-		//念のため再読み込み
+	} else {
+		//reload
 		try {
 			mr_Config.load();
-		}catch(const LF_EXCEPTION& e) {
+		} catch (const LF_EXCEPTION& e) {
 			ErrorMessage(e.what());
 		}
 	}
 
-/*	else{	別にIDCANCELでもロードし直す必要はない。なぜならデータはダイアログ内で留まり、Config構造体に入らず捨てられているから
-		Config.LoadConfig(CONFIG_LOAD_ALL);
-	}*/
-	//ファイル一覧ウィンドウのコマンド
 	MenuCommand_MakeSendToCommands();
-
-	MenuCommand_MakeSendToMenu(GetSendToMenuHandle());
+	MenuCommand_MakeSendToMenu(GetAdditionalMenuHandle(MENUTYPE::SendTo));
 	DrawMenuBar();
 }
 
 void CFileListFrame::OnSize(UINT uType, CSize)
 {
-	// 基底クラスのWM_SIZEメッセージハンドラも呼び出すため
+	// to invoke WM_SIZE/WM_MOVE message handler of super class
 	SetMsgHandled(false);
 
-	if(0==uType){//0 (SIZE_RESTORED)ウィンドウがサイズ変更されました。ただし最小化または最大化ではありません。
-		//最大化/最小化されているときにはウィンドウサイズは取得しない
-		if(IsZoomed()||IsIconic())return;
-
-		GetWindowRect(m_WindowRect);
+	if (SIZE_RESTORED == uType) {
+		//The window has been resized, but neither the SIZE_MINIMIZED nor SIZE_MAXIMIZED value applies.
+		//if is window is maximized/minimized, dont get size
+		if (IsZoomed() || IsIconic())return;
 	}
+	GetWindowRect(&m_WindowRect);
 }
 
 void CFileListFrame::OnMove(const CPoint&)
 {
-	// 基底クラスのWM_MOVEメッセージハンドラも呼び出すため
+	// to invoke WM_SIZE/WM_MOVE message handler of super class
 	SetMsgHandled(false);
 
-	//最大化/最小化されているときにはウィンドウサイズは取得しない
-	if(IsZoomed()||IsIconic())return;
-	GetWindowRect(m_WindowRect);
+	//if is window is maximized/minimized, dont get size
+	if (IsZoomed() || IsIconic())return;
+	GetWindowRect(&m_WindowRect);
 }
-
-void CFileListFrame::OnUpDir(UINT,int,HWND)
-{
-	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
-	if(pTab)pTab->Model.MoveUpDir();
-}
-
 
 void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
@@ -609,16 +511,15 @@ void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListFrame::UpdateUpDirButtonState()
 {
-	//「上に上る」ボタンの有効/無効
-	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
-	if(pTab){
-		if(pTab->Model.IsRoot()){
-			UIEnable(ID_MENUITEM_UPDIR,false);
-		}else{
-			UIEnable(ID_MENUITEM_UPDIR,true);
+	CFileListTabItem* pTab = m_TabClientWnd->GetCurrentTab();
+	if (pTab) {
+		if (pTab->Model.IsRoot()) {
+			UIEnable(ID_MENUITEM_UPDIR, false);
+		} else {
+			UIEnable(ID_MENUITEM_UPDIR, true);
 		}
-	}else{
-		UIEnable(ID_MENUITEM_UPDIR,false);
+	} else {
+		UIEnable(ID_MENUITEM_UPDIR, false);
 	}
 }
 
@@ -627,7 +528,7 @@ void CFileListFrame::UpdateMenuState()
 	bool bActive=m_TabClientWnd->GetActivePage()!=-1;
 	bool bTabActive=m_TabClientWnd->IsTabEnabled();
 
-	std::vector<int> subjects = {
+	const int subjects[] = {
 		ID_MENUITEM_CLOSETAB,
 		ID_MENUITEM_EXTRACT_ARCHIVE,
 		ID_MENUITEM_TEST_ARCHIVE,
@@ -674,31 +575,32 @@ void CFileListFrame::UpdateMenuState()
 	UIEnable(ID_MENUITEM_ADD_DIRECTORY,bActive && bTabActive);
 
 	// open with program / sendto
-	CMenuHandle cMenu[] = { GetUserAppMenuHandle(),GetSendToMenuHandle() };
-	for(int iMenu=0;iMenu<COUNTOF(cMenu);iMenu++){
-		int size=cMenu[iMenu].GetMenuItemCount();
-		for(int i=0;i<size;i++){
-			cMenu[iMenu].EnableMenuItem(i, MF_BYPOSITION | (bActive ? MF_ENABLED : MF_GRAYED));
-		}
-	}
+	EnableSendTo_OpenAppMenu(bActive);
 }
 
 void CFileListFrame::UpdateWindowTitle()
 {
 	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
-		//ウィンドウタイトルにファイル名設定
-		CString Title;
+		//set filename to title
+		std::wstring title;
 		if(pTab->Model.IsArchiveEncrypted()){
-			//パスワード付きの場合
-			Title.Format(_T("[%s] %s - %s"),CString(MAKEINTRESOURCE(IDS_ENCRYPTED_ARCHIVE)),pTab->Model.GetArchiveFileName(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+			//encrypted archive
+			title = Format(
+				L"[%s] %s - %s",
+				UtilLoadString(IDS_ENCRYPTED_ARCHIVE).c_str(),
+				pTab->Model.GetArchiveFileName().c_str(),
+				UtilLoadString(IDR_MAINFRAME).c_str());
 		}else{
-			//通常アーカイブ
-			Title.Format(_T("%s - %s"),pTab->Model.GetArchiveFileName().c_str(),CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+			//standard archive
+			title = Format(
+				L"%s - %s",
+				pTab->Model.GetArchiveFileName().c_str(),
+				UtilLoadString(IDR_MAINFRAME).c_str());
 		}
-		SetWindowText(Title);
+		SetWindowTextW(title.c_str());
 	}else{
-		SetWindowText(CString(MAKEINTRESOURCE(IDR_MAINFRAME)));
+		SetWindowTextW(UtilLoadString(IDR_MAINFRAME).c_str());
 	}
 }
 
@@ -706,56 +608,17 @@ void CFileListFrame::UpdateStatusBar()
 {
 	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
-		CString Text;
-		//---DLL情報
-#pragma message("FIXME!")
-		/*const CArchiverDLL *pDLL = pTab->Model.GetArchiver();
-		if(pDLL){
-			Text.Format(IDS_PANE_DLL_NAME,pDLL->GetName());
-			m_StatusBar.SetPaneText(IDS_PANE_DLL_NAME_INITIAL,Text);
-		}*/
-
-		//---ファイル選択情報
-		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),pTab->ListView.GetSelectedCount());
-		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
+		// file selection
+		auto text = Format(UtilLoadString(IDS_PANE_ITEMCOUNT),
+			pTab->ListView.GetItemCount(),
+			pTab->ListView.GetSelectedCount());
+		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL, text.c_str());
 	}
-}
-
-LRESULT CFileListFrame::OnFileListModelChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	UpdateWindowTitle();
-	UpdateMenuState();
-	UpdateStatusBar();
-	UpdateUpDirButtonState();
-
-	return 0;
-}
-
-LRESULT CFileListFrame::OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	UpdateUpDirButtonState();
-	return 0;
-}
-
-LRESULT CFileListFrame::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	UpdateUpDirButtonState();
-	return 0;
-}
-
-LRESULT CFileListFrame::OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	UpdateUpDirButtonState();
-	//nothing to do
-	return 0;
 }
 
 LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	UpdateWindowTitle();
-	UpdateStatusBar();
-	UpdateMenuState();
-	UpdateUpDirButtonState();
+	OnFileListUpdated(uMsg,wParam,lParam,bHandled);
 
 	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab && pTab->Model.IsOK()){
@@ -764,53 +627,33 @@ LRESULT CFileListFrame::OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPAR
 		int SelCount=pTab->ListView.GetSelectedCount();
 		bool bSelected=SelCount>0;
 
-		//UI更新
+		//update menu
 		EnableEntryExtractOperationMenu(bFileListActive && bSelected);
 		EnableEntryDeleteOperationMenu(bFileListActive && pTab->Model.IsModifySupported() && bSelected);
 		EnableAddItemsMenu(pTab->Model.IsModifySupported());
 
-		//ステータスバー更新
-		CString Text;
-		Text.Format(IDS_PANE_ITEMCOUNT,pTab->ListView.GetItemCount(),SelCount);
-		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,Text);
+		//update status
+		auto text = Format(UtilLoadString(IDS_PANE_ITEMCOUNT),
+			pTab->ListView.GetItemCount(),
+			SelCount);
+		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL, text.c_str());
 	}else{
-		//UI更新
 		EnableEntryExtractOperationMenu(false);
 		EnableEntryDeleteOperationMenu(false);
 		EnableAddItemsMenu(false);
 
-		//ステータスバー更新
-		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL,_T(""));
+		m_StatusBar.SetPaneText(IDS_PANE_ITEMCOUNT_INITIAL, L"");
 	}
 	return 0;
 }
 
-//リストビューとツリービューでフォーカス切り替え
+//set focus between tree/file list view
 void CFileListFrame::OnToggleFocus(UINT,int,HWND)
 {
 	CFileListTabItem* pTab=m_TabClientWnd->GetCurrentTab();
 	if(pTab){
 		pTab->Splitter.ActivateNextPane();
 	}
-}
-
-//ファイルリスト更新
-void CFileListFrame::OnRefresh(UINT,int,HWND)
-{
-	ReopenArchiveFile();
-}
-
-//ファイルリスト更新
-LRESULT CFileListFrame::OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled)
-{
-	ReopenArchiveFile();
-	return 0;
-}
-
-
-void CFileListFrame::ReopenArchiveFile()
-{
-	m_TabClientWnd->ReopenArchiveFile();
 }
 
 void CFileListFrame::OnOpenArchive(UINT uNotifyCode, int nID, HWND hWndCtrl)
@@ -880,30 +723,19 @@ void CFileListFrame::EnableDropTarget(bool bEnable)
 }
 
 // IDropCommunicator
-HRESULT CFileListFrame::DragEnter(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
-{
-	return DragOver(lpDataObject,pt,dwEffect);
-}
-
-HRESULT CFileListFrame::DragLeave()
-{
-	return S_OK;
-}
-
 HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
-	//フォーマットに対応した処理をする
-	if(!m_DropTarget.QueryFormat(CF_HDROP)){	//ファイル専用
-		//ファイルではないので拒否
+	//drop on the frame window: open as an archive
+	if(!m_DropTarget.QueryFormat(CF_HDROP)){
+		//not a file; reject
 		dwEffect = DROPEFFECT_NONE;
 	}else{
 		dwEffect = DROPEFFECT_COPY;// : DROPEFFECT_NONE;
-		//ファイル取得
 		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
-		//---ディレクトリが含まれていたら拒否
+		//---if it contains directory, then reject
 		if(S_OK==hr){
-			for(const auto &file:files){
-				if(PathIsDirectory(file.c_str())){
+			for (const auto &file : files) {
+				if(std::filesystem::is_directory(file)){
 					dwEffect = DROPEFFECT_NONE;
 					break;
 				}
@@ -913,26 +745,25 @@ HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwE
 	return S_OK;
 }
 
-//ファイルのドロップ
+//dropped
 HRESULT CFileListFrame::Drop(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
 {
-	//ファイル取得
 	auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
 	if(S_OK==hr){
 		dwEffect = DROPEFFECT_COPY;
 
-		//開く
+		//drop on the frame window: open as an archive
 		for (const auto &file : files) {
-			if (E_ABORT == OpenArchiveFile(file.c_str(), false)) {
+			if (E_ABORT == OpenArchiveFile(file, false)) {
 				break;
 			}
 		}
 
 		return S_OK;
 	}else{
-		//受け入れできない形式
+		//reject
 		dwEffect = DROPEFFECT_NONE;
-		return S_FALSE;	//S_OK
+		return S_FALSE;
 	}
 }
 
