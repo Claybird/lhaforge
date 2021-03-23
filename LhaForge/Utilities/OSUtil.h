@@ -48,6 +48,8 @@ void UtilNavigateDirectory(const std::filesystem::path& dir);
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();
 
+std::wstring UtilGetWindowClassName(HWND hWnd);
+
 //Copy text to clipboard
 void UtilSetTextOnClipboard(const std::wstring& text);
 

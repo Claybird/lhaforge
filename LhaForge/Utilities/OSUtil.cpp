@@ -224,6 +224,21 @@ TEST(OSUtil, UtilGetEnvInfo) {
 }
 #endif
 
+std::wstring UtilGetWindowClassName(HWND hWnd)
+{
+	std::wstring name;
+	name.resize(256);
+	for (;;) {
+		int bufsize = (int)name.size();
+		auto nCopied = GetClassNameW(hWnd, &name[0], bufsize);
+		if (nCopied < bufsize) {
+			break;
+		} else {
+			name.resize(name.size() * 2);
+		}
+	}
+	return name.c_str();
+}
 
 //Copy text to clipboard
 void UtilSetTextOnClipboard(const std::wstring& text)
@@ -340,3 +355,4 @@ TEST(OSUtil, CurrentDirManager) {
 
 
 #endif
+
