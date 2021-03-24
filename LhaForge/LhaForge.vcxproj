@@ -56,7 +56,6 @@
     <ClCompile Include="FileListWindow\FileListTabClient.cpp" />
     <ClCompile Include="FileListWindow\FileListView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
-    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

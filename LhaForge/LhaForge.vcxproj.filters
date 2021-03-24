@@ -106,9 +106,6 @@
     <ClCompile Include="Utilities\Utility.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
-      <Filter>FileListWindow\test</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\test\test_configmanager.cpp">
       <Filter>Configs\Other\test</Filter>
     </ClCompile>
@@ -164,9 +161,6 @@
     </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="FileListWindow\test">
-      <UniqueIdentifier>{12106ed9-2803-4993-b85e-f05a1976e42c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Configs\Other\test">
       <UniqueIdentifier>{5ddd1314-39a1-46a4-8078-4cfcc104a9a4}</UniqueIdentifier>
