@@ -67,18 +67,19 @@ protected:
 		}
 
 		if (_confFLW.StoreSetting) {
-			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
-			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
-			ListView.SetWindowLong(GWL_STYLE, Style | _confFLW.ListStyle);
+			SetListViewStyle(_confFLW.ListStyle);
 		} else {
-			DWORD Style = ListView.GetWindowLong(GWL_STYLE);
-			Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
-			ListView.SetWindowLong(GWL_STYLE, Style | LVS_ICON);
+			SetListViewStyle(LVS_ICON);
 		}
 		return true;
 	}
 	bool CreateTreeView(HWND hParentWnd, HWND hFrameWnd) {
-		TreeView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
+		TreeView.Create(
+			hParentWnd,
+			CWindow::rcDefault,
+			NULL,
+			WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS,
+			WS_EX_CLIENTEDGE);
 		TreeView.SetFrameWnd(hFrameWnd);
 		return true;
 	}
@@ -126,28 +127,20 @@ public:
 		if (ListView.IsWindow())ListView.DestroyWindow();
 		if (Splitter.IsWindow())Splitter.DestroyWindow();
 
-		if (hMutex) {
-			hMutex.Close();
-		}
+		if (hMutex)hMutex.Close();
 	}
 	void ShowWindow(int nCmdShow) {
 		TreeView.ShowWindow(nCmdShow);
 		ListView.ShowWindow(nCmdShow);
 		Splitter.ShowWindow(nCmdShow);
 	}
-	void OnActivated() {
-		Model.addEventListener(m_hFrameWnd);
-	}
-	void OnDeactivated() {
-		Model.removeEventListener(m_hFrameWnd);
-	}
+	void OnActivated() { Model.addEventListener(m_hFrameWnd); }
+	void OnDeactivated() { Model.removeEventListener(m_hFrameWnd); }
 
-	int GetTreeWidth(){return Splitter.GetSplitterPos();}
-	void SetTreeWidth(int width){Splitter.SetSplitterPos(width);}
+	int GetTreeWidth() { return Splitter.GetSplitterPos(); }
+	void SetTreeWidth(int width) { Splitter.SetSplitterPos(width); }
 
-	DWORD GetListViewStyle()const {
-		return ListView.GetWindowLong(GWL_STYLE);
-	}
+	DWORD GetListViewStyle()const { return ListView.GetWindowLong(GWL_STYLE); }
 	void SetListViewStyle(DWORD dwStyleNew) {
 		DWORD dwStyle = ListView.GetWindowLong(GWL_STYLE);
 		dwStyle &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
@@ -159,9 +152,7 @@ public:
 		ListView.Invalidate();
 	}
 
-	void SetSortColumn(int iCol) {
-		ListView.SortItem(iCol);
-	}
+	void SetSortColumn(int iCol) { ListView.SortItem(iCol); }
 
 	void ShowTreeView(bool bShow) {
 		if (bShow) {
