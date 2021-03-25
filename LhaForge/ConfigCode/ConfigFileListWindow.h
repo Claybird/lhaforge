@@ -47,7 +47,7 @@ public:
 	bool DisplayFileSizeInByte;	//バイト単位でファイルサイズを表記する
 	bool DisplayPathOnly;		//フルパスの欄にファイル名を表示しない
 	std::array<int, FILEINFO_ITEM_COUNT> ColumnOrderArray;	//リストビューカラムの並び順
-	int ColumnWidthArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの幅
+	std::array<int, FILEINFO_ITEM_COUNT> ColumnWidthArray;	//リストビューカラムの幅
 	bool ExitWithEscape;		//[ESC]キーで終了
 	bool DisableTab;			//タブ表示を使わないならTRUE
 	bool KeepSingleInstance;	//ウィンドウを一つに保つならTRUE

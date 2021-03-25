@@ -24,7 +24,7 @@
 
 #pragma once
 #include "FileListTabItem.h"
-#include "../resource.h"
+#include "resource.h"
 
 #define FILELISTWINDOW_DEFAULT_TREE_WIDTH	175
 
@@ -38,7 +38,7 @@ protected:
 	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	CFileListFrame&		m_rFrameWnd;
 	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//リストビューカラムの並び順
-	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
+	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnWidthArray;
 	bool				m_bShowTab;			//タブ表示?
 	bool				m_bShowTreeView;	//ツリービュー表示ならTrue
 
@@ -100,7 +100,7 @@ protected:
 	void FitClient();
 	void OnActivateTab(int newIdx);
 	void OnDeactivateTab(CFileListTabItem*);
-	void GetTabSettingsToClient(CFileListTabItem*);	//指定したタブの設定をメンバ変数に読み込む
+	void GetTabSettings(CFileListTabItem*);	//指定したタブの設定をメンバ変数に読み込む
 	void UpdateClientArea();
 public:
 	CFileListTabClient(const CConfigFile&, const CConfigFileListWindow&, CFileListFrame&);
