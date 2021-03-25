@@ -295,7 +295,7 @@ TEST(ArcFileContent, extractEntries)
 
 std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
 CArchiveFileContent::subDeleteEntries(
-	LF_COMPRESS_ARGS& args,
+	const LF_COMPRESS_ARGS& args,
 	const std::unordered_set<std::wstring> &items_to_delete,
 	ILFProgressHandler& progressHandler,
 	ARCLOG &arcLog)
@@ -319,7 +319,7 @@ CArchiveFileContent::subDeleteEntries(
 }
 
 void CArchiveFileContent::addEntries(
-	LF_COMPRESS_ARGS& args,
+	const LF_COMPRESS_ARGS& args,
 	const std::vector<std::filesystem::path> &files,
 	const ARCHIVE_ENTRY_INFO* lpParent,
 	ILFProgressHandler& progressHandler,
@@ -460,7 +460,7 @@ TEST(ArcFileContent, addEntries)
 #endif
 
 void CArchiveFileContent::deleteEntries(
-	LF_COMPRESS_ARGS& args,
+	const LF_COMPRESS_ARGS& args,
 	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 	ILFProgressHandler& progressHandler,
 	ARCLOG &arcLog)

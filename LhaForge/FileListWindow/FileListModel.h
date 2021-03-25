@@ -56,7 +56,7 @@ protected:
 
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> >	m_SortedChildren;
 	CTemporaryDirectoryManager	m_TempDirManager;
-	LF_COMPRESS_ARGS m_compressArgs;
+	const LF_COMPRESS_ARGS &mr_compressArgs;
 
 	//sort
 	bool	m_bSortDescending;
@@ -65,18 +65,14 @@ protected:
 	//---internal functions
 	void SortCurrentEntries();
 public:
-	CFileListModel(const CConfigFile& mngr, ILFPassphrase& passphrase) :
+	CFileListModel(const LF_COMPRESS_ARGS& compressArgs, ILFPassphrase& passphrase) :
 		m_lpCurrentDir(nullptr),
 		m_bSortDescending(true),
 		m_nSortKeyType(FILEINFO_INVALID),
-		m_Content(passphrase)
-	{
-		setConfig(mngr);
-	}
+		m_Content(passphrase),
+		mr_compressArgs(compressArgs)
+	{}
 	virtual ~CFileListModel() {}
-	void setConfig(const CConfigFile& mngr) {
-		m_compressArgs.load(mngr);
-	}
 
 	void Open(const std::filesystem::path& path, ILFScanProgressHandler&);
 	void Clear() {
@@ -141,7 +137,7 @@ public:
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
 		m_Content.addEntries(
-			m_compressArgs,
+			mr_compressArgs,
 			files,
 			parent,
 			progressHandler,
@@ -151,7 +147,7 @@ public:
 		const std::vector<const ARCHIVE_ENTRY_INFO*>& items,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog) {
-		m_Content.deleteEntries(m_compressArgs, items, progressHandler, arcLog);
+		m_Content.deleteEntries(mr_compressArgs, items, progressHandler, arcLog);
 	}
 	void ExtractItems(
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,

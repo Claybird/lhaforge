@@ -178,7 +178,7 @@ protected:
 
 	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
 	subDeleteEntries(
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		const std::unordered_set<std::wstring> &items_to_delete,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
@@ -224,13 +224,13 @@ public:
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
 	void addEntries(
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		const std::vector<std::filesystem::path> &files,
 		const ARCHIVE_ENTRY_INFO* lpParent,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
 	void deleteEntries(
-		LF_COMPRESS_ARGS& args,
+		const LF_COMPRESS_ARGS& args,
 		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
