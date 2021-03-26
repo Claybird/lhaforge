@@ -41,7 +41,8 @@ CFileListFrame::CFileListFrame(CConfigFile &conf):
 	m_DropTarget(this)
 {
 	m_ConfFLW.load(mr_Config);
-	m_TabClientWnd = std::make_unique<CFileListTabClient>(conf, m_ConfFLW, *this);
+	m_compressArgs.load(mr_Config);
+	m_TabClientWnd = std::make_unique<CFileListTabClient>(m_ConfFLW, m_compressArgs, *this);
 }
 
 BOOL CFileListFrame::PreTranslateMessage(MSG* pMsg)
@@ -431,18 +432,10 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		} catch (const LF_EXCEPTION& e) {
 			ErrorMessage(e.what());
 		}
-		m_ConfFLW.load(mr_Config);
 
 		MenuCommand_UpdateUserAppCommands(m_ConfFLW);
 		MenuCommand_MakeUserAppMenu(GetAdditionalMenuHandle(MENUTYPE::UserApp));
 		m_TabClientWnd->UpdateFileListConfig(m_ConfFLW);
-
-		//reload accelerator
-		if (m_ConfFLW.ExitWithEscape) {
-			if (m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
-		} else {
-			m_AccelEx.DestroyObject();
-		}
 	} else {
 		//reload
 		try {
@@ -450,6 +443,15 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		} catch (const LF_EXCEPTION& e) {
 			ErrorMessage(e.what());
 		}
+	}
+
+	m_ConfFLW.load(mr_Config);
+	m_compressArgs.load(mr_Config);
+	//reload accelerator
+	if (m_ConfFLW.ExitWithEscape) {
+		if (m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
+	} else {
+		m_AccelEx.DestroyObject();
 	}
 
 	MenuCommand_MakeSendToCommands();

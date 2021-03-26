@@ -28,20 +28,55 @@
 #include "FileTreeView.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 
+#define FILELISTWINDOW_DEFAULT_TREE_WIDTH	175
+
 struct CConfigFileListWindow;
 struct CFileListTabItem{
 	DISALLOW_COPY_AND_ASSIGN(CFileListTabItem);
-public:
-	CLFPassphraseGUI _passphrase;
-	CFileListModel	Model;
-	const CConfigFileListWindow &_confFLW;
-	const CConfigFile &_confMan;
+protected:
+	struct COMMON {
+		struct LISTVIEW {
+			std::array<int, FILEINFO_ITEM_COUNT> columnOrder;
+			std::array<int, FILEINFO_ITEM_COUNT> columnWidth;
+			DWORD style;
+		}listview;
+		struct SPLITTER {
+			bool bShowTreeView;
+			int treeWidth;
+		}splitter;
+		bool initialized;
 
+		COMMON():initialized(false){}
+		virtual ~COMMON() {}
+		void initialize(const CConfigFileListWindow& confFLW) {
+			listview.columnOrder = confFLW.ColumnOrderArray;
+			listview.columnWidth = confFLW.ColumnWidthArray;
+
+			if (confFLW.StoreSetting) {
+				splitter.bShowTreeView = confFLW.ShowTreeView;
+				splitter.treeWidth = confFLW.TreeWidth;
+				listview.style = confFLW.ListStyle;
+			} else {
+				splitter.bShowTreeView = true;
+				splitter.treeWidth = FILELISTWINDOW_DEFAULT_TREE_WIDTH;
+				listview.style = LVS_ICON;
+			}
+			initialized = true;
+		}
+	};
+	static COMMON _common;
+//---
+	CLFPassphraseGUI _passphrase;
+	const CConfigFileListWindow &_confFLW;
+
+	HWND			m_hFrameWnd;
+
+
+public:
+	CFileListModel	Model;
 	CSplitterWindow	Splitter;
 	CFileListView	ListView;
 	CFileTreeView	TreeView;
-
-	HWND			m_hFrameWnd;
 
 	//for detect same file opened in different window/tab
 	CHandle hMutex;
@@ -51,25 +86,15 @@ protected:
 	bool CreateListView(HWND hParentWnd, HWND hFrameWnd) {
 		ListView.Create(hParentWnd, CWindow::rcDefault, NULL, WS_CHILD | /*WS_VISIBLE | */WS_CLIPSIBLINGS | WS_CLIPCHILDREN | LVS_OWNERDATA | LVS_AUTOARRANGE | LVS_SHAREIMAGELISTS | LVS_SHOWSELALWAYS, WS_EX_CLIENTEDGE);
 		ListView.SetFrameWnd(hFrameWnd);
-
 		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
-
-		if (!ListView.SetColumnState(&_confFLW.ColumnOrderArray[0], &_confFLW.ColumnWidthArray[0]))return false;
-
-		UpdateFileListConfig();
+		ApplyListViewState();
 
 		if (_confFLW.StoreSetting) {
 			Model.SetSortKeyType(_confFLW.SortColumn);
-			Model.SetSortMode(0 != _confFLW.SortDescending);
+			Model.SetSortMode(_confFLW.SortDescending);
 		} else {
 			Model.SetSortKeyType(-1);
 			Model.SetSortMode(true);
-		}
-
-		if (_confFLW.StoreSetting) {
-			SetListViewStyle(_confFLW.ListStyle);
-		} else {
-			SetListViewStyle(LVS_ICON);
 		}
 		return true;
 	}
@@ -83,14 +108,37 @@ protected:
 		TreeView.SetFrameWnd(hFrameWnd);
 		return true;
 	}
+
+	void ApplyListViewState() {
+		SetListViewStyle(_common.listview.style);
+		ListView.SetColumnState(&_common.listview.columnOrder[0], &_common.listview.columnWidth[0]);
+		ListView.SetDisplayFileSizeInByte(_confFLW.DisplayFileSizeInByte);
+		ListView.SetDisplayPathOnly(_confFLW.DisplayPathOnly);
+		ListView.Invalidate();
+		//NOTE: sort column/key settings are not shared; these should be configured independently on each tab
+	}
+	void ApplySplitterState() {
+		Splitter.SetSplitterPos(_common.splitter.treeWidth);
+		Splitter.UpdateSplitterLayout();
+	}
+	void CopyCurrentViewState() {
+		ListView.GetColumnState(&_common.listview.columnOrder[0], &_common.listview.columnWidth[0]);
+		_common.listview.style = GetListViewStyle();
+
+		_common.splitter.treeWidth = Splitter.GetSplitterPos();
+		_common.splitter.bShowTreeView = IsTreeViewVisible();
+	}
+
 public:
-	CFileListTabItem(const CConfigFile &rMan, const CConfigFileListWindow &confFLW):
-		_confMan(rMan),
+	CFileListTabItem(const CConfigFileListWindow &confFLW, const LF_COMPRESS_ARGS& compressArgs):
 		_confFLW(confFLW),
-		Model(rMan, _passphrase),
+		Model(compressArgs, _passphrase),
 		ListView(Model, confFLW),
-		TreeView(Model, confFLW){}
-	virtual ~CFileListTabItem(){DestroyWindow();}
+		TreeView(Model, confFLW)
+	{
+		_common.initialize(confFLW);
+	}
+	virtual ~CFileListTabItem() { DestroyWindow(); }
 	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd) {
 		m_hFrameWnd = hFrameWnd;
 
@@ -103,9 +151,14 @@ public:
 		if (!CreateListView(Splitter, hFrameWnd))return false;
 
 		Splitter.SetSplitterPanes(TreeView, ListView);
-		Splitter.SetSplitterPos(_confFLW.TreeWidth);
-		Splitter.UpdateSplitterLayout();
+		ApplySplitterState();
+
+		TreeView.SetFocus();
 		return true;
+	}
+	void ApplyUpdatedConfig() {
+		ApplyListViewState();
+		ApplySplitterState();
 	}
 	bool OpenArchive(const std::filesystem::path &arcpath) {
 		CLFScanProgressHandlerGUI progress(m_hFrameWnd);
@@ -115,6 +168,9 @@ public:
 			ErrorMessage(e.what());
 			return false;
 		}
+
+		//set property to frame window
+		::SetPropW(m_hFrameWnd, strMutexName.c_str(), this);
 
 		//construct tree view structure
 		TreeView.ConstructTree();
@@ -128,28 +184,43 @@ public:
 		if (Splitter.IsWindow())Splitter.DestroyWindow();
 
 		if (hMutex)hMutex.Close();
+		::RemovePropW(m_hFrameWnd, strMutexName.c_str());
 	}
 	void ShowWindow(int nCmdShow) {
 		TreeView.ShowWindow(nCmdShow);
 		ListView.ShowWindow(nCmdShow);
 		Splitter.ShowWindow(nCmdShow);
 	}
-	void OnActivated() { Model.addEventListener(m_hFrameWnd); }
-	void OnDeactivated() { Model.removeEventListener(m_hFrameWnd); }
+	void OnActivated() {
+		Model.addEventListener(m_hFrameWnd);
+		ApplyListViewState();
+		ApplySplitterState();
+	}
+	void OnDeactivating() {
+		CopyCurrentViewState();
+		Model.removeEventListener(m_hFrameWnd);
+	}
+	void StoreSettings(CConfigFileListWindow& ConfFLW) {
+		CopyCurrentViewState();
+		ConfFLW.TreeWidth = _common.splitter.treeWidth;
+		ConfFLW.ShowTreeView = _common.splitter.bShowTreeView;
 
-	int GetTreeWidth() { return Splitter.GetSplitterPos(); }
-	void SetTreeWidth(int width) { Splitter.SetSplitterPos(width); }
+		//list view style
+		ConfFLW.ListStyle = _common.listview.style;
+		//column
+		ConfFLW.ColumnOrderArray = _common.listview.columnOrder;
+		ConfFLW.ColumnWidthArray = _common.listview.columnWidth;
 
-	DWORD GetListViewStyle()const { return ListView.GetWindowLong(GWL_STYLE); }
+		//sort status
+		ConfFLW.SortColumn = Model.GetSortKeyType();
+		ConfFLW.SortDescending = Model.GetSortMode();
+	}
+
+	DWORD GetListViewStyle()const { return ListView.GetWindowLong(GWL_STYLE) & LVS_TYPEMASK; }
 	void SetListViewStyle(DWORD dwStyleNew) {
 		DWORD dwStyle = ListView.GetWindowLong(GWL_STYLE);
 		dwStyle &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
 		ListView.SetWindowLong(GWL_STYLE, dwStyle | dwStyleNew);
-	}
-	void UpdateFileListConfig() {
-		ListView.SetDisplayFileSizeInByte(_confFLW.DisplayFileSizeInByte);
-		ListView.SetDisplayPathOnly(_confFLW.DisplayPathOnly);
-		ListView.Invalidate();
 	}
 
 	void SetSortColumn(int iCol) { ListView.SortItem(iCol); }
@@ -161,4 +232,8 @@ public:
 			Splitter.SetSinglePaneMode(SPLIT_PANE_RIGHT);   // right pane only
 		}
 	}
+	bool IsTreeViewVisible() {
+		return SPLIT_PANE_NONE == Splitter.GetSinglePaneMode();
+	}
 };
+WEAK_SYMBOL CFileListTabItem::COMMON CFileListTabItem::_common;

@@ -41,6 +41,7 @@ class CFileListFrame:
 protected:
 	CConfigFile &mr_Config;
 	CConfigFileListWindow m_ConfFLW;
+	LF_COMPRESS_ARGS m_compressArgs;
 
 	CAccelerator m_AccelEx;		//keyboard accelerator
 	std::unique_ptr<CFileListTabClient> m_TabClientWnd;
