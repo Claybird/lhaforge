@@ -85,7 +85,6 @@ protected:
 	void ClearAllTabs();
 	void RemoveTab(int);
 	void RemoveTabExcept(int);
-	void FitClient();
 	void OnActivateTab(int newIdx);
 	void OnDeactivatingTab(int currentIdx);
 	void UpdateClientArea();

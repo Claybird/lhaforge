@@ -71,7 +71,7 @@ HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpat
 	dispatchEvent(WM_FILELIST_MODELCHANGED);
 	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 
-	FitClient();
+	UpdateClientArea();
 	return S_OK;
 }
 
@@ -96,25 +96,6 @@ void CFileListTabClient::UpdateClientArea()
 	}
 }
 
-void CFileListTabClient::FitClient()
-{
-	UpdateClientArea();
-/*	int idx=GetActivePage();
-	if(idx>=0){
-		CFileListTabItem* pTab=(CFileListTabItem*)GetPageData(idx);
-		ASSERT(pTab);
-		if(pTab){
-			//TODO:dirty hack
-			//これを行うと、リストビューのスクロールバーが復活する
-			//pTab->Splitter.SetRedraw(FALSE);
-			//SetRedraw(FALSE);
-			int pos=pTab->Splitter.GetSplitterPos();
-			pTab->Splitter.SetSplitterPos(pos+1);
-			pTab->Splitter.SetSplitterPos(pos);
-		}
-	}*/
-}
-
 int CFileListTabClient::CreateNewTab()
 {
 	auto p = std::make_shared<CFileListTabItem>(m_confFLW, mr_compressArgs);
@@ -133,7 +114,7 @@ int CFileListTabClient::CreateNewTab()
 	//--add tab
 	AddPage(pItem->Splitter,L"",-1,pItem);
 
-	FitClient();
+	UpdateClientArea();
 
 	return prevCount;
 }
@@ -198,7 +179,7 @@ void CFileListTabClient::OnActivateTab(int newIdx)
 		SetActivePage(newIdx);
 		pItem->OnActivated();
 
-		FitClient();
+		UpdateClientArea();
 	}
 
 	dispatchEvent(WM_FILELIST_MODELCHANGED);
@@ -223,7 +204,7 @@ void CFileListTabClient::ClearAllTabs()
 void CFileListTabClient::OnSize(UINT uType, CSize &size)
 {
 	UpdateLayout();
-	FitClient();
+	UpdateClientArea();
 	SetMsgHandled(false);
 }
 
