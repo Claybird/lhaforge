@@ -277,7 +277,9 @@ void CFileListTabClient::SetActivePage(HANDLE hHandle)
 LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 {
 	int idx = pnmh->idFrom;
+	OnDeactivatingTab(GetActivePage());
 	SetActivePage(idx);
+	OnActivateTab(idx);
 
 	CMenu cMenu;
 	cMenu.LoadMenu(IDM_TABMENU);
