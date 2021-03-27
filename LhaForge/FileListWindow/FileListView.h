@@ -120,8 +120,8 @@ protected:
 public:
 	CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW);
 	virtual ~CFileListView(){}
-	bool SetColumnState(const int* pColumnOrderArray, const int* pFileInfoWidthArray);	//リストビューのカラムをセットする
-	void GetColumnState(int* pColumnOrderArray, int* pFileInfoWidthArray);
+	bool SetColumnState(const std::array<int, FILEINFO_ITEM_COUNT>& columnOrder, const std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray);	//リストビューのカラムをセットする
+	void GetColumnState(std::array<int, FILEINFO_ITEM_COUNT>& columnOrder, std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray);
 
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}

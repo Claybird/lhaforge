@@ -111,7 +111,7 @@ protected:
 
 	void ApplyListViewState() {
 		SetListViewStyle(_common.listview.style);
-		ListView.SetColumnState(&_common.listview.columnOrder[0], &_common.listview.columnWidth[0]);
+		ListView.SetColumnState(_common.listview.columnOrder, _common.listview.columnWidth);
 		ListView.SetDisplayFileSizeInByte(_confFLW.DisplayFileSizeInByte);
 		ListView.SetDisplayPathOnly(_confFLW.DisplayPathOnly);
 		ListView.Invalidate();
@@ -122,7 +122,7 @@ protected:
 		Splitter.UpdateSplitterLayout();
 	}
 	void CopyCurrentViewState() {
-		ListView.GetColumnState(&_common.listview.columnOrder[0], &_common.listview.columnWidth[0]);
+		ListView.GetColumnState(_common.listview.columnOrder, _common.listview.columnWidth);
 		_common.listview.style = GetListViewStyle();
 
 		_common.splitter.treeWidth = Splitter.GetSplitterPos();
@@ -139,12 +139,12 @@ public:
 		_common.initialize(confFLW);
 	}
 	virtual ~CFileListTabItem() { DestroyWindow(); }
-	bool CreateTabItem(HWND hParentWnd, HWND hFrameWnd) {
+	bool CreateTabItem(HWND hTabViewWnd, HWND hFrameWnd) {
 		m_hFrameWnd = hFrameWnd;
 
 		CRect rc;
-		GetClientRect(hParentWnd, rc);
-		Splitter.Create(hParentWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+		GetClientRect(hTabViewWnd, rc);
+		Splitter.Create(hTabViewWnd, rc, NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
 		Splitter.SetSplitterExtendedStyle(0);
 
 		if (!CreateTreeView(Splitter, hFrameWnd))return false;

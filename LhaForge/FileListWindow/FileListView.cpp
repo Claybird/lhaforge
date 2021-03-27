@@ -85,7 +85,9 @@ LRESULT CFileListView::OnDestroy()
 
 
 
-bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFileInfoWidthArray)
+bool CFileListView::SetColumnState(
+	const std::array<int, FILEINFO_ITEM_COUNT>& columnOrder,
+	const std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray)
 {
 	//既存のカラムを削除
 	if(GetHeader().IsWindow()){
@@ -100,8 +102,8 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 //========================================
 //リストビューにカラムを追加するためのマクロ
 #define ADD_COLUMNITEM(x,width,pos) \
-{if(-1!=index_of(pColumnOrderArray,FILEINFO_ITEM_COUNT,FILEINFO_##x)){\
-	int nIndex=InsertColumn(FILEINFO_##x, CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_##x)), pos, width,-1);\
+{if(-1!=index_of(columnOrder,FILEINFO_##x)){\
+	int nIndex=InsertColumn(FILEINFO_##x, UtilLoadString(IDS_FILELIST_COLUMN_##x).c_str(), pos, width,-1);\
 	if(nIndex<0||nIndex>=FILEINFO_ITEM_COUNT)return false;\
 	m_ColumnIndexArray[nIndex]=FILEINFO_##x;\
 }}
@@ -136,24 +138,20 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 	int Count=0;
 	for(;Count<FILEINFO_ITEM_COUNT;Count++){
 		//有効なアイテム数を求める
-		if(-1==pColumnOrderArray[Count])break;
+		if(-1==columnOrder[Count])break;
 	}
 	//並び順を変換
-	int TemporaryArray[FILEINFO_ITEM_COUNT];
-
-	for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-		TemporaryArray[i]=pColumnOrderArray[i];
-	}
+	std::array<int, FILEINFO_ITEM_COUNT> TemporaryArray = columnOrder;
 	for(int i=0;i<Count;i++){
-		int nIndex=index_of(m_ColumnIndexArray,TemporaryArray[i]);
+		int nIndex = index_of(m_ColumnIndexArray, TemporaryArray[i]);
 		ASSERT(-1!=nIndex);
 		if(-1!=nIndex){
 			TemporaryArray[i]=nIndex;
 		}
 	}
-	SetColumnOrderArray(Count,TemporaryArray);
+	SetColumnOrderArray(Count,&TemporaryArray[0]);
 	for( int i = 0; i < Count; i++ ) {
-		SetColumnWidth(TemporaryArray[i], pFileInfoWidthArray[i]);
+		SetColumnWidth(TemporaryArray[i], columnWidthArray[i]);
 	}
 
 	//カラムヘッダのソートアイコン
@@ -164,23 +162,25 @@ bool CFileListView::SetColumnState(const int* pColumnOrderArray, const int *pFil
 	return true;
 }
 
-void CFileListView::GetColumnState(int* pColumnOrderArray, int *pFileInfoWidthArray)
+void CFileListView::GetColumnState(
+	std::array<int, FILEINFO_ITEM_COUNT>& columnOrder,
+	std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray)
 {
 	//カラムの並び順取得
 	const int nCount=GetHeader().GetItemCount();
 	ASSERT(nCount<=FILEINFO_ITEM_COUNT);
 
-	int TemporaryArray[FILEINFO_ITEM_COUNT];
-	memset(TemporaryArray,-1,sizeof(TemporaryArray));
-	GetColumnOrderArray(nCount,TemporaryArray);
+	std::array<int, FILEINFO_ITEM_COUNT> TemporaryArray;
+	TemporaryArray.fill(-1);
+	GetColumnOrderArray(nCount, &TemporaryArray[0]);
 	//並び順を変換
-	memset(pColumnOrderArray,-1,FILEINFO_ITEM_COUNT*sizeof(int));
+	columnOrder.fill(-1);
 	for(int i=0;i<nCount;i++){
-		pColumnOrderArray[i]=m_ColumnIndexArray[TemporaryArray[i]];
+		columnOrder[i]=m_ColumnIndexArray[TemporaryArray[i]];
 	}
 
 	for( int i = 0; i < nCount; i++ ) {
-		pFileInfoWidthArray[i] = GetColumnWidth(TemporaryArray[i]);
+		columnWidthArray[i] = GetColumnWidth(TemporaryArray[i]);
 	}
 }
 
@@ -310,9 +310,9 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	// 各メニューアイテムの有効・無効
 	//--------------------------------
 
-	int columnOrderArray[FILEINFO_ITEM_COUNT];
-	int columnWidthArray[FILEINFO_ITEM_COUNT];
-	GetColumnState(columnOrderArray, columnWidthArray);
+	std::array<int, FILEINFO_ITEM_COUNT> columnOrder;
+	std::array<int, FILEINFO_ITEM_COUNT> columnWidthArray;
+	GetColumnState(columnOrder, columnWidthArray);
 
 	struct{
 		FILEINFO_TYPE idx;
@@ -329,9 +329,9 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		{FILEINFO_CRC,				ID_MENUITEM_LISTVIEW_COLUMN_CRC},
 	};
 
-	for(size_t i=0;i<COUNTOF(menuTable);i++){
-		bool bEnabled=(-1!=index_of(columnOrderArray,COUNTOF(columnOrderArray),menuTable[i].idx));
-		cSubMenu.CheckMenuItem(menuTable[i].nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
+	for(const auto &item: menuTable){
+		bool bEnabled=(-1!=index_of(columnOrder, item.idx));
+		cSubMenu.CheckMenuItem(item.nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 
 	//メニュー表示:選択したコマンドが返ってくる
@@ -341,18 +341,18 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		return 0;
 	}else if(ID_MENUITEM_LISTVIEW_COLUMN_RESET==nRet){
 		//初期化
-		for(size_t i=0;i<COUNTOF(columnOrderArray);i++){
-			columnOrderArray[i]=i;
+		for(size_t i=0;i<columnOrder.size();i++){
+			columnOrder[i]=i;
 		}
 	}else{
 		for(size_t i=0;i<COUNTOF(menuTable);i++){
 			if(menuTable[i].nMenuID==nRet){
-				_ToggleColumn(columnOrderArray,COUNTOF(columnOrderArray),menuTable[i].idx);
+				_ToggleColumn(&columnOrder[0],columnOrder.size(),menuTable[i].idx);
 			}
 		}
 	}
 
-	SetColumnState(columnOrderArray, columnWidthArray);
+	SetColumnState(columnOrder, columnWidthArray);
 
 	return 0;
 }
