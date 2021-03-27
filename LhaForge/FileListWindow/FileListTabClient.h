@@ -64,12 +64,10 @@ protected:
 		DEFAULT_REFLECTION_HANDLER()
 	ALT_MSG_MAP(1)	//tab control
 		MSG_WM_MBUTTONUP(OnMButtonUp)	//mouse middle button click
-		//REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
-		//REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
 		CHAIN_MSG_MAP_ALT(CTabView,1)
 	END_MSG_MAP()
 protected:
-	LRESULT OnDestroy();
+	LRESULT OnDestroy() { ClearAllTabs(); return 0; }
 	void OnSize(UINT uType, CSize &size);
 	LRESULT OnDeactivatingTab(LPNMHDR pnmh) {
 		OnDeactivatingTab(GetActivePage());
@@ -83,7 +81,7 @@ protected:
 		return 0;
 	}
 	void OnActivateTab(int page);
-	LRESULT OnWndStateChanged(LPNMHDR pnmh);
+	LRESULT OnWndStateChanged(LPNMHDR) { dispatchEvent(WM_FILELIST_WND_STATE_CHANGED); return 0; }
 	LRESULT OnContextMenu(LPNMHDR pnmh);
 	LRESULT OnTabCloseBtn(LPNMHDR pnmh);
 	void OnMButtonUp(UINT, CPoint&);

@@ -50,12 +50,6 @@ BOOL CFileListTabClient::PreTranslateMessage(MSG* pMsg)
 	return CTabView::PreTranslateMessage(pMsg);
 }
 
-LRESULT CFileListTabClient::OnDestroy()
-{
-	ClearAllTabs();
-	return 0;
-}
-
 HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG &arcLog)
 {
 	int idx = CreateNewTab();
@@ -176,12 +170,6 @@ void CFileListTabClient::OnSize(UINT uType, CSize &size)
 	UpdateLayout();
 	UpdateClientArea();
 	SetMsgHandled(false);
-}
-
-LRESULT CFileListTabClient::OnWndStateChanged(LPNMHDR)
-{
-	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
-	return 0;
 }
 
 void CFileListTabClient::StoreSettings(CConfigFileListWindow &ConfFLW)
