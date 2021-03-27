@@ -65,11 +65,7 @@ HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpat
 	ASSERT(pItem);
 	if (!pItem)return E_HANDLE;
 
-	//prepare duplicated window
-	pItem->hMutex.Attach(hMutex);
-	pItem->strMutexName = mutexName;
-
-	if(!pItem->OpenArchive(arcpath))RemoveTab(idx);
+	if(!pItem->OpenArchive(arcpath, mutexName, hMutex))RemoveTab(idx);
 
 	SetPageTitle(idx, pItem->Model.GetArchiveFileName().filename().c_str());
 	dispatchEvent(WM_FILELIST_MODELCHANGED);
@@ -259,7 +255,7 @@ HRESULT CFileListTabClient::ReopenArchiveFile(int nPage)
 		auto currentDir = pItem->Model.getCurrentDirPath();
 
 		try {
-			pItem->OpenArchive(pItem->Model.GetArchiveFileName());
+			pItem->OpenArchive(pItem->Model.GetArchiveFileName(), L"", nullptr);
 		} catch (const LF_EXCEPTION& e) {
 			ErrorMessage(e.what());
 			return E_FAIL;

@@ -79,8 +79,8 @@ public:
 	CFileTreeView	TreeView;
 
 	//for detect same file opened in different window/tab
-	CHandle hMutex;
-	std::wstring strMutexName;
+	CHandle _hMutex;
+	std::wstring _strMutexName;
 protected:
 	//---internal functions
 	bool CreateListView(HWND hParentWnd, HWND hFrameWnd) {
@@ -160,7 +160,7 @@ public:
 		ApplyListViewState();
 		ApplySplitterState();
 	}
-	bool OpenArchive(const std::filesystem::path &arcpath) {
+	bool OpenArchive(const std::filesystem::path &arcpath, const std::wstring& mutexName, HANDLE hMutex) {
 		CLFScanProgressHandlerGUI progress(m_hFrameWnd);
 		try {
 			Model.Open(arcpath, progress);
@@ -170,7 +170,12 @@ public:
 		}
 
 		//set property to frame window
-		::SetPropW(m_hFrameWnd, strMutexName.c_str(), this);
+		if (hMutex) {
+			//when re-opening an archive, hMutex=nullptr
+			::SetPropW(m_hFrameWnd, mutexName.c_str(), this);
+			_hMutex.Attach(hMutex);
+			_strMutexName = mutexName;
+		}
 
 		//construct tree view structure
 		TreeView.ConstructTree();
@@ -183,8 +188,8 @@ public:
 		if (ListView.IsWindow())ListView.DestroyWindow();
 		if (Splitter.IsWindow())Splitter.DestroyWindow();
 
-		if (hMutex)hMutex.Close();
-		::RemovePropW(m_hFrameWnd, strMutexName.c_str());
+		_hMutex.Close();
+		::RemovePropW(m_hFrameWnd, _strMutexName.c_str());
 	}
 	void ShowWindow(int nCmdShow) {
 		TreeView.ShowWindow(nCmdShow);
