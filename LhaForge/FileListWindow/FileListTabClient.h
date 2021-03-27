@@ -46,9 +46,9 @@ protected:
 		MSG_WM_SIZE(OnSize)
 		NOTIFY_CODE_HANDLER_EX(NM_SETFOCUS, OnWndStateChanged)
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnWndStateChanged)
-		NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnTabSelChanged)
+		NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnDeactivatingTab)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnActivateTab)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnActivateTab)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_TABCLOSEBTN, OnTabCloseBtn)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TOGGLE_TREEVIEW,OnToggleTreeView)
@@ -71,8 +71,18 @@ protected:
 protected:
 	LRESULT OnDestroy();
 	void OnSize(UINT uType, CSize &size);
-	LRESULT OnTabSelChanging(LPNMHDR pnmh);
-	LRESULT OnTabSelChanged(LPNMHDR pnmh);
+	LRESULT OnDeactivatingTab(LPNMHDR pnmh) {
+		OnDeactivatingTab(GetActivePage());
+		SetMsgHandled(FALSE);
+		return 0;
+	}
+	void OnDeactivatingTab(int page);
+	LRESULT OnActivateTab(LPNMHDR pnmh) {
+		OnActivateTab(GetActivePage());
+		SetMsgHandled(FALSE);
+		return 0;
+	}
+	void OnActivateTab(int page);
 	LRESULT OnWndStateChanged(LPNMHDR pnmh);
 	LRESULT OnContextMenu(LPNMHDR pnmh);
 	LRESULT OnTabCloseBtn(LPNMHDR pnmh);
@@ -87,8 +97,6 @@ protected:
 	void ClearAllTabs();
 	void RemoveTab(int);
 	void RemoveTabExcept(int);
-	void OnActivateTab(int newIdx);
-	void OnDeactivatingTab(int currentIdx);
 	void UpdateClientArea();
 public:
 	CFileListTabClient(const CConfigFileListWindow&, const LF_COMPRESS_ARGS&, CFileListFrame&);
@@ -102,8 +110,8 @@ public:
 
 	void StoreSettings(CConfigFileListWindow&);
 
-	void SetCurrentTab(int idx);
-	void SetCurrentTab(HANDLE);
+	void SetActivePage(int i) { __super::SetActivePage(i); }
+	void SetActivePage(HANDLE);
 	void CloseCurrentTab(){RemoveTab(GetActivePage());}
 
 	DWORD GetListViewStyle();

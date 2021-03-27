@@ -106,11 +106,9 @@ int CFileListTabClient::CreateNewTab()
 	m_GC.push_back(p);
 
 	//--save current
-	int prevCount = GetPageCount();
-	if(prevCount >0){
-		OnDeactivatingTab(GetActivePage());
-	}
+	OnDeactivatingTab(GetActivePage());
 
+	int prevCount = GetPageCount();
 	//--add tab
 	AddPage(pItem->Splitter,L"",-1,pItem);
 
@@ -124,22 +122,20 @@ void CFileListTabClient::RemoveTab(int idx)
 	if(idx<0)return;
 	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
 
-	if(idx==GetActivePage()){
+	if (idx == GetActivePage()) {
 		OnDeactivatingTab(idx);
 	}
-
 	RemovePage(idx);
 	remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
 
-	if(GetPageCount()>0){
-		OnActivateTab(GetActivePage());
-	}
+	OnActivateTab(GetActivePage());
+
 	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 }
 
 void CFileListTabClient::RemoveTabExcept(int idx)
 {
-	if(idx!=GetActivePage()){
+	if (idx != GetActivePage()) {
 		OnDeactivatingTab(GetActivePage());
 	}
 
@@ -166,32 +162,6 @@ CFileListTabItem* CFileListTabClient::GetCurrentTab()
 		return (CFileListTabItem*)GetPageData(currentIdx);
 	}else{
 		return NULL;
-	}
-}
-
-void CFileListTabClient::OnActivateTab(int newIdx)
-{
-	UpdateLayout();
-
-	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(newIdx);
-	if(pItem){
-		pItem->ShowWindow(SW_SHOW);
-		SetActivePage(newIdx);
-		pItem->OnActivated();
-
-		UpdateClientArea();
-	}
-
-	dispatchEvent(WM_FILELIST_MODELCHANGED);
-	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
-}
-
-void CFileListTabClient::OnDeactivatingTab(int currentIdx)
-{
-	auto pItem = (CFileListTabItem*)GetPageData(currentIdx);
-	if(pItem){
-		pItem->OnDeactivating();
-		pItem->ShowWindow(SW_HIDE);
 	}
 }
 
@@ -275,42 +245,42 @@ void CFileListTabClient::SetListViewStyle(DWORD dwStyle)
 	}
 }
 
-
-LRESULT CFileListTabClient::OnTabSelChanging(LPNMHDR pnmh)
+void CFileListTabClient::OnDeactivatingTab(int page)
 {
-	int sel=GetActivePage();
-	if(sel>=0){
-		OnDeactivatingTab(sel);
+	if (page >= 0) {
+		auto pItem = (CFileListTabItem*)GetPageData(page);
+		if (pItem) {
+			pItem->OnDeactivating();
+			pItem->ShowWindow(SW_HIDE);
+		}
 	}
-	SetMsgHandled(FALSE);
-	return 0;
 }
 
-LRESULT CFileListTabClient::OnTabSelChanged(LPNMHDR pnmh)
+void CFileListTabClient::OnActivateTab(int page)
 {
-	int sel=GetActivePage();//pnmh->idFrom;
-	if(sel>=0){
-		OnActivateTab(sel);
+	if(page>=0){
+		UpdateLayout();
+
+		auto pItem = (CFileListTabItem*)GetPageData(page);
+		if (pItem) {
+			pItem->ShowWindow(SW_SHOW);
+			pItem->OnActivated();
+
+			UpdateClientArea();
+		}
+
+		dispatchEvent(WM_FILELIST_MODELCHANGED);
+		dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
 	}
-	SetMsgHandled(FALSE);
-	return 0;
 }
 
-void CFileListTabClient::SetCurrentTab(int idx)
-{
-	//if(GetActivePage()>=0)OnDeactivatingTab(GetActivePage());
-	SetActivePage(idx);
-	CFileListTabItem* pItem=(CFileListTabItem*)GetPageData(idx);
-	OnActivateTab(idx);
-}
-
-void CFileListTabClient::SetCurrentTab(HANDLE hHandle)
+void CFileListTabClient::SetActivePage(HANDLE hHandle)
 {
 	int size=GetPageCount();
 	for(int i=0;i<size;i++){
 		CFileListTabItem* pData=(CFileListTabItem*)GetPageData(i);
 		if(pData==(CFileListTabItem*)hHandle){
-			SetCurrentTab(i);
+			SetActivePage(i);
 			break;
 		}
 	}
@@ -319,7 +289,7 @@ void CFileListTabClient::SetCurrentTab(HANDLE hHandle)
 LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 {
 	int idx = pnmh->idFrom;
-	SetCurrentTab(idx);
+	SetActivePage(idx);
 
 	CMenu cMenu;
 	cMenu.LoadMenu(IDM_TABMENU);
@@ -364,7 +334,6 @@ LRESULT CFileListTabClient::OnTabCloseBtn(LPNMHDR pnmh)
 	if (idx == GetActivePage()) {
 		OnDeactivatingTab(idx);
 	}
-
 	//RemovePage(idx);
 	remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
 
@@ -407,7 +376,7 @@ void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
 	int tabIndex=0;
 
 	for(;tabIndex<GetPageCount();){
-		SetCurrentTab(tabIndex);
+		SetActivePage(tabIndex);
 		CFileListTabItem* pItem=GetCurrentTab();
 		if(pItem){
 			bool bRet=pItem->Model.ExtractArchive(CLFProgressHandlerGUI(m_hWnd));
@@ -425,7 +394,7 @@ void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
 		}
 	}
 	if(GetPageCount()>0){
-		SetCurrentTab(0);
+		SetActivePage(0);
 	}
 	::EnableWindow(m_rFrameWnd,TRUE);
 	SetForegroundWindow(m_rFrameWnd);

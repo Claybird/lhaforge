@@ -391,7 +391,7 @@ HANDLE CFileListFrame::GetMultiOpenLockMutex(const std::wstring& strMutex)
 
 LRESULT CFileListFrame::OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	m_TabClientWnd->SetCurrentTab((HANDLE)wParam);
+	m_TabClientWnd->SetActivePage((HANDLE)wParam);
 	ShowWindow(SW_RESTORE);
 	SetForegroundWindow(m_hWnd);
 
@@ -690,9 +690,9 @@ void CFileListFrame::OnNextTab(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	if(m_TabClientWnd && size>0){
 		int nActive=m_TabClientWnd->GetActivePage();
 		if(ID_MENUITEM_NEXTTAB==nID){
-			m_TabClientWnd->SetCurrentTab((nActive+1)%size);
+			m_TabClientWnd->SetActivePage((nActive+1)%size);
 		}else{
-			m_TabClientWnd->SetCurrentTab((nActive+size-1)%size);
+			m_TabClientWnd->SetActivePage((nActive+size-1)%size);
 		}
 	}
 }
@@ -705,7 +705,7 @@ LRESULT CFileListFrame::OnMouseWheel(UINT uCode,short delta,CPoint&)
 		while(step<-size)step+=size;
 
 		int nActive=m_TabClientWnd->GetActivePage();
-		m_TabClientWnd->SetCurrentTab((nActive+size+step)%size);
+		m_TabClientWnd->SetActivePage((nActive+size+step)%size);
 	}else{
 		SetMsgHandled(FALSE);
 	}
