@@ -132,6 +132,7 @@ protected:
 	}
 
 	//flags to prevent actios while ConstructTree()
+	//TODO: is this necessary?
 	bool IsSelfAction()const{return m_bSelfAction;}
 	void BeginSelfAction(){m_bSelfAction=true;}
 	void EndSelfAction(){m_bSelfAction=false;}
@@ -203,7 +204,7 @@ public:
 				ConstructTree(hItem, lpChild);
 			}
 		}
-		while (UtilDoMessageLoop())continue;
+
 		return true;
 	}
 	void Clear() {
