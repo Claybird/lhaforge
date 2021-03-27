@@ -36,7 +36,7 @@ public:
 protected:
 	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	CFileListFrame&		m_rFrameWnd;
-	bool				m_bShowTab;			//タブ表示?
+	bool				m_bShowTab;
 
 	const CConfigFileListWindow& m_confFLW;
 	const LF_COMPRESS_ARGS& mr_compressArgs;
@@ -50,6 +50,7 @@ protected:
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnTabSelChanged)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_TABCLOSEBTN, OnTabCloseBtn)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TOGGLE_TREEVIEW,OnToggleTreeView)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE,OnExtractArchive)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE,OnExtractArchive)
@@ -74,6 +75,7 @@ protected:
 	LRESULT OnTabSelChanged(LPNMHDR pnmh);
 	LRESULT OnWndStateChanged(LPNMHDR pnmh);
 	LRESULT OnContextMenu(LPNMHDR pnmh);
+	LRESULT OnTabCloseBtn(LPNMHDR pnmh);
 	void OnMButtonUp(UINT, CPoint&);
 	void OnExtractArchive(UINT,int,HWND);
 	void OnTestArchive(UINT,int,HWND);

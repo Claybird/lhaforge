@@ -355,6 +355,22 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 	return 0;
 }
 
+LRESULT CFileListTabClient::OnTabCloseBtn(LPNMHDR pnmh)
+{
+	int idx = pnmh->idFrom;
+	if (idx < 0)return 0;
+	CFileListTabItem* pItem = (CFileListTabItem*)GetPageData(idx);
+
+	if (idx == GetActivePage()) {
+		OnDeactivatingTab(idx);
+	}
+
+	//RemovePage(idx);
+	remove_item_if(m_GC, [&](std::shared_ptr<CFileListTabItem>& item) {return item.get() == pItem; });
+
+	dispatchEvent(WM_FILELIST_WND_STATE_CHANGED);
+	return 0;	//let CTabView to call RemovePage()
+}
 
 void CFileListTabClient::OnMButtonUp(UINT, CPoint &pt)
 {
