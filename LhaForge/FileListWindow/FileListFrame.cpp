@@ -115,6 +115,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 
 		//hide tab if disabled
 		if (m_ConfFLW.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
+		m_hWndClient = *m_TabClientWnd;
 	}
 
 	//---------
@@ -160,7 +161,6 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		UISetCheck(ID_MENUITEM_LISTMODE_TREE, TRUE);
 	}
 
-	m_hWndClient = *m_TabClientWnd;
 	UpdateLayout();
 
 	//message handler
