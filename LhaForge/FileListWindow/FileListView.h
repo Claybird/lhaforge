@@ -38,12 +38,12 @@ protected:
 	BEGIN_MSG_MAP_EX(CFileListView)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		MSG_WM_CONTEXTMENU(OnContextMenu)	//右クリックメニュー
+		MSG_WM_CONTEXTMENU(OnContextMenu)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_SELECT_ALL,OnSelectAll)
 		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListNewContent)
 		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
 		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
-		NOTIFY_CODE_HANDLER(NM_RCLICK, OnColumnRClick)	//カラムヘッダを右クリック
+		NOTIFY_CODE_HANDLER(NM_RCLICK, OnColumnRClick)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_DELETE_SELECTED,OnDelete)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED,OnExtractItem)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR,OnExtractItem)
@@ -63,9 +63,9 @@ protected:
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_BEGINDRAG, OnBeginDrag)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_GETINFOTIP, OnGetInfoTip)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ODFINDITEM, OnFindItem)	//キータイプでの検索
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ODFINDITEM, OnFindAsYouType)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_COLUMNCLICK, OnSortItem)
-		CHAIN_MSG_MAP_ALT(CCustomDraw<CFileListView>, 1)	// CCustomDrawクラスへチェーン
+		CHAIN_MSG_MAP_ALT(CCustomDraw<CFileListView>, 1)	// chain to CCustomDraw
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 protected:
@@ -87,12 +87,16 @@ protected:
 	LRESULT OnCreate(LPCREATESTRUCT lpcs);
 	LRESULT OnDestroy();
 	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {Invalidate();return 0;}
 
 	LRESULT OnGetDispInfo(LPNMHDR pnmh);
 	LRESULT OnGetInfoTip(LPNMHDR pnmh);
-	LRESULT OnFindItem(LPNMHDR pnmh);
-	LRESULT OnSortItem(LPNMHDR pnmh);
+	LRESULT OnFindAsYouType(LPNMHDR pnmh);
+	LRESULT OnSortItem(LPNMHDR pnmh) {
+		int iCol = ((LPNMLISTVIEW)pnmh)->iSubItem;
+		SortItem(iCol);
+		return 0;
+	}
 	LRESULT OnBeginDrag(LPNMHDR pnmh);
 	LRESULT OnDblClick(LPNMHDR pnmh);
 	void OnSelectAll(UINT,int,HWND);
@@ -108,14 +112,16 @@ protected:
 public:
 	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//カラムヘッダを右クリック
 	void SortItem(int iCol);
-	//カスタムドロー
-	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd);
+	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd) {
+		if (lpnmcd->hdr.hwndFrom == m_hWnd) {
+			return CDRF_NOTIFYITEMDRAW;
+		} else {
+			return CDRF_DODEFAULT;
+		}
+	}
 	DWORD OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd);
 protected:
 	//---internal functions
-	//ファイル情報取得
-	static void FormatFileSizeInBytes(CString&, UINT64);
-	void FormatFileSize(CString&, UINT64);
 	void UpdateSortIcon();
 public:
 	CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW);
