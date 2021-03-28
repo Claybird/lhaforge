@@ -130,9 +130,9 @@ UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length)
 	} else if (length >= 3 && pByte[0] == 0xEF && pByte[1] == 0xBB && pByte[2] == 0xBF) {	//BOM check
 		return UTIL_CODEPAGE::UTF8;
 	} else {
-		if (UtilVerityGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF8)) {
+		if (UtilVerifyGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF8)) {
 			return UTIL_CODEPAGE::UTF8;
-		} else if (UtilVerityGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF16)) {
+		} else if (UtilVerifyGuessedCodepage(lpSrc, length, UTIL_CODEPAGE::UTF16)) {
 			return UTIL_CODEPAGE::UTF16;
 		}else{
 			return UTIL_CODEPAGE::CP932;
@@ -142,7 +142,7 @@ UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length)
 
 //NOTE: this function should work for relatively long string, but not reliable for short string
 //checks if the code page is correct for the given string
-bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage)
+bool UtilVerifyGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage)
 {
 	const unsigned char* pByte = (const unsigned char*)lpSrc;
 	if (length>=3 && pByte[0] == 0xEF && pByte[1] == 0xBB && pByte[2] == 0xBF) {	//BOM check
@@ -221,34 +221,34 @@ TEST(StringUtil, Encodings) {
 	EXPECT_EQ(utf8_bom_ans, UtilToUNICODE(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8));
 
 	//CP932
-	EXPECT_TRUE(UtilVerityGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::CP932));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::UTF16));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::UTF8));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::CP932));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::UTF16));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(cp932, sizeof(cp932), UTIL_CODEPAGE::UTF8));
 
 	//UTF16-LE
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::CP932));
-	EXPECT_TRUE(UtilVerityGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF16));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF8));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::CP932));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF16));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_le, sizeof(utf16_le), UTIL_CODEPAGE::UTF8));
 
 	//UTF16-LE-BOM
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::CP932));
-	EXPECT_TRUE(UtilVerityGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF16));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF8));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::CP932));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF16));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_le_bom, sizeof(utf16_le_bom), UTIL_CODEPAGE::UTF8));
 
 	//UTF16-BE-BOM
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::CP932));
-	EXPECT_TRUE(UtilVerityGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF16));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF8));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::CP932));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF16));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf16_be_bom, sizeof(utf16_be_bom), UTIL_CODEPAGE::UTF8));
 
 	//UTF-8
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::CP932));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF16));
-	EXPECT_TRUE(UtilVerityGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF8));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::CP932));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF16));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(utf8, sizeof(utf8), UTIL_CODEPAGE::UTF8));
 
 	//UTF-8-BOM
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::CP932));
-	EXPECT_FALSE(UtilVerityGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF16));
-	EXPECT_TRUE(UtilVerityGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::CP932));
+	EXPECT_FALSE(UtilVerifyGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF16));
+	EXPECT_TRUE(UtilVerifyGuessedCodepage(utf8_bom, sizeof(utf8_bom), UTIL_CODEPAGE::UTF8));
 
 }
 #endif

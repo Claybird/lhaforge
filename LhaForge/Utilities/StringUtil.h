@@ -47,7 +47,7 @@ std::string UtilToUTF8(const std::wstring& unicode_string);
 
 UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
 //checks if the code page is correct for the given string
-bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
+bool UtilVerifyGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 
 bool UtilIsSafeUnicode(const std::wstring& unicode_string);
 
