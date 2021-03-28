@@ -253,6 +253,32 @@ TEST(StringUtil, Encodings) {
 }
 #endif
 
+bool UtilIsSafeUnicode(const std::wstring& unicode_string)
+{
+	//unicode control characters
+	std::wregex pattern(L"("
+		L"[\u0001-\u001f]"	//ISO 6429 C0 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+		L"|\u007F"	//DEL
+		L"|[\u0080-\u009F]"	//ISO 6429 C1 control; https://en.wikipedia.org/wiki/List_of_Unicode_characters
+		L"|[\u200b-\u200d]"	//zero-width spaces
+
+		//https://en.wikipedia.org/wiki/Bidirectional_text
+		L"|\u200e|\u200f|\u061C"	//LRM,RLM,ALM
+		L"|[\u202a-\u202e]"	//RLE,LRO,PDF,RLE,RLO,
+		L"|[\u2066-\u2069]"	//LRI,RLI,FSI,PDI
+		L")");
+
+	return !std::regex_search(unicode_string, pattern);
+}
+
+#ifdef UNIT_TEST
+
+TEST(StringUtil, UtilIsSafeUnicode) {
+	EXPECT_TRUE(UtilIsSafeUnicode(L"abcdef"));
+	EXPECT_FALSE(UtilIsSafeUnicode(L"abc\u202Edef"));
+}
+#endif
+
 //https://stackoverflow.com/questions/22617209/regex-replace-with-callback-in-c11
 template<class BidirIt, class Traits, class CharT, class UnaryFunction>
 std::basic_string<CharT> util_regex_replace(BidirIt first, BidirIt last,

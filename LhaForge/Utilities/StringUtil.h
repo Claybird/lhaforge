@@ -49,6 +49,7 @@ UTIL_CODEPAGE UtilGuessCodepage(const char* lpSrc, size_t length);
 //checks if the code page is correct for the given string
 bool UtilVerityGuessedCodepage(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage);
 
+bool UtilIsSafeUnicode(const std::wstring& unicode_string);
 
 //expand variables placed in braces, such as "{foo}"
 std::wstring UtilExpandTemplateString(const std::wstring& format, const std::map<std::wstring, std::wstring> &envVars);
