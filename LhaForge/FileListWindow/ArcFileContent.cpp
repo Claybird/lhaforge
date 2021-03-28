@@ -739,5 +739,27 @@ TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 	EXPECT_FALSE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
 }
+
+TEST(ArcFileContent, safe_unicode_path)
+{
+	CLFPassphraseNULL no_passphrase;
+	CArchiveFileContent content(no_passphrase);
+
+	EXPECT_FALSE(content.checkArchiveExists());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(3, content.getRootNode()->enumChildren().size());
+	auto dir = content.getRootNode()->getChild(0);
+	auto numEntries = dir->getNumChildren();
+	EXPECT_EQ(2, numEntries);
+
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(0)->calcFullpath()));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(0)->_entryName));
+	EXPECT_FALSE(UtilIsSafeUnicode(dir->getChild(0)->_entry.path));
+
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->calcFullpath()));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->_entryName));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->_entry.path));
+}
 #endif
 
