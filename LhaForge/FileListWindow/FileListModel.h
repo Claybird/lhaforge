@@ -59,7 +59,7 @@ protected:
 	const LF_COMPRESS_ARGS &mr_compressArgs;
 
 	//sort
-	bool	m_bSortDescending;
+	bool	m_bSortAscending;
 	int		m_nSortKeyType;
 protected:
 	//---internal functions
@@ -67,7 +67,7 @@ protected:
 public:
 	CFileListModel(const LF_COMPRESS_ARGS& compressArgs, ILFPassphrase& passphrase) :
 		m_lpCurrentDir(nullptr),
-		m_bSortDescending(true),
+		m_bSortAscending(true),
 		m_nSortKeyType(FILEINFO_INVALID),
 		m_Content(passphrase),
 		mr_compressArgs(compressArgs)
@@ -95,13 +95,13 @@ public:
 			dispatchEvent(WM_FILELIST_UPDATED);
 		}
 	}
-	void SetSortMode(bool bSortDescending) {
-		m_bSortDescending = bSortDescending;
+	void SetSortMode(bool m_bSortAscending) {
+		m_bSortAscending = m_bSortAscending;
 		SortCurrentEntries();
 		dispatchEvent(WM_FILELIST_UPDATED);
 	}
 	int GetSortKeyType()const{return m_nSortKeyType;}
-	bool GetSortMode()const{return m_bSortDescending;}
+	bool GetSortMode()const{return m_bSortAscending;}
 
 	bool MoveUpDir();
 	bool MoveDownDir(const ARCHIVE_ENTRY_INFO*);
