@@ -40,7 +40,6 @@ protected:
 		MSG_WM_CONTEXTMENU(OnContextMenu)
 		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListArchiveLoaded)
 		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
-		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
 
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_DELETE_SELECTED,OnDelete)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED,OnExtractItem)
@@ -109,10 +108,6 @@ protected:
 	}
 	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
 		UpdateCurrentNode();
-		return 0;
-	}
-	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
-		//nothing to do
 		return 0;
 	}
 	bool UpdateCurrentNode() {
