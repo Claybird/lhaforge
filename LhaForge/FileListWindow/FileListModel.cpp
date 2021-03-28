@@ -52,7 +52,7 @@ std::wstring CFileListModel::getCurrentDirPath()const
 {
 	std::wstring path;
 	if(m_lpCurrentDir){
-		path = m_lpCurrentDir->_entry.path;
+		path = m_lpCurrentDir->calcFullpath();
 	}
 	return path;
 }
