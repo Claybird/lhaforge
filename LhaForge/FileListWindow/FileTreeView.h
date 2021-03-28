@@ -31,7 +31,6 @@ class CFileTreeView:public CFileViewBase<CFileTreeView,CTreeViewCtrl>
 protected:
 	CImageList	m_ImageList;
 	std::map<const ARCHIVE_ENTRY_INFO*,HTREEITEM> m_TreeItemMap;
-	bool m_bSelfAction;
 protected:
 	HTREEITEM m_hDropHilight;	//highlited item handle for drag-drop
 protected:
@@ -87,21 +86,17 @@ protected:
 	}
 
 	LRESULT OnTreeSelect(LPNMHDR) {
-		if (IsSelfAction()) {
-			EndSelfAction();
-		} else {
-			auto lpCurrent = mr_Model.getCurrentDir();
+		auto lpCurrent = mr_Model.getCurrentDir();
 
-			HTREEITEM hItem = GetSelectedItem();
-			if (!hItem)return 0;
+		HTREEITEM hItem = GetSelectedItem();
+		if (!hItem)return 0;
 
-			auto lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
-			ASSERT(lpNode);
+		auto lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
+		ASSERT(lpNode);
 
-			if (!mr_Model.IsRoot())mr_Model.EndFindItem();
-			if (lpNode && lpNode != lpCurrent) {
-				mr_Model.setCurrentDir(lpNode);
-			}
+		if (!mr_Model.IsRoot())mr_Model.EndFindItem();
+		if (lpNode && lpNode != lpCurrent) {
+			mr_Model.setCurrentDir(lpNode);
 		}
 		return 0;
 	}
@@ -131,12 +126,6 @@ protected:
 		return true;
 	}
 
-	//flags to prevent actios while ConstructTree()
-	//TODO: is this necessary?
-	bool IsSelfAction()const{return m_bSelfAction;}
-	void BeginSelfAction(){m_bSelfAction=true;}
-	void EndSelfAction(){m_bSelfAction=false;}
-
 	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override {
 		std::vector<const ARCHIVE_ENTRY_INFO*> items;
 		HTREEITEM hItem = GetSelectedItem();
@@ -164,7 +153,6 @@ public:
 
 	CFileTreeView(CFileListModel& rModel,const CConfigFileListWindow& r_confFLW):
 		CFileViewBase(rModel, r_confFLW),
-		m_bSelfAction(false),
 		m_hDropHilight(NULL)
 	{}
 	virtual ~CFileTreeView(){}
@@ -172,7 +160,6 @@ public:
 		const int dirIconClosed = 0;
 		const int dirIconOpened = 1;
 		const int archiveIconIndex = 2;
-		BeginSelfAction();
 		HTREEITEM hItem;
 		if (hParentItem) {
 			//directory
