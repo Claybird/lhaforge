@@ -553,7 +553,11 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 		break;
 	case FILEINFO_FILETIME:	//ファイル日時
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			strBuffer = UtilFormatTime(lpNode->_entry.stat.st_mtime).c_str();
+			if (lpNode->_entry.path.empty()) {
+				strBuffer = L"---";
+			} else {
+				strBuffer = UtilFormatTime(lpNode->_entry.stat.st_mtime).c_str();
+			}
 			lpText=strBuffer;
 		}
 		break;
