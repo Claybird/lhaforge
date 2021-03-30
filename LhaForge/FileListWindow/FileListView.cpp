@@ -95,11 +95,9 @@ bool CFileListView::SetColumnState(
 	ADD_COLUMNITEM(ORIGINALSIZE, 90, LVCFMT_RIGHT);
 	ADD_COLUMNITEM(TYPENAME, 120, LVCFMT_LEFT);
 	ADD_COLUMNITEM(FILETIME, 120, LVCFMT_LEFT);
-	ADD_COLUMNITEM(ATTRIBUTE, 60, LVCFMT_LEFT);
 	ADD_COLUMNITEM(COMPRESSEDSIZE, 90, LVCFMT_RIGHT);
 	ADD_COLUMNITEM(METHOD, 60, LVCFMT_LEFT);
 	ADD_COLUMNITEM(RATIO, 60, LVCFMT_RIGHT);
-	ADD_COLUMNITEM(CRC, 60, LVCFMT_LEFT);
 
 	//column order
 	int nValidColumns=0;
@@ -278,11 +276,9 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		{FILEINFO_ORIGINALSIZE,		ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE},
 		{FILEINFO_TYPENAME,			ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME},
 		{FILEINFO_FILETIME,			ID_MENUITEM_LISTVIEW_COLUMN_FILETIME},
-		{FILEINFO_ATTRIBUTE,		ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE},
 		{FILEINFO_COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
 		{FILEINFO_METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
 		{FILEINFO_RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
-		{FILEINFO_CRC,				ID_MENUITEM_LISTVIEW_COLUMN_CRC},
 	};
 
 	for(const auto &item: menuTable){
@@ -476,14 +472,27 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	//TODO
-	case FILEINFO_ATTRIBUTE:
-	case FILEINFO_METHOD:
-	case FILEINFO_RATIO:
-	case FILEINFO_CRC:
 	case FILEINFO_COMPRESSEDSIZE:
 		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			info = L"";
+			if (lpNode->_entry.compressed_size == -1) {
+				info = L"---";
+			} else {
+				info = Format(L"%llu", lpNode->_entry.compressed_size);
+			}
+		}
+		break;
+	case FILEINFO_METHOD:
+		if (pstLVDInfo->item.mask & LVIF_TEXT) {
+			info = lpNode->_entry.method_name;
+		}
+		break;
+	case FILEINFO_RATIO:
+		if (pstLVDInfo->item.mask & LVIF_TEXT) {
+			if (lpNode->_entry.compressed_size == -1) {
+				info = L"---";
+			} else {
+				info = Format(L"%.2f%%", lpNode->compress_ratio());
+			}
 		}
 		break;
 	}
@@ -620,60 +629,25 @@ void CFileListView::OnSelectAll(UINT,int,HWND)
 	SetFocus();
 }
 
-
 void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	auto items = GetSelectedItems();
 
 	std::wstring info;
-
-	switch(nID){
-	case ID_MENUITEM_COPY_FILENAME:
-		for(const auto &item: items){
-			info += item->_entryName + L"\n";
+	info=L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tMethod\tCompressedSize\tCompressionRatio\n";
+	for (const auto &item : items) {
+		info += item->_entryName + L"\t" +
+			item->_entry.path.wstring() + L"\t" +
+			Format(L"%llu", item->_originalSize) + L"\t" +
+			m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\t" +
+			(item->_entry.stat.st_mtime == 0 ? L"---\t" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\t"))+
+			item->_entry.method_name + L"\t";
+		if (item->_entry.compressed_size == -1) {
+			info += std::wstring(L"---\t---\n");
+		} else {
+			info += Format(L"%llu", item->_entry.compressed_size) + L"\t" +
+				Format(L"%.2f%%", item->compress_ratio()) + L"\n";
 		}
-		break;
-	case ID_MENUITEM_COPY_PATH:
-		for (const auto &item : items) {
-			info += item->_entry.path.wstring() + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
-		for (const auto &item : items) {
-			info += Format(L"%I64d\n", item->_originalSize);
-		}
-		break;
-	case ID_MENUITEM_COPY_FILETYPE:
-		for (const auto &item : items) {
-			info += m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_FILETIME:
-		for (const auto &item : items) {
-			info += UtilFormatTime(item->_entry.stat.st_mtime) + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_ATTRIBUTE:
-	case ID_MENUITEM_COPY_COMPRESSED_SIZE:
-	case ID_MENUITEM_COPY_METHOD:
-	case ID_MENUITEM_COPY_COMPRESSION_RATIO:
-	case ID_MENUITEM_COPY_CRC:
-#pragma message("FIXME!")
-		//TODO
-		break;
-	case ID_MENUITEM_COPY_ALL:
-		info=L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n";
-		for (const auto &item : items) {
-			info += Format(L"%s\t%s\t%I64d\t%s\t%s\n",
-				item->_entryName.c_str(),
-				item->_entry.path.c_str(),
-				item->_originalSize,
-				m_ShellDataManager.GetTypeName(item->getExt().c_str()).c_str(),
-				UtilFormatTime(item->_entry.stat.st_mtime).c_str());
-		}
-		break;
-	default:
-		ASSERT(!"Unknown command");
 	}
 	UtilSetTextOnClipboard(info);
 }

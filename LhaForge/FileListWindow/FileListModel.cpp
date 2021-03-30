@@ -136,6 +136,10 @@ struct FILELIST_SORT_COMPARATOR{
 	bool operator()(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
 		return compare_no_reversed(x, y) ^ bReversed;
 	}
+	bool defaultOrder(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
+		//sort by pathname
+		return (_wcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str()) < 0);
+	}
 	bool compare_no_reversed(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
 		switch(Type){
 		case FILEINFO_FILENAME:
@@ -148,29 +152,26 @@ struct FILELIST_SORT_COMPARATOR{
 				}else if(y->is_directory()){
 					return false;
 				}
-				int result = _tcsicmp(x->_entryName.c_str(), y->_entryName.c_str());
+				int result = _wcsicmp(x->_entryName.c_str(), y->_entryName.c_str());
 				if(result == 0){
-					//sort by pathname
-					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+					return defaultOrder(x, y);
 				}else{
 					return (result<0);
 				}
 			}
 		case FILEINFO_FULLPATH:
-			return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+			return (_wcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 		case FILEINFO_ORIGINALSIZE:
 			if(x->_originalSize == y->_originalSize){
-				//sort by pathname
-				return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+				return defaultOrder(x, y);
 			}else{
 				return (x->_originalSize < y->_originalSize);
 			}
 		case FILEINFO_TYPENAME:
 			{
-				int result = _tcsicmp(x->getExt().c_str(), y->getExt().c_str());
+				int result = _wcsicmp(x->getExt().c_str(), y->getExt().c_str());
 				if(result == 0){
-					//sort by pathname
-					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+					return defaultOrder(x, y);
 				}else{
 					return (result < 0);
 				}
@@ -178,24 +179,29 @@ struct FILELIST_SORT_COMPARATOR{
 		case FILEINFO_FILETIME:
 			{
 				if(x->_entry.stat.st_mtime == y->_entry.stat.st_mtime){
-					//sort by pathname
-					return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+					return defaultOrder(x, y);
 				}else{
 					return (x->_entry.stat.st_mtime < y->_entry.stat.st_mtime);
 				}
 			}
-		case FILEINFO_ATTRIBUTE:
-			if(x->_entry.stat.st_mode == y->_entry.stat.st_mode){
-				//sort by pathname
-				return (_tcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
-			}else{
-				return (x->_entry.stat.st_mode < y->_entry.stat.st_mode);
-			}
 		case FILEINFO_COMPRESSEDSIZE:
+			if (x->_entry.compressed_size == y->_entry.compressed_size) {
+				return defaultOrder(x, y);
+			} else {
+				return (x->_entry.compressed_size < y->_entry.compressed_size);
+			}
 		case FILEINFO_METHOD:
+			if (x->_entry.method_name == y->_entry.method_name) {
+				return defaultOrder(x, y);
+			} else {
+				return (_wcsicmp(x->_entry.method_name.c_str(), y->_entry.method_name.c_str()) < 0);
+			}
 		case FILEINFO_RATIO:
-		case FILEINFO_CRC:
-#pragma message("FIXME!")
+			if (x->compress_ratio() == y->compress_ratio()) {
+				return defaultOrder(x, y);
+			} else {
+				return (_wcsicmp(x->_entry.method_name.c_str(), y->_entry.method_name.c_str()) < 0);
+			}
 			return false;
 		}
 		return false;

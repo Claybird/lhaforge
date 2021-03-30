@@ -1427,21 +1427,7 @@ BEGIN
         BEGIN
             MENUITEM "(なし)",                        ID_MENUITEM_DUMMY
         END
-        POPUP "情報コピー(&G)"
-        BEGIN
-            MENUITEM "ファイル名(&F)",                   ID_MENUITEM_COPY_FILENAME
-            MENUITEM "格納パス(&P)",                    ID_MENUITEM_COPY_PATH
-            MENUITEM "元サイズ(&S)",                    ID_MENUITEM_COPY_ORIGINAL_SIZE
-            MENUITEM "ファイル種別(&T)",                  ID_MENUITEM_COPY_FILETYPE
-            MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
-            MENUITEM "属性(&A)",                      ID_MENUITEM_COPY_ATTRIBUTE
-            MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
-            MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
-            MENUITEM "CRC(&R)",                     ID_MENUITEM_COPY_CRC
-            MENUITEM SEPARATOR
-            MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
-        END
+        MENUITEM "情報コピー(&G)",                   ID_MENUITEM_COPY_ALL
     END
 END
 

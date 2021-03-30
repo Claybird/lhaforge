@@ -50,6 +50,9 @@ struct ARCHIVE_ENTRY_INFO {
 		//ex. in zip, dirA/fileA.txt, does not include dirA as an entry
 		return _entry.is_directory() || !_children.empty();
 	}
+	double compress_ratio()const {
+		return double(_entry.compressed_size) / std::max((__int64)1, _entry.stat.st_size);
+	}
 
 	std::wstring getExt()const {
 		if (is_directory()) {
