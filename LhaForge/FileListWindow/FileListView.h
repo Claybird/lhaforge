@@ -29,7 +29,9 @@
 #include "FileViewBase.h"
 
 struct CConfigFileListWindow;
-class CFileListView:public CFileViewBase<CFileListView,CListViewCtrl>,public CCustomDraw<CFileListView>
+class CFileListView:
+	public CFileViewBase<CFileListView,CListViewCtrl>,
+	public CCustomDraw<CFileListView>
 {
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CListViewCtrl::GetWndClassName())
@@ -69,21 +71,15 @@ protected:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 protected:
-	std::array<int, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//カラムインデックスとサブアイテム番号の対応
-	/*
-		Config.FileListWindow.ColumnOrderArray?には、カラムが並び順にFILEINFO_TYPEの値で入っている(非表示項目は-1)。
-		m_ColumnIndexArray[colIdx] = FILEINFO_TYPE
-	*/
-
-
+	std::array<int/*FILEINFO_TYPE*/, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//-1 if invisible
+	
 	CLFShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
 	bool	m_bDisplayFileSizeInByte;
 	bool	m_bPathOnly;
 
-	CLFDnDSource	m_DnDSource;	//DnDハンドラ
+	CLFDnDSource	m_DnDSource;
 protected:
-	//---イベントハンドラ
 	LRESULT OnCreate(LPCREATESTRUCT lpcs);
 	LRESULT OnDestroy();
 	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -100,8 +96,8 @@ protected:
 	LRESULT OnBeginDrag(LPNMHDR pnmh);
 	LRESULT OnDblClick(LPNMHDR pnmh);
 	void OnSelectAll(UINT,int,HWND);
-	void OnFindItem(UINT,int,HWND);	//ファイル検索
-	void OnShowCustomizeColumn(UINT,int,HWND);	//カラムヘッダ編集メニューを表示
+	void OnFindItem(UINT,int,HWND);
+	void OnShowCustomizeColumn(UINT,int,HWND);
 	void OnClearTemporary(UINT, int, HWND) {
 		mr_Model.ClearTempDir();
 	}
@@ -110,7 +106,7 @@ protected:
 	//コマンドハンドラ
 	void OnCopyInfo(UINT,int,HWND);
 public:
-	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);//カラムヘッダを右クリック
+	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);
 	void SortItem(int iCol);
 	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd) {
 		if (lpnmcd->hdr.hwndFrom == m_hWnd) {

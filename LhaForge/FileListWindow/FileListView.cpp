@@ -503,6 +503,10 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 	if (!lpNode)return 0;
 	std::wstring strInfo;
 
+	if (!UtilIsSafeUnicode(lpNode->_entry.path)) {
+		strInfo += UtilLoadString(IDS_ERROR_UNICODECONTROL) + L"\n";
+	}
+
 	//filename
 	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_FILENAME);
 	strInfo += L" : " + lpNode->_entryName + L"\n";
@@ -536,7 +540,6 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 }
 
 //-------
-
 void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	ASSERT(mr_Model.IsModifySupported());
@@ -545,7 +548,8 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	auto dest = mr_Model.getCurrentDir();
 
 	std::vector<std::filesystem::path> files;
-	if(nID==ID_MENUITEM_ADD_FILE){		//ファイル追加
+	if(nID==ID_MENUITEM_ADD_FILE){
+		//add file
 		const COMDLG_FILTERSPEC filter[] = {
 			{ L"All Files", L"*.*" },
 		};
@@ -569,50 +573,44 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 }
 
-
-//-----------------------------
-// ドラッグ&ドロップによる解凍
-//-----------------------------
-
+// Extract items invoked by DnD
 LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 {
-	if(!mr_Model.CheckArchiveExists()){	//存在しないならエラー
-		return 0;
-	}
-	//選択されたアイテムを列挙
+	if(!mr_Model.CheckArchiveExists())return 0;
+
 	auto items = GetSelectedItems();
-	if(items.empty()){	//本来あり得ない
+	if(items.empty()){
 		ASSERT(!"This code cannot be run");
 		return 0;
 	}
 
 	if(!mr_Model.ClearTempDir()){
-		//テンポラリディレクトリを空に出来ない
+		//temporary directory clean-up failed
 		ErrorMessage(UtilLoadString(IDS_ERROR_CANT_CLEAR_TEMPDIR));
 		return 0;
-	}else{
-		::EnableWindow(m_hFrameWnd,FALSE);
-
-		//ドラッグ&ドロップで解凍
-		ARCLOG arcLog;
-		HRESULT hr=m_DnDSource.DoDragDrop(
-			mr_Model,
-			items,
-			mr_Model.getCurrentDir(),
-			mr_Model.getTempDir(),
-			m_hFrameWnd,
-			arcLog);
-		if(FAILED(hr)){
-			//TODO
-			CLogListDialog LogDlg(L"Log");
-			std::vector<ARCLOG> logs = { arcLog };
-			LogDlg.SetLogArray(logs);
-			LogDlg.DoModal(m_hFrameWnd);
-		}
-
-		::EnableWindow(m_hFrameWnd,TRUE);
-		::SetForegroundWindow(m_hFrameWnd);
 	}
+
+	::EnableWindow(m_hFrameWnd,FALSE);
+
+	ARCLOG arcLog;
+	HRESULT hr=m_DnDSource.DoDragDrop(
+		mr_Model,
+		items,
+		mr_Model.getCurrentDir(),
+		mr_Model.getTempDir(),
+		m_hFrameWnd,
+		arcLog);
+	::EnableWindow(m_hFrameWnd, TRUE);
+	::SetForegroundWindow(m_hFrameWnd);
+
+	if(FAILED(hr)){
+		//TODO
+		CLogListDialog LogDlg(L"Log");
+		std::vector<ARCLOG> logs = { arcLog };
+		LogDlg.SetLogArray(logs);
+		LogDlg.DoModal(m_hFrameWnd);
+	}
+
 	return 0;
 }
 
@@ -625,36 +623,34 @@ void CFileListView::OnSelectAll(UINT,int,HWND)
 
 void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
-	//選択されたアイテムを列挙
 	auto items = GetSelectedItems();
 
-	CString info;
+	std::wstring info;
 
 	switch(nID){
 	case ID_MENUITEM_COPY_FILENAME:
 		for(const auto &item: items){
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)item->_entryName.c_str());
+			info += item->_entryName + L"\n";
 		}
 		break;
 	case ID_MENUITEM_COPY_PATH:
 		for (const auto &item : items) {
-			info.AppendFormat(_T("%s\n"), item->_entry.path.c_str());
+			info += item->_entry.path.wstring() + L"\n";
 		}
 		break;
 	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
 		for (const auto &item : items) {
-			info.AppendFormat(_T("%I64d\n"), item->_originalSize);
+			info += Format(L"%I64d\n", item->_originalSize);
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETYPE:
 		for (const auto &item : items) {
-			info.AppendFormat(_T("%s\n"),m_ShellDataManager.GetTypeName(item->getExt().c_str()));
+			info += m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\n";
 		}
 		break;
 	case ID_MENUITEM_COPY_FILETIME:
 		for (const auto &item : items) {
-			CString strBuffer = UtilFormatTime(item->_entry.stat.st_mtime).c_str();
-			info.AppendFormat(_T("%s\n"),(LPCTSTR)strBuffer);
+			info += UtilFormatTime(item->_entry.stat.st_mtime) + L"\n";
 		}
 		break;
 	case ID_MENUITEM_COPY_ATTRIBUTE:
@@ -666,23 +662,20 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 		//TODO
 		break;
 	case ID_MENUITEM_COPY_ALL:
-		info=_T("FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n");
+		info=L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tAttribute\tCompressedSize\tMethod\tCompressionRatio\tCRC\n";
 		for (const auto &item : items) {
-			CString strFileTime = UtilFormatTime(item->_entry.stat.st_mtime).c_str();
-
-			info.AppendFormat(L"%s\t%s\t%I64d\t%s\t%s\n",
-				(LPCTSTR)item->_entryName.c_str(),
-				(LPCTSTR)item->_entry.path.c_str(),
+			info += Format(L"%s\t%s\t%I64d\t%s\t%s\n",
+				item->_entryName.c_str(),
+				item->_entry.path.c_str(),
 				item->_originalSize,
-				m_ShellDataManager.GetTypeName(item->getExt().c_str()),
-				(LPCTSTR)strFileTime);
+				m_ShellDataManager.GetTypeName(item->getExt().c_str()).c_str(),
+				UtilFormatTime(item->_entry.stat.st_mtime).c_str());
 		}
 		break;
 	default:
 		ASSERT(!"Unknown command");
 	}
-	//MessageBox(info);
-	UtilSetTextOnClipboard((const wchar_t*)info);
+	UtilSetTextOnClipboard(info);
 }
 
 void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
@@ -702,7 +695,7 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 void CFileListView::OnShowCustomizeColumn(UINT,int,HWND)
 {
-	//カラムヘッダ編集メニューを表示するため、カラムヘッダの右クリックをエミュレート
+	//enumlate column header R-click
 	BOOL bTemp;
 	NMHDR nmhdr;
 	nmhdr.hwndFrom=GetHeader();
