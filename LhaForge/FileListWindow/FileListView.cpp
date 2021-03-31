@@ -31,6 +31,25 @@
 #include "Dialogs/TextInputDlg.h"
 #include "CommonUtil.h"
 
+struct COLUMN_DEFAULTS{
+	FILEINFO_TYPE type;
+	int resourceID;
+	int defaultWidth;
+	int align;
+};
+
+static const std::vector<COLUMN_DEFAULTS> g_defaults = {
+	{FILEINFO_FILENAME, IDS_FILELIST_COLUMN_FILENAME, 100, LVCFMT_LEFT},
+	{FILEINFO_FULLPATH, IDS_FILELIST_COLUMN_FULLPATH, 200, LVCFMT_LEFT},
+	{FILEINFO_ORIGINALSIZE, IDS_FILELIST_COLUMN_ORIGINALSIZE, 90, LVCFMT_RIGHT},
+	{FILEINFO_TYPENAME, IDS_FILELIST_COLUMN_TYPENAME, 120, LVCFMT_LEFT},
+	{FILEINFO_FILETIME, IDS_FILELIST_COLUMN_FILETIME, 120, LVCFMT_LEFT},
+	{FILEINFO_COMPRESSEDSIZE, IDS_FILELIST_COLUMN_COMPRESSEDSIZE, 90, LVCFMT_RIGHT},
+	{FILEINFO_METHOD, IDS_FILELIST_COLUMN_METHOD, 60, LVCFMT_LEFT},
+	{FILEINFO_RATIO, IDS_FILELIST_COLUMN_RATIO, 60, LVCFMT_RIGHT},
+};
+
+
 CFileListView::CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW):
 	CFileViewBase(rModel,r_confFLW),
 	m_bDisplayFileSizeInByte(false),
@@ -77,27 +96,13 @@ bool CFileListView::SetColumnState(
 
 	m_ColumnIndexArray.fill(-1);
 
-	// add column to list view
-	auto addColumn = [&](int columnID, int nTitileSrcID, int width, int pos)->void {
-		if (-1 != index_of(columnOrder, columnID)) {
-			int nIndex = InsertColumn(columnID, UtilLoadString(nTitileSrcID).c_str(), pos, width, -1);
-			if (0 <= nIndex && nIndex < FILEINFO_ITEM_COUNT) {
-				m_ColumnIndexArray[nIndex] = columnID;
-			}
+	// add default column to list view
+	for (const auto& item : g_defaults) {
+		if (-1 != index_of(columnOrder, item.type)) {
+			int nIndex = InsertColumn(item.type, UtilLoadString(item.resourceID).c_str(), item.align, item.defaultWidth, -1);
+			m_ColumnIndexArray[nIndex] = item.type;
 		}
-	};
-	
-	//helper macro
-	#define ADD_COLUMNITEM(x,width,pos) addColumn(FILEINFO_##x, IDS_FILELIST_COLUMN_##x, width, pos)
-
-	ADD_COLUMNITEM(FILENAME, 100, LVCFMT_LEFT);
-	ADD_COLUMNITEM(FULLPATH, 200, LVCFMT_LEFT);
-	ADD_COLUMNITEM(ORIGINALSIZE, 90, LVCFMT_RIGHT);
-	ADD_COLUMNITEM(TYPENAME, 120, LVCFMT_LEFT);
-	ADD_COLUMNITEM(FILETIME, 120, LVCFMT_LEFT);
-	ADD_COLUMNITEM(COMPRESSEDSIZE, 90, LVCFMT_RIGHT);
-	ADD_COLUMNITEM(METHOD, 60, LVCFMT_LEFT);
-	ADD_COLUMNITEM(RATIO, 60, LVCFMT_RIGHT);
+	}
 
 	//column order
 	int nValidColumns=0;
@@ -186,90 +191,46 @@ LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lPa
 
 LRESULT CFileListView::OnDblClick(LPNMHDR pnmh)
 {
-	//----------------------------------------------------------------------
-	//選択アイテムが複数の時:
-	// 選択を関連付けで開く
-	//Shiftが押されていた時:
-	// 選択を関連付けで開く
-	//選択アイテムが一つだけの時:
-	// フォルダをダブルクリックした/Enterを押した場合にはそのフォルダを開く
-	// 選択がファイルだった場合には関連付けで開く
-	//----------------------------------------------------------------------
-
-	//選択アイテムが複数の時
-	//もしShiftが押されていたら、関連付けで開く
-	if(GetKeyState(VK_SHIFT)<0||GetSelectedCount()>=2){
-		auto files = extractItemToTemporary(false, GetSelectedItems());
-		openAssociation(files);
-		return 0;
-	} else {
-		//選択されたアイテムを取得
-		auto items = GetSelectedItems();
-		if (items.empty())return 0;
-		auto lpNode = items.front();
-
-		if (lpNode->is_directory()) {
-			mr_Model.MoveDownDir(lpNode);
-		} else {
-			auto files = extractItemToTemporary(false, GetSelectedItems());
+	auto items = GetSelectedItems();
+	if (!items.empty()) {
+		if (GetKeyState(VK_SHIFT) < 0 || items.size() >= 2) {
+			//open by associated app, if shift key is pressed, or multiple files are selected
+			auto files = extractItemToTemporary(false, items);
 			openAssociation(files);
+		} else {
+			auto lpNode = items.front();
+
+			if (lpNode->is_directory()) {
+				mr_Model.MoveDownDir(lpNode);
+			} else {
+				auto files = extractItemToTemporary(false, GetSelectedItems());
+				openAssociation(files);
+			}
 		}
 	}
 	return 0;
 }
 
-
-//カラム表示のOn/Offを切り替える
-//表示中:該当カラムを非表示にし、配列を詰める
-//非表示:使われていない部分に指定カラムを追加
-void _ToggleColumn(int *lpArray,size_t size,FILEINFO_TYPE type)
-{
-	ASSERT(lpArray);
-	if(!lpArray)return;
-
-	for(size_t i=0;i<size;i++){
-		if(type==lpArray[i]){
-			//配列を詰める
-			for(size_t j=i;j<size-1;j++){
-				lpArray[j]=lpArray[j+1];
-			}
-			lpArray[size-1]=-1;
-			return;
-		}
-		else if(-1==lpArray[i]){
-			lpArray[i]=type;
-			return;
-		}
-	}
-}
-
-
-//カラムヘッダを左/右クリック
 LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandled)
 {
 	if(pnmh->hwndFrom!=GetHeader()){
-		//メッセージは処理しなかったことにする
 		bHandled = FALSE;
 		return 0;
 	}
 
-	//右クリックメニュー表示
+	//show context menu
 	POINT point;
 	GetCursorPos(&point);
 	CMenu cMenu;
 	cMenu.LoadMenu(IDR_LISTVIEW_HEADER_MENU);
 	CMenuHandle cSubMenu(cMenu.GetSubMenu(0));
 
-	//--------------------------------
-	// 各メニューアイテムの有効・無効
-	//--------------------------------
-
 	std::array<int, FILEINFO_ITEM_COUNT> columnOrder;
 	std::array<int, FILEINFO_ITEM_COUNT> columnWidthArray;
 	GetColumnState(columnOrder, columnWidthArray);
 
 	struct{
-		FILEINFO_TYPE idx;
+		FILEINFO_TYPE type;
 		UINT nMenuID;
 	}menuTable[]={
 		{FILEINFO_FULLPATH,			ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH},
@@ -282,24 +243,48 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	};
 
 	for(const auto &item: menuTable){
-		bool bEnabled=(-1!=index_of(columnOrder, item.idx));
+		bool bEnabled=(-1!=index_of(columnOrder, item.type));
 		cSubMenu.CheckMenuItem(item.nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 
-	//メニュー表示:選択したコマンドが返ってくる
-	int nRet=cSubMenu.TrackPopupMenu(TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTALIGN|TPM_RIGHTBUTTON,point.x, point.y, m_hWnd,NULL);
+	int nRet = cSubMenu.TrackPopupMenu(
+		TPM_NONOTIFY | TPM_RETURNCMD | TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+		point.x, point.y, m_hWnd, NULL);
 	if(0==nRet){
-		//Not Selected
+		//Not selected
 		return 0;
 	}else if(ID_MENUITEM_LISTVIEW_COLUMN_RESET==nRet){
-		//初期化
-		for(size_t i=0;i<columnOrder.size();i++){
-			columnOrder[i]=i;
+		//reset
+		for (size_t i = 0; i < g_defaults.size();i++) {
+			columnOrder[i] = g_defaults[i].type;
+			columnWidthArray[i] = g_defaults[i].defaultWidth;
 		}
 	}else{
-		for(size_t i=0;i<COUNTOF(menuTable);i++){
-			if(menuTable[i].nMenuID==nRet){
-				_ToggleColumn(&columnOrder[0],columnOrder.size(),menuTable[i].idx);
+		auto size = columnOrder.size();
+		for (const auto &item : menuTable) {
+			if (item.nMenuID == nRet) {
+				auto type = item.type;
+				for (size_t i = 0; i < size; i++) {
+					if (type == columnOrder[i]) {
+						//disable existing, slide items
+						for (size_t j = i; j < size - 1; j++) {
+							columnOrder[j] = columnOrder[j + 1];
+							columnWidthArray[j] = columnWidthArray[j + 1];
+						}
+						columnOrder[size - 1] = -1;
+						break;
+					} else if (-1 == columnOrder[i]) {
+						//enable adding default
+						columnOrder[i] = type;
+						for (const auto &d : g_defaults) {
+							if (d.type == type) {
+								columnWidthArray[i] = d.defaultWidth;
+								break;
+							}
+						}
+						break;
+					}
+				}
 			}
 		}
 	}

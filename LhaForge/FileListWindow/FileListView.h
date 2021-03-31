@@ -102,8 +102,6 @@ protected:
 		mr_Model.ClearTempDir();
 	}
 	void OnAddItems(UINT,int,HWND);
-
-	//コマンドハンドラ
 	void OnCopyInfo(UINT,int,HWND);
 public:
 	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);
