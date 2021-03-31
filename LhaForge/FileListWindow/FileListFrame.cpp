@@ -464,12 +464,9 @@ void CFileListFrame::OnSize(UINT uType, CSize)
 	// to invoke WM_SIZE/WM_MOVE message handler of super class
 	SetMsgHandled(false);
 
-	if (SIZE_RESTORED == uType) {
-		//The window has been resized, but neither the SIZE_MINIMIZED nor SIZE_MAXIMIZED value applies.
-		//if is window is maximized/minimized, dont get size
-		if (IsZoomed() || IsIconic())return;
-	}
-	GetWindowRect(&m_WindowRect);
+	//if is window is maximized/minimized, do not get size
+	if (IsZoomed() || IsIconic())return;
+	GetWindowRect(m_WindowRect);
 }
 
 void CFileListFrame::OnMove(const CPoint&)
@@ -477,9 +474,9 @@ void CFileListFrame::OnMove(const CPoint&)
 	// to invoke WM_SIZE/WM_MOVE message handler of super class
 	SetMsgHandled(false);
 
-	//if is window is maximized/minimized, dont get size
+	//if is window is maximized/minimized, do not get size
 	if (IsZoomed() || IsIconic())return;
-	GetWindowRect(&m_WindowRect);
+	GetWindowRect(m_WindowRect);
 }
 
 void CFileListFrame::OnListViewStyle(UINT uNotifyCode,int nID,HWND hWndCtrl)
