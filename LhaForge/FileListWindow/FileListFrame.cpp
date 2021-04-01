@@ -560,7 +560,6 @@ void CFileListFrame::UpdateMenuState()
 		ID_MENUITEM_SORT_COMPRESSEDSIZE,
 		ID_MENUITEM_SORT_METHOD,
 		ID_MENUITEM_SORT_RATIO,
-		ID_MENUITEM_SORT_CRC,
 	};
 
 	for (auto id : subjects) {

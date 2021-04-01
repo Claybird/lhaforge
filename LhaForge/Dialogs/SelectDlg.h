@@ -33,7 +33,6 @@ protected:
 	bool bSFX;
 	bool bSplit;
 	bool bPassword;
-	bool bPublicPassword;
 	bool bSingleCompression;
 	bool bDeleteAfterCompress;
 
@@ -42,7 +41,6 @@ protected:
 		DDX_CHECK(IDC_CHECK_COMPRESS_SFX,bSFX)
 		DDX_CHECK(IDC_CHECK_COMPRESS_SPLIT,bSplit)
 		DDX_CHECK(IDC_CHECK_COMPRESS_PASSWORD,bPassword)
-		DDX_CHECK(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD,bPublicPassword)
 		DDX_CHECK(IDC_CHECK_SINGLE_COMPRESSION,bSingleCompression)
 		DDX_CHECK(IDC_CHECK_DELETE_AFTER_COMPRESS,bDeleteAfterCompress)
 	END_DDX_MAP()
@@ -62,7 +60,7 @@ protected:
 
 public:
 	enum {IDD = IDD_DIALOG_SELECT_COMPRESS_TYPE};
-	CSelectDialog():bSFX(false),bSplit(false),bPassword(false),bPublicPassword(false),bSingleCompression(false),bDeleteAfterCompress(false){}
+	CSelectDialog():bSFX(false),bSplit(false),bPassword(false),bSingleCompression(false),bDeleteAfterCompress(false){}
 	virtual ~CSelectDialog(){}
 
 	int GetOptions();

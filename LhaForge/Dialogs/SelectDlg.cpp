@@ -30,7 +30,6 @@ LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	//DDX情報アップデート
 	DoDataExchange(FALSE);
-	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);	//公開パスワード欄を使用不可にする
 	CenterWindow();
 	return TRUE;
 }
@@ -78,9 +77,6 @@ LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL
 {
 	//DDX情報アップデート
 	DoDataExchange(TRUE);
-	if(BN_CLICKED==wNotifyCode){
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);
-	}
 	return 0;
 }
 
