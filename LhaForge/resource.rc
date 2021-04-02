@@ -233,7 +233,7 @@ CAPTION "バージョン情報"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
     ICON            IDI_APP,IDC_STATIC,7,7,20,20
-    LTEXT           "LhaForge Ver.1.6.7",IDC_STATIC,31,7,146,8
+    LTEXT           "LhaForge Beta",IDC_STATIC,31,7,146,8
     LTEXT           "Copyright (C) 2005- Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
     LTEXT           "配布元:<a>泥巣 [http://claybird.sakura.ne.jp/]</a>",IDC_URL,15,59,148,8
     LTEXT           "mailto:<a>claybird.without.wing@gmail.com</a>",IDC_MAILTO,15,68,136,8
@@ -361,7 +361,7 @@ BEGIN
     GROUPBOX        "解凍しない拡張子",IDC_STATIC,159,110,141,90
     LTEXT           "ワイルドカード(*,?)が使用可能。\n例:「.??_;.lzh;.zip」",IDC_STATIC,168,120,106,20
     EDITTEXT        IDC_EDIT_EXTRACT_DENY_EXT,168,145,123,46,ES_MULTILINE | ES_LOWERCASE | ES_AUTOVSCROLL | WS_VSCROLL
-    LTEXT           "(*1)\nBEL/ISH/UUENCODE/B2E32.dll使用時は注意",IDC_STATIC,160,206,152,25
+    LTEXT           "(*1)\nISH/UUENCODE使用時は注意",IDC_STATIC,160,206,152,25
 END
 
 IDD_PROPPAGE_CONFIG_ZIP DIALOGEX 0, 0, 259, 209
@@ -630,9 +630,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "圧縮形式の選択"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
-    PUSHBUTTON      "&LZH",IDC_BUTTON_FORMAT_LZH,7,7,50,14
     PUSHBUTTON      "&ZIP",IDC_BUTTON_FORMAT_ZIP,64,7,50,14
-    PUSHBUTTON      "&CAB",IDC_BUTTON_FORMAT_CAB,121,7,50,14
     PUSHBUTTON      "&7z",IDC_BUTTON_FORMAT_7Z,178,7,50,14
     PUSHBUTTON      "&TAR",IDC_BUTTON_FORMAT_TAR,7,25,50,14
     PUSHBUTTON      "Gzi&p",IDC_BUTTON_FORMAT_GZ,64,25,50,14
@@ -643,8 +641,6 @@ BEGIN
     PUSHBUTTON      "TAR+XZ(&M)",IDC_BUTTON_FORMAT_TAR_XZ,121,43,50,14
     PUSHBUTTON      "LZMA",IDC_BUTTON_FORMAT_LZMA,178,43,50,14
     PUSHBUTTON      "TAR+LZMA",IDC_BUTTON_FORMAT_TAR_LZMA,6,61,50,14
-    PUSHBUTTON      "&BZA",IDC_BUTTON_FORMAT_BZA,7,79,50,14
-    PUSHBUTTON      "&GZA",IDC_BUTTON_FORMAT_GZA,64,79,50,14
     PUSHBUTTON      "&ISH変換",IDC_BUTTON_FORMAT_ISH,121,79,50,14
     PUSHBUTTON      "&UUE変換",IDC_BUTTON_FORMAT_UUE,178,79,50,14
     CONTROL         "自己解凍[対応形式のみ]",IDC_CHECK_COMPRESS_SFX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,99,89,10
@@ -652,7 +648,6 @@ BEGIN
     CONTROL         "分割圧縮[ZIP/7zのみ]",IDC_CHECK_COMPRESS_SPLIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,99,81,10
     CONTROL         "個別圧縮",IDC_CHECK_SINGLE_COMPRESSION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,110,43,10
     CONTROL         "正常圧縮後削除",IDC_CHECK_DELETE_AFTER_COMPRESS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,122,64,10
-    PUSHBUTTON      "B2E32.dll使用",IDC_BUTTON_USEB2E,7,138,107,14
     PUSHBUTTON      "キャンセル",IDCANCEL,178,138,50,14
 END
 
@@ -948,12 +943,12 @@ BEGIN
             VALUE "Comments", "ファイル圧縮/解凍プログラム LhaForge"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "LhaForge"
-            VALUE "FileVersion", "Ver.1.6.7"
+            VALUE "FileVersion", "Beta"
             VALUE "InternalName", "LhaForge"
             VALUE "LegalCopyright", "Copyright (C) 2005- Claybird <claybird.without.wing@gmail.com>"
             VALUE "OriginalFilename", "LhaForge.exe"
             VALUE "ProductName", "LhaForge"
-            VALUE "ProductVersion", "Ver.1.6.7"
+            VALUE "ProductVersion", "Beta"
         END
     END
     BLOCK "VarFileInfo"
@@ -1236,14 +1231,12 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_B2E_SCRIPT_NAME     "スクリプト名"
     IDS_ASK_CREATE_DIR      "出力先フォルダ '%s' は存在しません。作成しますか？"
     IDS_ASK_FILELIST_DELETE_SELECTED "選択ファイルをアーカイブから削除しますか？"
     IDS_ASK_ISOK_NETWORK    "この処理の出力先はネットワーク上にありますが、このまま出力先を変更せずに処理を続行しますか？"
     IDS_ASK_ISOK_REMOVABLE  "この処理の出力先は取り外し可能なディスクですが、このまま出力先を変更せずに処理を続行しますか？"
     IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK 
                             "このショートカットを利用して圧縮を行う場合、\n・圧縮のたびに形式を選ぶ\nもしくは\n・ここであらかじめ圧縮形式を決めておく\nを選ぶことが出来ます。\nこのショートカットによる圧縮の形式をいま設定しておきますか？"
-    IDS_ASK_UPDATE_DLL      "前回の更新から指定された期間が過ぎました。DLLの更新を確認しますか？\n「はい」を押すと確認します。「いいえ」を押せば、指定された期間後、再び更新を確認するか問い合わせます。"
     IDS_ERROR_7Z_SFX_DONT_SUPPORT_BZIP2 
                             "7z圧縮エラー:BZip2方式は自己解凍がサポートされていません。\n別の形式を使ってやり直してください。"
     IDS_ERROR_ACCESS_OUTPUT_FILE "出力先ファイル '%s' にアクセスできません。"
@@ -1289,14 +1282,9 @@ BEGIN
     IDS_ERROR_OPEN_ARCHIVE  "圧縮ファイル '%s' をスキャン出来ませんでした。"
     IDS_ERROR_OUTPUT_DIR_NOT_SPECIFIED "出力先フォルダが指定されていません。"
     IDS_ERROR_SAME_INPUT_AND_OUTPUT "'%s' は入力ファイルと同じ名前です。別の名前を指定してください。"
-    IDS_ERROR_SFX_MODULE_CANNOT_ACCESS "自己解凍用モジュール '%s' にアクセスできません。"
-    IDS_ERROR_SFX_MODULE_NOT_FOUND "自己解凍用モジュール '%s' が見つかりません。"
     IDS_ERROR_SINGLE_FILE_ONLY "この形式では複数のファイルを圧縮することは出来ません。"
     IDS_ERROR_TEMPORARY_FILE_ACCESS "一時ファイルにアクセスできません。"
     IDS_ERROR_TEMPORARY_FILE_CREATE "一時ファイルを作成できません。"
-    IDS_ERROR_UNAVAILABLE_API "ファイルの操作に必要な関数 '%s()' を利用することが出来ません。"
-    IDS_ERROR_VALUE_MUST_BE_PLUS "1以上の数値を指定してください。"
-    IDS_ERROR_VALUE_RANGE   "%d から %d の範囲の値を入力してください。"
 END
 
 STRINGTABLE
@@ -1306,17 +1294,12 @@ BEGIN
     IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
     IDS_ERROR_EXAMINEARCHIVE "圧縮ファイルの検査に失敗しました。"
     IDS_ICON_FILE_NAME_DEFAULT "LFIcons.DLL"
-    IDS_ERROR_DISABLED_DLL  "このDLLを使用しない設定になっているため、いくつかの機能が使用不能です。"
     IDS_INPUT_TARGET_FOLDER "出力先フォルダを選択してください。"
     IDS_LHAFORGE_VERSION_STRING "Ver.1.6.7"
-    IDS_MESSAGE_DLL_NOT_AVAILABLE "利用不可"
     IDS_COMPRESS_FILE       "圧縮ファイル"
     IDS_CONFIRM_OVERWRITE_MESSAGE 
                             "ファイル '%s'\r\n 既にディスク上に同名ファイルが存在します。\r\n ディスク上のファイル(更新日時 %d年%d月%d日、%d時%d分%d秒、サイズ%I64uバイト)を、圧縮ファイル中の同名ファイル(サイズ%dバイト)で置き換えますか?"
-    IDS_DLL_INFO_NAME       "名前"
-    IDS_DLL_INFO_VERSION    "バージョン"
     IDS_WARN_EDIT_SFX       "自己解凍ファイルを編集すると自己解凍機能が作動しなくなる場合があります。"
-    IDS_PASSWORD_CANT_SAVE  "'%s' の設定項目\nパスワード付き圧縮ファイルを作成する際に「このパスワードを使う」設定によって、あらかじめ指定したパスワードを使うように設定されています。\nしかしこの機能はこのバージョンのLhaForgeでは削除されています。\n\n保存されているパスワードを消去しますか?\n\n保存してあるパスワードを確認したい場合には、古いバージョンのLhaForgeでパスワードを確認する等してください。パスワードが保存されている限り、この質問は繰り返し表示されます。"
 END
 
 STRINGTABLE
@@ -1344,8 +1327,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_PANE_DLL_NAME       "%sを使用"
-    IDS_PANE_DLL_NAME_INITIAL "使用中のDLLはありません"
     IDS_PANE_ITEMCOUNT      "%d個のアイテム(うち%d個を選択)"
     IDS_PANE_ITEMCOUNT_INITIAL "000000個のアイテム(うち000000個を選択)"
     IDS_SHORTCUT_DESCRIPTION_AUTOMATIC "ファイルの圧縮/解凍を自動的に判定します。"
@@ -1467,9 +1448,7 @@ BEGIN
                             "ファイル '%s' には不正なパス指定が含まれている可能性があります。無視して解凍を続けますか？"
     IDS_ERROR_READ_RESPONSEFILE "レスポンスファイルからの読み込みに失敗しました。"
     IDS_ERROR_INVALID_COMPRESS_PARAMETER 
-                            "'%s' は不正な圧縮オプションです。B2Eを使用する場合には/cスイッチより先に/b2eスイッチを指定してください"
-    IDS_FORMAT_NAME_B2E     "B2Eを使用して[%s形式][%sメソッド]"
-    IDS_FORMAT_NAME_B2E_SFX "B2Eを使用して[%s形式][%sメソッド]の自己解凍"
+                            "'%s' は不正な圧縮オプションです。"
     IDS_INPUT_TARGET_FOLDER_WITH_SHIFT 
                             "出力先フォルダを選択してください。SHIFTキーを押しながらOKを押すと、以降のファイルも同じフォルダに出力します。"
     IDS_INPUT_FIND_PARAM    "検索条件を入力してください。ワイルドカードに*と?が使えます。"
@@ -1528,8 +1507,6 @@ BEGIN
     IDS_MESSAGE_COMPRESS_DELETE_SKIPPED 
                             "現在使用中のDLLでは、正常に圧縮できたかどうか確認できません。\n正常に圧縮されたことを確認した上で、ファイルを手動で削除してください。"
     IDR_CLOSEBUTTON         "閉じる"
-    IDS_ERROR_INFECTED_ARCHIVE "ファイル '%s' にはウィルス感染の可能性があるため、処理が中止されました。"
-    IDS_LOGINFO_RESULT_INFECTED "ウィルス感染の可能性"
     IDS_FORMAT_NAME_XZ      "XZ"
     IDS_FORMAT_NAME_LZMA    "LZMA"
     IDS_FORMAT_NAME_TAR_XZ  "TAR+XZ"
