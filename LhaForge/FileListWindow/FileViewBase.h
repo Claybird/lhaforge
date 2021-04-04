@@ -29,7 +29,7 @@ protected:
 		operator HTREEITEM()const { return itemTree; }
 		operator int()const { return itemList; }
 		bool operator==(const HIGHLIGHT& a)const { return a.itemTree == itemTree || a.itemList == itemList; }
-		bool operator!=(const HIGHLIGHT& a)const { return a.itemTree != itemTree && a.itemList != itemList; }
+		bool operator!=(const HIGHLIGHT& a)const { return a.itemTree != itemTree || a.itemList != itemList; }
 	}m_dropHighlight;
 
 protected:
