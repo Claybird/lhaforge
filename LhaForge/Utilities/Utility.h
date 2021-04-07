@@ -40,6 +40,42 @@ bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pat
 bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string);
 
 //Message loop utility
+class CCustomMessageLoop :public CMessageLoop {
+public:
+	CCustomMessageLoop() {}
+	virtual ~CCustomMessageLoop() {}
+	int OneRun()
+	{
+		int nIdleCount = 0;
+		BOOL bRet;
+
+		if(!::PeekMessage(&m_msg, NULL, 0, 0, PM_NOREMOVE)){
+			OnIdle(nIdleCount++);
+			return FALSE;
+		}
+
+		if (m_msg.message == WM_QUIT) {
+			return FALSE;
+		}
+
+		bRet = ::GetMessage(&m_msg, NULL, 0, 0);
+
+		if (bRet == -1) {
+			ATLTRACE2(atlTraceUI, 0, _T("::GetMessage returned -1 (error)\n"));
+			return FALSE;   // error, don't process
+		}/* else if (!bRet) {
+			ATLTRACE2(atlTraceUI, 0, _T("CMessageLoop::Run - exiting\n"));
+			break;   // WM_QUIT, exit message loop
+		}*/
+
+		if (!PreTranslateMessage(&m_msg)) {
+			::TranslateMessage(&m_msg);
+			::DispatchMessage(&m_msg);
+		}
+
+		return TRUE;
+	}
+};
 bool UtilDoMessageLoop();
 
 template <typename mapclass,typename keyclass>

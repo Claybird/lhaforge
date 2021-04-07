@@ -150,6 +150,7 @@
 #define IDS_FORMAT_NAME_TAR_LZMA        185
 #define IDS_ENCRYPTED_ARCHIVE           186
 #define IDS_INPUT_TEMP_PATH             187
+#define IDR_PROGRESS_DLG                187
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
@@ -612,8 +613,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        187
-#define _APS_NEXT_COMMAND_VALUE         40156
+#define _APS_NEXT_RESOURCE_VALUE        188
+#define _APS_NEXT_COMMAND_VALUE         40158
 #define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           102
 #endif

@@ -23,11 +23,12 @@
 */
 
 #pragma once
-#include "../resource.h"
+#include "resource.h"
 
-class CProgressDialog:public CDialogImpl<CProgressDialog>,public CMessageFilter
+class CProgressDialog:public CDialogImpl<CProgressDialog>, public CMessageFilter
 {
 protected:
+	CAccelerator m_accel;		//keyboard accelerator
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
 	bool m_bAbort;
@@ -39,10 +40,21 @@ public:
 	BEGIN_MSG_MAP_EX(CProgressDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
-		COMMAND_HANDLER(IDC_BUTTON_ABORT, BN_CLICKED, OnAbortBtn)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
 	END_MSG_MAP()
 
+	BOOL PreTranslateMessage(MSG* pMsg){
+		if (m_accel.TranslateAccelerator(m_hWnd, pMsg)) {
+			return TRUE;
+		}
+		return IsDialogMessage(pMsg);
+	}
+
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->AddMessageFilter(this);
+		m_accel.LoadAccelerators(IDR_PROGRESS_DLG);
+
 		m_fileProgress = GetDlgItem(IDC_PROGRESS_FILE);
 		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
 		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
@@ -55,10 +67,11 @@ public:
 
 		//SetWindowPos(NULL, 100, 100, 0, 0, SWP_NOSIZE);
 		CenterWindow();
-
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->AddMessageFilter(this);
 		return TRUE;
+	}
+	void OnDestroy() {
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->RemoveMessageFilter(this);
 	}
 	void SetEntry(
 		const std::wstring& archivePath,
@@ -96,19 +109,12 @@ public:
 			str.c_str());
 		m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
 	}
-	LRESULT OnAbortBtn(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/) {
+	LRESULT OnAbortBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		m_bAbort = true;
 		DestroyWindow();
 		return 0;
 	}
-	void OnDestroy() {
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-	}
 
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 	bool isAborted()const {
 		return m_bAbort;
 	}

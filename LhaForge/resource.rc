@@ -216,7 +216,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 208
         TOPMARGIN, 7
-        BOTTOMMARGIN, 107
+        BOTTOMMARGIN, 127
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -860,17 +860,17 @@ BEGIN
     EDITTEXT        IDC_EDIT_LOGINFO_MSG,169,50,246,261,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | ES_WANTRETURN | WS_VSCROLL,WS_EX_CLIENTEDGE
 END
 
-IDD_DIALOG_PROGRESS DIALOGEX 0, 0, 215, 114
+IDD_DIALOG_PROGRESS DIALOGEX 0, 0, 215, 134
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 EXSTYLE WS_EX_WINDOWEDGE
 CAPTION "処理中 - LhaForge"
 FONT 9, "ＭＳ Ｐゴシック", 400, 0, 0x80
 BEGIN
-    LTEXT           "<file>",IDC_STATIC_FILEINFO,7,7,201,18,SS_NOPREFIX
-    CONTROL         "",IDC_PROGRESS_FILE,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,27,201,19
-    LTEXT           "<entry>",IDC_STATIC_ENTRY,7,52,201,19,SS_NOPREFIX
-    CONTROL         "",IDC_PROGRESS_ENTRY,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,73,201,19
-    PUSHBUTTON      "中断(&A)",IDC_BUTTON_ABORT,83,93,50,14
+    LTEXT           "<file>",IDC_STATIC_FILEINFO,7,7,201,30,SS_NOPREFIX
+    CONTROL         "",IDC_PROGRESS_FILE,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,38,201,19
+    LTEXT           "<entry>",IDC_STATIC_ENTRY,7,57,201,31,SS_NOPREFIX
+    CONTROL         "",IDC_PROGRESS_ENTRY,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,91,201,19
+    PUSHBUTTON      "中断(&A)",IDC_BUTTON_ABORT,83,113,50,14
 END
 
 
@@ -1197,6 +1197,11 @@ BEGIN
     VK_ESCAPE,      ID_MENUITEM_CLOSE_WINDOW, VIRTKEY, NOINVERT
 END
 
+IDR_PROGRESS_DLG ACCELERATORS
+BEGIN
+    VK_ESCAPE,      IDC_BUTTON_ABORT,       VIRTKEY, NOINVERT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1447,8 +1452,7 @@ BEGIN
     IDS_ASK_CONTINUE_EXTRACT 
                             "ファイル '%s' には不正なパス指定が含まれている可能性があります。無視して解凍を続けますか？"
     IDS_ERROR_READ_RESPONSEFILE "レスポンスファイルからの読み込みに失敗しました。"
-    IDS_ERROR_INVALID_COMPRESS_PARAMETER 
-                            "'%s' は不正な圧縮オプションです。"
+    IDS_ERROR_INVALID_COMPRESS_PARAMETER "'%s' は不正な圧縮オプションです。"
     IDS_INPUT_TARGET_FOLDER_WITH_SHIFT 
                             "出力先フォルダを選択してください。SHIFTキーを押しながらOKを押すと、以降のファイルも同じフォルダに出力します。"
     IDS_INPUT_FIND_PARAM    "検索条件を入力してください。ワイルドカードに*と?が使えます。"

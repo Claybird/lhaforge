@@ -41,6 +41,7 @@
 CAppModule _Module;
 
 
+
 //enumerates files, removes directory
 std::vector<std::filesystem::path> enumerateFiles(const std::vector<std::filesystem::path>& input, const std::vector<std::wstring>& denyExts)
 {
@@ -394,7 +395,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
 	// support control flags
 	AtlInitCommonControls(ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_BAR_CLASSES);
 	_Module.Init(nullptr, hInstance);
-	CMessageLoop theLoop;
+	//CMessageLoop theLoop;
+	CCustomMessageLoop theLoop;
 	_Module.AddMessageLoop(&theLoop);
 
 	procMain();

@@ -268,20 +268,9 @@ TEST(Utility, UtilPathMatchSpec) {
 
 bool UtilDoMessageLoop()
 {
-	MSG msg;
-	if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-		if (!GetMessage(&msg, NULL, 0, 0)) {
-			return false;
-		}
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-		return true;
-	}
-	return false;
+	CCustomMessageLoop* pLoop = (CCustomMessageLoop*)_Module.GetMessageLoop();
+	return FALSE!=pLoop->OneRun();
 }
-
-
 
 
 #ifdef UNIT_TEST
