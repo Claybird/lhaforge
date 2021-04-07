@@ -461,6 +461,7 @@ void CLFScanProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_p
 {
 	if (dlg) {
 		dlg->setEntry(entry_path);
+		while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}
