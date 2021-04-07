@@ -28,7 +28,6 @@
 class CProgressDialog:public CDialogImpl<CProgressDialog>, public CMessageFilter
 {
 protected:
-	CAccelerator m_accel;		//keyboard accelerator
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
 	bool m_bAbort;
@@ -40,20 +39,18 @@ public:
 	BEGIN_MSG_MAP_EX(CProgressDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
+		COMMAND_ID_HANDLER_EX(IDOK, __noop)
+		COMMAND_ID_HANDLER_EX(IDCANCEL, OnAbortBtn)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
 	END_MSG_MAP()
 
 	BOOL PreTranslateMessage(MSG* pMsg){
-		if (m_accel.TranslateAccelerator(m_hWnd, pMsg)) {
-			return TRUE;
-		}
 		return IsDialogMessage(pMsg);
 	}
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
 		CMessageLoop* pLoop = _Module.GetMessageLoop();
 		pLoop->AddMessageFilter(this);
-		m_accel.LoadAccelerators(IDR_PROGRESS_DLG);
 
 		m_fileProgress = GetDlgItem(IDC_PROGRESS_FILE);
 		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
@@ -65,7 +62,6 @@ public:
 		m_entryProgress.SetPos(0);
 		m_bAbort = false;
 
-		//SetWindowPos(NULL, 100, 100, 0, 0, SWP_NOSIZE);
 		CenterWindow();
 		return TRUE;
 	}
