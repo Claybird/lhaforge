@@ -59,7 +59,10 @@ HRESULT CFileListTabClient::OpenArchiveInTab(const std::filesystem::path& arcpat
 	ASSERT(pItem);
 	if (!pItem)return E_HANDLE;
 
-	if(!pItem->OpenArchive(arcpath, mutexName, hMutex))RemoveTab(idx);
+	if (!pItem->OpenArchive(arcpath, mutexName, hMutex)) {
+		RemoveTab(idx);
+		return E_FAIL;
+	}
 
 	SetPageTitle(idx, pItem->Model.GetArchiveFileName().filename().c_str());
 	dispatchEvent(WM_FILELIST_MODELCHANGED);
