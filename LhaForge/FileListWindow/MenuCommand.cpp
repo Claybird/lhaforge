@@ -57,8 +57,8 @@ void MenuCommand_MakeUserAppMenu(HMENU hMenu)
 		cSubMenu.RemoveMenu(0, MF_BYPOSITION);
 	}
 	if (s_MenuCommandArray.empty()) {
-		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, CString(MAKEINTRESOURCE(ID_MENUITEM_DUMMY)));
-		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, UtilLoadString(ID_MENUITEM_DUMMY).c_str());
+		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_GRAYED | MF_BYCOMMAND);
 	} else {
 		//add custom command
 		for (UINT u = 0; u < s_MenuCommandArray.size(); u++) {
@@ -79,8 +79,8 @@ void MenuCommand_MakeSendToMenu(HMENU hMenu)
 		cSubMenu.RemoveMenu(0, MF_BYPOSITION);
 	}
 	if (s_SendToCmd.empty()) {
-		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, CString(MAKEINTRESOURCE(ID_MENUITEM_DUMMY)));
-		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_DISABLED | MF_GRAYED | MF_BYCOMMAND);
+		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, UtilLoadString(ID_MENUITEM_DUMMY).c_str());
+		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_GRAYED | MF_BYCOMMAND);
 	} else {
 		//add SendTo command
 		for (UINT u = 0; u < s_SendToCmd.size(); u++) {
