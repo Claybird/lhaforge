@@ -215,6 +215,9 @@ protected:
 			//standard menu
 			cMenu.LoadMenu(IDR_FILELIST_POPUP);
 			cSubMenu = cMenu.GetSubMenu(0);
+			if (!mr_Model.IsModifySupported()) {
+				cMenu.EnableMenuItem(ID_MENUITEM_DELETE_SELECTED, MF_GRAYED | MF_BYCOMMAND);
+			}
 
 			//add command to sub-menu
 			auto menuCount = cSubMenu.GetMenuItemCount();
