@@ -268,8 +268,12 @@ TEST(Utility, UtilPathMatchSpec) {
 
 bool UtilDoMessageLoop()
 {
-	CCustomMessageLoop* pLoop = (CCustomMessageLoop*)_Module.GetMessageLoop();
-	return FALSE!=pLoop->OneRun();
+	if (_Module.m_pMsgLoopMap) {
+		CCustomMessageLoop* pLoop = (CCustomMessageLoop*)_Module.GetMessageLoop();
+		return FALSE != pLoop->OneRun();
+	} else {
+		return false;
+	}
 }
 
 
