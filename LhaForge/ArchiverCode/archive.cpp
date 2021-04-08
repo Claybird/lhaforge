@@ -148,10 +148,6 @@ TEST(CLFArchive, get_compression_capability_formatExt)
 	EXPECT_EQ(L".tar.xz", CLFArchive::get_compression_capability(LF_FMT_TAR_XZ).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.zst", CLFArchive::get_compression_capability(LF_FMT_TAR_ZSTD).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".uue", CLFArchive::get_compression_capability(LF_FMT_UUE).formatExt(path, LF_WOPT_STANDARD));
-
-
-	EXPECT_EQ(L".exe", CLFArchive::get_compression_capability(LF_FMT_ZIP).formatExt(path, LF_WOPT_SFX));
-	EXPECT_EQ(L".exe", CLFArchive::get_compression_capability(LF_FMT_7Z).formatExt(path, LF_WOPT_SFX));
 }
 #endif
 

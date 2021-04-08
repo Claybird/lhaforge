@@ -129,7 +129,7 @@ enum LF_ARCHIVE_FORMAT {
 
 enum LF_WRITE_OPTIONS {
 	LF_WOPT_STANDARD = 0x00,
-	LF_WOPT_SFX = 0x01,
+	//LF_WOPT_SFX = 0x01,	users do not need this, according to poll
 	LF_WOPT_DATA_ENCRYPTION = 0x02,
 	//LF_WOPT_HEADER_ENCRYPTION = 0x04,	this seems not being supported
 };
@@ -143,15 +143,15 @@ struct LF_COMPRESS_CAPABILITY {
 	//returns extension with first "."
 	std::wstring formatExt(const std::filesystem::path& input_filename, int option)const {
 		auto org_ext = input_filename.extension();
-		if (option & LF_WOPT_SFX) {
+		/*if (option & LF_WOPT_SFX) {
 			if (extension.find(L"{ext}") == std::string::npos) {
 				return L".exe";
 			} else {
 				return org_ext.wstring() + L".exe";
 			}
-		} else {
+		} else {*/
 			return replace(extension, L"{ext}", org_ext);
-		}
+		//}
 	}
 };
 
