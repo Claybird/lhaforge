@@ -11,7 +11,6 @@
 #define IDS_LHAFORGE_VERSION_STRING     8
 #define IDS_COMPRESS_FILE               10
 #define IDS_CONFIRM_OVERWRITE_MESSAGE   11
-#define IDS_WARN_EDIT_SFX               14
 #define IDS_ASK_CREATE_DIR              17
 #define IDS_ASK_FILELIST_DELETE_SELECTED 18
 #define IDS_ASK_ISOK_NETWORK            19

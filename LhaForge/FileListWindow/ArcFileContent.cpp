@@ -65,7 +65,10 @@ void CArchiveFileContent::scanArchiveStruct(
 		progressHandler.onNextEntry(entry->path);
 	}
 	m_bEncrypted = bEncrypted;
-	m_bModifySupported = (!(GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY)) && arc.is_modify_supported();
+	m_bModifySupported = (
+		!(GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY)) &&
+		arc.is_modify_supported() &&
+		toLower(archiveName.extension()) != L".exe";	//Self Extracting Archive
 	m_pathArchive = archiveName;
 	postScanArchive(nullptr);
 }

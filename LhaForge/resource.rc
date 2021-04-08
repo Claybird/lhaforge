@@ -1299,7 +1299,6 @@ BEGIN
     IDS_COMPRESS_FILE       "圧縮ファイル"
     IDS_CONFIRM_OVERWRITE_MESSAGE 
                             "ファイル '%s'\r\n 既にディスク上に同名ファイルが存在します。\r\n ディスク上のファイル(更新日時 %d年%d月%d日、%d時%d分%d秒、サイズ%I64uバイト)を、圧縮ファイル中の同名ファイル(サイズ%dバイト)で置き換えますか?"
-    IDS_WARN_EDIT_SFX       "自己解凍ファイルを編集すると自己解凍機能が作動しなくなる場合があります。"
 END
 
 STRINGTABLE
