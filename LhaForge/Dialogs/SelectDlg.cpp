@@ -24,112 +24,91 @@
 
 #include "stdafx.h"
 #include "SelectDlg.h"
-#include "../Compress.h"
+#include "compress.h"
+#include "resource.h"
 
-LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
+//select compression mode
+class CSelectDialog : public CDialogImpl<CSelectDialog>, public CWinDataExchange<CSelectDialog>
 {
-	//DDX情報アップデート
-	DoDataExchange(FALSE);
-	CenterWindow();
-	return TRUE;
-}
+protected:
+	bool bPassword;
+	bool bSingleCompression;
+	bool bDeleteAfterCompress;
 
+	BEGIN_DDX_MAP(CSelectDialog)
+		DDX_CHECK(IDC_CHECK_COMPRESS_PASSWORD, bPassword)
+		DDX_CHECK(IDC_CHECK_SINGLE_COMPRESSION, bSingleCompression)
+		DDX_CHECK(IDC_CHECK_DELETE_AFTER_COMPRESS, bDeleteAfterCompress)
+	END_DDX_MAP()
 
-#define BUTTON_PARAM(x) case IDC_BUTTON_FORMAT_##x: Param=PARAMETER_##x;break
-void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-#pragma message("FIXME!")
-#if 0
-	LF_ARCHIVE_FORMAT format;
-	switch(nID){
-	case IDCANCEL:
-		Param=PARAMETER_UNDEFINED;
-		break;
-	BUTTON_PARAM(LZH);
-	BUTTON_PARAM(ZIP);
-	BUTTON_PARAM(CAB);
-	BUTTON_PARAM(7Z);
-	BUTTON_PARAM(TAR);
-	BUTTON_PARAM(GZ);
-	BUTTON_PARAM(BZ2);
-	BUTTON_PARAM(XZ);
-	BUTTON_PARAM(LZMA);
-	BUTTON_PARAM(TAR_GZ);
-	BUTTON_PARAM(TAR_BZ2);
-	BUTTON_PARAM(TAR_XZ);
-	BUTTON_PARAM(TAR_LZMA);
-	BUTTON_PARAM(JACK);
-	BUTTON_PARAM(HKI);
-	BUTTON_PARAM(BZA);
-	BUTTON_PARAM(GZA);
-	BUTTON_PARAM(ISH);
-	BUTTON_PARAM(UUE);
-	default:/*ASSERT(!"Not implemented");*/return;
+	BEGIN_MSG_MAP_EX(CSelectDialog)
+		MSG_WM_INITDIALOG(OnInitDialog)
+		COMMAND_ID_HANDLER(IDC_CHECK_COMPRESS_PASSWORD, OnPassword)
+		MSG_WM_COMMAND(OnCommand)
+	END_MSG_MAP()
+
+	LRESULT OnPassword(WORD, WORD, HWND, BOOL&) {
+		DoDataExchange(TRUE);
+		return 0;
 	}
-	EndDialog(Param);
-#endif
-	EndDialog(LF_FMT_INVALID);
-}
-
-LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	return 0;
-}
-
-LRESULT CSelectDialog::OnSFX(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	if(BN_CLICKED==wNotifyCode){
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SPLIT),!bSFX);
-		bSplit=false;
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		DoDataExchange(FALSE);
+		CenterWindow();
+		return TRUE;
 	}
-	DoDataExchange(FALSE);
-	return 0;
-}
+	void OnCommand(UINT nCode, int nID, HWND hWnd) {
+#define BUTTON_PARAM(x) case IDC_BUTTON_FORMAT_##x: format=LF_FMT_##x;break
+		DoDataExchange(TRUE);
+		LF_ARCHIVE_FORMAT format;
+		switch (nID) {
+		BUTTON_PARAM(ZIP);
+		BUTTON_PARAM(7Z);
+		BUTTON_PARAM(GZ);
+		BUTTON_PARAM(BZ2);
+		BUTTON_PARAM(LZMA);
+		BUTTON_PARAM(XZ);
+		BUTTON_PARAM(ZSTD);
+		BUTTON_PARAM(TAR);
+		BUTTON_PARAM(TAR_GZ);
+		BUTTON_PARAM(TAR_BZ2);
+		BUTTON_PARAM(TAR_LZMA);
+		BUTTON_PARAM(TAR_XZ);
+		BUTTON_PARAM(TAR_ZSTD);
+		BUTTON_PARAM(UUE);
+		case IDCANCEL:
+			format = LF_FMT_INVALID;
+			break;
+		default:
+			return;
+		}
+		EndDialog(format);
+	}
 
-int CSelectDialog::GetOptions()
-{
-	int Options=0;
-#pragma message("FIXME!")
-	/*if(bSFX)Options|=COMPRESS_SFX;
-	if(bSplit)Options|=COMPRESS_SPLIT;
-	if(bPassword){
-		if(bPublicPassword)Options|=COMPRESS_PUBLIC_PASSWORD;
-		else Options|=COMPRESS_PASSWORD;
-	}*/
-	return Options;
-}
+public:
+	enum { IDD = IDD_DIALOG_SELECT_COMPRESS_TYPE };
+	CSelectDialog() :bPassword(false), bSingleCompression(false), bDeleteAfterCompress(false) {}
+	virtual ~CSelectDialog() {}
 
-//----------------------------------------------------
-
+	LF_WRITE_OPTIONS GetOptions() {
+		int Options = LF_WOPT_STANDARD;
+		if(bPassword){
+			Options|= LF_WOPT_DATA_ENCRYPTION;
+		}
+		return (LF_WRITE_OPTIONS)Options;
+	}
+	bool IsSingleCompression()const { return bSingleCompression; }
+	bool GetDeleteAfterCompress()const { return bDeleteAfterCompress; }
+};
 
 //---------------------------------------------------------------
 
-//圧縮形式選択:キャンセルでLF_FMT_INVALIDが返る
-LF_ARCHIVE_FORMAT SelectCompressType(int &Options,bool &bSingleCompression)
+std::tuple<LF_ARCHIVE_FORMAT,
+	LF_WRITE_OPTIONS,
+	bool /*singleCompression*/,
+	bool /*deleteAfterCompress*/>
+GUI_SelectCompressType()
 {
-	//初期化
-	LF_ARCHIVE_FORMAT CompressType = LF_FMT_INVALID;
-	bSingleCompression=false;
-	Options=0;
-
-	//OkかCancelまで繰り返し
-	while(true){	//---使用DLLを決定
-		if(LF_FMT_INVALID == CompressType){	//形式が指定されていない場合
-			CSelectDialog SelDlg;
-			CompressType=(LF_ARCHIVE_FORMAT)SelDlg.DoModal();
-			if(LF_FMT_INVALID == CompressType){	//キャンセルの場合
-				return LF_FMT_INVALID;
-			}else{
-				Options=SelDlg.GetOptions();
-				bSingleCompression=SelDlg.IsSingleCompression();
-				return CompressType;
-			}
-		}
-	}
+	CSelectDialog SelDlg;
+	auto format = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+	return { format, SelDlg.GetOptions(), SelDlg.IsSingleCompression(), SelDlg.GetDeleteAfterCompress() };
 }

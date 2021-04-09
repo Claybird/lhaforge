@@ -132,25 +132,23 @@ bool DoCompress(CConfigFile &config, CMDLINEINFO &cli)
 	ConfCompress.load(config);
 	ConfGeneral.load(config);
 
-	while(LF_FMT_INVALID == cli.CompressType){
+	if(LF_FMT_INVALID == cli.CompressType){
 		if(ConfCompress.UseDefaultParameter){
 			cli.CompressType = ConfCompress.DefaultType;
 			cli.Options = ConfCompress.DefaultOptions;
 		}else{	//not default parameter
-			CSelectDialog SelDlg;
-			SelDlg.SetDeleteAfterCompress(ConfCompress.DeleteAfterCompress);
-			cli.CompressType = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
-			if(LF_FMT_INVALID ==cli.CompressType){	//cancel
+			auto [format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+			if(LF_FMT_INVALID ==format){	//cancel
 				return false;
 			}else{
-				cli.Options=SelDlg.GetOptions();
-				cli.bSingleCompression=SelDlg.IsSingleCompression();
-				if (SelDlg.GetDeleteAfterCompress()) {
+				cli.CompressType = format;
+				cli.Options = options;
+				cli.bSingleCompression = singleCompression;
+				if (deleteAfterCompress) {
 					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::True;
 				} else {
 					cli.DeleteAfterProcess = CMDLINEINFO::ACTION::False;
 				}
-				break;
 			}
 		}
 	}

@@ -147,18 +147,17 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(std::filesystem::path &Path,CSt
 	//圧縮形式を今決めておくか、後で決めるかを選ばせる
 	if(IDYES== UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
 		int Options=-1;
-		bool bSingleCompression=false;
 
 		//形式選択ダイアログ
-		auto format = SelectCompressType(Options,bSingleCompression);
+		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
 		if(format==LF_FMT_INVALID)return false;	//キャンセル
 
 		//選択ダイアログの条件に一致するパラメータを検索
 		try {
-			const auto &args = get_archive_format_args(format, Options);
+			const auto &args = get_archive_format_args(format, options);
 			//ショートカット名取得
 			CString Buf;
-			if (bSingleCompression) {
+			if (singleCompression) {
 				//一つずつ圧縮
 				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, UtilLoadString(args.FormatName).c_str());
 			} else {
@@ -168,9 +167,12 @@ bool CConfigDlgShortcut::GetCompressShortcutInfo(std::filesystem::path &Path,CSt
 			Path /= Buf.operator LPCWSTR();
 			//パラメータ
 			Param = (L"/c:" + args.name).c_str();
-			if (bSingleCompression) {
+			if (singleCompression) {
 				//一つずつ圧縮
 				Param += _T(" /s");
+			}
+			if (deleteAfterCompress) {
+				//TODO
 			}
 		} catch (const ARCHIVE_EXCEPTION&) {
 			//一覧に指定された圧縮方式がない

@@ -183,34 +183,29 @@ LRESULT CConfigDlgCompressGeneral::OnCheckUseDefaultParameter(WORD wNotifyCode, 
 	return 0;
 }
 
-//デフォルト圧縮パラメータの選択
+//Choose default compression parameter
 LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		int Options=-1;
-		bool bSingleCompression=false;	//無視される
+		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+		if(format == LF_FMT_INVALID)return 1;	//cancel
 
-		//形式選択ダイアログ
-		auto format =SelectCompressType(Options,bSingleCompression);
-		if(format == LF_FMT_INVALID)return 1;	//キャンセル
-
-		//選択ダイアログの条件に一致するパラメータを検索
+		//find suitable options
 		try {
 			const auto caps = CLFArchive::get_compression_capability(format);
-			if (!isIn(caps.allowed_combinations, Options)) {
+			if (!isIn(caps.allowed_combinations, options)) {
 				throw ARCHIVE_EXCEPTION(EINVAL);
 			}
 		} catch (const ARCHIVE_EXCEPTION& ) {
-			//一覧に指定された圧縮方式がない
-			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			//unknown format or unacceptable option
+			ErrorMessage(UtilLoadString(IDS_ERROR_ILLEGAL_FORMAT_TYPE));
 			return 1;
 		}
-		//設定を保存
+		//save defaults
 		m_Config.DefaultType=format;
-		m_Config.DefaultOptions=Options;
+		m_Config.DefaultOptions=options;
 
-		SetParameterInfo();//Editに現在のパラメータの情報を表示する
+		SetParameterInfo();
 		return 0;
 	}
 	return 0;
