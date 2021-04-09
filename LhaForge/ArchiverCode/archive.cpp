@@ -2,6 +2,29 @@
 #include "archive.h"
 #include "archive_libarchive.h"
 
+#ifdef UNIT_TEST
+TEST(archive, exceptions)
+{
+	try {
+		RAISE_EXCEPTION(L"Unknown format");
+		EXPECT_STREQ(L"This code", L"should never be called");
+	} catch (const LF_EXCEPTION& e) {
+		EXPECT_STREQ(L"Unknown format", e.what());
+	}
+	try {
+		throw ARCHIVE_EXCEPTION(L"Unknown format");
+	} catch (const LF_EXCEPTION& e) {
+		EXPECT_STREQ(L"Unknown format", e.what());
+	}
+
+	try {
+		throw ARCHIVE_EXCEPTION(EINVAL);
+	} catch (const LF_EXCEPTION& e) {
+		EXPECT_STREQ(L"Invalid argument", e.what());
+	}
+}
+#endif
+
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
 	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();

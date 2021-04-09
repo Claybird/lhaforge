@@ -87,7 +87,8 @@ struct ARCHIVE_EXCEPTION : public LF_EXCEPTION {
 		const int max_msg_len = 94;
 		wchar_t work[max_msg_len];
 		_errno = errno_code;
-		_msg = _wcserror_s(work, _errno);
+		_wcserror_s(work, _errno);
+		_msg = work;
 	}
 	virtual ~ARCHIVE_EXCEPTION() {}
 };
