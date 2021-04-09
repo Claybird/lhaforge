@@ -526,6 +526,11 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	LF_WRITE_OPTIONS options)
 {
 	const auto& cap = la_get_compression_capability(format);
+
+	if (!isIn(cap.allowed_combinations, options)) {
+		throw ARCHIVE_EXCEPTION(EINVAL);
+	}
+
 	int la_format = cap.mapped_libarchive_format & ARCHIVE_FORMAT_BASE_MASK;
 	std::vector<int> la_filters = { cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK };
 
