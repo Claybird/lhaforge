@@ -54,7 +54,7 @@ public:
 		DoDataExchange(TRUE);
 		EndDialog(nID);
 	}
-	LPCWSTR GetInputText()const { return strInput; }
-	void SetInputText(LPCWSTR input) { strInput = input; }
+	std::wstring GetInputText()const { return (LPCWSTR)strInput; }
+	void SetInputText(const std::wstring &input) { strInput = input.c_str(); }
 };
 

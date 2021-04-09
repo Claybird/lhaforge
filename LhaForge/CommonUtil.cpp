@@ -367,7 +367,7 @@ const char* CLFPassphraseGUI::operator()()
 		CTextInputDialog dlg(L"Enter passphrase");
 		dlg.SetInputText(raw.c_str());
 		if (IDOK == dlg.DoModal()) {
-			set_passphrase(raw);
+			set_passphrase(dlg.GetInputText());
 			return utf8.c_str();
 		} else {
 			return nullptr;	//give up
