@@ -24,12 +24,5 @@
 
 #pragma once
 
-void CLSIDtoSTRING(REFCLSID,CString&);
 bool ShellRegistCheck();
-
-BOOL SetKeyAndValue(HKEY inKeyRootH,LPCTSTR inKey,LPCTSTR inValueName,LPCTSTR inValue);
-//再起的レジストリ削除
-LONG RecursiveDeleteKey(HKEY inKeyParentH,LPCTSTR inKeyChild);
-//名前付き値の削除
-BOOL DeleteNamedValue(HKEY inKeyRootH,LPCTSTR inSubKey,LPCTSTR inValueName);
 
