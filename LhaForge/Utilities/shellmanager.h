@@ -24,11 +24,6 @@
 
 #pragma once
 
-//シェル拡張DLLを管理する
-
-bool ShellRegisterServer(HWND,LPCTSTR);
-//bool ShellUnregisterServer(HWND);
-bool ShellUnregisterServer(HWND,LPCTSTR);
 void CLSIDtoSTRING(REFCLSID,CString&);
 bool ShellRegistCheck();
 
