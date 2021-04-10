@@ -368,11 +368,11 @@ void CArchiveFileContent::addEntries(
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
 			arcLog(file, e.what());
 			UtilDeletePath(m_pathArchive);
-			throw e;
+			throw;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog(file, e.what());
 			UtilDeletePath(m_pathArchive);
-			throw e;
+			throw;
 		} catch (const std::filesystem::filesystem_error& e) {
 			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
 			arcLog(file, msg);
@@ -582,7 +582,7 @@ CArchiveFileContent::makeSureItemsExtracted(	//returns list of extracted files
 			return extractedFiles;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog.logException(e);
-			throw e;
+			throw;
 		}
 	}
 }

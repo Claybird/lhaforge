@@ -621,13 +621,19 @@ void compressOneArchive(
 			arcLog(output_archive, L"OK");
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
 			arcLog(output_archive, e.what());
-			throw e;
+			archive.close();
+			UtilDeletePath(output_archive);
+			throw;
 		} catch (const LF_EXCEPTION& e) {
 			arcLog(output_archive, e.what());
-			throw e;
+			archive.close();
+			UtilDeletePath(output_archive);
+			throw;
 		} catch (const std::filesystem::filesystem_error& e) {
 			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
 			arcLog(output_archive, msg);
+			archive.close();
+			UtilDeletePath(output_archive);
 			throw LF_EXCEPTION(msg);
 		}
 	}

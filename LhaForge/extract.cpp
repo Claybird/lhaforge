@@ -354,16 +354,15 @@ std::filesystem::path extractCurrentEntry(
 
 	//original file size (before compression)
 	progressHandler.onNextEntry(outputPath, entry->stat.st_size);
+	bool created = false;
 	try {
 		if (entry->is_directory()) {
 			try {
 				std::filesystem::create_directories(outputPath);
-				arcLog(originalPath, L"directory created");
+				arcLog(outputPath, L"directory created");
 			} catch (std::filesystem::filesystem_error&) {
-				arcLog(originalPath, L"failed to create directory");
-				CString err;	//TODO
-				err.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputPath.c_str());
-				RAISE_EXCEPTION((LPCWSTR)err);
+				arcLog(outputPath, L"failed to create directory");
+				RAISE_EXCEPTION(Format(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR), outputPath.c_str()));
 			}
 		} else {
 			//overwrite?
@@ -373,11 +372,10 @@ std::filesystem::path extractCurrentEntry(
 				//do nothing, keep going
 				break;
 			case overwrite_options::skip:
-				arcLog(originalPath, L"skipped");
+				arcLog(outputPath, L"skipped");
 				return {};
 			case overwrite_options::abort:
 				//abort
-				arcLog(originalPath, L"cancelled by user");
 				CANCEL_EXCEPTION();
 				break;
 			}
@@ -398,6 +396,7 @@ std::filesystem::path extractCurrentEntry(
 				arcLog(originalPath, L"failed to open for write");
 				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
 			}
+			created = true;
 			for (;;) {
 				auto buffer = arc.read_file_entry_block();
 				if (buffer.is_eof()) {
@@ -411,18 +410,24 @@ std::filesystem::path extractCurrentEntry(
 					progressHandler.onEntryIO(buffer.offset);
 				}
 			}
-			arcLog(originalPath, L"OK");
+			arcLog(outputPath, L"OK");
 			fp.close();
 		}
 
 		entry->write_stat(outputPath);
 		return outputPath;
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
-		arcLog(originalPath, e.what());
-		throw e;
+		arcLog(outputPath, e.what());
+		if (created) {
+			UtilDeletePath(originalPath);
+		}
+		throw;
 	} catch (LF_EXCEPTION &e) {
-		arcLog(originalPath, e.what());
-		throw e;
+		arcLog(outputPath, e.what());
+		if (created) {
+			UtilDeletePath(originalPath);
+		}
+		throw;
 	}
 }
 

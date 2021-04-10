@@ -101,9 +101,12 @@ public:
 			UtilFormatSize(currentSize).c_str(),
 			UtilFormatSize(m_entrySize).c_str()
 		);
-		m_entryInfo.SetWindowTextW(
-			str.c_str());
-		m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
+		if (m_entryInfo.IsWindow()) {
+			m_entryInfo.SetWindowTextW(str.c_str());
+		}
+		if (m_entryProgress.IsWindow()) {
+			m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
+		}
 	}
 	LRESULT OnAbortBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		m_bAbort = true;
