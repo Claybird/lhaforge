@@ -119,7 +119,7 @@ public:
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigFile& Config){
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
 	}
 };

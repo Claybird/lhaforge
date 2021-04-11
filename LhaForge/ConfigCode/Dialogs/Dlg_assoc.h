@@ -43,17 +43,10 @@ enum ASSOC_TYPE{
 	ASSOC_7Z,
 	ASSOC_ARJ,
 	ASSOC_RAR,
-	ASSOC_JAK,
-	ASSOC_GCA,
-	ASSOC_YZ1,
-	ASSOC_IMP,
 	ASSOC_ACE,
-	ASSOC_HKI,
 	ASSOC_BZA,
 	ASSOC_GZA,
-	ASSOC_ISH,
 	ASSOC_UUE,
-	ASSOC_BEL,
 	ASSOC_TAR,
 	ASSOC_GZ,
 	ASSOC_TGZ,
@@ -95,6 +88,12 @@ protected:
 	CIcon Icon_SystemDefault;	//関連付けがない時のアイコン
 
 	CConfigDialog	&mr_ConfigDlg;
+
+	struct KVPAIR {
+		std::wstring key, value;
+	};
+	std::map<std::wstring, std::vector<KVPAIR>> _assocRequests;
+
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_ASSOCIATION };
 
@@ -126,7 +125,7 @@ public:
 		return TRUE;
 	}
 	void LoadConfig(CConfigFile& Config){}
-	void StoreConfig(CConfigFile& Config){}
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant);
 };
 
 

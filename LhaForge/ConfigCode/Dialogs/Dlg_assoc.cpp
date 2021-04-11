@@ -104,7 +104,6 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 	LOAD_ASSOC_AND_SET_ICON(ACE,	_T(".ace"),	13,	13);
 	LOAD_ASSOC_AND_SET_ICON(BZA,	_T(".bza"),	15,	15);
 	LOAD_ASSOC_AND_SET_ICON(GZA,	_T(".gza"),	16,	16);
-	LOAD_ASSOC_AND_SET_ICON(ISH,	_T(".ish"),	18,	18);
 	LOAD_ASSOC_AND_SET_ICON(UUE,	_T(".uue"),	19,	19);
 
 	LOAD_ASSOC_AND_SET_ICON(TAR,	_T(".tar"),	7,	24);
@@ -260,35 +259,37 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 
 LRESULT CConfigDlgAssociation::OnApply()
 {
-	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
-
-	CConfigFile tmp;
-	tmp.setPath(strIniName);
-	try {
-		tmp.load();
-		for (int i = 0; i < COUNTOF(AssocSettings); i++) {
-			//レジストリ変更の必要がある場合
-			bool Checked = (0 != AssocSettings[i].Check_SetAssoc.GetCheck());
-			if ((AssocSettings[i].AssocInfo.bOrgStatus^Checked) || AssocSettings[i].bChanged) {
-				if (AssocSettings[i].AssocInfo.bOrgStatus && !Checked) {
-					//関連づけ解除要請
-					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"set", 0);
-				} else {
-					//関連づけ要請
-					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"set", L"1");
-					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"iconfile", AssocSettings[i].AssocInfo.IconFile);
-					tmp.setValue(AssocSettings[i].AssocInfo.Ext.operator LPCWSTR(), L"iconindex", AssocSettings[i].AssocInfo.IconIndex);
-				}
+	_assocRequests.clear();
+	for (int i = 0; i < COUNTOF(AssocSettings); i++) {
+		//レジストリ変更の必要がある場合
+		bool Checked = (0 != AssocSettings[i].Check_SetAssoc.GetCheck());
+		if ((AssocSettings[i].AssocInfo.bOrgStatus^Checked) || AssocSettings[i].bChanged) {
+			if (AssocSettings[i].AssocInfo.bOrgStatus && !Checked) {
+				//関連づけ解除要請
+				_assocRequests[AssocSettings[i].AssocInfo.Ext.operator LPCWSTR()] = { {L"set", 0} };
+			} else {
+				//関連づけ要請
+				_assocRequests[AssocSettings[i].AssocInfo.Ext.operator LPCWSTR()] = {
+					{L"set", L"1"},
+					{L"iconfile", AssocSettings[i].AssocInfo.IconFile.operator LPCWSTR()},
+					{L"iconindex", Format(L"%d",AssocSettings[i].AssocInfo.IconIndex)},
+				};
 			}
 		}
-		tmp.save();
-	} catch (const LF_EXCEPTION &e) {
-		ErrorMessage(e.what());
 	}
 
 	return TRUE;
 }
 
+void CConfigDlgAssociation::StoreConfig(CConfigFile& Config, CConfigFile& assistant)
+{
+	for (const auto &item : _assocRequests) {
+		auto ext = item.first;
+		for (const auto &value : item.second) {
+			assistant.setValue(ext, value.key, value.value);
+		}
+	}
+}
 
 //==================================================================================
 

@@ -23,25 +23,22 @@
 */
 
 #pragma once
-#include "../Utilities/Utility.h"
-#include "../resource.h"
+#include "Utilities/Utility.h"
+#include "resource.h"
 #include "ConfigFile.h"
-#include "./Dialogs/Dlg_Base.h"
-#include "./Dialogs/Dlg_version.h"
-#include "./Dialogs/Dlg_general.h"
-#include "./Dialogs/Dlg_compress_general.h"
-#include "./Dialogs/Dlg_extract_general.h"
-#include "./Dialogs/Dlg_assoc.h"
-#include "./Dialogs/Dlg_detail.h"
-#include "./Dialogs/Dlg_shortcut.h"
-#include "./Dialogs/Dlg_filelistwindow.h"
-#include "./Dialogs/Dlg_openaction.h"
-#include "./Dialogs/Dlg_shellext.h"
+#include "Dialogs/Dlg_Base.h"
+#include "Dialogs/Dlg_version.h"
+#include "Dialogs/Dlg_general.h"
+#include "Dialogs/Dlg_compress_general.h"
+#include "Dialogs/Dlg_extract_general.h"
+#include "Dialogs/Dlg_assoc.h"
+#include "Dialogs/Dlg_detail.h"
+#include "Dialogs/Dlg_shortcut.h"
+#include "Dialogs/Dlg_filelistwindow.h"
+#include "Dialogs/Dlg_openaction.h"
+#include "Dialogs/Dlg_shellext.h"
 
-//====================================
-// 設定項目をまとめる
-//====================================
-class CConfigDialog : public CDialogImpl<CConfigDialog>,public CDialogResize<CConfigDialog>
+class CConfigDialog : public CDialogImpl<CConfigDialog>, public CDialogResize<CConfigDialog>
 {
 protected:
 	CConfigDlgGeneral				PageGeneral;
@@ -55,23 +52,20 @@ protected:
 	CConfigDlgShortcut				PageShortcut;
 	CConfigDlgFileListWindow		PageFileListWindow;
 
-	HWND						hActiveDialogWnd;	//アクティブなダイアログ
-	CTreeViewCtrl				SelectTreeView;
+	HWND hActiveDialogWnd;
+	CTreeViewCtrl SelectTreeView;
 
-	//ダイアログを貼り付けるためのスクロールコンテナ
-	CScrollContainer			ScrollWindow;
+	//scroll container to paste dialogs on
+	CScrollContainer ScrollWindow;
 
-	CConfigFile				&mr_Config;
+	CConfigFile &mr_Config;
 
-	CString						m_strAssistINI;	//アシスタントを呼び出すために使うINI名
-	UINT						m_nAssistRequireCount;//アシスタントを呼ぶ必要があれば非0;参照カウンタ方式
-
+	UINT m_nAssistRequireCount;//0: no need to call LFAssistant; 0<: need to call
 
 	std::set<IConfigDlgBase*> m_ConfigDlgList;
 public:
-	enum{IDD = IDD_DIALOG_CONFIG};
+	enum { IDD = IDD_DIALOG_CONFIG };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTreeSelect)
@@ -79,33 +73,40 @@ public:
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
 		MSG_WM_SIZE(OnSize)
 		CHAIN_MSG_MAP(CDialogResize<CConfigDialog>)
-		MESSAGE_HANDLER(WM_USER_WM_SIZE,OnUserSize)
-	END_MSG_MAP()
+		MESSAGE_HANDLER(WM_USER_WM_SIZE, OnUserSize)
+		END_MSG_MAP()
 
-	// ダイアログリサイズマップ
 	BEGIN_DLGRESIZE_MAP(CConfigDialog)
-		DLGRESIZE_CONTROL(IDC_TREE_SELECT_PROPPAGE,			DLSZ_SIZE_Y)
-		DLGRESIZE_CONTROL(IDC_STATIC_FRAME,					DLSZ_SIZE_X | DLSZ_SIZE_Y)
-		DLGRESIZE_CONTROL(IDOK,								DLSZ_MOVE_X | DLSZ_MOVE_Y)
-		DLGRESIZE_CONTROL(IDCANCEL,							DLSZ_MOVE_X | DLSZ_MOVE_Y)
+		DLGRESIZE_CONTROL(IDC_TREE_SELECT_PROPPAGE, DLSZ_SIZE_Y)
+		DLGRESIZE_CONTROL(IDC_STATIC_FRAME, DLSZ_SIZE_X | DLSZ_SIZE_Y)
+		DLGRESIZE_CONTROL(IDOK, DLSZ_MOVE_X | DLSZ_MOVE_Y)
+		DLGRESIZE_CONTROL(IDCANCEL, DLSZ_MOVE_X | DLSZ_MOVE_Y)
 	END_DLGRESIZE_MAP()
 
 	CConfigDialog(CConfigFile &cfg);
-	virtual ~CConfigDialog();
+	virtual ~CConfigDialog() {}
 
 	LRESULT OnTreeSelect(LPNMHDR pnmh);
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	void OnSize(UINT, CSize&);
+	void OnSize(UINT, CSize&) {
+		SetMsgHandled(false);
+		PostMessage(WM_USER_WM_SIZE);
+	}
 	LRESULT OnUserSize(UINT, WPARAM wParam, LPARAM, BOOL& bHandled);
 
 	void OnOK(UINT uNotifyCode, int nID, HWND hWndCtl);
-	void OnCancel(UINT uNotifyCode, int nID, HWND hWndCtl);
+	void OnCancel(UINT uNotifyCode, int nID, HWND hWndCtl) { EndDialog(nID); }
 
-	//LFAssist.exeに渡すINIの名前(UAC回避のため)
-	LPCTSTR GetAssistantFile(){return m_strAssistINI;}
-	//UAC回避のためLFAssist.exeを呼ぶことを要請(要請カウントを増やす)
-	void RequireAssistant();
-	//UAC回避のためLFAssist.exeを呼ぶことをやめる(要請カウントを減らす)
-	void UnrequireAssistant();
+	void RequireAssistant() {
+		m_nAssistRequireCount++;
+		Button_SetElevationRequiredState(GetDlgItem(IDOK), m_nAssistRequireCount);
+	}
+	void UnrequireAssistant() {
+		ASSERT(m_nAssistRequireCount > 0);
+		if (m_nAssistRequireCount > 0) {
+			m_nAssistRequireCount--;
+			Button_SetElevationRequiredState(GetDlgItem(IDOK), m_nAssistRequireCount);
+		}
+	}
 };
 

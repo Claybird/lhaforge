@@ -74,28 +74,20 @@ LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 LRESULT CConfigDlgShellExt::OnApply()
 {
+	_requests.clear();
 //==========================
 // シェル拡張のON/OFFを反映
 //==========================
 	bool bCurrentStatus=(0!=Check_ShellExt.GetCheck());
 
 	//依頼内容を記述
-	std::wstring strIniName = mr_ConfigDlg.GetAssistantFile();
 	//---登録or解除
-	CConfigFile tmp;
-	tmp.setPath(strIniName);
-	try {
-		tmp.load();
-		if (bCurrentStatus) {
-			//登録
-			tmp.setValue(L"Shell", L"set", 1);
-		} else {
-			//解除
-			tmp.setValue(L"Shell", L"set", 0);
-		}
-		tmp.save();
-	} catch (const LF_EXCEPTION &e) {
-		ErrorMessage(e.what());
+	if (bCurrentStatus) {
+		//登録
+		_requests[L"Shell"] = { { L"set", L"1" } };
+	} else {
+		//解除
+		_requests[L"Shell"] = { { L"set", L"0" } };
 	}
 
 //===============================

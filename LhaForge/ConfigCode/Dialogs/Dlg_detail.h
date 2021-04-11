@@ -57,6 +57,6 @@ public:
 		return TRUE;
 	}
 	void LoadConfig(CConfigFile&){}
-	void StoreConfig(CConfigFile&){}
+	void StoreConfig(CConfigFile&, CConfigFile& assistant){}
 };
 

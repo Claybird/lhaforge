@@ -77,7 +77,7 @@ public:
 	virtual ~IConfigDlgBase() {}
 	virtual LRESULT OnApply() = 0;
 	virtual void LoadConfig(CConfigFile&) = 0;
-	virtual void StoreConfig(CConfigFile&) = 0;
+	virtual void StoreConfig(CConfigFile&, CConfigFile& assistant) = 0;
 };
 
 

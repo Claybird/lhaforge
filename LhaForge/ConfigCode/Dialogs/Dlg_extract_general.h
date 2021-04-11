@@ -96,7 +96,7 @@ public:
 		m_Config.load(Config);
 		DenyExt = m_Config.DenyExt.c_str();
 	}
-	void StoreConfig(CConfigFile& Config){
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
 		m_Config.DenyExt = (const wchar_t*)DenyExt;
 	}

@@ -40,6 +40,10 @@ protected:
 	CButton Check_ShellExtForceExtra;
 	CConfigDialog	&mr_ConfigDlg;
 	CConfigShellExt m_Config;
+	struct KVPAIR {
+		std::wstring key, value;
+	};
+	std::map<std::wstring, std::vector<KVPAIR>> _requests;
 
 	virtual BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
@@ -92,8 +96,13 @@ public:
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigFile& Config){
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
+		for (const auto &item : _requests) {
+			for (const auto &value : item.second) {
+				assistant.setValue(item.first, value.key, value.value);
+			}
+		}
 	}
 };
 
