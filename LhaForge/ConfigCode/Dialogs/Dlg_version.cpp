@@ -32,7 +32,7 @@ LRESULT CConfigDlgVersion::OnInitDialog(HWND hWnd, LPARAM lParam)
 	CMessageLoop* pLoop = _Module.GetMessageLoop();
 	pLoop->AddMessageFilter(this);
 
-	const TCHAR URL_OF_CLAYBIRD[]=_T("http://claybird.sakura.ne.jp/");
+	const TCHAR URL_OF_CLAYBIRD[]=_T("https://claybird.sakura.ne.jp/");
 	const TCHAR MAIL_OF_CLAYBIRD[]=_T("mailto:claybird.without.wing@gmail.com");
 
 	link_url.SetHyperLinkExtendedStyle(HLINK_USETAGS);
