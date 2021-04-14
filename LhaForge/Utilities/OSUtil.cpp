@@ -68,7 +68,7 @@ HRESULT UtilCreateShortcut(
 	const std::wstring& args,
 	const std::filesystem::path& iconPath,
 	int iIcon,
-	LPCTSTR lpszDescription)
+	const std::wstring &description)
 {
 	CComPtr<IShellLinkW> pLink;
 	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
@@ -78,7 +78,7 @@ HRESULT UtilCreateShortcut(
 	pLink->SetPath(pathTarget.c_str());
 	pLink->SetArguments(args.c_str());
 	pLink->SetIconLocation(iconPath.c_str(),iIcon);
-	pLink->SetDescription(lpszDescription);
+	pLink->SetDescription(description.c_str());
 	//save to file
 	CComQIPtr<IPersistFile> pFile = pLink;
 	if (pFile) {

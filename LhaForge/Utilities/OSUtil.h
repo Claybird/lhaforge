@@ -30,7 +30,7 @@ HRESULT UtilCreateShortcut(
 	const std::wstring& args,
 	const std::filesystem::path& iconPath,
 	int iIcon,
-	LPCTSTR lpszDescription);
+	const std::wstring &description);
 
 struct UTIL_SHORTCUTINFO {
 	std::wstring title;
