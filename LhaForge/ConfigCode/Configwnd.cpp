@@ -139,6 +139,13 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 		item->StoreConfig(mr_Config, assistINI);
 	}
 
+	//update "TEMP" environment variable
+	{
+		CConfigGeneral ConfGeneral;
+		ConfGeneral.load(mr_Config);
+		LF_setProcessTempPath(ConfGeneral.TempPath);
+	}
+
 	//request delete
 	assistINI.setValue(L"PostProcess", L"DeleteMe", L"Please_Delete_Me");
 

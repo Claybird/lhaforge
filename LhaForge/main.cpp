@@ -304,31 +304,7 @@ void procMain()
 
 	CConfigGeneral ConfGeneral;
 	ConfGeneral.load(config);
-
-	{
-		//To use custom temporary directory, if necessary
-		std::wstring strPath = ConfGeneral.TempPath;
-		if (!strPath.empty()) {
-			auto envInfo = LF_make_expand_information(nullptr, nullptr);
-			strPath = UtilExpandTemplateString(strPath, envInfo);
-
-			//get absolute path
-			if (std::filesystem::path(strPath).is_relative()) {
-				auto tmp = std::filesystem::path(UtilGetModuleDirectoryPath()) / strPath;
-				strPath = tmp.lexically_normal();
-			}
-			try {
-				auto buf = UtilGetCompletePathName(strPath);
-				strPath = buf;
-			} catch (LF_EXCEPTION) {
-				//do nothing
-			}
-
-			//set environment
-			SetEnvironmentVariableW(L"TEMP", strPath.c_str());
-			SetEnvironmentVariableW(L"TMP", strPath.c_str());
-		}
-	}
+	LF_setProcessTempPath(ConfGeneral.TempPath);
 
 	switch (ProcessMode) {
 	case PROCESS_COMPRESS:

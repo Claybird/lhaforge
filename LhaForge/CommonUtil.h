@@ -85,6 +85,8 @@ std::filesystem::path LF_sanitize_pathname(const std::filesystem::path &rawPath)
 
 void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std::vector<std::filesystem::path>& original_files);
 
+void LF_setProcessTempPath(const std::filesystem::path&);
+
 
 struct CLFPassphraseGUI:public ILFPassphrase {
 	virtual ~CLFPassphraseGUI() {}

@@ -357,6 +357,43 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 }*/
 #endif
 
+void LF_setProcessTempPath(const std::filesystem::path& path)
+{
+	auto envInfo = LF_make_expand_information(nullptr, nullptr);
+	//To use custom temporary directory, if necessary
+	if (path.empty()) {
+		//restore original
+		std::wstring keyTemp = L"lf_system_original_temp";
+		std::wstring keyTmp = L"lf_system_original_tmp";
+		SetEnvironmentVariableW(L"TEMP", envInfo[keyTemp].c_str());
+		SetEnvironmentVariableW(L"TMP", envInfo[keyTmp].c_str());
+	}else{
+		std::filesystem::path pathWork = UtilExpandTemplateString(path, envInfo);
+
+		//get absolute path
+		if (pathWork.is_relative()) {
+			auto tmp = UtilGetModuleDirectoryPath() / pathWork;
+			pathWork = tmp.lexically_normal();
+		}
+		try {
+			pathWork = UtilGetCompletePathName(pathWork);
+		} catch (LF_EXCEPTION) {
+			//do nothing
+		}
+
+		//save original
+		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TEMP", envInfo[L"temp"].c_str());
+		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TMP", envInfo[L"tmp"].c_str());
+		//set environment
+		SetEnvironmentVariableW(L"TEMP", pathWork.c_str());
+		SetEnvironmentVariableW(L"TMP", pathWork.c_str());
+	}
+}
+
+#ifdef UNIT_TEST
+/*TEST(CommonUtil, LF_setProcessTempPath) {
+}*/
+#endif
 
 #include "Dialogs/TextInputDlg.h"
 
