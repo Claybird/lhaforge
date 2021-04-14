@@ -25,7 +25,7 @@
 #pragma once
 #include "resource.h"
 
-class CProgressDialog:public CDialogImpl<CProgressDialog>, public CMessageFilter
+class CProgressDialog:public CDialogImpl<CProgressDialog>
 {
 protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
@@ -38,20 +38,12 @@ public:
 
 	BEGIN_MSG_MAP_EX(CProgressDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 		COMMAND_ID_HANDLER_EX(IDOK, __noop)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnAbortBtn)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
 	END_MSG_MAP()
 
-	BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
-
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->AddMessageFilter(this);
-
 		m_fileProgress = GetDlgItem(IDC_PROGRESS_FILE);
 		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
 		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
@@ -64,10 +56,6 @@ public:
 
 		CenterWindow();
 		return TRUE;
-	}
-	void OnDestroy() {
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
 	}
 	void SetEntry(
 		const std::wstring& archivePath,
