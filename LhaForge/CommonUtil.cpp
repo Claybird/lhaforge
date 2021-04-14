@@ -360,13 +360,25 @@ void LF_deleteOriginalArchives(bool moveToRecycleBin, bool noConfirm, const std:
 void LF_setProcessTempPath(const std::filesystem::path& path)
 {
 	auto envInfo = LF_make_expand_information(nullptr, nullptr);
+	std::wstring keyTemp = L"lf_system_original_temp";
+	std::wstring keyTmp = L"lf_system_original_tmp";
+	//save original
+	if (!has_key(envInfo, keyTemp)) {
+		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TEMP", envInfo[L"temp"].c_str());
+	}
+	if (!has_key(envInfo, keyTmp)) {
+		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TMP", envInfo[L"tmp"].c_str());
+	}
+
 	//To use custom temporary directory, if necessary
 	if (path.empty()) {
 		//restore original
-		std::wstring keyTemp = L"lf_system_original_temp";
-		std::wstring keyTmp = L"lf_system_original_tmp";
-		SetEnvironmentVariableW(L"TEMP", envInfo[keyTemp].c_str());
-		SetEnvironmentVariableW(L"TMP", envInfo[keyTmp].c_str());
+		if (has_key(envInfo, keyTemp)) {
+			SetEnvironmentVariableW(L"TEMP", envInfo[keyTemp].c_str());
+		}
+		if (has_key(envInfo, keyTmp)) {
+			SetEnvironmentVariableW(L"TMP", envInfo[keyTmp].c_str());
+		}
 	}else{
 		std::filesystem::path pathWork = UtilExpandTemplateString(path, envInfo);
 
@@ -381,9 +393,6 @@ void LF_setProcessTempPath(const std::filesystem::path& path)
 			//do nothing
 		}
 
-		//save original
-		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TEMP", envInfo[L"temp"].c_str());
-		SetEnvironmentVariableW(L"LF_SYSTEM_ORIGINAL_TMP", envInfo[L"tmp"].c_str());
 		//set environment
 		SetEnvironmentVariableW(L"TEMP", pathWork.c_str());
 		SetEnvironmentVariableW(L"TMP", pathWork.c_str());
@@ -391,8 +400,56 @@ void LF_setProcessTempPath(const std::filesystem::path& path)
 }
 
 #ifdef UNIT_TEST
-/*TEST(CommonUtil, LF_setProcessTempPath) {
-}*/
+TEST(CommonUtil, LF_setProcessTempPath)
+{
+	auto original = LF_make_expand_information(nullptr, nullptr);
+	EXPECT_TRUE(has_key(original, L"temp"));
+	EXPECT_FALSE(original[L"temp"].empty());
+	EXPECT_TRUE(has_key(original, L"tmp"));
+	EXPECT_FALSE(original[L"tmp"].empty());
+
+	EXPECT_FALSE(has_key(original, L"lf_system_original_temp"));
+	EXPECT_FALSE(has_key(original, L"lf_system_original_tmp"));
+
+	{
+		LF_setProcessTempPath(L"");
+		auto modified = LF_make_expand_information(nullptr, nullptr);
+		EXPECT_TRUE(has_key(modified, L"temp"));
+		EXPECT_FALSE(modified[L"temp"].empty());
+		EXPECT_TRUE(has_key(modified, L"tmp"));
+		EXPECT_FALSE(modified[L"tmp"].empty());
+
+		EXPECT_TRUE(has_key(modified, L"temp"));
+		EXPECT_EQ(original[L"temp"], modified[L"lf_system_original_temp"]);
+		EXPECT_EQ(original[L"temp"], modified[L"temp"]);
+		EXPECT_TRUE(has_key(modified, L"tmp"));
+		EXPECT_EQ(original[L"tmp"], modified[L"lf_system_original_tmp"]);
+		EXPECT_EQ(original[L"tmp"], modified[L"tmp"]);
+	}
+
+	{
+		LF_setProcessTempPath(L"abc");
+		auto modified = LF_make_expand_information(nullptr, nullptr);
+		EXPECT_TRUE(has_key(modified, L"temp"));
+		EXPECT_EQ(UtilGetModuleDirectoryPath() / L"abc", modified[L"temp"]);
+		EXPECT_TRUE(has_key(modified, L"tmp"));
+		EXPECT_EQ(UtilGetModuleDirectoryPath() / L"abc", modified[L"tmp"]);
+
+		EXPECT_EQ(original[L"temp"], modified[L"lf_system_original_temp"]);
+		EXPECT_EQ(original[L"tmp"], modified[L"lf_system_original_tmp"]);
+	}
+
+	{
+		LF_setProcessTempPath(L"");
+		auto modified = LF_make_expand_information(nullptr, nullptr);
+		EXPECT_TRUE(has_key(modified, L"temp"));
+		EXPECT_EQ(original[L"temp"], modified[L"lf_system_original_temp"]);
+		EXPECT_EQ(original[L"temp"], modified[L"temp"]);
+		EXPECT_TRUE(has_key(modified, L"tmp"));
+		EXPECT_EQ(original[L"tmp"], modified[L"lf_system_original_tmp"]);
+		EXPECT_EQ(original[L"tmp"], modified[L"tmp"]);
+	}
+}
 #endif
 
 #include "Dialogs/TextInputDlg.h"

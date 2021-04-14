@@ -193,7 +193,6 @@ std::map<std::wstring, std::wstring> UtilGetEnvInfo()
 
 	for (; *lpEnvStr != L'\0'; ) {
 		std::wstring block = lpEnvStr;
-		//TRACE(L"%s\n", block.c_str());
 		lpEnvStr += block.length()+1;
 
 		auto pos = block.find_first_of(L'=');
@@ -216,8 +215,9 @@ TEST(OSUtil, UtilGetEnvInfo) {
 	EXPECT_TRUE(has_key(envInfo, L"PATH"));
 	for (const auto& item : envInfo) {
 		wchar_t buf[_MAX_ENV] = {};
-		size_t s = 0;
-		_wgetenv_s(&s, buf, item.first.c_str());
+		//size_t s = 0;
+		//_wgetenv_s(&s, buf, item.first.c_str());
+		GetEnvironmentVariableW(item.first.c_str(), buf, COUNTOF(buf));
 		std::wstring env = buf;
 		EXPECT_EQ(std::wstring(env), item.second);
 	}
