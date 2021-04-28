@@ -40,8 +40,8 @@ public:
 	bool WarnNetwork;
 	bool WarnRemovable;
 	bool NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
-	LOSTDIR OnDirNotFound;
-	LOGVIEW LogViewEvent;
+	int/*LOSTDIR*/ OnDirNotFound;
+	int/*LOGVIEW*/ LogViewEvent;
 
 	std::wstring TempPath;
 protected:

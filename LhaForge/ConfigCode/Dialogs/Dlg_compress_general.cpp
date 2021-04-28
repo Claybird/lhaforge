@@ -29,75 +29,28 @@
 #include "compress.h"
 #include "Utilities/OSUtil.h"
 
-//==================
-// 圧縮一般設定画面
-//==================
 LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// メッセージループにメッセージフィルタとアイドルハンドラを追加
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	pLoop->AddMessageFilter(this);
+	SetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, m_Config.OutputDirUserSpecified.c_str());
 
-	//------------------
-	// 圧縮出力先タイプ
-	//------------------
-	Radio_CompressTo[OUTPUT_TO_DESKTOP]=GetDlgItem(IDC_RADIO_COMPRESS_TO_DESKTOP);
-	Radio_CompressTo[OUTPUT_TO_SAME_DIR]=GetDlgItem(IDC_RADIO_COMPRESS_TO_SAME_DIR);
-	Radio_CompressTo[OUTPUT_TO_SPECIFIC_DIR]=GetDlgItem(IDC_RADIO_COMPRESS_TO_SPECIFIC_DIR);
-	Radio_CompressTo[OUTPUT_TO_ALWAYS_ASK_WHERE]=GetDlgItem(IDC_RADIO_COMPRESS_TO_ALWAYS_ASK_WHERE);
-
-	Radio_CompressTo[m_Config.OutputDirType].SetCheck(1);
-
-	//----------------------------------------------------
-	// 出力先フォルダのパスをエディットコントロールに設定
-	//----------------------------------------------------
-	Edit_CompressOutputDirPath=GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR);
-	Edit_CompressOutputDirPath.SetWindowTextW(m_Config.OutputDirUserSpecified.c_str());
-
-	Button_CompressToFolder=GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER);
-
-	//出力先を指定するためのボタンとエディットコントロールの有効無効を切り替え
 	bool bActive=(OUTPUT_TO_SPECIFIC_DIR==m_Config.OutputDirType);
-	Edit_CompressOutputDirPath.EnableWindow(bActive);
-	Button_CompressToFolder.EnableWindow(bActive);
+	::EnableWindow(GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR), bActive);
+	::EnableWindow(GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER), bActive);
 
-	//--------------------------------
-	// 同時に圧縮するファイル数の上限
-	//--------------------------------
 	UpDown_MaxCompressFileCount=GetDlgItem(IDC_SPIN_MAX_COMPRESS_FILECOUNT);
-
 	UpDown_MaxCompressFileCount.SetPos(m_Config.MaxCompressFileCount);
 	UpDown_MaxCompressFileCount.SetRange(1,32767);
-
 	UpDown_MaxCompressFileCount.EnableWindow(m_Config.LimitCompressFileCount);
 	::EnableWindow(GetDlgItem(IDC_EDIT_MAX_COMPRESS_FILECOUNT),m_Config.LimitCompressFileCount);
-
-	//「同時に圧縮するファイル数を制限する」チェックボックス
-	Check_LimitCompressFileCount=GetDlgItem(IDC_CHECK_LIMIT_COMPRESS_FILECOUNT);
-
-	//--------------------------
-	// デフォルト圧縮パラメータ
-	//--------------------------
-	Check_UseDefaultParameter=GetDlgItem(IDC_CHECK_USE_DEFAULTPARAMETER);
-	Edit_DefaultParameterInfo=GetDlgItem(IDC_EDIT_DEFAULTPARAMETER);
 
 	::EnableWindow(GetDlgItem(IDC_BUTTON_SELECT_DEFAULTPARAMETER),m_Config.UseDefaultParameter);
 
 	SetParameterInfo();
 
-	//----------------------------------
-	// 圧縮後元ファイルを削除する機能
-	//----------------------------------
-	//「解凍後圧縮ファイルを削除する」チェックボックス
-	Check_DeleteAfterCompress=GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS);
-	//「ごみ箱へ移動する」チェックボックスの有効無効
-	::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN),m_Config.DeleteAfterCompress);
-	//「確認しない」の有効無効
-	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM),m_Config.DeleteAfterCompress);
-	//強制削除の有効無効
-	::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE),m_Config.DeleteAfterCompress);
+	::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN), m_Config.DeleteAfterCompress);
+	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM), m_Config.DeleteAfterCompress);
+	::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE), m_Config.DeleteAfterCompress);
 
-	//DDX情報設定
 	DoDataExchange(FALSE);
 
 	return TRUE;
@@ -105,33 +58,12 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 LRESULT CConfigDlgCompressGeneral::OnApply()
 {
-//===============================
-// 設定をConfigManagerに書き戻す
-//===============================
-	//------------------
-	// 圧縮出力先タイプ
-	//------------------
-	for(int Type=0;Type<COUNTOF(Radio_CompressTo);Type++){
-		if(Radio_CompressTo[Type].GetCheck()){
-			m_Config.OutputDirType=(OUTPUT_TO)Type;
-			break;
-		}
-	}
-	//----------------------
-	// 出力先フォルダのパス
-	//----------------------
 	CString buf;
-	Edit_CompressOutputDirPath.GetWindowText(buf);
+	GetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, buf);
 	m_Config.OutputDirUserSpecified = (const wchar_t*)buf;
 
-	//--------------------------------
-	// 同時に圧縮するファイル数の上限
-	//--------------------------------
 	m_Config.MaxCompressFileCount=UpDown_MaxCompressFileCount.GetPos();
 
-	//---------------
-	// DDXデータ取得
-	//---------------
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
 	}
@@ -141,9 +73,9 @@ LRESULT CConfigDlgCompressGeneral::OnApply()
 LRESULT CConfigDlgCompressGeneral::OnRadioCompressTo(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		bool bActive=(0!=Radio_CompressTo[OUTPUT_TO_SPECIFIC_DIR].GetCheck());
-		Edit_CompressOutputDirPath.EnableWindow(bActive);
-		Button_CompressToFolder.EnableWindow(bActive);
+		bool bActive=(0!=CButton(GetDlgItem(IDC_RADIO_COMPRESS_TO_SPECIFIC_DIR)).GetCheck());
+		::EnableWindow(GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR), bActive);
+		::EnableWindow(GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER), bActive);
 	}
 	return 0;
 }
@@ -152,12 +84,12 @@ LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HW
 {
 	if(BN_CLICKED==wNotifyCode){
 		CString FolderPath;
-		Edit_CompressOutputDirPath.GetWindowTextW(FolderPath);
+		GetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, FolderPath);
 
 		LFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
 			dlg.GetFilePath(FolderPath);
-			Edit_CompressOutputDirPath.SetWindowTextW(FolderPath);
+			SetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, FolderPath);
 		}
 	}
 	return 0;
@@ -166,18 +98,17 @@ LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HW
 LRESULT CConfigDlgCompressGeneral::OnCheckLimitCompressFileCount(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		BOOL State=Check_LimitCompressFileCount.GetCheck();
+		BOOL State=CButton(GetDlgItem(IDC_CHECK_LIMIT_COMPRESS_FILECOUNT)).GetCheck();
 		UpDown_MaxCompressFileCount.EnableWindow(State);
 		::EnableWindow(GetDlgItem(IDC_EDIT_MAX_COMPRESS_FILECOUNT),State);
 	}
 	return 0;
 }
 
-//デフォルト圧縮パラメータの有効無効
 LRESULT CConfigDlgCompressGeneral::OnCheckUseDefaultParameter(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		BOOL State=Check_UseDefaultParameter.GetCheck();
+		BOOL State=CButton(GetDlgItem(IDC_CHECK_USE_DEFAULTPARAMETER)).GetCheck();
 		::EnableWindow(GetDlgItem(IDC_BUTTON_SELECT_DEFAULTPARAMETER),State);
 	}
 	return 0;
@@ -212,31 +143,24 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 }
 
 
-void CConfigDlgCompressGeneral::SetParameterInfo()//Editに現在のパラメータの情報を表示する
+void CConfigDlgCompressGeneral::SetParameterInfo()
 {
 	if(LF_FMT_INVALID==m_Config.DefaultType){
-		//未定義
-		Edit_DefaultParameterInfo.SetWindowText(_T(""));
+		SetDlgItemText(IDC_EDIT_DEFAULTPARAMETER, L"");
 	}else{
-		//選択ダイアログの条件に一致するパラメータを検索
 		try {
 			const auto &args = get_archive_format_args(m_Config.DefaultType, m_Config.DefaultOptions);
-			//正常な設定
-			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(args.FormatName)));
+			SetDlgItemText(IDC_EDIT_DEFAULTPARAMETER, UtilLoadString(args.FormatName).c_str());
 		} catch (const ARCHIVE_EXCEPTION&) {
-			//一覧に指定された圧縮方式がない
-			//つまり、サポートしていない圧縮方式だったとき
-			Edit_DefaultParameterInfo.SetWindowText(CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
+			SetDlgItemText(IDC_EDIT_DEFAULTPARAMETER, UtilLoadString(IDS_ERROR_ILLEGAL_FORMAT_TYPE).c_str());
 		}
 	}
 }
 
-
-//解凍後削除の設定に合わせてチェックボックスの有効無効を決める
 LRESULT CConfigDlgCompressGeneral::OnCheckDelete(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		BOOL State=Check_DeleteAfterCompress.GetCheck();
+		BOOL State=CButton(GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS)).GetCheck();
 		::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN),State);
 		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM),State);
 		::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE),State);

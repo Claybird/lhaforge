@@ -82,7 +82,7 @@ public:
 
 
 template <typename T>
-class LFConfigDialogBase : public CDialogImpl<T>, public CMessageFilter, public LFWinDataExchange<T>, public IConfigDlgBase
+class LFConfigDialogBase : public CDialogImpl<T>, public LFWinDataExchange<T>, public IConfigDlgBase
 {
 public:
 	virtual ~LFConfigDialogBase() {}

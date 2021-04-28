@@ -24,38 +24,19 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../../resource.h"
-#include "../../Utilities/Utility.h"
+#include "resource.h"
 
 class CConfigDlgDetail : public LFConfigDialogBase<CConfigDlgDetail>
 {
-protected:
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
-
 public:
+	CConfigDlgDetail() {}
+	virtual ~CConfigDlgDetail() {}
 	enum { IDD = IDD_PROPPAGE_DETAIL };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigVersion)
-		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnApply(){return TRUE;}
-
-	CConfigDlgDetail(){
-		TRACE(_T("CConfigDlgDetail()\n"));
-	}
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
 	void LoadConfig(CConfigFile&){}
 	void StoreConfig(CConfigFile&, CConfigFile& assistant){}
 };

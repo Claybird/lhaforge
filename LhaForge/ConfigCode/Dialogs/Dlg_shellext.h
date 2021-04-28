@@ -24,30 +24,22 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../../resource.h"
-#include "../ConfigShellExt.h"
+#include "resource.h"
+#include "ConfigCode/ConfigShellExt.h"
 
 class CConfigDialog;
 
-
-//====================================
-// 一般設定項目
-//====================================
 class CConfigDlgShellExt : public LFConfigDialogBase<CConfigDlgShellExt>
 {
 protected:
 	CButton Check_ShellExt;
 	CButton Check_ShellExtForceExtra;
-	CConfigDialog	&mr_ConfigDlg;
+	CConfigDialog &mr_ConfigDlg;
 	CConfigShellExt m_Config;
 	struct KVPAIR {
 		std::wstring key, value;
 	};
 	std::map<std::wstring, std::vector<KVPAIR>> _requests;
-
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnShellExt(WORD,WORD,HWND,BOOL&);
@@ -55,7 +47,6 @@ protected:
 	LRESULT OnEditMenu(WORD,WORD,HWND,BOOL&);
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_SHELLEXT };
-	// DDXマップ
 	BEGIN_DDX_MAP(CConfigDlgShellExt)
 		DDX_CHECK(IDC_CHECK_SHELLMENU_COMPRESS,m_Config.ShellMenuCompress)
 		DDX_CHECK(IDC_CHECK_SHELLMENU_EXTRACT,m_Config.ShellMenuExtract)
@@ -68,30 +59,19 @@ public:
 		DDX_CHECK(IDC_CHECK_DRAGMENU_UNDER_SUBMENU,m_Config.DragMenuUnderSubMenu)
 
 		DDX_CHECK(IDC_CHECK_SHELL_EXT_FORCE_EXTRA,m_Config.ForceExtraMenu)
-		DDX_CHECK(IDC_CHECK_SHELL_EXT_USECUSTOM,m_Config.UseCustomMenu)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgShellExt)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER(IDC_BUTTON_EDIT_SHELLMENU,OnEditMenu)
 		COMMAND_ID_HANDLER(IDC_CHECK_SHELL_EXT,OnShellExt)
 		COMMAND_ID_HANDLER(IDC_CHECK_SHELL_EXT_FORCE_EXTRA,OnShellExtForceExtra)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
 	LRESULT OnApply();
 
-	CConfigDlgShellExt(CConfigDialog &dlg):mr_ConfigDlg(dlg){
-		TRACE(_T("CConfigDlgShellExt()\n"));
-	}
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
+	CConfigDlgShellExt(CConfigDialog &dlg):mr_ConfigDlg(dlg){}
+	virtual ~CConfigDlgShellExt() {}
 
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);

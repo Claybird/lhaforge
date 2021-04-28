@@ -22,43 +22,25 @@
 * SOFTWARE.
 */
 
-//関連付け用API
-
 #pragma once
 
-const LPCTSTR ASSOC_PREFIX=_T("LhaForgeArchive_");
 
 
 class ASSOCINFO{
 public:
-	CString Ext;	//拡張子;.付きの名前を渡すこと
-//	CString FileType;
-	CString OrgFileType;
-	bool bOrgStatus;	//関連付けされていたらtrue
-
-	CString OrgIconFile;
-	int OrgIconIndex;
-
-	CString IconFile;
+	std::wstring Ext;	//extension with first dots such as ".txt"
+	bool isAssociated;	//true if associated to LhaForge
+	std::filesystem::path IconFile;
 	int IconIndex;
 
-	CString ShellOpenCommand;
-	ASSOCINFO():IconIndex(0),bOrgStatus(false){}
+	std::wstring prevFileType;
+	std::filesystem::path prevIconFile;
+	int prevIconIndex;
+
+	std::wstring ShellOpenCommand;
+	ASSOCINFO():IconIndex(0), prevIconIndex(0),isAssociated(false){}
 	virtual ~ASSOCINFO(){}
 };
 
-#ifdef __LFASSIST__
-//関連付けを作成
-bool AssocSetAssociation(const ASSOCINFO&);
-//関連付けを削除
-bool AssocDeleteAssociation(LPCTSTR Ext);
-#endif//__LFASSIST__
-//関連付けを取得
-bool AssocGetAssociation(ASSOCINFO&);
-
-#ifdef __LFASSIST__
-//レジストリ再帰的削除
-bool AssocRecursiveDeleteKey(HKEY,LPCTSTR);
-bool AssocRegExistKey(HKEY,LPCTSTR);
-#endif//__LFASSIST__
+bool AssocGetAssociation(const std::wstring &ext, ASSOCINFO&);
 

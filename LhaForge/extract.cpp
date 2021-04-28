@@ -93,7 +93,7 @@ std::filesystem::path determineExtractBaseDir(
 {
 	args.output_dir_callback.setArchivePath(archive_path);
 	auto outputDir = LF_get_output_dir(
-		args.extract.OutputDirType,
+		(OUTPUT_TO)args.extract.OutputDirType,
 		archive_path,
 		args.extract.OutputDirUserSpecified.c_str(),
 		args.output_dir_callback);
@@ -121,7 +121,7 @@ std::filesystem::path determineExtractBaseDir(
 		}
 	}
 	// Confirm to make extract dir if it does not exist
-	LF_ask_and_make_sure_output_dir_exists(outputDir, args.general.OnDirNotFound);
+	LF_ask_and_make_sure_output_dir_exists(outputDir, (LOSTDIR)args.general.OnDirNotFound);
 
 	return outputDir;
 }

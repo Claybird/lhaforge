@@ -29,7 +29,7 @@ enum OUTPUT_TO;
 enum LF_ARCHIVE_FORMAT;
 struct CConfigCompress:public IConfigIO{
 public:
-	OUTPUT_TO OutputDirType;
+	int/*OUTPUT_TO*/ OutputDirType;
 	std::wstring OutputDirUserSpecified;
 	bool OpenDir;
 	bool SpecifyOutputFilename;

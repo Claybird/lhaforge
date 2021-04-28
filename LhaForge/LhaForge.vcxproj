@@ -21,7 +21,6 @@
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
     <ClCompile Include="compress.cpp" />
-    <ClCompile Include="ConfigCode\AssocSettings.cpp" />
     <ClCompile Include="ConfigCode\ConfigCompress.cpp" />
     <ClCompile Include="ConfigCode\ConfigExtract.cpp" />
     <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp" />
@@ -32,14 +31,10 @@
     <ClCompile Include="ConfigCode\Configwnd.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_general.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_openaction.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
     <ClCompile Include="ConfigCode\test\test_configmanager.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -76,7 +71,6 @@
     <ClInclude Include="CmdLineInfo.h" />
     <ClInclude Include="CommonUtil.h" />
     <ClInclude Include="compress.h" />
-    <ClInclude Include="ConfigCode\AssocSettings.h" />
     <ClInclude Include="ConfigCode\ConfigCompress.h" />
     <ClInclude Include="ConfigCode\ConfigCompressFormat.h" />
     <ClInclude Include="ConfigCode\ConfigExtract.h" />

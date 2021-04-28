@@ -25,47 +25,26 @@
 #pragma once
 #include "Dlg_Base.h"
 #include "resource.h"
-#include "Utilities/Utility.h"
 
-//====================================
-// ショートカット作成
-//====================================
 class CConfigDlgShortcut : public LFConfigDialogBase<CConfigDlgShortcut>
 {
-protected:
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
-
 public:
+	CConfigDlgShortcut() {}
+	virtual ~CConfigDlgShortcut() {}
+
 	enum { IDD = IDD_PROPPAGE_SHORTCUT };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgShortcut)
-		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_DESKTOP,IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO, OnCreateShortcut)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_DESKTOP,IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_SENDTO, OnCreateShortcut)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_DESKTOP,IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_SENDTO, OnCreateShortcut)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP,IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO, OnCreateShortcut)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP,IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO, OnCreateShortcut)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnCreateShortcut(WORD,WORD,HWND,BOOL&);
-	bool GetCompressShortcutInfo(std::filesystem::path &,CString&);
 	LRESULT OnApply(){return TRUE;}
 
-	CConfigDlgShortcut(){
-		TRACE(_T("CConfigDlgShortcut()\n"));
-	}
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
 	void LoadConfig(CConfigFile& Config){}
 	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){}
 };

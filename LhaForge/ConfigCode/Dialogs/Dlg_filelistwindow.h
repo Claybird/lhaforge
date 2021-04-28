@@ -24,49 +24,71 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigFile.h"
-#include "../../resource.h"
-#include "../../FileListWindow/FileListModel.h"
-#include "../ConfigFileListWindow.h"
+#include "resource.h"
+#include "FileListWindow/FileListModel.h"
+#include "ConfigCode/ConfigFileListWindow.h"
+#include "ConfigCode/ConfigFile.h"
 
-//==================================
-// ファイル一覧ウィンドウの設定項目
-//==================================
 class CConfigDlgFileListWindow : public LFConfigDialogBase<CConfigDlgFileListWindow>
 {
 protected:
 	CConfigFileListWindow	m_Config;
+	CListViewCtrl List_Command;
 
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
+	std::vector<CLFMenuCommandItem> m_MenuCommandArray;
+	CLFMenuCommandItem *m_lpMenuCommandItem;	//command item in edit
+
+	void OnClearTemporary(UINT, int, HWND) {
+		//clear remaining temoorary directory
+		if (!UtilDeleteDir(UtilGetTempPath().c_str(), false))MessageBeep(MB_ICONHAND);
+	}
+	void OnResetExt(UINT, int nID, HWND) {
+		//reset disallowed/allowed extension list
+		switch (nID) {
+		case IDC_BUTTON_RESET_OPENASSOC_ACCEPT:
+			SetDlgItemText(IDC_EDIT_OPENASSOC_ACCEPT, UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT).c_str());
+			break;
+		case IDC_BUTTON_RESET_OPENASSOC_DENY:
+			SetDlgItemText(IDC_EDIT_OPENASSOC_DENY, UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_DENY).c_str());
+			break;
+		}
 	}
 
-	void OnClearTemporary(UINT,int,HWND);	//残ってしまったテンポラリディレクトリを削除
-	void OnResetExt(UINT,int,HWND);			//禁止・許可拡張子のリセット
-
-	CEdit Edit_Path,Edit_Param,Edit_Dir,Edit_Caption;
-	CListViewCtrl List_Command;
 	void OnBrowsePath(UINT, int, HWND);
 	void OnBrowseDir(UINT, int, HWND);
 	void OnBrowseCustomToolbarImage(UINT, int, HWND);
 
-	std::vector<CLFMenuCommandItem> m_MenuCommandArray;
-	CLFMenuCommandItem *m_lpMenuCommandItem;	//編集中のコマンドアイテム
-
 	LRESULT OnGetDispInfo(LPNMHDR pnmh);
 	LRESULT OnSelect(LPNMHDR pnmh);
-	LRESULT OnUserAppMoveUp(WORD,WORD,HWND,BOOL&);
-	LRESULT OnUserAppMoveDown(WORD,WORD,HWND,BOOL&);
+	LRESULT OnUserAppMoveUpDown(WORD,WORD,HWND,BOOL&);
 	LRESULT OnUserAppNew(WORD,WORD,HWND,BOOL&);
 	LRESULT OnUserAppDelete(WORD,WORD,HWND,BOOL&);
-	LRESULT OnCheckChanged(WORD,WORD,HWND,BOOL&);
+	LRESULT OnCheckChanged(WORD, WORD, HWND, BOOL&) {
+		auto checked= CButton(GetDlgItem(IDC_CHECK_DISABLE_TAB)).GetCheck();
+		::EnableWindow(GetDlgItem(IDC_CHECK_KEEP_SINGLE_INSTANCE), !checked);
+		return 0;
+	}
 
-	void setUserAppEdit();
-	void getUserAppEdit();
+	void getUserAppEdit() {
+		CString buf;
+		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, buf);
+		m_lpMenuCommandItem->Path = buf;
+		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, buf);
+		m_lpMenuCommandItem->Param = buf;
+		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, buf);
+		m_lpMenuCommandItem->Dir = buf;
+		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, buf);
+		m_lpMenuCommandItem->Caption = buf;
+	}
+	void setUserAppEdit() {
+		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, m_lpMenuCommandItem->Path.c_str());
+		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, m_lpMenuCommandItem->Param.c_str());
+		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, m_lpMenuCommandItem->Dir.c_str());
+		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, m_lpMenuCommandItem->Caption.c_str());
+	}
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_FILELISTWINDOW };
 
-	// DDXマップ
 	BEGIN_DDX_MAP(CConfigDlgFileListWindow)
 		DDX_CHECK(IDC_CHECK_STORE_FILELISTWINDOW_SETTING, m_Config.StoreSetting)
 		DDX_CHECK(IDC_CHECK_STORE_FILELISTWINDOW_POSITION, m_Config.StoreWindowPosition)
@@ -84,9 +106,8 @@ public:
 		DDX_CHECK(IDC_CHECK_DENY_PATHEXT,m_Config.DenyPathExt)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgFileListWindow)
-		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)	//仮想リストビュー
+		NOTIFY_CODE_HANDLER_EX(LVN_GETDISPINFO, OnGetDispInfo)	//virtual list view
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnSelect)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_CLEAR_TEMPORARY,OnClearTemporary)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_RESET_OPENASSOC_ACCEPT,OnResetExt)
@@ -94,8 +115,8 @@ public:
 
 		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_NEW,OnUserAppNew)
 		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_DELETE,OnUserAppDelete)
-		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_MOVEUP,OnUserAppMoveUp)
-		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_MOVEDOWN,OnUserAppMoveDown)
+		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_MOVEUP, OnUserAppMoveUpDown)
+		COMMAND_ID_HANDLER(IDC_BUTTON_FILELIST_USERAPP_MOVEDOWN, OnUserAppMoveUpDown)
 
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_FILELIST_USERAPP_BROWSE, OnBrowsePath)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_FILELIST_USERAPP_BROWSEDIR, OnBrowseDir)
@@ -103,18 +124,10 @@ public:
 
 		COMMAND_ID_HANDLER(IDC_CHECK_DISABLE_TAB, OnCheckChanged)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnApply();
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
 
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);

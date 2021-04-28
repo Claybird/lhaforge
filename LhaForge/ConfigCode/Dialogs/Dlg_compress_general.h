@@ -24,35 +24,21 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigFile.h"
-#include "../../resource.h"
-#include "../ConfigCompress.h"
+#include "resource.h"
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigCompress.h"
 #include "ArchiverCode/archive.h"
 
-//====================================
-// 圧縮一般設定
-//====================================
 class CConfigDlgCompressGeneral : public LFConfigDialogBase<CConfigDlgCompressGeneral>
 {
 protected:
 	CConfigCompress	m_Config;
-	CButton Radio_CompressTo[OUTPUT_TO_ITEM_COUNT];
-	CEdit Edit_CompressOutputDirPath;
-	CButton Button_CompressToFolder;
 	CUpDownCtrl UpDown_MaxCompressFileCount;
-	CButton Check_LimitCompressFileCount;
-	CButton Check_UseDefaultParameter;
-	CButton Check_DeleteAfterCompress;
-	CEdit Edit_DefaultParameterInfo;
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 
-	void SetParameterInfo();//Editに現在のパラメータの情報を表示する
+	void SetParameterInfo();
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_COMPRESS_GENERAL };
 
-	// DDXマップ
 	BEGIN_DDX_MAP(CConfigGeneral)
 		DDX_CHECK(IDC_CHECK_ALWAYS_SPEFICY_OUTPUT_FILENAME, m_Config.SpecifyOutputFilename)
 		DDX_CHECK(IDC_CHECK_OPEN_FOLDER_AFTER_COMPRESS, m_Config.OpenDir)
@@ -63,9 +49,9 @@ public:
 		DDX_CHECK(IDC_CHECK_DELETE_NOCONFIRM,m_Config.DeleteNoConfirm)
 		DDX_CHECK(IDC_CHECK_FORCE_DELETE,m_Config.ForceDelete)
 		DDX_CHECK(IDC_CHECK_IGNORE_TOP_DIRECTORY,m_Config.IgnoreTopDirectory)
+		DDX_RADIO(IDC_RADIO_COMPRESS_TO_DESKTOP, m_Config.OutputDirType)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgCompressGeneral)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_RANGE_HANDLER(IDC_RADIO_COMPRESS_TO_DESKTOP,IDC_RADIO_COMPRESS_TO_ALWAYS_ASK_WHERE, OnRadioCompressTo)
@@ -74,7 +60,6 @@ public:
 		COMMAND_ID_HANDLER(IDC_CHECK_USE_DEFAULTPARAMETER,OnCheckUseDefaultParameter)
 		COMMAND_ID_HANDLER(IDC_BUTTON_SELECT_DEFAULTPARAMETER,OnSelectDefaultParameter)
 		COMMAND_ID_HANDLER(IDC_CHECK_DELETE_AFTER_COMPRESS,OnCheckDelete)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
@@ -85,13 +70,6 @@ public:
 	LRESULT OnCheckUseDefaultParameter(WORD,WORD,HWND,BOOL&);
 	LRESULT OnSelectDefaultParameter(WORD,WORD,HWND,BOOL&);
 	LRESULT OnCheckDelete(WORD,WORD,HWND,BOOL&);
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
 
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);

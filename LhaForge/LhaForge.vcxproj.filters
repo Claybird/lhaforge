@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="ConfigCode\AssocSettings.cpp">
-      <Filter>Configs\Other</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Configwnd.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
@@ -13,28 +10,16 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_general.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_openaction.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\ConfigCompress.cpp">
@@ -169,9 +154,6 @@
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\AssocSettings.h">
-      <Filter>Configs\Other</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Configwnd.h">
       <Filter>Configs\Other</Filter>

@@ -24,21 +24,14 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigFile.h"
-#include "../../resource.h"
-#include "../../Utilities/Utility.h"
-#include "../ConfigOpenAction.h"
-
-//======================================
-// 関連付けでファイルを開いたときの動作
-//======================================
+#include "ConfigCode/ConfigFile.h"
+#include "resource.h"
+#include "Utilities/Utility.h"
+#include "ConfigCode/ConfigOpenAction.h"
 
 class CConfigDlgOpenAction : public LFConfigDialogBase<CConfigDlgOpenAction>
 {
 protected:
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 	CConfigOpenAction	m_Config;
 
 	CButton Radio_OpenAction[OPENACTION_ITEM_COUNT];
@@ -47,18 +40,59 @@ protected:
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_OPENACTION };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgOpenAction)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	LRESULT OnApply();
+	CConfigDlgOpenAction() {}
+	virtual ~CConfigDlgOpenAction() {}
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		//---normal
+		Radio_OpenAction[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT);
+		Radio_OpenAction[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST);
+		Radio_OpenAction[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST);
+		Radio_OpenAction[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK);
 
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
+		Radio_OpenAction[m_Config.OpenAction].SetCheck(true);
+		//---Shift pressed
+		Radio_OpenAction_Shift[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_SHIFT);
+		Radio_OpenAction_Shift[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST_SHIFT);
+		Radio_OpenAction_Shift[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST_SHIFT);
+		Radio_OpenAction_Shift[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK_SHIFT);
+
+		Radio_OpenAction_Shift[m_Config.OpenAction_Shift].SetCheck(true);
+		//---Ctrl pressed
+		Radio_OpenAction_Ctrl[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_CTRL);
+		Radio_OpenAction_Ctrl[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST_CTRL);
+		Radio_OpenAction_Ctrl[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST_CTRL);
+		Radio_OpenAction_Ctrl[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK_CTRL);
+
+		Radio_OpenAction_Ctrl[m_Config.OpenAction_Ctrl].SetCheck(true);
+
+		return TRUE;
+	}
+	LRESULT OnApply() {
+		//---normal
+		for (int i = 0; i < COUNTOF(Radio_OpenAction); i++) {
+			if (Radio_OpenAction[i].GetCheck()) {
+				m_Config.OpenAction = (OPENACTION)i;
+				break;
+			}
+		}
+		//---Shift pressed
+		for (int i = 0; i < COUNTOF(Radio_OpenAction_Shift); i++) {
+			if (Radio_OpenAction_Shift[i].GetCheck()) {
+				m_Config.OpenAction_Shift = (OPENACTION)i;
+				break;
+			}
+		}
+		//---Ctrl pressed
+		for (int i = 0; i < COUNTOF(Radio_OpenAction_Ctrl); i++) {
+			if (Radio_OpenAction_Ctrl[i].GetCheck()) {
+				m_Config.OpenAction_Ctrl = (OPENACTION)i;
+				break;
+			}
+		}
 
 		return TRUE;
 	}

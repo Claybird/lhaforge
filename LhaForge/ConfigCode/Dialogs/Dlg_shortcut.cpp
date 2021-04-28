@@ -24,168 +24,149 @@
 
 #include "stdafx.h"
 #include "Dlg_shortcut.h"
-#include "../../Compress.h"
-#include "../../Dialogs/SelectDlg.h"
-#include "../../Utilities/OSUtil.h"
+#include "Compress.h"
+#include "Dialogs/SelectDlg.h"
+#include "Utilities/OSUtil.h"
 
-//========================
-// ショートカット作成画面
-//========================
-LRESULT CConfigDlgShortcut::OnInitDialog(HWND hWnd, LPARAM lParam)
+
+std::tuple<std::wstring/*arg*/, std::wstring/*fname*/>
+GetCompressShortcutInfo(HWND hWnd)
 {
-	// メッセージループにメッセージフィルタとアイドルハンドラを追加
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	pLoop->AddMessageFilter(this);
+	if (IDYES == UtilMessageBox(hWnd,
+		UtilLoadString(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK), MB_YESNO | MB_ICONQUESTION)) {
+		int Options = -1;
 
-	return TRUE;
+		//choose format
+		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+		if (format == LF_FMT_INVALID)CANCEL_EXCEPTION();
+
+		//find args
+		try {
+			const auto &args = get_archive_format_args(format, options);
+			UINT resID;
+			auto arg = L"/c:" + args.name;
+			if (singleCompression) {
+				resID = IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE;
+				arg += L" /s";
+			} else {
+				resID = IDS_SHORTCUT_NAME_COMPRESS_EX;
+			}
+			auto fname = Format(UtilLoadString(resID), UtilLoadString(args.FormatName).c_str());
+
+			if (deleteAfterCompress) {
+				//ignored intentionally
+			}
+			return { arg,fname };
+		} catch (const ARCHIVE_EXCEPTION&) {
+			//unsupported format
+			throw LF_EXCEPTION(UtilLoadString(IDS_ERROR_ILLEGAL_FORMAT_TYPE));
+		}
+	} else {
+		//Select on every compression
+		auto fname = UtilLoadString(IDS_SHORTCUT_NAME_COMPRESS);
+		auto arg = L"/c";
+		return { arg,fname };
+	}
 }
+
 
 LRESULT CConfigDlgShortcut::OnCreateShortcut(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
-	if(BN_CLICKED==wNotifyCode){
-		//------------------------
-		// LhaForge本体のパス取得
-		//------------------------
+	if (BN_CLICKED == wNotifyCode) {
 		const auto ExePath = UtilGetModulePath();
 
-		//ショートカット ファイル名
-		std::filesystem::path ShortcutFileName;
+		std::filesystem::path shortcutPath;
 
-		//----------------------
-		// 作成先フォルダの取得
-		//----------------------
-		switch(wID){
+		// destination directory
+		switch (wID) {
 		case IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP:
-			// デスクトップに作成
-			ShortcutFileName = UtilGetDesktopPath();
+			// on desktop
+			shortcutPath = UtilGetDesktopPath();
 			break;
 		case IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
-			// 「送る」フォルダに作成
-			ShortcutFileName = UtilGetSendToPath();
+			// in "sendto"
+			shortcutPath = UtilGetSendToPath();
 			break;
-		default:ASSERT(!"OnCreateShortcut:this code must not be run.");return 0;
+		default:ASSERT(!"OnCreateShortcut:this code must not be run."); return 0;
 		}
 
-		//----------------------
-		// ショートカットの設定
-		//----------------------
-		CString Param;	//コマンドライン引数
-		int IconIndex=-1;	//ショートカットアイコン
-		WORD DescriptionID;	//ショートカットの説明のリソースID
-		switch(wID){
+		//parameters
+		std::wstring arg;
+		int IconIndex = -1;
+		WORD DescriptionID;	//resource id for description
+		switch (wID) {
 		case IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_COMPRESS_SHORTCUT_SENDTO:
-			//LhaForgeで圧縮
-			if(!GetCompressShortcutInfo(ShortcutFileName,Param))return 0;
-			DescriptionID=IDS_SHORTCUT_DESCRIPTION_COMPRESS;
-			IconIndex=1;
+			//Compress
+			try {
+				std::wstring filename;
+				std::tie(arg, filename) = GetCompressShortcutInfo(m_hWnd);
+				shortcutPath /= filename;
+			} catch (const LF_USER_CANCEL_EXCEPTION&) {
+				return 0;
+			} catch (const LF_EXCEPTION& e) {
+				ErrorMessage(e.what());
+				return 0;
+			}
+			DescriptionID = IDS_SHORTCUT_DESCRIPTION_COMPRESS;
+			IconIndex = 1;
 			break;
 
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_EXTRACT_SHORTCUT_SENDTO:
-			//LhaForgeで解凍
-			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_EXTRACT);
-			Param=_T("/e");
-			DescriptionID=IDS_SHORTCUT_DESCRIPTION_EXTRACT;
-			IconIndex=2;
+			//Extract
+			shortcutPath /= UtilLoadString(IDS_SHORTCUT_NAME_EXTRACT);
+			arg = L"/e";
+			DescriptionID = IDS_SHORTCUT_DESCRIPTION_EXTRACT;
+			IconIndex = 2;
 			break;
 
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_AUTOMATIC_SHORTCUT_SENDTO:
-			//LhaForgeで処理
-			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_AUTOMATIC);
-			Param.Empty();
-			DescriptionID=IDS_SHORTCUT_DESCRIPTION_AUTOMATIC;
-			IconIndex=0;
+			//automatic detect
+			shortcutPath /= UtilLoadString(IDS_SHORTCUT_NAME_AUTOMATIC);
+			arg = L"";
+			DescriptionID = IDS_SHORTCUT_DESCRIPTION_AUTOMATIC;
+			IconIndex = 0;
 			break;
 
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_LIST_SHORTCUT_SENDTO:
-			//LhaForgeで閲覧
-			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_LIST);
-			Param=_T("/l");
-			DescriptionID=IDS_SHORTCUT_DESCRIPTION_LIST;
-			IconIndex=3;
+			//List
+			shortcutPath /= UtilLoadString(IDS_SHORTCUT_NAME_LIST);
+			arg = L"/l";
+			DescriptionID = IDS_SHORTCUT_DESCRIPTION_LIST;
+			IconIndex = 3;
 			break;
 
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_DESKTOP://FALLTHROUGH
 		case IDC_BUTTON_CREATE_TESTARCHIVE_SHORTCUT_SENDTO:
-			//LhaForgeで検査
-			ShortcutFileName /= UtilLoadString(IDS_SHORTCUT_NAME_TESTARCHIVE);
-			Param=_T("/t");
-			DescriptionID=IDS_SHORTCUT_DESCRIPTION_TESTARCHIVE;
-			IconIndex=4;
+			//test
+			shortcutPath /= UtilLoadString(IDS_SHORTCUT_NAME_TESTARCHIVE);
+			arg = L"/t";
+			DescriptionID = IDS_SHORTCUT_DESCRIPTION_TESTARCHIVE;
+			IconIndex = 4;
 			break;
 
-		default:ASSERT(!"OnCreateShortcut:this code must not be run.");return 0;
+		default:ASSERT(!"OnCreateShortcut:this code must not be run."); return 0;
 		}
-		//拡張子
-		ShortcutFileName += L".lnk";
+		//extension
+		shortcutPath += L".lnk";
 
-		if(FAILED(UtilCreateShortcut(ShortcutFileName, ExePath, (const wchar_t*)Param, ExePath,IconIndex, UtilLoadString(DescriptionID).c_str()))){
+		if (FAILED(UtilCreateShortcut(shortcutPath, ExePath, arg, ExePath, IconIndex, UtilLoadString(DescriptionID)))) {
 			ErrorMessage(UtilLoadString(IDS_ERROR_CREATE_SHORTCUT));
-		}else{
-			//作成成功で音を鳴らす
+		} else {
+			//beep when success
 			MessageBeep(MB_ICONASTERISK);
 		}
 	}
 	return 0;
 }
-
-//作成するショートカットの情報を取得
-//Path:ショートカットファイル名,Param:コマンドライン引数
-bool CConfigDlgShortcut::GetCompressShortcutInfo(std::filesystem::path &Path,CString &Param)
-{
-	//圧縮形式を今決めておくか、後で決めるかを選ばせる
-	if(IDYES== UtilMessageBox(m_hWnd, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK)),MB_YESNO|MB_ICONQUESTION)){
-		int Options=-1;
-
-		//形式選択ダイアログ
-		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
-		if(format==LF_FMT_INVALID)return false;	//キャンセル
-
-		//選択ダイアログの条件に一致するパラメータを検索
-		try {
-			const auto &args = get_archive_format_args(format, options);
-			//ショートカット名取得
-			CString Buf;
-			if (singleCompression) {
-				//一つずつ圧縮
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE, UtilLoadString(args.FormatName).c_str());
-			} else {
-				//通常
-				Buf.Format(IDS_SHORTCUT_NAME_COMPRESS_EX, UtilLoadString(args.FormatName).c_str());
-			}
-			Path /= Buf.operator LPCWSTR();
-			//パラメータ
-			Param = (L"/c:" + args.name).c_str();
-			if (singleCompression) {
-				//一つずつ圧縮
-				Param += _T(" /s");
-			}
-			if (deleteAfterCompress) {
-				//TODO
-			}
-		} catch (const ARCHIVE_EXCEPTION&) {
-			//一覧に指定された圧縮方式がない
-			//つまり、サポートしていない圧縮方式だったとき
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE)));
-			return false;
-		}
-	}
-	else{
-		//圧縮形式をその都度決める
-		Path /= UtilLoadString(IDS_SHORTCUT_NAME_COMPRESS);
-		Param=_T("/c");
-	}
-	return true;
-}
-

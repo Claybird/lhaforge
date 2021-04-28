@@ -86,17 +86,4 @@ void CConfigShellExt::storeExtraMenu(CConfigFile &Config)const
 	Config.setValue(section, L"ForceExtraMenu", ForceExtraMenu);
 }
 
-void CConfigShellExt::loadCustomMenu(const CConfigFile &Config)
-{
-	const auto section = L"CustomMenu";
-	// カスタマイズメニューの使用
-	UseCustomMenu=Config.getBool(section, L"UseCustom", true);
-}
-
-void CConfigShellExt::storeCustomMenu(CConfigFile &Config)const
-{
-	const auto section = L"CustomMenu";
-	// カスタマイズメニューの使用
-	Config.setValue(section, L"UseCustom", UseCustomMenu);
-}
 

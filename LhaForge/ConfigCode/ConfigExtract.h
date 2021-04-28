@@ -29,10 +29,10 @@ enum OUTPUT_TO;
 enum CREATE_OUTPUT_DIR;
 struct CConfigExtract:public IConfigIO{
 public:
-	OUTPUT_TO OutputDirType;
+	int/*OUTPUT_TO*/ OutputDirType;
 	std::wstring OutputDirUserSpecified;
 	bool OpenDir;
-	CREATE_OUTPUT_DIR CreateDir;
+	int/*CREATE_OUTPUT_DIR*/ CreateDir;
 	bool ForceOverwrite;
 	bool RemoveSymbolAndNumber;
 	bool CreateNoFolderIfSingleFileOnly;

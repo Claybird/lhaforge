@@ -782,7 +782,7 @@ void compress_helper(
 			pathOutputDir = p.parent_path();
 		} else {
 			pathOutputDir = determineDefaultArchiveDir(
-				args.compress.OutputDirType,
+				(OUTPUT_TO)args.compress.OutputDirType,
 				givenFiles.front(),
 				args.compress.OutputDirUserSpecified.c_str());
 		}
@@ -810,7 +810,7 @@ void compress_helper(
 		}
 	}
 	// Confirm to make extract dir if it does not exist
-	LF_ask_and_make_sure_output_dir_exists(pathOutputDir, args.general.OnDirNotFound);
+	LF_ask_and_make_sure_output_dir_exists(pathOutputDir, (LOSTDIR)args.general.OnDirNotFound);
 
 	//archive file title
 	std::wstring defaultArchiveTitle;

@@ -24,64 +24,79 @@
 
 #include "stdafx.h"
 #include "Dlg_assoc.h"
-#include "../configwnd.h"
-#include "../../Utilities/StringUtil.h"
+#include "ConfigCode/configwnd.h"
+#include "Utilities/StringUtil.h"
 
 #define ICONINDEX_EXTERNAL_SINGLE	21
 
-//ASTYPE=TAR,LZH,etc.
-//EXT=.lzh,.tar,etc.
-#define LOAD_ASSOC_AND_SET_ICON(TYPE,EXT,INDEX,INDEX2)	{\
-	AssocSettings[ASSOC_##TYPE].DefaultIconIndex=INDEX;\
-	AssocSettings[ASSOC_##TYPE].DefaultIconIndex_Ex=INDEX2;\
-	AssocSettings[ASSOC_##TYPE].Picture_Icon=GetDlgItem(IDC_STATIC_ASSOCIATION_##TYPE);\
-	AssocSettings[ASSOC_##TYPE].Button_SetIcon=GetDlgItem(IDC_BUTTON_CHANGE_ICON_##TYPE);\
-	AssocSettings[ASSOC_##TYPE].Check_SetAssoc=GetDlgItem(IDC_CHECK_ASSOCIATION_##TYPE);\
-	AssocSettings[ASSOC_##TYPE].AssocInfo.Ext=EXT;\
-	AssocSettings[ASSOC_##TYPE].Check_SetAssoc.SetCheck(FALSE);\
-	if(AssocGetAssociation(AssocSettings[ASSOC_##TYPE].AssocInfo)){\
-		AssocSettings[ASSOC_##TYPE].SetIconFromAssoc(Icon_SystemDefault);/*関連付け情報からアイコンを取得する*/\
-		AssocSettings[ASSOC_##TYPE].CheckAssociation(m_strAssocDesired);	/*関連付け情報が正しいかどうかチェック*/\
-		if(AssocSettings[ASSOC_##TYPE].bChanged)mr_ConfigDlg.RequireAssistant();	/*関連付け情報が誤っているのでLFAssistを要請*/\
-		if(!AssocSettings[ASSOC_##TYPE].AssocInfo.bOrgStatus){\
-			AssocSettings[ASSOC_##TYPE].Button_SetIcon.EnableWindow(false);\
-			AssocSettings[ASSOC_##TYPE].Check_SetAssoc.SetCheck(FALSE);\
-		}\
-		else{\
-			AssocSettings[ASSOC_##TYPE].Check_SetAssoc.SetCheck(TRUE);\
-		}\
-	}\
-	else{\
-		AssocSettings[ASSOC_##TYPE].Picture_Icon.SetIcon(Icon_SystemDefault);\
-		AssocSettings[ASSOC_##TYPE].Button_SetIcon.EnableWindow(false);\
-	}\
-}
+
+struct DLG_ASSOC_ITEM{
+	ASSOC_TYPE atype;
+	std::wstring ext;
+	int defaultIconIndex;
+	UINT resStatic, resButton, resCheck;
+};
+
+#define DLG_ASSOC_DEF(TYPE,EXT,INDEX)	\
+	{ASSOC_##TYPE,	EXT, INDEX, \
+	IDC_STATIC_ASSOCIATION_##TYPE, IDC_BUTTON_CHANGE_ICON_##TYPE, IDC_CHECK_ASSOCIATION_##TYPE}
+
+const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
+	DLG_ASSOC_DEF(LZH,	L".lzh",	0),
+	DLG_ASSOC_DEF(LZS,	L".lzs",	22),
+	DLG_ASSOC_DEF(LHA,	L".lha",	23),
+
+	DLG_ASSOC_DEF(ZIP,	L".zip",	1),
+	DLG_ASSOC_DEF(JAR,	L".jar",	2),
+	DLG_ASSOC_DEF(CAB,	L".cab",	3),
+
+	DLG_ASSOC_DEF(7Z,		L".7z",		4),
+
+	DLG_ASSOC_DEF(ARJ,	L".arj",	14),
+	DLG_ASSOC_DEF(RAR,	L".rar",	5),
+	DLG_ASSOC_DEF(ACE,	L".ace",	13),
+
+	DLG_ASSOC_DEF(BZA,	L".bza",	15),
+	DLG_ASSOC_DEF(GZA,	L".gza",	16),
+
+	DLG_ASSOC_DEF(UUE,	L".uue",	19),
+
+	DLG_ASSOC_DEF(TAR,	L".tar",	24),
+	DLG_ASSOC_DEF(GZ,		L".gz",		25),
+	DLG_ASSOC_DEF(TGZ,	L".tgz",	26),
+	DLG_ASSOC_DEF(BZ2,	L".bz2",	27),
+	DLG_ASSOC_DEF(TBZ,	L".tbz",	28),
+	DLG_ASSOC_DEF(XZ,		L".xz",		36),
+	DLG_ASSOC_DEF(TAR_XZ,	L".txz",	37),
+	DLG_ASSOC_DEF(LZMA,	L".lzma",	38),
+	DLG_ASSOC_DEF(TAR_LZMA,L".tlz",	39),
+	DLG_ASSOC_DEF(Z,		L".z",		29),
+	DLG_ASSOC_DEF(TAZ,	L".taz",	30),
+
+	DLG_ASSOC_DEF(ZSTD,	L".zst",	40),
+
+	DLG_ASSOC_DEF(CPIO,	L".cpio",	31),
+	DLG_ASSOC_DEF(RPM,	L".rpm",	33),
+	DLG_ASSOC_DEF(DEB,	L".deb",	34),
+	DLG_ASSOC_DEF(ISO,	L".iso",	35),
+};
 
 //--------------------------------------------
 
-//ピクチャボックスにアイコンを指定
 LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// メッセージループにメッセージフィルタとアイドルハンドラを追加
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	pLoop->AddMessageFilter(this);
-
-	// 関連付けのShellOpenCommandを算出
 	{
-		std::wstring modulePath = UtilGetModulePath();
-		CPath fullPath;
+		auto modulePath = UtilGetModulePath();
+		std::filesystem::path fullPath;
 		try {
-			fullPath = UtilGetCompletePathName(modulePath).c_str();	//パスを正規化
+			fullPath = UtilGetCompletePathName(modulePath);
 		} catch (const LF_EXCEPTION&) {
-			fullPath = modulePath.c_str();
+			fullPath = modulePath;
 		}
-		fullPath.QuoteSpaces();
-		m_strAssocDesired=(LPCTSTR)fullPath;
-		//m_strAssocDesired.MakeLower();	//小文字に正規化
-		m_strAssocDesired+=_T(" /m \"%1\"");	//パラメータ
+		m_assocDesired = Format(L"\"%s\"  /m \"%%1\"", fullPath.c_str());
 	}
 
-	// システムデフォルトアイコンを取得
+	// system default icon
 	if(Icon_SystemDefault.IsNull()){
 		auto nSize = GetSystemDirectoryW(nullptr, 0);
 		std::vector<wchar_t> buf(nSize);
@@ -91,55 +106,50 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 		Icon_SystemDefault.ExtractIconW(path.make_preferred().c_str(), 0);
 	}
 
-	// 関連付け情報をチェック
-	LOAD_ASSOC_AND_SET_ICON(LZH,	_T(".lzh"),	0,	0);
-	LOAD_ASSOC_AND_SET_ICON(LZS,	_T(".lzs"),	0,	22);
-	LOAD_ASSOC_AND_SET_ICON(LHA,	_T(".lha"),	0,	23);
-	LOAD_ASSOC_AND_SET_ICON(ZIP,	_T(".zip"),	1,	1);
-	LOAD_ASSOC_AND_SET_ICON(JAR,	_T(".jar"),	2,	2);
-	LOAD_ASSOC_AND_SET_ICON(CAB,	_T(".cab"),	3,	3);
-	LOAD_ASSOC_AND_SET_ICON(7Z,		_T(".7z"),	4,	4);
-	LOAD_ASSOC_AND_SET_ICON(ARJ,	_T(".arj"),	14,	14);
-	LOAD_ASSOC_AND_SET_ICON(RAR,	_T(".rar"),	5,	5);
-	LOAD_ASSOC_AND_SET_ICON(ACE,	_T(".ace"),	13,	13);
-	LOAD_ASSOC_AND_SET_ICON(BZA,	_T(".bza"),	15,	15);
-	LOAD_ASSOC_AND_SET_ICON(GZA,	_T(".gza"),	16,	16);
-	LOAD_ASSOC_AND_SET_ICON(UUE,	_T(".uue"),	19,	19);
+	for(const auto& item: DLG_ASSOC_TABLE){
+		auto& assoc = AssocSettings[item.atype];
+		const auto &ext = item.ext;
+		assoc.DefaultIconIndex = item.defaultIconIndex;
+		assoc.Picture_Icon = GetDlgItem(item.resStatic);
+		assoc.Button_SetIcon = GetDlgItem(item.resButton);
+		assoc.Check_SetAssoc = GetDlgItem(item.resCheck);
+		assoc.AssocInfo.Ext = ext;
+		assoc.Check_SetAssoc.SetCheck(FALSE);
+		if (AssocGetAssociation(ext, assoc.AssocInfo)) {
+			assoc.SetIconFromAssoc(Icon_SystemDefault);
+			assoc.CheckAssociation(m_assocDesired);
+			if (assoc.bChanged)mr_ConfigDlg.RequireAssistant();
+			if (!assoc.AssocInfo.isAssociated) {
+				assoc.Button_SetIcon.EnableWindow(false);
+				assoc.Check_SetAssoc.SetCheck(FALSE);
+			} else {
+				assoc.Check_SetAssoc.SetCheck(TRUE);
+			}
+		} else {
+			assoc.Picture_Icon.SetIcon(Icon_SystemDefault);
+			assoc.Button_SetIcon.EnableWindow(false);
+		}
+	}
 
-	LOAD_ASSOC_AND_SET_ICON(TAR,	_T(".tar"),	7,	24);
-	LOAD_ASSOC_AND_SET_ICON(GZ,		_T(".gz"),	7,	25);
-	LOAD_ASSOC_AND_SET_ICON(TGZ,	_T(".tgz"),	7,	26);
-	LOAD_ASSOC_AND_SET_ICON(BZ2,	_T(".bz2"),	7,	27);
-	LOAD_ASSOC_AND_SET_ICON(TBZ,	_T(".tbz"),	7,	28);
-	LOAD_ASSOC_AND_SET_ICON(XZ,		_T(".xz"),	7,	36);
-	LOAD_ASSOC_AND_SET_ICON(TAR_XZ,	_T(".txz"),	7,	37);
-	LOAD_ASSOC_AND_SET_ICON(LZMA,	_T(".lzma"),7,	38);
-	LOAD_ASSOC_AND_SET_ICON(TAR_LZMA,_T(".tlz"),7,	39);
-	LOAD_ASSOC_AND_SET_ICON(Z,		_T(".z"),	7,	29);
-	LOAD_ASSOC_AND_SET_ICON(TAZ,	_T(".taz"),	7,	30);
-	LOAD_ASSOC_AND_SET_ICON(CPIO,	_T(".cpio"),7,	31);
-	LOAD_ASSOC_AND_SET_ICON(A,		_T(".a"),	7,	32);
-	LOAD_ASSOC_AND_SET_ICON(LIB,	_T(".lib"),	9,	9);
-	LOAD_ASSOC_AND_SET_ICON(RPM,	_T(".rpm"),	8,	33);
-	LOAD_ASSOC_AND_SET_ICON(DEB,	_T(".deb"),	8,	34);
-	LOAD_ASSOC_AND_SET_ICON(ISO,	_T(".iso"),	8,	35);
 	return TRUE;
 }
 
-
-LRESULT CConfigDlgAssociation::OnCheckAssoc(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+LRESULT CConfigDlgAssociation::OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	if(BN_CLICKED==wNotifyCode){
-		for(int i=0;i<COUNTOF(AssocSettings);i++){
-			if(hWndCtl==AssocSettings[i].Check_SetAssoc){
-				BOOL bEnabled=AssocSettings[i].Check_SetAssoc.GetCheck();
-				AssocSettings[i].Button_SetIcon.EnableWindow(bEnabled);
-				if(!bEnabled){
-					AssocSettings[i].SetIconFromAssoc(Icon_SystemDefault);
-				}
-				//LFAssist.exeの実行を要請
-				mr_ConfigDlg.RequireAssistant();
-				break;
+	WORD wNotifyCode = HIWORD(wParam);
+	WORD wID = LOWORD(wParam);
+	HWND hWndCtl = (HWND)lParam;
+	bHandled = FALSE;
+	if (BN_CLICKED == wNotifyCode) {
+		for (auto &item : AssocSettings) {
+			if (hWndCtl == item.Check_SetAssoc) {
+				OnCheckAssoc(item);
+				bHandled = TRUE;
+				return 0;
+			} else if (hWndCtl == item.Button_SetIcon) {
+				OnChangeIcon(item);
+				bHandled = TRUE;
+				return 0;
 			}
 		}
 	}
@@ -147,24 +157,25 @@ LRESULT CConfigDlgAssociation::OnCheckAssoc(WORD wNotifyCode, WORD wID, HWND hWn
 }
 
 
-LRESULT CConfigDlgAssociation::OnChangeIcon(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+void CConfigDlgAssociation::OnCheckAssoc(ASSOC_SETTINGS& item)
 {
-	if(BN_CLICKED==wNotifyCode){
-		for(int i=0;i<COUNTOF(AssocSettings);i++){
-			if(hWndCtl==AssocSettings[i].Button_SetIcon){
-				CIconSelectDialog isd(AssocSettings[i].AssocInfo);
-				if(IDOK==isd.DoModal()){
-					TRACE(_T("IconFile=%s\n"),AssocSettings[i].AssocInfo.IconFile);
-					AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
-					AssocSettings[i].bChanged=true;
-					//LFAssist.exeの実行を要請
-					mr_ConfigDlg.RequireAssistant();
-				}
-				break;
-			}
-		}
+	BOOL bEnabled = item.Check_SetAssoc.GetCheck();
+	item.Button_SetIcon.EnableWindow(bEnabled);
+	if (!bEnabled) {
+		item.SetIconFromAssoc(Icon_SystemDefault);
 	}
-	return 0;
+	mr_ConfigDlg.RequireAssistant();
+}
+
+
+void CConfigDlgAssociation::OnChangeIcon(ASSOC_SETTINGS& item)
+{
+	CIconSelectDialog isd(item.AssocInfo);
+	if (IDOK == isd.DoModal()) {
+		item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+		item.bChanged = true;
+		mr_ConfigDlg.RequireAssistant();
+	}
 }
 
 LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
@@ -173,86 +184,69 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		return 0;
 	}
 
-	std::filesystem::path ResourcePath;	//アイコンファイル名
+	std::filesystem::path ResourcePath;
 	int IconIndex=-1;
 	if(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON==wID||IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE==wID){
-		//--------------
-		// 標準アイコン
-		//--------------
-		ResourcePath = UtilGetModuleDirectoryPath();
-		//EXEのパスを元にDLLのファイル名を組み立てる
-		ResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+		ResourcePath = UtilGetModuleDirectoryPath() / UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
 	}else if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON==wID||IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID){
-		//------------------------------------
-		// 外部のアイコンファイルをセットする
-		//------------------------------------
-
-		//アイコンを選択させる(デフォルトは標準アイコン)
+		//let user to choose icon
 		ASSOCINFO ac;
 		CIconSelectDialog isd(ac);
 		if(IDOK!=isd.DoModal()){
 			return 0;
 		}
-		ResourcePath = ac.IconFile.operator LPCWSTR();
-		IconIndex=ac.IconIndex;
-		if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID&&-1==IconIndex){
-			//アイコンが選択されていない
+		ResourcePath = ac.IconFile;
+		IconIndex = ac.IconIndex;
+		if (IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE == wID && -1 == IconIndex) {
+			//icon not selected
 			return 0;
 		}
 	}
-	for(int i=0;i<COUNTOF(AssocSettings);i++){
+	for (size_t i = 0; i < AssocSettings.size();i++) {
+		auto &item = AssocSettings[i];
 		switch(wID){
-		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:	//標準の関連付け
+		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:
 			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), i)){
-				AssocSettings[i].Button_SetIcon.EnableWindow(TRUE);
-				AssocSettings[i].Check_SetAssoc.SetCheck(TRUE);
+				item.Button_SetIcon.EnableWindow(TRUE);
+				item.Check_SetAssoc.SetCheck(TRUE);
 			}
 			break;
 		case IDC_BUTTON_ASSOC_CHECK_ALL:
-			AssocSettings[i].Button_SetIcon.EnableWindow(TRUE);
-			AssocSettings[i].Check_SetAssoc.SetCheck(TRUE);
+			item.Button_SetIcon.EnableWindow(TRUE);
+			item.Check_SetAssoc.SetCheck(TRUE);
 			break;
 		case IDC_BUTTON_ASSOC_UNCHECK_ALL:
-			AssocSettings[i].Button_SetIcon.EnableWindow(FALSE);
-			AssocSettings[i].Check_SetAssoc.SetCheck(FALSE);
-			AssocSettings[i].SetIconFromAssoc(Icon_SystemDefault);
+			item.Button_SetIcon.EnableWindow(FALSE);
+			item.Check_SetAssoc.SetCheck(FALSE);
+			item.SetIconFromAssoc(Icon_SystemDefault);
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON:	//FALLTHROUGH
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON:
-			//全て標準アイコンに/全て外部アイコンに
-			{
-				//アイコン数の取得
-			long IconCount = (long)ExtractIconW(GetModuleHandleW(nullptr), ResourcePath.c_str(), -1);
-				const bool bExtraIcon=(IconCount>=35);	//アイコンの数が35より多ければ全て識別するタイプのアイコンだということになる
-				if(AssocSettings[i].Check_SetAssoc.GetCheck()){
-					AssocSettings[i].AssocInfo.IconIndex=bExtraIcon?AssocSettings[i].DefaultIconIndex_Ex:AssocSettings[i].DefaultIconIndex;
-					AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
-					AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
-					AssocSettings[i].bChanged=true;
-				}
+			if(item.Check_SetAssoc.GetCheck()){
+				item.AssocInfo.IconIndex=item.DefaultIconIndex;
+				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				item.bChanged=true;
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE:
-			//全て標準単一アイコンに
-			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
-				AssocSettings[i].AssocInfo.IconIndex=ICONINDEX_EXTERNAL_SINGLE;
-				AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
-				AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
-				AssocSettings[i].bChanged=true;
+			if(item.Check_SetAssoc.GetCheck()){
+				item.AssocInfo.IconIndex=ICONINDEX_EXTERNAL_SINGLE;
+				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				item.bChanged=true;
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE:
-			//全て外部単一アイコンに
-			if(AssocSettings[i].Check_SetAssoc.GetCheck()){
-				AssocSettings[i].AssocInfo.IconIndex=IconIndex;
-				AssocSettings[i].AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
-				AssocSettings[i].SetIcon(AssocSettings[i].AssocInfo.IconFile,AssocSettings[i].AssocInfo.IconIndex);
-				AssocSettings[i].bChanged=true;
+			if(item.Check_SetAssoc.GetCheck()){
+				item.AssocInfo.IconIndex=IconIndex;
+				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				item.bChanged=true;
 			}
 			break;
 		}
 	}
-	//LFAssist.exeの実行を要請
 	mr_ConfigDlg.RequireAssistant();
 	return 0;
 }
@@ -260,19 +254,18 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 LRESULT CConfigDlgAssociation::OnApply()
 {
 	_assocRequests.clear();
-	for (int i = 0; i < COUNTOF(AssocSettings); i++) {
-		//レジストリ変更の必要がある場合
-		bool Checked = (0 != AssocSettings[i].Check_SetAssoc.GetCheck());
-		if ((AssocSettings[i].AssocInfo.bOrgStatus^Checked) || AssocSettings[i].bChanged) {
-			if (AssocSettings[i].AssocInfo.bOrgStatus && !Checked) {
-				//関連づけ解除要請
-				_assocRequests[AssocSettings[i].AssocInfo.Ext.operator LPCWSTR()] = { {L"set", 0} };
+	for (auto &item: AssocSettings) {
+		bool Checked = (0 != item.Check_SetAssoc.GetCheck());
+		if ((item.AssocInfo.isAssociated^Checked) || item.bChanged) {
+			if (item.AssocInfo.isAssociated && !Checked) {
+				//unset association
+				_assocRequests[item.AssocInfo.Ext] = { {L"set", 0} };
 			} else {
-				//関連づけ要請
-				_assocRequests[AssocSettings[i].AssocInfo.Ext.operator LPCWSTR()] = {
+				//set association
+				_assocRequests[item.AssocInfo.Ext] = {
 					{L"set", L"1"},
-					{L"iconfile", AssocSettings[i].AssocInfo.IconFile.operator LPCWSTR()},
-					{L"iconindex", Format(L"%d",AssocSettings[i].AssocInfo.IconIndex)},
+					{L"iconfile", item.AssocInfo.IconFile.wstring()},
+					{L"iconindex", Format(L"%d",item.AssocInfo.IconIndex)},
 				};
 			}
 		}
@@ -291,102 +284,4 @@ void CConfigDlgAssociation::StoreConfig(CConfigFile& Config, CConfigFile& assist
 	}
 }
 
-//==================================================================================
 
-CIconSelectDialog::CIconSelectDialog(ASSOCINFO &ai)
-{
-	AssocInfo=&ai;
-	if(AssocInfo->IconFile.IsEmpty()){
-		//EXEのパスを元にDLLのファイル名を組み立てる
-		CPath strResourcePath(UtilGetModuleDirectoryPath().c_str());
-		strResourcePath+=CString(MAKEINTRESOURCE(IDS_ICON_FILE_NAME_DEFAULT));
-		IconPath=(CString)strResourcePath;
-		TRACE(_T("Set Default Icon Path\n"));
-	}
-	else{
-		IconPath=AssocInfo->IconFile;
-	}
-}
-
-LRESULT CIconSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
-{
-	ASSERT(AssocInfo);
-	CenterWindow();
-	ListView=GetDlgItem(IDC_LIST_ICON);
-	//DDX情報アップデート
-	DoDataExchange(FALSE);
-
-	UpdateIcon();
-	ListView.SetItemState(AssocInfo->IconIndex,LVIS_SELECTED,1);
-
-	// ダイアログリサイズ初期化
-	DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
-	return TRUE;
-}
-
-void CIconSelectDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
-{
-	if(!DoDataExchange(TRUE))return;
-	AssocInfo->IconFile=IconPath;
-	const int ItemCount=ListView.GetItemCount();
-	for(int i=0;i<ItemCount;i++){
-		if(ListView.GetItemState(i,LVIS_SELECTED)){
-			AssocInfo->IconIndex=i;
-			break;
-		}
-	}
-	EndDialog(nID);
-}
-
-void CIconSelectDialog::OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl)
-{
-	const COMDLG_FILTERSPEC filter[] = {
-		{ L"Icon File", L"*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl" },
-		{ L"All Files", L"*.*" },
-	};
-
-	if(!DoDataExchange(TRUE))return;
-	LFShellFileOpenDialog dlg(IconPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
-	if(IDCANCEL==dlg.DoModal()){	//キャンセル
-		return;
-	}
-
-	dlg.GetFilePath(IconPath);
-	DoDataExchange(FALSE);
-	UpdateIcon();
-}
-
-void CIconSelectDialog::OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl)
-{
-	std::filesystem::path ResourcePath = UtilGetModuleDirectoryPath();
-	//EXEのパスを元にDLLのファイル名を組み立てる
-	ResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
-	IconPath = ResourcePath.make_preferred().c_str();
-
-	DoDataExchange(FALSE);
-	UpdateIcon();
-}
-
-bool CIconSelectDialog::UpdateIcon()
-{
-	ListView.DeleteAllItems();
-	IconList.Destroy();
-	//アイコン数の取得
-	long IconCount=(long)ExtractIconW(GetModuleHandleW(nullptr),IconPath,-1);
-	if(0==IconCount){
-		ListView.EnableWindow(false);
-		return false;
-	}
-	ListView.EnableWindow(true);
-	IconList.Create(32,32,ILC_COLOR32 | ILC_MASK,IconCount,1);
-	for(long i=0;i<IconCount;i++){
-		CIcon Icon;
-		Icon.ExtractIcon(IconPath,i);
-		IconList.AddIcon(Icon);
-	}
-	ListView.SetImageList(IconList,LVSIL_NORMAL);
-	for(long i=0;i<IconCount;i++){
-		ListView.AddItem(i,0,_T(""),i);
-	}
-	return true;
-}

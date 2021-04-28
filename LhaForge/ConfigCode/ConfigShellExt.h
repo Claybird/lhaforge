@@ -36,7 +36,6 @@ public:
 	bool DragMenuExtract;
 	bool DragMenuUnderSubMenu;
 	bool ForceExtraMenu;
-	bool UseCustomMenu;
 protected:
 	void loadShellMenu(const CConfigFile&);
 	void storeShellMenu(CConfigFile&)const;
@@ -44,20 +43,16 @@ protected:
 	void storeDragMenu(CConfigFile&)const;
 	void loadExtraMenu(const CConfigFile&);
 	void storeExtraMenu(CConfigFile&)const;
-	void loadCustomMenu(const CConfigFile&);
-	void storeCustomMenu(CConfigFile&)const;
 public:
 	virtual ~CConfigShellExt(){}
 	virtual void load(const CConfigFile& Config) {
 		loadShellMenu(Config);
 		loadDragMenu(Config);
 		loadExtraMenu(Config);
-		loadCustomMenu(Config);
 	}
 	virtual void store(CConfigFile& Config)const {
 		storeShellMenu(Config);
 		storeDragMenu(Config);
 		storeExtraMenu(Config);
-		storeCustomMenu(Config);
 	}
 };

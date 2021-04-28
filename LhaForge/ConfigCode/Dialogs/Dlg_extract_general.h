@@ -24,34 +24,20 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigFile.h"
-#include "../../resource.h"
-#include "../ConfigExtract.h"
+#include "resource.h"
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigExtract.h"
 #include "ArchiverCode/archive.h"
 
-//====================================
-// 解凍一般設定
-//====================================
 class CConfigDlgExtractGeneral : public LFConfigDialogBase<CConfigDlgExtractGeneral>
 {
 protected:
 	CConfigExtract m_Config;
-	CButton Radio_ExtractTo[OUTPUT_TO_ITEM_COUNT];
-	CEdit Edit_ExtractOutputDirPath;
-	CButton Button_ExtractToFolder;
-	CButton Radio_CreateDir[CREATE_OUTPUT_DIR_ITEM_COUNT];
 	CUpDownCtrl UpDown_MaxExtractFileCount;
-	CButton Check_LimitExtractFileCount;
-	CButton Check_DeleteFileAfterExtract;
-	CString DenyExt;
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_EXTRACT_GENERAL };
 
-	// DDXマップ
 	BEGIN_DDX_MAP(CConfigGeneral)
 		DDX_CHECK(IDC_CHECK_REMOVE_SYMBOL_AND_NUMBER, m_Config.RemoveSymbolAndNumber)
 		DDX_CHECK(IDC_CHECK_OPEN_FOLDER_AFTER_EXTRACT, m_Config.OpenDir)
@@ -63,10 +49,11 @@ public:
 		DDX_CHECK(IDC_CHECK_DELETE_NOCONFIRM,m_Config.DeleteNoConfirm)
 		DDX_CHECK(IDC_CHECK_FORCE_DELETE,m_Config.ForceDelete)
 		DDX_CHECK(IDC_CHECK_MINIMUM_PASSWORD_REQUEST,m_Config.MinimumPasswordRequest)
-		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT,DenyExt)
+		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT, m_Config.DenyExt)
+		DDX_RADIO(IDC_RADIO_EXTRACT_TO_DESKTOP, m_Config.OutputDirType)
+		DDX_RADIO(IDC_RADIO_CREATE_FOLDER, m_Config.CreateDir)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgExtractGeneral)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_RANGE_HANDLER(IDC_RADIO_EXTRACT_TO_DESKTOP,IDC_RADIO_EXTRACT_TO_ALWAYS_ASK_WHERE, OnRadioExtractTo)
@@ -74,7 +61,6 @@ public:
 		COMMAND_ID_HANDLER(IDC_BUTTON_EXTRACT_BROWSE_FOLDER,OnBrowseFolder)
 		COMMAND_ID_HANDLER(IDC_CHECK_LIMIT_EXTRACT_FILECOUNT,OnCheckLimitExtractFileCount)
 		COMMAND_ID_HANDLER(IDC_CHECK_DELETE_ARCHIVE_AFTER_EXTRACT,OnCheckDeleteArchive)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
@@ -85,20 +71,11 @@ public:
 	LRESULT OnCheckLimitExtractFileCount(WORD,WORD,HWND,BOOL&);
 	LRESULT OnCheckDeleteArchive(WORD,WORD,HWND,BOOL&);
 
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
-
 	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
-		DenyExt = m_Config.DenyExt.c_str();
 	}
 	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
-		m_Config.DenyExt = (const wchar_t*)DenyExt;
 	}
 };
 

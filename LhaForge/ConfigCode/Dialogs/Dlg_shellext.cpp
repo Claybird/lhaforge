@@ -23,32 +23,23 @@
 */
 
 #include "stdafx.h"
-#include "../ConfigFile.h"
+#include "ConfigCode/ConfigFile.h"
 #include "Dlg_shellext.h"
-#include "../../Utilities/shellmanager.h"
-#include "../configwnd.h"
+#include "Utilities/shellmanager.h"
+#include "ConfigCode/ConfigWnd.h"
 
-//==============
-// 一般設定画面
-//==============
 LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
-	// メッセージループにメッセージフィルタとアイドルハンドラを追加
-	CMessageLoop* pLoop = _Module.GetMessageLoop();
-	pLoop->AddMessageFilter(this);
-
-	//------------------
-	// シェル拡張の有無
-	//------------------
+	BOOL bActive = ShellRegistCheck();
 	Check_ShellExt=GetDlgItem(IDC_CHECK_SHELL_EXT);
-	Check_ShellExt.SetCheck(ShellRegistCheck());
+	Check_ShellExt.SetCheck(bActive);
 
 	Check_ShellExtForceExtra=GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA);
 
-	//DDX情報アップデート
+	//update via DDX
 	DoDataExchange(FALSE);
 
-	BOOL bActive=Check_ShellExt.GetCheck();
+	//shell extension is active?
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_COMPRESS),bActive);
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_EXTRACT),bActive);
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELLMENU_LIST),bActive);
@@ -59,15 +50,12 @@ LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 	::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_EXTRACT),bActive);
 	::EnableWindow(GetDlgItem(IDC_CHECK_DRAGMENU_UNDER_SUBMENU),bActive);
 
-	//------------------------------------
-	// 常時拡張メニューを使用するかどうか
-	//------------------------------------
+	// Use extended menu always?
 	::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),bActive);
 
-	//メニューカスタマイズ
-	bActive=bActive&&(!Check_ShellExtForceExtra.GetCheck());
-	::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),bActive);
-	::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),bActive);
+	//Customize menu
+	bool bCustomActive = bActive && (!Check_ShellExtForceExtra.GetCheck());
+	::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU), bCustomActive);
 
 	return TRUE;
 }
@@ -75,27 +63,16 @@ LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)
 LRESULT CConfigDlgShellExt::OnApply()
 {
 	_requests.clear();
-//==========================
-// シェル拡張のON/OFFを反映
-//==========================
 	bool bCurrentStatus=(0!=Check_ShellExt.GetCheck());
 
-	//依頼内容を記述
-	//---登録or解除
+	//request to enable/disable shell
 	if (bCurrentStatus) {
-		//登録
 		_requests[L"Shell"] = { { L"set", L"1" } };
 	} else {
-		//解除
 		_requests[L"Shell"] = { { L"set", L"0" } };
 	}
 
-//===============================
-// 設定をConfigManagerに書き戻す
-//===============================
-	//---------------
-	// DDXデータ更新
-	//---------------
+	// DDX: write back to config
 	if(!DoDataExchange(TRUE)){
 		return FALSE;
 	}
@@ -120,17 +97,15 @@ LRESULT CConfigDlgShellExt::OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_FORCE_EXTRA),	 bActive);
 
 
-		//メニューカスタマイズ
 		bool bCustomActive = bActive && (!Check_ShellExtForceExtra.GetCheck());
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),	bCustomActive);
 		::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),		bCustomActive);
 
-		bool bOldStatus=ShellRegistCheck();
-		if(bActive ^ bOldStatus){	//if( (!bActive && bOldStatus) || (bActive && !bOldStatus)){
-			//LFAssist.exeの実行を要請
+		bool bOldStatus = ShellRegistCheck();
+		if(bActive ^ bOldStatus){
+			//request LFAssist.exe
 			mr_ConfigDlg.RequireAssistant();
 		}else{
-			//LFAssist.exeの実行要請を取り消し
+			//cancel LFAssist.exe
 			mr_ConfigDlg.UnrequireAssistant();
 		}
 	}
@@ -140,8 +115,7 @@ LRESULT CConfigDlgShellExt::OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 LRESULT CConfigDlgShellExt::OnShellExtForceExtra(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		BOOL bActive=(!Check_ShellExtForceExtra.GetCheck())&&Check_ShellExt.GetCheck();
-		::EnableWindow(GetDlgItem(IDC_CHECK_SHELL_EXT_USECUSTOM),bActive);
+		BOOL bActive = (!Check_ShellExtForceExtra.GetCheck()) && Check_ShellExt.GetCheck();
 		::EnableWindow(GetDlgItem(IDC_BUTTON_EDIT_SHELLMENU),bActive);
 	}
 	return 0;
@@ -153,10 +127,11 @@ LRESULT CConfigDlgShellExt::OnEditMenu(WORD wNotifyCode, WORD wID, HWND hWndCtl,
 		return 0;
 	}
 
-	//編集プログラム起動
+	//Run menu editor
 	std::filesystem::path path = UtilGetModuleDirectoryPath();
 	path /= L"MenuEditor.exe";
 
-	ShellExecuteW(m_hWnd, L"open", path.make_preferred().c_str(), nullptr, nullptr, SW_SHOW);
+	ShellExecuteW(m_hWnd, L"open",
+		(L'"'+path.make_preferred().wstring()+ L'"').c_str(), nullptr, nullptr, SW_SHOW);
 	return 0;
 }
