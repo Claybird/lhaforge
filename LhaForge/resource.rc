@@ -1,7 +1,8 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
 #pragma code_page(65001)
+
+#include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -1288,7 +1289,7 @@ BEGIN
     IDS_ERROR_EXAMINEARCHIVE "圧縮ファイルの検査に失敗しました。"
     IDS_ICON_FILE_NAME_DEFAULT "LFIcons.DLL"
     IDS_INPUT_TARGET_FOLDER "出力先フォルダを選択してください。"
-    IDS_LHAFORGE_VERSION_STRING "Ver.1.6.7"
+    IDS_LHAFORGE_VERSION_STRING "Beta"
     IDS_COMPRESS_FILE       "圧縮ファイル"
     IDS_CONFIRM_OVERWRITE_MESSAGE 
                             "ファイル '%s'\r\n 既にディスク上に同名ファイルが存在します。\r\n ディスク上のファイル(更新日時 %d年%d月%d日、%d時%d分%d秒、サイズ%I64uバイト)を、圧縮ファイル中の同名ファイル(サイズ%dバイト)で置き換えますか?"
