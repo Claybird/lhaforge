@@ -152,9 +152,6 @@
     <ProjectReference Include="..\dependency\libarchive\libcharset\libcharset.vcxproj">
       <Project>{fddff1f1-5dc5-4879-8bee-cf8a6b2eb855}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\liblzma\liblzma.vcxproj">
-      <Project>{85763f39-23df-4c04-b7df-7fbe3e7cf336}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\dependency\libarchive\lz4\liblz4.vcxproj">
       <Project>{9092c5cc-3e71-41b3-bf68-4a7bdd8a5476}</Project>
     </ProjectReference>
