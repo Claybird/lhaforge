@@ -696,7 +696,6 @@ TEST(compress, compressOneArchive)
 		{L"output.lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD },
 		{L"output.xz",	LF_FMT_XZ,	LF_WOPT_STANDARD},
 		{L"output.zst",	LF_FMT_ZSTD, LF_WOPT_STANDARD},
-		{L"output.uue",	LF_FMT_UUE, LF_WOPT_STANDARD},
 	};
 	for (const auto &p : patterns) {
 		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / p.archive_name;
@@ -1013,7 +1012,6 @@ const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
 	{L"txz",		LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},		//compatibility
 	{L"tar+xz",	LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
 	{L"tar+zstd",LF_FMT_TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
-	{L"uue",		LF_FMT_UUE,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_UUE},
 };
 
 
@@ -1048,7 +1046,6 @@ TEST(compress, get_archive_format_args)
 	EXPECT_EQ(L"txz", get_archive_format_args(LF_FMT_TAR_XZ, LF_WOPT_STANDARD).name);
 	//EXPECT_EQ(L"tar+xz", get_archive_format_args(LF_FMT_TAR_XZ, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"tar+zstd", get_archive_format_args(LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"uue", get_archive_format_args(LF_FMT_UUE, LF_WOPT_STANDARD).name);
 }
 #endif
 

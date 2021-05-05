@@ -79,7 +79,6 @@ const static std::vector<LA_COMPRESSION_CAPABILITY> g_la_capabilities = {
 	{LF_FMT_TAR_LZMA, L".tar.lzma", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZMA, },
 	{LF_FMT_TAR_XZ, L".tar.xz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_XZ, },
 	{LF_FMT_TAR_ZSTD, L".tar.zst", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_ZSTD, },
-	{LF_FMT_UUE, L".uue", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_UU, },
 };
 
 
@@ -692,6 +691,7 @@ TEST(CLFArchiveLA, is_modify_supported)
 	//EXPECT_FALSE(check(L"some_non_existing_file"));
 
 	EXPECT_TRUE(check(dir / L"test/test_extract.zip"));
+	EXPECT_TRUE(check(dir / L"test/test_extract.zipx"));
 	EXPECT_FALSE(check(dir / L"test/test.lzh"));
 	EXPECT_TRUE(check(dir / L"test/test.tar.gz"));
 }
@@ -788,9 +788,9 @@ void CLFArchiveLA::read_entry_end()
 TEST(CLFArchiveLA, read_entry)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFArchiveLA a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
-	for (int i = 0; i < 2; i++) {
+	{
+		CLFArchiveLA a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dirA/dirB/", entry->path);
@@ -810,6 +810,45 @@ TEST(CLFArchiveLA, read_entry)
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"あいうえお.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"かきくけこ/file3.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_EQ(nullptr, entry);
+	}
+
+	{
+		CLFArchiveLA a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", CLFPassphraseNULL());
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/dirC/", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"あいうえお.txt", entry->path);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"かきくけこ/", entry->path);
 
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);

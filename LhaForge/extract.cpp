@@ -194,6 +194,13 @@ TEST(extract, PRE_EXTRACT_CHECK) {
 	{
 		PRE_EXTRACT_CHECK c;
 		CLFArchive a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", CLFPassphraseNULL());
+		c.check(a);
+		EXPECT_FALSE(c.allInOneDir);
+	}
+	{
+		PRE_EXTRACT_CHECK c;
+		CLFArchive a;
 		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFPassphraseNULL());
 		c.check(a);
 		EXPECT_FALSE(c.allInOneDir);
@@ -757,7 +764,7 @@ void testOneArchive(
 #ifdef UNIT_TEST
 TEST(extract, testOneArchive) {
 	_wsetlocale(LC_ALL, L"");	//default locale
-	auto files = { L"test_extract.zip", L"test_gzip.gz" };
+	auto files = { L"test_extract.zip", L"test_extract.zipx", L"test_gzip.gz" };
 
 	for (const auto &file : files) {
 		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;

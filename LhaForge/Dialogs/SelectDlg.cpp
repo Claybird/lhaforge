@@ -74,7 +74,6 @@ protected:
 		BUTTON_PARAM(TAR_LZMA);
 		BUTTON_PARAM(TAR_XZ);
 		BUTTON_PARAM(TAR_ZSTD);
-		BUTTON_PARAM(UUE);
 		case IDCANCEL:
 			format = LF_FMT_INVALID;
 			break;

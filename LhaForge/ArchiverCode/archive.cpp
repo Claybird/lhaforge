@@ -36,6 +36,7 @@ TEST(archive, guessSuitableArchiver)
 {
 	const auto dir = LF_PROJECT_DIR() / L"test";
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_extract.zip"));
+	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_extract.zipx"));
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_broken_crc.zip"));
 }
 
@@ -57,7 +58,6 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 	case LF_FMT_TAR_LZMA:
 	case LF_FMT_TAR_XZ:
 	case LF_FMT_TAR_ZSTD:
-	case LF_FMT_UUE:
 		return std::make_unique<CLFArchiveLA>();
 	default:
 		RAISE_EXCEPTION(L"Unknown format");
@@ -79,7 +79,6 @@ TEST(archive, guessSuitableArchiver2)
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_LZMA));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_XZ));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_ZSTD));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_UUE));
 }
 #endif
 
@@ -97,6 +96,7 @@ TEST(CLFArchive, read_open)
 	CLFArchive a;
 	const auto dir = LF_PROJECT_DIR() / L"test";
 	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zip", CLFPassphraseNULL()));
+	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zipx", CLFPassphraseNULL()));
 	EXPECT_NO_THROW(a.read_open(dir / L"test_broken_crc.zip", CLFPassphraseNULL()));
 	EXPECT_NO_THROW(a.read_open(dir / L"test.lzh", CLFPassphraseNULL()));
 }
@@ -170,7 +170,6 @@ TEST(CLFArchive, get_compression_capability_formatExt)
 	EXPECT_EQ(L".tar.lzma", CLFArchive::get_compression_capability(LF_FMT_TAR_LZMA).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.xz", CLFArchive::get_compression_capability(LF_FMT_TAR_XZ).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.zst", CLFArchive::get_compression_capability(LF_FMT_TAR_ZSTD).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".uue", CLFArchive::get_compression_capability(LF_FMT_UUE).formatExt(path, LF_WOPT_STANDARD));
 }
 #endif
 

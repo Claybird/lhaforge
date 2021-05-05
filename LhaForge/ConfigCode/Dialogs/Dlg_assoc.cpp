@@ -47,37 +47,34 @@ const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
 	DLG_ASSOC_DEF(LHA,	L".lha",	23),
 
 	DLG_ASSOC_DEF(ZIP,	L".zip",	1),
-	DLG_ASSOC_DEF(JAR,	L".jar",	2),
 	DLG_ASSOC_DEF(CAB,	L".cab",	3),
+	DLG_ASSOC_DEF(ZIPX,	L".zipx",	2),
 
-	DLG_ASSOC_DEF(7Z,		L".7z",		4),
+	DLG_ASSOC_DEF(7Z,	L".7z",		4),
 
-	DLG_ASSOC_DEF(ARJ,	L".arj",	14),
 	DLG_ASSOC_DEF(RAR,	L".rar",	5),
 	DLG_ASSOC_DEF(ACE,	L".ace",	13),
-
+	DLG_ASSOC_DEF(ARJ,	L".arj",	35),
 	DLG_ASSOC_DEF(BZA,	L".bza",	15),
 	DLG_ASSOC_DEF(GZA,	L".gza",	16),
 
 	DLG_ASSOC_DEF(UUE,	L".uue",	19),
+	DLG_ASSOC_DEF(UUE,	L".ish",	19),
 
 	DLG_ASSOC_DEF(TAR,	L".tar",	24),
-	DLG_ASSOC_DEF(GZ,		L".gz",		25),
-	DLG_ASSOC_DEF(TGZ,	L".tgz",	26),
+	DLG_ASSOC_DEF(GZ,	L".gz",		25),
 	DLG_ASSOC_DEF(BZ2,	L".bz2",	27),
-	DLG_ASSOC_DEF(TBZ,	L".tbz",	28),
-	DLG_ASSOC_DEF(XZ,		L".xz",		36),
-	DLG_ASSOC_DEF(TAR_XZ,	L".txz",	37),
+	DLG_ASSOC_DEF(XZ,	L".xz",		36),
 	DLG_ASSOC_DEF(LZMA,	L".lzma",	38),
+	DLG_ASSOC_DEF(ZSTD,	L".zst",	40),
+	DLG_ASSOC_DEF(Z,	L".z",		29),
+	DLG_ASSOC_DEF(CPIO,	L".cpio",	31),
+	DLG_ASSOC_DEF(TGZ,	L".tgz",	26),
+	DLG_ASSOC_DEF(TBZ,	L".tbz",	28),
+	DLG_ASSOC_DEF(TAR_XZ,	L".txz",	37),
 	DLG_ASSOC_DEF(TAR_LZMA,L".tlz",	39),
-	DLG_ASSOC_DEF(Z,		L".z",		29),
 	DLG_ASSOC_DEF(TAZ,	L".taz",	30),
 
-	DLG_ASSOC_DEF(ZSTD,	L".zst",	40),
-
-	DLG_ASSOC_DEF(CPIO,	L".cpio",	31),
-	DLG_ASSOC_DEF(RPM,	L".rpm",	33),
-	DLG_ASSOC_DEF(DEB,	L".deb",	34),
 	DLG_ASSOC_DEF(ISO,	L".iso",	35),
 };
 

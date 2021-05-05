@@ -109,23 +109,6 @@ enum LF_ARCHIVE_FORMAT {
 	LF_FMT_TAR_LZMA,
 	LF_FMT_TAR_XZ,
 	LF_FMT_TAR_ZSTD,
-	LF_FMT_UUE,
-
-	//---following are decompress only
-	/*LF_FMT_LZH,
-	LF_FMT_CAB,
-	LF_FMT_RAR,
-	LF_FMT_ISO,
-	LF_FMT_AR,
-	LF_FMT_XAR,
-	LF_FMT_WARC,
-	LF_FMT_CPIO,
-	//---following are extracted other than libarchive
-	LF_FMT_ACE,
-	LF_FMT_JAK,
-	LF_FMT_BZA,
-	LF_FMT_GZA,
-	LF_FMT_ISH,*/
 };
 
 enum LF_WRITE_OPTIONS {
