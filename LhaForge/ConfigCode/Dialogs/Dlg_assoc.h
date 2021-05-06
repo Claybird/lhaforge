@@ -73,38 +73,39 @@ const int NO_DEFAULT_ASSOCS[]={
 
 
 class ASSOC_SETTINGS {
-protected:
-	CIcon		Icon;
 public:
+	CIcon		Icon;
 	int DefaultIconIndex;
-	CStatic		Picture_Icon;
-	CButton		Button_SetIcon;
-	CButton		Check_SetAssoc;
 	ASSOCINFO	AssocInfo;
 	bool		bChanged;
+	std::wstring formatName;
 
 	ASSOC_SETTINGS() :bChanged(false) {}
 	virtual ~ASSOC_SETTINGS() {}
 
-	void SetIconFromAssoc(CIcon &IconSystemDefault){
+	void SetIconFromAssoc(){
 		if (AssocInfo.prevIconFile.empty()) {
-			SetIcon(IconSystemDefault);
+			//fall back to system default icon
+			auto nSize = GetSystemDirectoryW(nullptr, 0);
+			std::vector<wchar_t> buf(nSize);
+			GetSystemDirectoryW(&buf[0], nSize);
+			std::filesystem::path path = &buf[0];
+			path /= L"shell32.dll";
+
+			if (!Icon.IsNull())Icon.DestroyIcon();
+			Icon.ExtractIconW(path.make_preferred().c_str(), 0);
 		} else {
-			SetIcon(AssocInfo.prevIconFile, AssocInfo.prevIconIndex);
+			SetIcon(AssocInfo.prevIconFile.c_str(), AssocInfo.prevIconIndex);
 		}
 	}
-
-	void SetIcon(CIcon &icon){
-		Picture_Icon.SetIcon(icon);
-	}
-	void SetIcon(const std::filesystem::path &path, int idx) {
+	void SetIcon(const std::filesystem::path& path, int idx) {
 		if (!Icon.IsNull())Icon.DestroyIcon();
 		Icon.ExtractIcon(path.c_str(), idx);
-		Picture_Icon.SetIcon(Icon);
 	}
+
 	void CheckAssociation(const std::wstring& desiredCommand) {
 		bChanged = false;
-		if (AssocInfo.isAssociated) {	//Not Associated
+		if (AssocInfo.isAssociated) {	//not associated
 			//current association is same as desired one?
 			if (desiredCommand != AssocInfo.ShellOpenCommand) {
 				bChanged = true;
@@ -119,12 +120,18 @@ class CConfigDialog;
 class CConfigDlgAssociation : public LFConfigDialogBase<CConfigDlgAssociation>
 {
 protected:
+	enum {
+		COLUMN_STATE,
+		COLUMN_EXT,
+		COLUMN_FORMAT,
+	};
 	std::array<ASSOC_SETTINGS, ASSOC_TYPE_ITEM_COUNT> AssocSettings;
+
+	CListViewCtrl m_assocList;
+	CImageListManaged m_imageList;
 
 	//expected program path; if different, set flag to modify associated program
 	std::wstring m_assocDesired;
-
-	CIcon Icon_SystemDefault;	//file icon that has no association
 
 	CConfigDialog	&mr_ConfigDlg;
 
@@ -133,20 +140,22 @@ protected:
 	};
 	std::map<std::wstring, std::vector<KVPAIR>> _assocRequests;
 
+	void updateImageList();
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_ASSOCIATION };
 
 	BEGIN_MSG_MAP_EX(CConfigDlgAssociation)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MESSAGE_HANDLER(WM_COMMAND, OnCommand)	//switches to suitable function
-		COMMAND_RANGE_HANDLER(IDC_BUTTON_ASSOC_CHECK_ALL, IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE, OnSetAssoc)
+		COMMAND_RANGE_HANDLER(IDC_BUTTON_ASSOC_UNCHECK_ALL, IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE, OnSetAssoc)
+		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnAssocStateChanged)
+		NOTIFY_CODE_HANDLER_EX(NM_DBLCLK, OnChangeIcon)
+		NOTIFY_CODE_HANDLER_EX(NM_RETURN, OnChangeIcon)
 	END_MSG_MAP()
 
+	LRESULT OnAssocStateChanged(LPNMHDR pnmh);
+	LRESULT OnChangeIcon(LPNMHDR pnmh);
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	LRESULT OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	void OnCheckAssoc(ASSOC_SETTINGS&);
-	void OnChangeIcon(ASSOC_SETTINGS&);
 	LRESULT OnSetAssoc(WORD,WORD,HWND,BOOL&);
 	LRESULT OnApply();
 

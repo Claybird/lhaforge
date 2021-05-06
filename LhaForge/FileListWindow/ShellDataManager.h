@@ -46,7 +46,7 @@ protected:
 			LF_SHELLDATA ShellData;
 
 			//file icon index
-			SHFILEINFO shfi;
+			SHFILEINFO shfi = {};
 			SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON | SHGFI_SYSICONINDEX);
 			ShellData.IconIndex = shfi.iIcon;
 
@@ -63,7 +63,7 @@ protected:
 public:
 	virtual ~CLFShellDataManager(){}
 	void Init() {
-		SHFILEINFO shfi;
+		SHFILEINFO shfi = {};
 		_imageListLarge = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
 		_imageListSmall = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
 

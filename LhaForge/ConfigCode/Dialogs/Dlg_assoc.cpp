@@ -26,6 +26,7 @@
 #include "Dlg_assoc.h"
 #include "ConfigCode/configwnd.h"
 #include "Utilities/StringUtil.h"
+#include <CommonControls.h>
 
 #define ICONINDEX_EXTERNAL_SINGLE	21
 
@@ -33,52 +34,64 @@
 struct DLG_ASSOC_ITEM{
 	ASSOC_TYPE atype;
 	std::wstring ext;
-	int defaultIconIndex;
-	UINT resStatic, resButton, resCheck;
+	std::wstring formatName;
+	int defaultIconIndex;	//TODO: remove
 };
 
-#define DLG_ASSOC_DEF(TYPE,EXT,INDEX)	\
-	{ASSOC_##TYPE,	EXT, INDEX, \
-	IDC_STATIC_ASSOCIATION_##TYPE, IDC_BUTTON_CHANGE_ICON_##TYPE, IDC_CHECK_ASSOCIATION_##TYPE}
-
 const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
-	DLG_ASSOC_DEF(LZH,	L".lzh",	0),
-	DLG_ASSOC_DEF(LZS,	L".lzs",	22),
-	DLG_ASSOC_DEF(LHA,	L".lha",	23),
+	{ASSOC_LZH,	L".lzh",	L"LHA/LZH archive",	0},
+	{ASSOC_LZS,	L".lzs",	L"LHA/LZH archive",	22},
+	{ASSOC_LHA,	L".lha",	L"LHA/LZH archive",	23},
 
-	DLG_ASSOC_DEF(ZIP,	L".zip",	1),
-	DLG_ASSOC_DEF(CAB,	L".cab",	3),
-	DLG_ASSOC_DEF(ZIPX,	L".zipx",	2),
+	{ASSOC_ZIP,	L".zip",	L"ZIP archive",	1},
+	{ASSOC_CAB,	L".cab",	L"\"Microsoft Cabinet\" archive",	3},
+	{ASSOC_ZIPX,	L".zipx",	L"WinZip advanced ZIP archive",	2},
 
-	DLG_ASSOC_DEF(7Z,	L".7z",		4),
+	{ASSOC_7Z,	L".7z",		L"7-Zip archive",	4},
 
-	DLG_ASSOC_DEF(RAR,	L".rar",	5),
-	DLG_ASSOC_DEF(ACE,	L".ace",	13),
-	DLG_ASSOC_DEF(ARJ,	L".arj",	35),
-	DLG_ASSOC_DEF(BZA,	L".bza",	15),
-	DLG_ASSOC_DEF(GZA,	L".gza",	16),
+	{ASSOC_RAR,	L".rar",	L"WinRAR archive",	5},
+	{ASSOC_ACE,	L".ace",	L"WinAce archive",	13},
+	{ASSOC_ARJ,	L".arj",	L"ARJ archive",	35},
+	{ASSOC_BZA,	L".bza",	L"BGA32.dll archive",	15},
+	{ASSOC_GZA,	L".gza",	L"BGA32.dll archive",	16},
 
-	DLG_ASSOC_DEF(UUE,	L".uue",	19),
-	DLG_ASSOC_DEF(UUE,	L".ish",	19),
+	{ASSOC_UUE,	L".uue",	L"uuencode binary-to-text encoding",	19},
+	{ASSOC_ISH,	L".ish",	L"ish binary-to-text encoding",	19},
 
-	DLG_ASSOC_DEF(TAR,	L".tar",	24),
-	DLG_ASSOC_DEF(GZ,	L".gz",		25),
-	DLG_ASSOC_DEF(BZ2,	L".bz2",	27),
-	DLG_ASSOC_DEF(XZ,	L".xz",		36),
-	DLG_ASSOC_DEF(LZMA,	L".lzma",	38),
-	DLG_ASSOC_DEF(ZSTD,	L".zst",	40),
-	DLG_ASSOC_DEF(Z,	L".z",		29),
-	DLG_ASSOC_DEF(CPIO,	L".cpio",	31),
-	DLG_ASSOC_DEF(TGZ,	L".tgz",	26),
-	DLG_ASSOC_DEF(TBZ,	L".tbz",	28),
-	DLG_ASSOC_DEF(TAR_XZ,	L".txz",	37),
-	DLG_ASSOC_DEF(TAR_LZMA,L".tlz",	39),
-	DLG_ASSOC_DEF(TAZ,	L".taz",	30),
+	{ASSOC_TAR,	L".tar",	L"\"Tape Archives\" format",	24},
+	{ASSOC_GZ,	L".gz",		L"gzip compression format",	25},
+	{ASSOC_BZ2,	L".bz2",	L"bzip2 compression format",	27},
+	{ASSOC_XZ,	L".xz",		L"\"XZ Utils\" compression format",	36},
+	{ASSOC_LZMA,	L".lzma",	L"Lempel-Ziv-Markov chain-Algorithm compression format",	38},
+	{ASSOC_ZSTD,	L".zst",	L"Facebook Zstandard compression format",	40},
+	{ASSOC_Z,	L".z",		L"\"UNIX Compress\" format",	29},
+	{ASSOC_CPIO,	L".cpio",	L"UNIX cpio compression format",	31},
+	{ASSOC_TGZ,	L".tgz",	L"tar+gz archive",	26},
+	{ASSOC_TBZ,	L".tbz",	L"tar+bz2 archive",	28},
+	{ASSOC_TAR_XZ,	L".txz",L"tar+xz archive",	37},
+	{ASSOC_TAR_LZMA,L".tlz",	L"tar+lzma archive",	39},
+	{ASSOC_TAZ,	L".taz",	L"tar+z archive",	30},
 
-	DLG_ASSOC_DEF(ISO,	L".iso",	35),
+	{ASSOC_ISO,	L".iso",	L"[No default]ISO 9660 file system format",	35},
 };
 
 //--------------------------------------------
+
+void CConfigDlgAssociation::updateImageList()
+{
+	if (m_imageList.IsNull()) {
+		m_imageList.Create(32, 32, ILC_COLOR32, 0, 1);
+		for (const auto& assoc : AssocSettings) {
+			m_imageList.AddIcon(assoc.Icon);
+		}
+	} else {
+		int idx = 0;
+		for (const auto& assoc : AssocSettings) {
+			m_imageList.ReplaceIcon(idx, assoc.Icon);
+			idx++;
+		}
+	}
+}
 
 LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
@@ -90,63 +103,84 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 		} catch (const LF_EXCEPTION&) {
 			fullPath = modulePath;
 		}
-		m_assocDesired = Format(L"\"%s\"  /m \"%%1\"", fullPath.c_str());
-	}
-
-	// system default icon
-	if(Icon_SystemDefault.IsNull()){
-		auto nSize = GetSystemDirectoryW(nullptr, 0);
-		std::vector<wchar_t> buf(nSize);
-		GetSystemDirectoryW(&buf[0], nSize);
-		std::filesystem::path path = &buf[0];
-		path /= L"shell32.dll";
-		Icon_SystemDefault.ExtractIconW(path.make_preferred().c_str(), 0);
+		m_assocDesired = Format(L"\"%s\" /m \"%%1\"", fullPath.c_str());
 	}
 
 	for(const auto& item: DLG_ASSOC_TABLE){
 		auto& assoc = AssocSettings[item.atype];
 		const auto &ext = item.ext;
 		assoc.DefaultIconIndex = item.defaultIconIndex;
-		assoc.Picture_Icon = GetDlgItem(item.resStatic);
-		assoc.Button_SetIcon = GetDlgItem(item.resButton);
-		assoc.Check_SetAssoc = GetDlgItem(item.resCheck);
 		assoc.AssocInfo.Ext = ext;
-		assoc.Check_SetAssoc.SetCheck(FALSE);
+		assoc.formatName = item.formatName;
 		if (AssocGetAssociation(ext, assoc.AssocInfo)) {
-			assoc.SetIconFromAssoc(Icon_SystemDefault);
 			assoc.CheckAssociation(m_assocDesired);
 			if (assoc.bChanged)mr_ConfigDlg.RequireAssistant();
-			if (!assoc.AssocInfo.isAssociated) {
-				assoc.Button_SetIcon.EnableWindow(false);
-				assoc.Check_SetAssoc.SetCheck(FALSE);
-			} else {
-				assoc.Check_SetAssoc.SetCheck(TRUE);
-			}
-		} else {
-			assoc.Picture_Icon.SetIcon(Icon_SystemDefault);
-			assoc.Button_SetIcon.EnableWindow(false);
 		}
+		assoc.SetIconFromAssoc();
 	}
 
+	//create default image list
+	updateImageList();
+
+	m_assocList = GetDlgItem(IDC_LIST_ASSOC);
+	SIZE iconSize = {};
+	m_imageList.GetIconSize(iconSize);
+	m_assocList.InsertColumn(COLUMN_STATE, L"", LVCFMT_LEFT, iconSize.cx * 2, -1);
+	m_assocList.InsertColumn(COLUMN_EXT, UtilLoadString(IDS_EXTENSION).c_str(), LVCFMT_LEFT, 160, -1);
+	CRect rc;
+	m_assocList.GetClientRect(rc);
+	m_assocList.InsertColumn(COLUMN_FORMAT, UtilLoadString(IDS_FORMAT_NAME).c_str(), LVCFMT_LEFT, rc.Width() - iconSize.cx * 2 - 160 - 20, -1);
+
+	//icons - make sure to use large icons only
+	m_assocList.SetImageList(m_imageList, LVSIL_NORMAL);
+	m_assocList.SetImageList(m_imageList, LVSIL_SMALL);
+	m_assocList.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
+
+	// report mode
+	DWORD Style = m_assocList.GetWindowLong(GWL_STYLE);
+	Style &= ~(LVS_ICON | LVS_REPORT | LVS_SMALLICON | LVS_LIST);
+	m_assocList.SetWindowLong(GWL_STYLE, Style | LVS_REPORT | LVS_SINGLESEL);
+
+	// set number of items
+	for (int i = 0; i < (int)AssocSettings.size();i++) {
+		const auto& item = AssocSettings[i];
+		UINT columns[] = { COLUMN_STATE, COLUMN_EXT, COLUMN_FORMAT };
+
+		//icon & check box
+		LVITEM li = {};
+		li.iItem = i;
+		li.cColumns = COUNTOF(columns);
+		li.puColumns = columns;
+		li.mask |= LVIF_IMAGE | LVIF_STATE | LVIF_COLUMNS;
+		li.iImage = i;
+		m_assocList.InsertItem(&li);
+
+		m_assocList.SetItemText(i, COLUMN_EXT, item.AssocInfo.Ext.c_str());
+		m_assocList.SetItemText(i, COLUMN_FORMAT, item.formatName.c_str());
+
+		m_assocList.SetCheckState(i, item.AssocInfo.isAssociated);
+	}
 	return TRUE;
 }
 
-LRESULT CConfigDlgAssociation::OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+LRESULT CConfigDlgAssociation::OnAssocStateChanged(LPNMHDR pnmh)
 {
-	WORD wNotifyCode = HIWORD(wParam);
-	WORD wID = LOWORD(wParam);
-	HWND hWndCtl = (HWND)lParam;
-	bHandled = FALSE;
-	if (BN_CLICKED == wNotifyCode) {
-		for (auto &item : AssocSettings) {
-			if (hWndCtl == item.Check_SetAssoc) {
-				OnCheckAssoc(item);
-				bHandled = TRUE;
-				return 0;
-			} else if (hWndCtl == item.Button_SetIcon) {
-				OnChangeIcon(item);
-				bHandled = TRUE;
-				return 0;
+	NM_LISTVIEW* pView = (NM_LISTVIEW*)pnmh;
+	if (pView->uOldState & LVIS_STATEIMAGEMASK) {
+		if (pView->uNewState & LVIS_STATEIMAGEMASK) {
+			if (0 <= pView->iItem && (unsigned int)pView->iItem < AssocSettings.size()) {
+				auto& item = AssocSettings[pView->iItem];
+				bool newState = ((pView->uNewState & LVIS_STATEIMAGEMASK) == INDEXTOSTATEIMAGEMASK(2));
+
+				if (!newState) {
+					item.SetIconFromAssoc();
+					updateImageList();
+				}
+				if (newState ^ item.AssocInfo.isAssociated) {
+					mr_ConfigDlg.RequireAssistant();
+				}
+				item.AssocInfo.isAssociated = newState;
+				item.bChanged = true;
 			}
 		}
 	}
@@ -154,26 +188,24 @@ LRESULT CConfigDlgAssociation::OnCommand(UINT uMsg, WPARAM wParam, LPARAM lParam
 }
 
 
-void CConfigDlgAssociation::OnCheckAssoc(ASSOC_SETTINGS& item)
+LRESULT CConfigDlgAssociation::OnChangeIcon(LPNMHDR pnmh)
 {
-	BOOL bEnabled = item.Check_SetAssoc.GetCheck();
-	item.Button_SetIcon.EnableWindow(bEnabled);
-	if (!bEnabled) {
-		item.SetIconFromAssoc(Icon_SystemDefault);
+	int nSelected = m_assocList.GetSelectedIndex();
+	if (nSelected != -1) {
+		auto& item = AssocSettings[nSelected];
+		if (item.AssocInfo.isAssociated) {
+			CIconSelectDialog isd(item.AssocInfo);
+			if (IDOK == isd.DoModal()) {
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				item.bChanged = true;
+				updateImageList();
+				mr_ConfigDlg.RequireAssistant();
+			}
+		}
 	}
-	mr_ConfigDlg.RequireAssistant();
+	return 0;
 }
 
-
-void CConfigDlgAssociation::OnChangeIcon(ASSOC_SETTINGS& item)
-{
-	CIconSelectDialog isd(item.AssocInfo);
-	if (IDOK == isd.DoModal()) {
-		item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
-		item.bChanged = true;
-		mr_ConfigDlg.RequireAssistant();
-	}
-}
 
 LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
@@ -199,46 +231,48 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			return 0;
 		}
 	}
-	for (size_t i = 0; i < AssocSettings.size();i++) {
-		auto &item = AssocSettings[i];
+	for (size_t aType = 0; aType < AssocSettings.size(); aType++) {
+		auto &item = AssocSettings[aType];
 		switch(wID){
 		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:
-			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), i)){
-				item.Button_SetIcon.EnableWindow(TRUE);
-				item.Check_SetAssoc.SetCheck(TRUE);
+			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), aType)){
+				item.AssocInfo.isAssociated = true;
+				m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
+				item.bChanged = true;
 			}
 			break;
-		case IDC_BUTTON_ASSOC_CHECK_ALL:
-			item.Button_SetIcon.EnableWindow(TRUE);
-			item.Check_SetAssoc.SetCheck(TRUE);
-			break;
 		case IDC_BUTTON_ASSOC_UNCHECK_ALL:
-			item.Button_SetIcon.EnableWindow(FALSE);
-			item.Check_SetAssoc.SetCheck(FALSE);
-			item.SetIconFromAssoc(Icon_SystemDefault);
+			item.AssocInfo.isAssociated = false;
+			m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
+			item.SetIconFromAssoc();
+			updateImageList();
+			item.bChanged = true;
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON:	//FALLTHROUGH
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON:
-			if(item.Check_SetAssoc.GetCheck()){
-				item.AssocInfo.IconIndex=item.DefaultIconIndex;
-				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+			if(item.AssocInfo.isAssociated){
+				item.AssocInfo.IconIndex = item.DefaultIconIndex;
+				item.AssocInfo.IconFile = ResourcePath;
 				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				updateImageList();
 				item.bChanged=true;
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE:
-			if(item.Check_SetAssoc.GetCheck()){
-				item.AssocInfo.IconIndex=ICONINDEX_EXTERNAL_SINGLE;
-				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+			if (item.AssocInfo.isAssociated) {
+				item.AssocInfo.IconIndex = ICONINDEX_EXTERNAL_SINGLE;
+				item.AssocInfo.IconFile = ResourcePath;
 				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				updateImageList();
 				item.bChanged=true;
 			}
 			break;
 		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE:
-			if(item.Check_SetAssoc.GetCheck()){
+			if (item.AssocInfo.isAssociated) {
 				item.AssocInfo.IconIndex=IconIndex;
-				item.AssocInfo.IconFile = ResourcePath.make_preferred().c_str();
+				item.AssocInfo.IconFile = ResourcePath;
 				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				updateImageList();
 				item.bChanged=true;
 			}
 			break;
@@ -252,18 +286,17 @@ LRESULT CConfigDlgAssociation::OnApply()
 {
 	_assocRequests.clear();
 	for (auto &item: AssocSettings) {
-		bool Checked = (0 != item.Check_SetAssoc.GetCheck());
-		if ((item.AssocInfo.isAssociated^Checked) || item.bChanged) {
-			if (item.AssocInfo.isAssociated && !Checked) {
-				//unset association
-				_assocRequests[item.AssocInfo.Ext] = { {L"set", 0} };
-			} else {
+		if (item.bChanged) {
+			if (item.AssocInfo.isAssociated) {
 				//set association
 				_assocRequests[item.AssocInfo.Ext] = {
 					{L"set", L"1"},
 					{L"iconfile", item.AssocInfo.IconFile.wstring()},
 					{L"iconindex", Format(L"%d",item.AssocInfo.IconIndex)},
 				};
+			} else {
+				//unset association
+				_assocRequests[item.AssocInfo.Ext] = { {L"set", 0} };
 			}
 		}
 	}
