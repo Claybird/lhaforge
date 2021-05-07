@@ -38,6 +38,8 @@
 #include "Dialogs/Dlg_openaction.h"
 #include "Dialogs/Dlg_shellext.h"
 
+#define WM_USER_WM_SIZE		(WM_APP+1)
+
 class CConfigDialog : public CDialogImpl<CConfigDialog>, public CDialogResize<CConfigDialog>
 {
 protected:
