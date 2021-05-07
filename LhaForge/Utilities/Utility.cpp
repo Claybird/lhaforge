@@ -37,11 +37,11 @@ int ErrorMessage(const std::wstring& message)
 
 int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType)
 {
-	const CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
+	const auto strCaption = UtilLoadString(IDS_MESSAGE_CAPTION);
 	return MessageBoxW(
 		hWnd,
 		message.c_str(),
-		strCaption,
+		strCaption.c_str(),
 		uType);
 }
 

@@ -292,7 +292,7 @@ protected:
 		auto items = GetSelectedItems();
 		if (items.empty()) {
 			//no file selected
-			ErrorMessage((const wchar_t*)CString(MAKEINTRESOURCE(IDS_ERROR_FILELIST_NOT_SELECTED)));
+			ErrorMessage(UtilLoadString(IDS_ERROR_FILELIST_NOT_SELECTED));
 			return;// false;
 		}
 

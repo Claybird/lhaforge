@@ -92,7 +92,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesyste
 		case DRIVE_REMOVABLE://removable
 		case DRIVE_CDROM://CD-ROM
 			if (Conf.WarnRemovable) {
-				if (IDNO == UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_REMOVABLE)), MB_YESNO | MB_ICONQUESTION)) {
+				if (IDNO == UtilMessageBox(NULL, UtilLoadString(IDS_ASK_ISOK_REMOVABLE), MB_YESNO | MB_ICONQUESTION)) {
 					return false;
 				} else {
 					return true;
@@ -102,7 +102,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesyste
 		case DRIVE_REMOTE://remote
 		case DRIVE_NO_ROOT_DIR:
 			if (Conf.WarnNetwork) {
-				if (IDNO == UtilMessageBox(NULL, (const wchar_t*)CString(MAKEINTRESOURCE(IDS_ASK_ISOK_NETWORK)), MB_YESNO | MB_ICONQUESTION)) {
+				if (IDNO == UtilMessageBox(NULL, UtilLoadString(IDS_ASK_ISOK_NETWORK), MB_YESNO | MB_ICONQUESTION)) {
 					return false;
 				} else {
 					return true;
@@ -141,9 +141,8 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 		switch (OnDirNotFound) {
 		case LOSTDIR_ASK_TO_CREATE:
 		{
-			CString strMsg;
-			strMsg.Format(IDS_ASK_CREATE_DIR, outputDir.c_str());
-			if (IDNO == UtilMessageBox(NULL, (const wchar_t*)strMsg, MB_YESNO | MB_ICONQUESTION)) {
+			auto strMsg = Format(UtilLoadString(IDS_ASK_CREATE_DIR), outputDir.c_str());
+			if (IDNO == UtilMessageBox(NULL, strMsg, MB_YESNO | MB_ICONQUESTION)) {
 				CANCEL_EXCEPTION();
 			}
 		}
@@ -152,17 +151,11 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 			try {
 				std::filesystem::create_directories(outputDir);
 			} catch (const std::filesystem::filesystem_error) {
-				CString strErr;
-				strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR, outputDir.c_str());
-				RAISE_EXCEPTION((const wchar_t*)strErr);
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR), outputDir.c_str());
 			}
 			break;
 		default://treat as error
-		{
-			CString strErr;
-			strErr.Format(IDS_ERROR_DIR_NOTFOUND, outputDir.c_str());
-			RAISE_EXCEPTION((const wchar_t*)strErr);
-		}
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_DIR_NOTFOUND), outputDir.c_str());
 		}
 	}
 }

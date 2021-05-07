@@ -642,7 +642,7 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	if(ID_MENUITEM_FINDITEM_END==nID){
 		mr_Model.EndFindItem();
 	}else{
-		CTextInputDialog dlg(CString(MAKEINTRESOURCE(IDS_INPUT_FIND_PARAM)));
+		CTextInputDialog dlg(UtilLoadString(IDS_INPUT_FIND_PARAM).c_str());
 
 		if(IDOK == dlg.DoModal()){
 			mr_Model.EndFindItem();

@@ -23,7 +23,7 @@
 */
 
 #pragma once
-#include "../resource.h"
+#include "resource.h"
 #include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
 
@@ -35,7 +35,7 @@ protected:
 	CEdit			m_PathEdit;
 
 	std::vector<ARCLOG>	m_LogArray;
-	CString m_strCaption;
+	std::wstring m_strCaption;
 
 	bool m_bAllOK;
 	int m_nSortColumn;
@@ -100,11 +100,11 @@ protected:
 		SetIcon(hIconSmall, FALSE);
 
 		//caption
-		SetWindowText(m_strCaption + (m_bAllOK ? L"[All Clear]" : L"[NG]"));
+		SetWindowText((m_strCaption + (m_bAllOK ? L"[All Clear]" : L"[NG]")).c_str());
 
 		//display processing mode
 		CStatic StaticInfo = GetDlgItem(IDC_STATIC_LOGINFO);
-		StaticInfo.SetWindowText(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
+		StaticInfo.SetWindowText(UtilLoadString(IDS_LOGINFO_OPERATION_TESTARCHIVE).c_str());
 
 		//------------------------
 
@@ -113,11 +113,11 @@ protected:
 		m_ItemListView.SetExtendedListViewStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
 		//set columns
 		// filename
-		m_ItemListView.InsertColumn(COLUMN_FILENAME, CString(MAKEINTRESOURCE(IDS_FILELIST_COLUMN_FILENAME)), LVCFMT_LEFT, 160, -1);
+		m_ItemListView.InsertColumn(COLUMN_FILENAME, UtilLoadString(IDS_FILELIST_COLUMN_FILENAME).c_str(), LVCFMT_LEFT, 160, -1);
 		// results(OK/NG)
 		CRect rc;
 		m_ItemListView.GetClientRect(rc);
-		m_ItemListView.InsertColumn(COLUMN_RESULTS, CString(MAKEINTRESOURCE(IDS_LOGINFO_RESULT)), LVCFMT_LEFT, rc.Width() - 160 - 15, -1);
+		m_ItemListView.InsertColumn(COLUMN_RESULTS, UtilLoadString(IDS_LOGINFO_RESULT).c_str(), LVCFMT_LEFT, rc.Width() - 160 - 15, -1);
 
 		// report mode
 		DWORD Style = m_ItemListView.GetWindowLong(GWL_STYLE);
@@ -182,7 +182,7 @@ protected:
 				}
 				wcsncpy_s(pstLVDInfo->item.pszText,
 					pstLVDInfo->item.cchTextMax,
-					CString(MAKEINTRESOURCE(wCaption)),
+					UtilLoadString(wCaption).c_str(),
 					pstLVDInfo->item.cchTextMax);
 			}
 			break;
