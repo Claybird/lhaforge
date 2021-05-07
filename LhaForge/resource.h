@@ -7,6 +7,7 @@
 #define IDS_FORMAT_NAME_TAR_ZSTD        3
 #define IDS_ERROR_EXAMINEARCHIVE        4
 #define IDS_ICON_FILE_NAME_DEFAULT      5
+#define IDS_ENTER_PASSPRASE             6
 #define IDS_INPUT_TARGET_FOLDER         7
 #define IDS_LHAFORGE_VERSION_STRING     8
 #define IDS_COMPRESS_FILE               10
@@ -414,6 +415,7 @@
 #define IDC_EXTRACTING_FILETIME         1308
 #define IDC_LIST_ASSOC                  1308
 #define IDC_EXISTING_FILENAME           1309
+#define IDC_CHECK_SHOW                  1309
 #define IDC_EXISTING_FILESIZE           1310
 #define IDC_EXISTING_FILETIME           1311
 #define IDI_APP                         2000
@@ -504,9 +506,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        190
+#define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         40158
-#define _APS_NEXT_CONTROL_VALUE         1309
+#define _APS_NEXT_CONTROL_VALUE         1310
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

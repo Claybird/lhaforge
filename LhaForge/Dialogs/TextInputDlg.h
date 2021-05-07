@@ -24,14 +24,17 @@
 
 #pragma once
 
-class CTextInputDialog : public CDialogImpl<CTextInputDialog>,public CWinDataExchange<CTextInputDialog>
+class CTextInputDialog : public CDialogImpl<CTextInputDialog>,public LFWinDataExchange<CTextInputDialog>
 {
 protected:
-	CString strInput;
-	CString strMessage;
+	std::wstring strInput;
+	const std::wstring strMessage;
+	const bool _isPassphraseBox;
+	const wchar_t hideChar;
 public:
 	enum {IDD = IDD_DIALOG_INPUT};
-	CTextInputDialog(LPCTSTR lpszMessage):strMessage(lpszMessage){}
+	CTextInputDialog(const std::wstring & message, bool isPassphraseBox)
+		:strMessage(message), _isPassphraseBox(isPassphraseBox), hideChar(L'\u26AB'){}
 
 	BEGIN_DDX_MAP(CTextInputDialog)
 		DDX_TEXT(IDC_EDIT_INPUT,strInput)
@@ -41,11 +44,20 @@ public:
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDOK, OnButton)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_CHECK_SHOW, OnShowPassphrase)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam){
-		CStatic cStatic=GetDlgItem(IDC_STATIC_MESSAGE);
-		cStatic.SetWindowText(strMessage);
+		SetDlgItemText(IDC_STATIC_MESSAGE, strMessage.c_str());
+
+		if (_isPassphraseBox) {
+			::ShowWindow(GetDlgItem(IDC_CHECK_SHOW), SW_SHOW);
+			CEdit hEdit = GetDlgItem(IDC_EDIT_INPUT);
+			hEdit.SetPasswordChar(hideChar);
+			hEdit.Invalidate();
+		} else {
+			::ShowWindow(GetDlgItem(IDC_CHECK_SHOW), SW_HIDE);
+		}
 
 		DoDataExchange(FALSE);
 		return TRUE;
@@ -54,7 +66,19 @@ public:
 		DoDataExchange(TRUE);
 		EndDialog(nID);
 	}
-	std::wstring GetInputText()const { return (LPCWSTR)strInput; }
-	void SetInputText(const std::wstring &input) { strInput = input.c_str(); }
+	void OnShowPassphrase(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		if (_isPassphraseBox) {
+			CEdit hEdit = GetDlgItem(IDC_EDIT_INPUT);
+			if (BST_CHECKED==Button_GetCheck(GetDlgItem(IDC_CHECK_SHOW))) {
+				hEdit.SetPasswordChar(L'\0');
+			} else {
+				hEdit.SetPasswordChar(hideChar);
+			}
+			hEdit.Invalidate();
+		}
+	}
+
+	std::wstring GetInputText()const { return strInput; }
+	void SetInputText(const std::wstring &input) { strInput = input; }
 };
 
