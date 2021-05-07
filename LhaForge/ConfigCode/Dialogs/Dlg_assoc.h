@@ -146,6 +146,7 @@ public:
 
 	BEGIN_MSG_MAP_EX(CConfigDlgAssociation)
 		MSG_WM_INITDIALOG(OnInitDialog)
+		MSG_WM_CONTEXTMENU(OnContextMenu)
 		COMMAND_RANGE_HANDLER(IDC_BUTTON_ASSOC_UNCHECK_ALL, IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE, OnSetAssoc)
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnAssocStateChanged)
 		NOTIFY_CODE_HANDLER_EX(NM_DBLCLK, OnChangeIcon)
@@ -153,7 +154,9 @@ public:
 	END_MSG_MAP()
 
 	LRESULT OnAssocStateChanged(LPNMHDR pnmh);
-	LRESULT OnChangeIcon(LPNMHDR pnmh);
+	LRESULT OnChangeIcon(LPNMHDR) { OnChangeIcon(); return 0; }
+	void OnChangeIcon();
+	void OnContextMenu(HWND hWndCtrl, CPoint& Point);
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
 	LRESULT OnSetAssoc(WORD,WORD,HWND,BOOL&);

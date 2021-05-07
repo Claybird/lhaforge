@@ -152,6 +152,8 @@
 #define IDS_INPUT_TEMP_PATH             187
 #define IDS_FORMAT_NAME                 189
 #define IDS_EXTENSION                   190
+#define IDR_MENU_ASSOC                  191
+#define IDR_ASSOC_POPUP                 191
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
@@ -500,14 +502,16 @@
 #define ID_MENUITEM_COPY_METHOD         40152
 #define ID_MENUITEM_COPY_COMPRESSION_RATIO 40153
 #define ID_MENUITEM_COPY_ALL            40155
+#define ID_DUMMY_40158                  40158
+#define ID_MENUITEM_ASSOC_ICON          40159
 #define ATL_IDS_IDLEMESSAGE             0xE001
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        191
-#define _APS_NEXT_COMMAND_VALUE         40158
+#define _APS_NEXT_RESOURCE_VALUE        192
+#define _APS_NEXT_COMMAND_VALUE         40160
 #define _APS_NEXT_CONTROL_VALUE         1310
 #define _APS_NEXT_SYMED_VALUE           102
 #endif

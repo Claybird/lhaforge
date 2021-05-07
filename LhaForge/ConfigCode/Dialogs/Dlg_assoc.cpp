@@ -188,7 +188,7 @@ LRESULT CConfigDlgAssociation::OnAssocStateChanged(LPNMHDR pnmh)
 }
 
 
-LRESULT CConfigDlgAssociation::OnChangeIcon(LPNMHDR pnmh)
+void CConfigDlgAssociation::OnChangeIcon()
 {
 	int nSelected = m_assocList.GetSelectedIndex();
 	if (nSelected != -1) {
@@ -203,9 +203,34 @@ LRESULT CConfigDlgAssociation::OnChangeIcon(LPNMHDR pnmh)
 			}
 		}
 	}
-	return 0;
 }
 
+void CConfigDlgAssociation::OnContextMenu(HWND hWndCtrl, CPoint& Point)
+{
+	int nSelected = m_assocList.GetSelectedIndex();
+	if (nSelected != -1) {
+		if (-1 == Point.x && -1 == Point.y) {
+			//from keyboard
+			m_assocList.GetItemPosition(nSelected, &Point);
+			m_assocList.ClientToScreen(&Point);
+		}
+
+		CMenu cMenu;
+		CMenuHandle cSubMenu;
+
+		cMenu.LoadMenu(IDR_ASSOC_POPUP);
+		cSubMenu = cMenu.GetSubMenu(0);
+		auto& item = AssocSettings[nSelected];
+		if (!item.AssocInfo.isAssociated) {
+			cSubMenu.EnableMenuItem(ID_MENUITEM_ASSOC_ICON, MF_BYCOMMAND | MF_GRAYED);
+		}
+
+		UINT nCmd = (UINT)cSubMenu.TrackPopupMenu(TPM_RETURNCMD | TPM_LEFTALIGN, Point.x, Point.y, m_hWnd, nullptr);
+		if (nCmd == ID_MENUITEM_ASSOC_ICON) {
+			OnChangeIcon();
+		}
+	}
+}
 
 LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {

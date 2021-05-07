@@ -1015,6 +1015,14 @@ BEGIN
     END
 END
 
+IDR_ASSOC_POPUP MENU
+BEGIN
+    POPUP "dummy"
+    BEGIN
+        MENUITEM "アイコン変更",                      ID_MENUITEM_ASSOC_ICON
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
