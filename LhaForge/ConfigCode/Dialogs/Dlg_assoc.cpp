@@ -28,51 +28,48 @@
 #include "Utilities/StringUtil.h"
 #include <CommonControls.h>
 
-#define ICONINDEX_EXTERNAL_SINGLE	21
-
-
 struct DLG_ASSOC_ITEM{
 	ASSOC_TYPE atype;
 	std::wstring ext;
 	std::wstring formatName;
-	int defaultIconIndex;	//TODO: remove
 };
 
 const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
-	{ASSOC_LZH,	L".lzh",	L"LHA/LZH archive",	0},
-	{ASSOC_LZS,	L".lzs",	L"LHA/LZH archive",	22},
-	{ASSOC_LHA,	L".lha",	L"LHA/LZH archive",	23},
+	{ASSOC_LZH,	L".lzh",	L"LHA/LZH archive"},
+	{ASSOC_LZS,	L".lzs",	L"LHA/LZH archive"},
+	{ASSOC_LHA,	L".lha",	L"LHA/LZH archive"},
 
-	{ASSOC_ZIP,	L".zip",	L"ZIP archive",	1},
-	{ASSOC_CAB,	L".cab",	L"\"Microsoft Cabinet\" archive",	3},
-	{ASSOC_ZIPX,	L".zipx",	L"WinZip advanced ZIP archive",	2},
+	{ASSOC_ZIP,	L".zip",	L"ZIP archive"},
+	{ASSOC_CAB,	L".cab",	L"\"Microsoft Cabinet\" archive"},
+	{ASSOC_ZIPX,	L".zipx",	L"WinZip advanced ZIP archive"},
 
-	{ASSOC_7Z,	L".7z",		L"7-Zip archive",	4},
+	{ASSOC_7Z,	L".7z",		L"7-Zip archive"},
 
-	{ASSOC_RAR,	L".rar",	L"WinRAR archive",	5},
-	{ASSOC_ACE,	L".ace",	L"WinAce archive",	13},
-	{ASSOC_ARJ,	L".arj",	L"ARJ archive",	35},
-	{ASSOC_BZA,	L".bza",	L"BGA32.dll archive",	15},
-	{ASSOC_GZA,	L".gza",	L"BGA32.dll archive",	16},
+	{ASSOC_RAR,	L".rar",	L"WinRAR archive"},
+	{ASSOC_ACE,	L".ace",	L"WinAce archive"},
+	{ASSOC_ARJ,	L".arj",	L"ARJ archive"},
+	{ASSOC_BZA,	L".bza",	L"BGA32.dll archive"},
+	{ASSOC_GZA,	L".gza",	L"BGA32.dll archive"},
+	{ASSOC_JAK,	L".jak",	L"JACK32.dll splitted file"},
 
-	{ASSOC_UUE,	L".uue",	L"uuencode binary-to-text encoding",	19},
-	{ASSOC_ISH,	L".ish",	L"ish binary-to-text encoding",	19},
+	{ASSOC_UUE,	L".uue",	L"uuencode binary-to-text encoding"},
+	{ASSOC_ISH,	L".ish",	L"ish binary-to-text encoding"},
 
-	{ASSOC_TAR,	L".tar",	L"\"Tape Archives\" format",	24},
-	{ASSOC_GZ,	L".gz",		L"gzip compression format",	25},
-	{ASSOC_BZ2,	L".bz2",	L"bzip2 compression format",	27},
-	{ASSOC_XZ,	L".xz",		L"\"XZ Utils\" compression format",	36},
-	{ASSOC_LZMA,	L".lzma",	L"Lempel-Ziv-Markov chain-Algorithm compression format",	38},
-	{ASSOC_ZSTD,	L".zst",	L"Facebook Zstandard compression format",	40},
-	{ASSOC_Z,	L".z",		L"\"UNIX Compress\" format",	29},
-	{ASSOC_CPIO,	L".cpio",	L"UNIX cpio compression format",	31},
-	{ASSOC_TGZ,	L".tgz",	L"tar+gz archive",	26},
-	{ASSOC_TBZ,	L".tbz",	L"tar+bz2 archive",	28},
-	{ASSOC_TAR_XZ,	L".txz",L"tar+xz archive",	37},
-	{ASSOC_TAR_LZMA,L".tlz",	L"tar+lzma archive",	39},
-	{ASSOC_TAZ,	L".taz",	L"tar+z archive",	30},
+	{ASSOC_TAR,	L".tar",	L"\"Tape Archives\" format"},
+	{ASSOC_GZ,	L".gz",		L"gzip compression format"},
+	{ASSOC_BZ2,	L".bz2",	L"bzip2 compression format"},
+	{ASSOC_XZ,	L".xz",		L"\"XZ Utils\" compression format"},
+	{ASSOC_LZMA,	L".lzma",	L"Lempel-Ziv-Markov chain-Algorithm compression format"},
+	{ASSOC_ZSTD,	L".zst",	L"Facebook Zstandard compression format"},
+	{ASSOC_Z,	L".z",		L"\"UNIX Compress\" format"},
+	{ASSOC_CPIO,	L".cpio",	L"UNIX cpio compression format"},
+	{ASSOC_TGZ,	L".tgz",	L"tar+gz archive"},
+	{ASSOC_TBZ,	L".tbz",	L"tar+bz2 archive"},
+	{ASSOC_TAR_XZ,	L".txz",L"tar+xz archive"},
+	{ASSOC_TAR_LZMA,L".tlz",	L"tar+lzma archive"},
+	{ASSOC_TAZ,	L".taz",	L"tar+z archive"},
 
-	{ASSOC_ISO,	L".iso",	L"[No default]ISO 9660 file system format",	35},
+	{ASSOC_ISO,	L".iso",	L"[No default]ISO 9660 file system format"},
 };
 
 //--------------------------------------------
@@ -109,7 +106,6 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 	for(const auto& item: DLG_ASSOC_TABLE){
 		auto& assoc = AssocSettings[item.atype];
 		const auto &ext = item.ext;
-		assoc.DefaultIconIndex = item.defaultIconIndex;
 		assoc.AssocInfo.Ext = ext;
 		assoc.formatName = item.formatName;
 		if (AssocGetAssociation(ext, assoc.AssocInfo)) {
@@ -238,24 +234,6 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		return 0;
 	}
 
-	std::filesystem::path ResourcePath;
-	int IconIndex=-1;
-	if(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON==wID||IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE==wID){
-		ResourcePath = UtilGetModuleDirectoryPath() / UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
-	}else if(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON==wID||IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE==wID){
-		//let user to choose icon
-		ASSOCINFO ac;
-		CIconSelectDialog isd(ac);
-		if(IDOK!=isd.DoModal()){
-			return 0;
-		}
-		ResourcePath = ac.IconFile;
-		IconIndex = ac.IconIndex;
-		if (IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE == wID && -1 == IconIndex) {
-			//icon not selected
-			return 0;
-		}
-	}
 	for (size_t aType = 0; aType < AssocSettings.size(); aType++) {
 		auto &item = AssocSettings[aType];
 		switch(wID){
@@ -270,39 +248,57 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 			item.AssocInfo.isAssociated = false;
 			m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
 			item.SetIconFromAssoc();
-			updateImageList();
 			item.bChanged = true;
-			break;
-		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON:	//FALLTHROUGH
-		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON:
-			if(item.AssocInfo.isAssociated){
-				item.AssocInfo.IconIndex = item.DefaultIconIndex;
-				item.AssocInfo.IconFile = ResourcePath;
-				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
-				updateImageList();
-				item.bChanged=true;
-			}
-			break;
-		case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE:
-			if (item.AssocInfo.isAssociated) {
-				item.AssocInfo.IconIndex = ICONINDEX_EXTERNAL_SINGLE;
-				item.AssocInfo.IconFile = ResourcePath;
-				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
-				updateImageList();
-				item.bChanged=true;
-			}
-			break;
-		case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE:
-			if (item.AssocInfo.isAssociated) {
-				item.AssocInfo.IconIndex=IconIndex;
-				item.AssocInfo.IconFile = ResourcePath;
-				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
-				updateImageList();
-				item.bChanged=true;
-			}
 			break;
 		}
 	}
+	m_assocList.Invalidate();
+	updateImageList();
+	mr_ConfigDlg.RequireAssistant();
+	return 0;
+}
+
+
+LRESULT CConfigDlgAssociation::OnSetIcon(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
+{
+	if (BN_CLICKED != wNotifyCode) {
+		return 0;
+	}
+
+	std::filesystem::path ResourcePath = UtilGetModuleDirectoryPath() / UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+	int IconIndex = 0;
+	if (IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE == wID) {
+		//let user to choose icon
+		ASSOCINFO ac;
+		CIconSelectDialog isd(ac);
+		if (IDOK != isd.DoModal()) {
+			return 0;	//cancelled
+		}
+		ResourcePath = ac.IconFile;
+		IconIndex = ac.IconIndex;
+	}
+	for (size_t aType = 0; aType < AssocSettings.size(); aType++) {
+		auto& item = AssocSettings[aType];
+		if (item.AssocInfo.isAssociated) {
+			item.bChanged = true;
+			switch (wID) {
+			case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON:	//FALLTHROUGH
+				item.AssocInfo.IconIndex = 0;
+				//one icon for each extension
+				item.AssocInfo.IconFile = UtilGetModuleDirectoryPath() / (L"icons/archive" + item.AssocInfo.Ext + L".ico");
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				break;
+			case IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE:	//FALLTHROUGH
+			case IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE:
+				item.AssocInfo.IconIndex = IconIndex;
+				item.AssocInfo.IconFile = ResourcePath;
+				item.SetIcon(item.AssocInfo.IconFile, item.AssocInfo.IconIndex);
+				break;
+			}
+		}
+	}
+	m_assocList.Invalidate();
+	updateImageList();
 	mr_ConfigDlg.RequireAssistant();
 	return 0;
 }
