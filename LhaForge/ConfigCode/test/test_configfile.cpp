@@ -4,7 +4,7 @@
 #include "ConfigCode/ConfigFile.h"
 #include "Utilities/FileOperation.h"
 
-TEST(ConfigManager, basic)
+TEST(ConfigFile, basic)
 {
 	CConfigFile conf;
 	conf.setDefaultPath();
@@ -74,7 +74,7 @@ TEST(ConfigManager, basic)
 	EXPECT_FALSE(std::filesystem::exists(tmpPath));
 }
 
-TEST(ConfigManager, get_set)
+TEST(ConfigFile, get_set)
 {
 	auto path = UtilGetTemporaryFileName();
 	CConfigFile conf;
