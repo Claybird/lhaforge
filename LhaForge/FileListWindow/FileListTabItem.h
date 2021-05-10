@@ -49,13 +49,13 @@ protected:
 		COMMON():initialized(false){}
 		virtual ~COMMON() {}
 		void initialize(const CConfigFileListWindow& confFLW) {
-			listview.columnOrder = confFLW.ColumnOrderArray;
-			listview.columnWidth = confFLW.ColumnWidthArray;
+			listview.columnOrder = confFLW.view.column.order;
+			listview.columnWidth = confFLW.view.column.width;
 
-			if (confFLW.StoreSetting) {
-				splitter.bShowTreeView = confFLW.ShowTreeView;
-				splitter.treeWidth = confFLW.TreeWidth;
-				listview.style = confFLW.ListStyle;
+			if (confFLW.general.StoreSetting) {
+				splitter.bShowTreeView = confFLW.view.ShowTreeView;
+				splitter.treeWidth = confFLW.dimensions.TreeWidth;
+				listview.style = confFLW.view.ListStyle;
 			} else {
 				splitter.bShowTreeView = true;
 				splitter.treeWidth = FILELISTWINDOW_DEFAULT_TREE_WIDTH;
@@ -89,12 +89,12 @@ protected:
 		ListView.SetExtendedListViewStyle(LVS_EX_INFOTIP | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
 		ApplyListViewState();
 
-		if (_confFLW.StoreSetting) {
-			Model.SetSortKeyType(_confFLW.SortColumn);
-			Model.SetSortMode(_confFLW.SortDescending);
+		if (_confFLW.general.StoreSetting) {
+			Model.SetSortKeyType(_confFLW.view.SortColumnIndex);
+			Model.SetSortAtoZ(_confFLW.view.SortAtoZ);
 		} else {
 			Model.SetSortKeyType(-1);
-			Model.SetSortMode(true);
+			Model.SetSortAtoZ(true);
 		}
 		return true;
 	}
@@ -112,8 +112,8 @@ protected:
 	void ApplyListViewState() {
 		SetListViewStyle(_common.listview.style);
 		ListView.SetColumnState(_common.listview.columnOrder, _common.listview.columnWidth);
-		ListView.SetDisplayFileSizeInByte(_confFLW.DisplayFileSizeInByte);
-		ListView.SetDisplayPathOnly(_confFLW.DisplayPathOnly);
+		ListView.SetDisplayFileSizeInByte(_confFLW.view.DisplayFileSizeInByte);
+		ListView.SetDisplayPathOnly(_confFLW.view.DisplayPathOnly);
 		ListView.Invalidate();
 		//NOTE: sort column/key settings are not shared; these should be configured independently on each tab
 	}
@@ -179,7 +179,7 @@ public:
 
 		//construct tree view structure
 		TreeView.ConstructTree();
-		if (_confFLW.ExpandTree)TreeView.ExpandTree();
+		if (_confFLW.view.ExpandTree)TreeView.ExpandTree();
 		return true;
 	}
 
@@ -207,18 +207,18 @@ public:
 	}
 	void StoreSettings(CConfigFileListWindow& ConfFLW) {
 		CopyCurrentViewState();
-		ConfFLW.TreeWidth = _common.splitter.treeWidth;
-		ConfFLW.ShowTreeView = _common.splitter.bShowTreeView;
+		ConfFLW.dimensions.TreeWidth = _common.splitter.treeWidth;
+		ConfFLW.view.ShowTreeView = _common.splitter.bShowTreeView;
 
 		//list view style
-		ConfFLW.ListStyle = _common.listview.style;
+		ConfFLW.view.ListStyle = _common.listview.style;
 		//column
-		ConfFLW.ColumnOrderArray = _common.listview.columnOrder;
-		ConfFLW.ColumnWidthArray = _common.listview.columnWidth;
+		ConfFLW.view.column.order = _common.listview.columnOrder;
+		ConfFLW.view.column.width = _common.listview.columnWidth;
 
 		//sort status
-		ConfFLW.SortColumn = Model.GetSortKeyType();
-		ConfFLW.SortDescending = Model.GetSortMode();
+		ConfFLW.view.SortColumnIndex = Model.GetSortKeyType();
+		ConfFLW.view.SortAtoZ = Model.IsSortAtoZ();
 	}
 
 	DWORD GetListViewStyle()const { return ListView.GetWindowLong(GWL_STYLE) & LVS_TYPEMASK; }

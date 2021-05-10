@@ -28,42 +28,50 @@
 
 struct CConfigFileListWindow:public IConfigIO{
 public:
-	int Width;					//ウィンドウの幅
-	int Height;					//ウィンドウの高さ
-	int TreeWidth;				//ツリービューの幅
+	struct GENERAL {
+		bool StoreSetting;
+		bool ExitWithEscape;
+		bool KeepSingleInstance;
+		bool DisableTab;	//trie if disable tab
+	}general;
 
-	int SortColumn;				//どのカラムでソートするか
-	bool SortDescending;		//ソートの昇順・降順
-	int ListStyle;				//リストビューの形式
+	struct DIMENSIONS{
+		int Width;
+		int Height;
+		int TreeWidth;
 
-	bool StoreSetting;			//ウィンドウの設定を保存
+		int WindowPos_x;
+		int WindowPos_y;
+		bool StoreWindowPosition;
+	}dimensions;
 
-	int WindowPos_x;			//ウィンドウの座標(x)
-	int WindowPos_y;			//ウィンドウの座標(y)
-	bool StoreWindowPosition;	//ウィンドウの位置を保存する
+	struct VIEW {
+		int SortColumnIndex;
+		bool SortAtoZ;	//true if sort descending
+		int ListStyle;
 
-	bool IgnoreMeaninglessPath;	//空白や.のみのパス指定は無視する
-	bool ExpandTree;			//起動時にツリービューを展開しておく
-	bool DisplayFileSizeInByte;	//バイト単位でファイルサイズを表記する
-	bool DisplayPathOnly;		//フルパスの欄にファイル名を表示しない
-	std::array<int, FILEINFO_ITEM_COUNT> ColumnOrderArray;	//リストビューカラムの並び順
-	std::array<int, FILEINFO_ITEM_COUNT> ColumnWidthArray;	//リストビューカラムの幅
-	bool ExitWithEscape;		//[ESC]キーで終了
-	bool DisableTab;			//タブ表示を使わないならTRUE
-	bool KeepSingleInstance;	//ウィンドウを一つに保つならTRUE
-	bool DenyPathExt;			//%PATHEXT%で指定されたファイルを開かないならTRUE
+		bool DisplayFileSizeInByte;
+		bool DisplayPathOnly;
+		struct LISTVIEW_COLUMN {
+			std::array<int, FILEINFO_ITEM_COUNT> order;
+			std::array<int, FILEINFO_ITEM_COUNT> width;
+		}column;
 
-	std::wstring strCustomToolbarImage;	//カスタムツールバー画像
-	bool ShowToolbar;			//ツールバーを表示するならTRUE
-	bool ShowTreeView;			//ツリービューを表示するならTRUE
+		bool ExpandTree;	//true to expand treeview on startup
+		bool ShowTreeView;
+		bool ShowToolbar;
+		std::wstring strCustomToolbarImage;
 
-	struct tagOpenAssoc{
-		virtual ~tagOpenAssoc() {}
-		std::wstring Accept;
-		std::wstring Deny;
-	}OpenAssoc;
+		struct tagOpenAssoc {
+			virtual ~tagOpenAssoc() {}
+			std::wstring Accept;
+			std::wstring Deny;
+			bool DenyExecutables;	//true to deny opening files that match %PATHEXT%
+		}OpenAssoc;
 
-	std::vector<CLFMenuCommandItem> MenuCommandArray;	//「プログラムで開く」のコマンド
+		std::vector<CLFMenuCommandItem> MenuCommandArray;	//Open with app
+	}view;
+
 protected:
 	void loadMenuCommand(const CConfigFile&);
 	void storeMenuCommand(CConfigFile&)const;

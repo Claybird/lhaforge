@@ -121,7 +121,7 @@ const ARCHIVE_ENTRY_INFO* CFileListModel::GetFileListItemByIndex(int iIndex)cons
 	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//not sorted
 		return m_lpCurrentDir->getChild(iIndex);
 	}else{
-		if(m_bSortAscending){
+		if(m_bSortAtoZ){
 			return m_SortedChildren[iIndex].get();
 		}else{
 			return m_SortedChildren[numChildren-1-iIndex].get();
@@ -219,7 +219,7 @@ void CFileListModel::SortCurrentEntries()
 			if (Type<FILEINFO_INVALID || Type>FILEINFO_LAST_ITEM)return;
 			FILELIST_SORT_COMPARATOR comp;
 			comp.Type = Type;
-			comp.bReversed = !m_bSortAscending;
+			comp.bReversed = !m_bSortAtoZ;
 			std::sort(m_SortedChildren.begin(), m_SortedChildren.end(), comp);
 			dispatchEvent(WM_FILELIST_UPDATED);
 		}

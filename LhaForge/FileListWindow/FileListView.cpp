@@ -339,15 +339,15 @@ void CFileListView::SortItem(int iCol)
 	if (!(iCol >= 0 && iCol < FILEINFO_ITEM_COUNT))return;
 
 	if (iCol == mr_Model.GetSortKeyType()) {
-		if (mr_Model.GetSortMode()) {
-			mr_Model.SetSortMode(false);
+		if (mr_Model.IsSortAtoZ()) {
+			mr_Model.SetSortAtoZ(false);
 		} else {	//disable sort
 			mr_Model.SetSortKeyType(FILEINFO_INVALID);
-			mr_Model.SetSortMode(true);
+			mr_Model.SetSortAtoZ(true);
 		}
 	} else {
 		mr_Model.SetSortKeyType(iCol);
-		mr_Model.SetSortMode(true);
+		mr_Model.SetSortAtoZ(true);
 	}
 
 	UpdateSortIcon();
@@ -384,7 +384,7 @@ void CFileListView::UpdateSortIcon()
 			hc.GetItem(iCol, &hdi);
 			hdi.mask |= HDI_FORMAT | HDI_IMAGE;
 			hdi.fmt |= HDF_IMAGE | HDF_BITMAP_ON_RIGHT;
-			hdi.iImage = mr_Model.GetSortMode() ? sortIconAscending : sortIconDescending;
+			hdi.iImage = mr_Model.IsSortAtoZ() ? sortIconAscending : sortIconDescending;
 			hc.SetItem(iCol, &hdi);
 		}
 	}

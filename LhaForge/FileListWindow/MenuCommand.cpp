@@ -100,7 +100,7 @@ void MenuCommand_MakeSendToMenu(HMENU hMenu)
 
 void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW)
 {
-	s_MenuCommandArray = ConfFLW.MenuCommandArray;
+	s_MenuCommandArray = ConfFLW.view.MenuCommandArray;
 }
 
 void MenuCommand_MakeSendToCommands()

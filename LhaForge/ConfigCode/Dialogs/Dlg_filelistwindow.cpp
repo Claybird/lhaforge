@@ -31,7 +31,7 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	DoDataExchange(FALSE);
 
-	m_MenuCommandArray = m_Config.MenuCommandArray;
+	m_MenuCommandArray = m_Config.view.MenuCommandArray;
 	m_lpMenuCommandItem = nullptr;
 
 	CRect rect;
@@ -55,7 +55,7 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 	if(m_lpMenuCommandItem){
 		getUserAppEdit();
 	}
-	m_Config.MenuCommandArray = m_MenuCommandArray;
+	m_Config.view.MenuCommandArray = m_MenuCommandArray;
 	return TRUE;
 }
 

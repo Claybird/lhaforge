@@ -62,19 +62,27 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	//Set window prop: set identity of LhaForge window
 	::SetPropW(m_hWnd, g_strPropIdentifier.c_str(), m_hWnd);
 
+	CRect Rect;
+	GetWindowRect(Rect);
 	//Window size
-	if(m_ConfFLW.StoreSetting){
-		if(m_ConfFLW.StoreWindowPosition){	//restore window position and size
-			MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y, m_ConfFLW.Width, m_ConfFLW.Height);
+	if(m_ConfFLW.general.StoreSetting){
+		if(m_ConfFLW.dimensions.StoreWindowPosition){	//restore window position and size
+			MoveWindow(
+				m_ConfFLW.dimensions.WindowPos_x,
+				m_ConfFLW.dimensions.WindowPos_y,
+				m_ConfFLW.dimensions.Width,
+				m_ConfFLW.dimensions.Height);
 		}else{
-			CRect Rect;
-			GetWindowRect(Rect);
-			MoveWindow(Rect.left,Rect.top, m_ConfFLW.Width, m_ConfFLW.Height);
+			MoveWindow(Rect.left,Rect.top,
+				m_ConfFLW.dimensions.Width,
+				m_ConfFLW.dimensions.Height);
 		}
-	}else if(m_ConfFLW.StoreWindowPosition){	//restore window position only
-		CRect Rect;
-		GetWindowRect(Rect);
-		MoveWindow(m_ConfFLW.WindowPos_x, m_ConfFLW.WindowPos_y,Rect.Width(),Rect.Height());
+	}else if(m_ConfFLW.dimensions.StoreWindowPosition){	//restore window position only
+		MoveWindow(
+			m_ConfFLW.dimensions.WindowPos_x,
+			m_ConfFLW.dimensions.WindowPos_y,
+			Rect.Width(),
+			Rect.Height());
 	}
 	GetWindowRect(m_WindowRect);
 
@@ -84,13 +92,16 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	HICON hIconSmall = AtlLoadIconImage(IDI_APP, LR_DEFAULTCOLOR,::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	if(m_ConfFLW.ShowToolbar){
+	if(m_ConfFLW.view.ShowToolbar){
 		//toolbar
 		CreateSimpleReBar(ATL_SIMPLE_REBAR_NOBORDER_STYLE);
 		HIMAGELIST hImageList=NULL;
-		if(!m_ConfFLW.strCustomToolbarImage.empty()){
+		if(!m_ConfFLW.view.strCustomToolbarImage.empty()){
 			//custom toolbar image
-			hImageList = ImageList_LoadImage(NULL, m_ConfFLW.strCustomToolbarImage.c_str(), 0, 1, CLR_DEFAULT, IMAGE_BITMAP, LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
+			hImageList = ImageList_LoadImage(NULL,
+				m_ConfFLW.view.strCustomToolbarImage.c_str(),
+				0, 1, CLR_DEFAULT, IMAGE_BITMAP,
+				LR_CREATEDIBSECTION | LR_DEFAULTSIZE|LR_LOADFROMFILE);
 		}
 		HWND hWndToolBar=CreateToolBarCtrl(m_hWnd,IDR_MAINFRAME,hImageList);//CreateSimpleToolBarCtrl(m_hWnd,IDR_MAINFRAME, FALSE, ATL_SIMPLE_TOOLBAR_PANE_STYLE);
 		AddSimpleReBarBand(hWndToolBar);
@@ -114,7 +125,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 		m_TabClientWnd->addEventListener(m_hWnd);
 
 		//hide tab if disabled
-		if (m_ConfFLW.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
+		if (m_ConfFLW.general.DisableTab)m_TabClientWnd->ShowTabCtrl(false);
 		m_hWndClient = *m_TabClientWnd;
 	}
 
@@ -136,9 +147,9 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	}
 
 	//list view style
-	if(m_ConfFLW.StoreSetting){
+	if(m_ConfFLW.general.StoreSetting){
 		//current status
-		switch(m_ConfFLW.ListStyle){
+		switch(m_ConfFLW.view.ListStyle){
 		case LVS_SMALLICON:
 			UISetCheck(ID_MENUITEM_LISTVIEW_SMALLICON, TRUE);
 			break;
@@ -169,7 +180,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	pLoop->AddIdleHandler(this);
 
 	//keyboard accelerator
-	if(m_ConfFLW.ExitWithEscape){
+	if(m_ConfFLW.general.ExitWithEscape){
 		m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 	}
 
@@ -225,24 +236,24 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 
 	bool bSave=false;
 	//store window settings
-	if (m_ConfFLW.StoreSetting) {
+	if (m_ConfFLW.general.StoreSetting) {
 		//window size
-		m_ConfFLW.Width = m_WindowRect.Width();
-		m_ConfFLW.Height = m_WindowRect.Height();
+		m_ConfFLW.dimensions.Width = m_WindowRect.Width();
+		m_ConfFLW.dimensions.Height = m_WindowRect.Height();
 
 		m_TabClientWnd->StoreSettings(m_ConfFLW);
 
-		if (m_ConfFLW.StoreWindowPosition) {
-			m_ConfFLW.WindowPos_x = m_WindowRect.left;
-			m_ConfFLW.WindowPos_y = m_WindowRect.top;
+		if (m_ConfFLW.dimensions.StoreWindowPosition) {
+			m_ConfFLW.dimensions.WindowPos_x = m_WindowRect.left;
+			m_ConfFLW.dimensions.WindowPos_y = m_WindowRect.top;
 		}
 
 		m_ConfFLW.store(mr_Config);
 		bSave = true;
 	}
-	if (m_ConfFLW.StoreWindowPosition) {
-		m_ConfFLW.WindowPos_x = m_WindowRect.left;
-		m_ConfFLW.WindowPos_y = m_WindowRect.top;
+	if (m_ConfFLW.dimensions.StoreWindowPosition) {
+		m_ConfFLW.dimensions.WindowPos_x = m_WindowRect.left;
+		m_ConfFLW.dimensions.WindowPos_y = m_WindowRect.top;
 		m_ConfFLW.store(mr_Config);
 		bSave = true;
 	}
@@ -283,7 +294,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 		}
 	}else{
 		//keep single instance
-		if(bAllowRelayOpen && m_ConfFLW.KeepSingleInstance){
+		if(bAllowRelayOpen && m_ConfFLW.general.KeepSingleInstance){
 			static HWND s_hFirstWindow;
 			
 			s_hFirstWindow = nullptr;
@@ -448,7 +459,7 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 	m_ConfFLW.load(mr_Config);
 	m_compressArgs.load(mr_Config);
 	//reload accelerator
-	if (m_ConfFLW.ExitWithEscape) {
+	if (m_ConfFLW.general.ExitWithEscape) {
 		if (m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
 	} else {
 		m_AccelEx.DestroyObject();

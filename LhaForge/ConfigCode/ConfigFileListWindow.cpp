@@ -39,120 +39,84 @@
 void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 {
 	const auto section = L"FileListWindow";
-	//ウィンドウの設定を保存
-	StoreSetting=Config.getBool(section, L"StoreSetting", true);
-	//ウィンドウの幅と高さ
-	Width = Config.getInt(section, L"Width", FILELISTWINDOW_DEFAULT_WIDTH);
-	if(Width<0){
-		Width=FILELISTWINDOW_DEFAULT_WIDTH;
-	}
+	general.StoreSetting = Config.getBool(section, L"StoreSetting", true);
+	general.ExitWithEscape = Config.getBool(section, L"ExitWithEscape", false);
+	general.DisableTab = Config.getBool(section, L"DisableTab", false);
+	general.KeepSingleInstance = Config.getBool(section, L"KeepSingleInstance", false);
 
-	Height=Config.getInt(section, L"Height", FILELISTWINDOW_DEFAULT_HEIGHT);
-	if(Height<0){
-		Height=FILELISTWINDOW_DEFAULT_HEIGHT;
+	//---
+	dimensions.StoreWindowPosition = Config.getBool(section, L"StoreWindowPosition", false);
+	dimensions.Width = Config.getInt(section, L"Width", FILELISTWINDOW_DEFAULT_WIDTH);
+	if (dimensions.Width < 0) {
+		dimensions.Width = FILELISTWINDOW_DEFAULT_WIDTH;
 	}
-
-	//ツリービューの幅
-	TreeWidth=Config.getInt(section, L"TreeWidth", FILELISTWINDOW_DEFAULT_TREE_WIDTH);
-	if(TreeWidth<0){
-		TreeWidth=175;
+	dimensions.Height = Config.getInt(section, L"Height", FILELISTWINDOW_DEFAULT_HEIGHT);
+	if (dimensions.Height < 0) {
+		dimensions.Height = FILELISTWINDOW_DEFAULT_HEIGHT;
 	}
-	//リストビューのスタイル(Default:LVS_ICON)
-	ListStyle=Config.getInt(section, L"ListStyle", 0);
-	if(
-		(LVS_LIST!=ListStyle)&&
-		(LVS_REPORT!=ListStyle)&&
-		(LVS_SMALLICON!=ListStyle)&&
-		(LVS_ICON!=ListStyle)
-	)ListStyle=LVS_ICON;
+	dimensions.TreeWidth = Config.getInt(section, L"TreeWidth", FILELISTWINDOW_DEFAULT_TREE_WIDTH);
+	if (dimensions.TreeWidth < 0) {
+		dimensions.TreeWidth = 175;
+	}
+	dimensions.WindowPos_x = Config.getInt(section, L"x", 0);
+	dimensions.WindowPos_y = Config.getInt(section, L"y", 0);
 
 	//---------
-	//ソートの設定
-	//カラム
-	SortColumn = Config.getIntRange(section, L"SortColumn", FILEINFO_INVALID, FILEINFO_LAST_ITEM, FILEINFO_FILENAME);
-	//昇順/降順
-	SortDescending = Config.getBool(section, L"Descending", true);
-	//----------
-	//ウィンドウの位置を保存
-	StoreWindowPosition = Config.getBool(section, L"StoreWindowPosition", false);
-	//ウィンドウの座標
-	WindowPos_x = Config.getInt(section, L"x", 0);
-	WindowPos_y = Config.getInt(section, L"y", 0);
-	//---------
-	//無意味なパスを無視するか
-	IgnoreMeaninglessPath = Config.getBool(section, L"IgnoreMeaninglessPath", true);
-	//---------
-	//初めからツリーを展開
-	ExpandTree=Config.getBool(section, L"ExpandTree", false);
-	//バイト単位でファイルサイズを表記
-	DisplayFileSizeInByte = Config.getBool(section, L"DisplayFileSizeInByte", false);
-	//フルパスの欄にファイル名を表示しない
-	DisplayPathOnly = Config.getBool(section, L"DisplayPathOnly", false);
-	//[ESC]キーで終了
-	ExitWithEscape=Config.getBool(section, L"ExitWithEscape", false);
-	//タブ表示を使わないならTRUE
-	DisableTab=Config.getBool(section, L"DisableTab", false);
-	//ウィンドウを一つに保つならTRUE
-	KeepSingleInstance=Config.getBool(section, L"KeepSingleInstance", false);
+	//Default:LVS_ICON
+	view.ListStyle = Config.getInt(section, L"ListStyle", 0);
+	if (
+		(LVS_LIST != view.ListStyle) &&
+		(LVS_REPORT != view.ListStyle) &&
+		(LVS_SMALLICON != view.ListStyle) &&
+		(LVS_ICON != view.ListStyle)
+		) {
+		view.ListStyle = LVS_ICON;
+	}
+	view.SortColumnIndex = Config.getIntRange(section, L"SortColumn", FILEINFO_INVALID, FILEINFO_LAST_ITEM, FILEINFO_FILENAME);
+	view.SortAtoZ = Config.getBool(section, L"AtoZ", true);
+	view.ExpandTree = Config.getBool(section, L"ExpandTree", false);
+	view.DisplayFileSizeInByte = Config.getBool(section, L"DisplayFileSizeInByte", false);
+	view.DisplayPathOnly = Config.getBool(section, L"DisplayPathOnly", false);
 
-	//リストビューカラムの並び順
 	{
-		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			//配列初期化
-			ColumnOrderArray[i]=i;
+		for (int i = 0; i < FILEINFO_ITEM_COUNT; i++) {
+			view.column.order[i] = i;
 		}
-		auto buf=Config.getText(section, L"ColumnOrder", L"");
-		if(!buf.empty()){
-			//カラムの並び順を取得
+		auto buf = Config.getText(section, L"ColumnOrder", L"");
+		if (!buf.empty()) {
 			std::vector<int> numArr = UtilStringToIntArray(buf);
-			//並び順のチェック
-			for(int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++){
+			for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++) {
 				int columnPosition = numArr[idx];
-				if(columnPosition<0)columnPosition = -1;
-				if(columnPosition >= FILEINFO_ITEM_COUNT){
+				if (columnPosition < 0)columnPosition = -1;
+				if (columnPosition >= FILEINFO_ITEM_COUNT) {
 					columnPosition = idx;
 				}
-				ColumnOrderArray[idx] = columnPosition;
+				view.column.order[idx] = columnPosition;
 			}
 		}
 	}
-	//リストビューカラムの幅
 	{
-		//配列初期化
-		for(int i=0;i<COUNTOF(ColumnWidthArray);i++){
-			ColumnWidthArray[i]=-1;
+		for (int i = 0; i < FILEINFO_ITEM_COUNT; i++) {
+			view.column.width[i] = -1;
 		}
 		auto buf = Config.getText(section, L"ColumnWidth", L"");
-		//カラムの幅を取得
 		std::vector<int> numArr = UtilStringToIntArray(buf);
-		for(int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++){
-			ColumnWidthArray[idx] = numArr[idx];
+		for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++) {
+			view.column.width[idx] = numArr[idx];
 		}
 	}
+	view.strCustomToolbarImage = Config.getText(section, L"CustomToolbarImage", L"");
+	view.ShowToolbar = Config.getBool(section, L"ShowToolbar", true);
+	view.ShowTreeView = Config.getBool(section, L"ShowTreeView", true);
 
-	//関連付けで開くを許可/拒否する拡張子
-	OpenAssoc.Accept = Config.getText(section, L"OpenAssocAccept", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT));
-
-	//拒否
-	OpenAssoc.Deny=Config.getText(section, L"OpenAssocDeny", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_DENY));
-
-	//%PATHEXT%で指定されたファイルを開かないならTRUE
-	DenyPathExt=Config.getBool(section, L"DenyPathExt", true);
-
-	//カスタムツールバー画像
-	strCustomToolbarImage=Config.getText(section, L"CustomToolbarImage", L"");
-	//ツールバー表示/非表示
-	ShowToolbar=Config.getBool(section, L"ShowToolbar", true);
-
-	//ツリービュー表示/非表示
-	ShowTreeView=Config.getBool(section, L"ShowTreeView", true);
+	view.OpenAssoc.Accept = Config.getText(section, L"OpenAssocAccept", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT));
+	view.OpenAssoc.Deny = Config.getText(section, L"OpenAssocDeny", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_DENY));
+	view.OpenAssoc.DenyExecutables = Config.getBool(section, L"DenyPathExt", true);
 }
 
 void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
 {
-	//「プログラムで開く」メニューのコマンド
-	//古い情報の破棄
-	MenuCommandArray.clear();
+	view.MenuCommandArray.clear();
 	for (int iIndex = 0; iIndex < USERAPP_MAX_NUM; iIndex++) {
 		auto section = Format(L"UserApp%d", iIndex);
 		if (!Config.hasSection(section)) {
@@ -160,110 +124,74 @@ void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
 		} else {
 			CLFMenuCommandItem mci;
 
-			//「プログラムで開く」メニューのコマンド
-			//プログラムのパス
 			mci.Path = Config.getText(section, L"Path", L"");
-			//パラメータ
 			mci.Param = Config.getText(section, L"Param", L"");
-			//ディレクトリ
 			mci.Dir = Config.getText(section, L"Dir", L"");
-			//キャプション
 			mci.Caption = Config.getText(section, L"Caption", L"");
 
-			MenuCommandArray.push_back(mci);
+			view.MenuCommandArray.push_back(mci);
 		}
 	}
 }
 
-
 void CConfigFileListWindow::store_sub(CConfigFile &Config)const
 {
 	const auto section = L"FileListWindow";
-	//ウィンドウの設定を保存
-	Config.setValue(section, L"StoreSetting", StoreSetting);
-	if(StoreSetting){
-		//ウィンドウの幅と高さ
-		Config.setValue(section, L"Width", Width);
-		Config.setValue(section, L"Height", Height);
-		//ツリービューの幅
-		Config.setValue(section, L"TreeWidth", TreeWidth);
-		//リストビューのスタイル
-		Config.setValue(section, L"ListStyle", ListStyle);
-		//---------
-		//ソートの設定
-		//カラム
-		Config.setValue(section, L"SortColumn", SortColumn);
-		//昇順/降順
-		Config.setValue(section, L"Descending", SortDescending);
+	Config.setValue(section, L"StoreSetting", general.StoreSetting);
+	if(general.StoreSetting){
+		Config.setValue(section, L"Width", dimensions.Width);
+		Config.setValue(section, L"Height", dimensions.Height);
+		Config.setValue(section, L"TreeWidth", dimensions.TreeWidth);
+		Config.setValue(section, L"ListStyle", view.ListStyle);
+		Config.setValue(section, L"SortColumn", view.SortColumnIndex);
+		Config.setValue(section, L"AtoZ", view.SortAtoZ);
+	}
+	Config.setValue(section, L"StoreWindowPosition", dimensions.StoreWindowPosition);
+	if (dimensions.StoreWindowPosition) {
+		Config.setValue(section, L"x", dimensions.WindowPos_x);
+		Config.setValue(section, L"y", dimensions.WindowPos_y);
 	}
 	//----------
-	//ウィンドウの位置を保存
-	Config.setValue(section, L"StoreWindowPosition", StoreWindowPosition);
-	if(StoreWindowPosition){
-		//ウィンドウの座標
-		Config.setValue(section, L"x", WindowPos_x);
-		Config.setValue(section, L"y", WindowPos_y);
-	}
+	Config.setValue(section, L"ExitWithEscape", general.ExitWithEscape);
+	Config.setValue(section, L"DisableTab", general.DisableTab);
+	Config.setValue(section, L"KeepSingleInstance", general.KeepSingleInstance);
 	//---------
-	//無意味なパスを無視するか
-	Config.setValue(section, L"IgnoreMeaninglessPath", IgnoreMeaninglessPath);
-	//---------
-	//初めからツリーを展開
-	Config.setValue(section, L"ExpandTree", ExpandTree);
-	//バイト単位でファイルサイズを表記
-	Config.setValue(section, L"DisplayFileSizeInByte", DisplayFileSizeInByte);
-	//フルパスの欄にファイル名を表示しない
-	Config.setValue(section, L"DisplayPathOnly", DisplayPathOnly);
-	//[ESC]キーで終了
-	Config.setValue(section, L"ExitWithEscape", ExitWithEscape);
-	//タブ表示を使わないならTRUE
-	Config.setValue(section, L"DisableTab", DisableTab);
-	//ウィンドウを一つに保つならTRUE
-	Config.setValue(section, L"KeepSingleInstance", KeepSingleInstance);
+	Config.setValue(section, L"ExpandTree", view.ExpandTree);
+	Config.setValue(section, L"DisplayFileSizeInByte", view.DisplayFileSizeInByte);
+	Config.setValue(section, L"DisplayPathOnly", view.DisplayPathOnly);
 
-	//リストビューカラムの並び順
 	{
 		std::wstring buf;
 		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			buf += Format(L"%d",ColumnOrderArray[i]);
+			buf += Format(L"%d",view.column.order[i]);
 			if(i!=FILEINFO_ITEM_COUNT-1){
 				buf+=L",";
 			}
 		}
 		Config.setValue(section, L"ColumnOrder", buf);
 	}
-	//リストビューカラムの幅
 	{
 		std::wstring buf;
 		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			buf += Format(L"%d",ColumnWidthArray[i]);
+			buf += Format(L"%d",view.column.width[i]);
 			if(i!=FILEINFO_ITEM_COUNT-1){
 				buf+=L",";
 			}
 		}
 		Config.setValue(section, L"ColumnWidth", buf);
 	}
-	//関連付けで開くを許可/拒否する拡張子
-	//許可
-	Config.setValue(section, L"OpenAssocAccept", OpenAssoc.Accept);
-	//拒否
-	Config.setValue(section, L"OpenAssocDeny", OpenAssoc.Deny);
+	Config.setValue(section, L"OpenAssocAccept", view.OpenAssoc.Accept);
+	Config.setValue(section, L"OpenAssocDeny", view.OpenAssoc.Deny);
+	Config.setValue(section, L"DenyPathExt", view.OpenAssoc.DenyExecutables);
 
-	//%PATHEXT%で指定されたファイルを開かないならTRUE
-	Config.setValue(section, L"DenyPathExt", DenyPathExt);
-
-	//カスタムツールバー画像
-	Config.setValue(section, L"CustomToolbarImage", strCustomToolbarImage);
-	//ツールバー表示/非表示
-	Config.setValue(section, L"ShowToolbar", ShowToolbar);
-	//ツリービュー表示/非表示
-	Config.setValue(section, L"ShowTreeView", ShowTreeView);
+	Config.setValue(section, L"CustomToolbarImage", view.strCustomToolbarImage);
+	Config.setValue(section, L"ShowToolbar", view.ShowToolbar);
+	Config.setValue(section, L"ShowTreeView", view.ShowTreeView);
 }
 
 void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
 {
-	//「プログラムで開く」メニューのコマンド
-	//---古いセクションの破棄
+	//---delete old sections
 	for (int iIndex = 0; iIndex < USERAPP_MAX_NUM; iIndex++) {
 		auto section = Format(L"UserApp%d", iIndex);
 		if (!Config.hasSection(section)) {
@@ -272,18 +200,14 @@ void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
 			Config.deleteSection(section);
 		}
 	}
-	//---データの上書き
-	for (size_t iIndex = 0; iIndex < MenuCommandArray.size(); iIndex++) {
+	//---store new sections
+	for (size_t iIndex = 0; iIndex < view.MenuCommandArray.size(); iIndex++) {
 		auto section = Format(L"UserApp%d", iIndex);
-		const auto& mci = MenuCommandArray[iIndex];
+		const auto& mci = view.MenuCommandArray[iIndex];
 
-		//プログラムのパス
 		Config.setValue(section, L"Path", mci.Path);
-		//パラメータ
 		Config.setValue(section, L"Param", mci.Param);
-		//ディレクトリ
 		Config.setValue(section, L"Dir", mci.Dir);
-		//キャプション
 		Config.setValue(section, L"Caption", mci.Caption);
 	}
 }
@@ -291,8 +215,8 @@ void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
 //checks file extension whether file is allowed to be opened.
 bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const
 {
-	auto denyExt = OpenAssoc.Deny;
-	if (DenyPathExt) {
+	auto denyExt = view.OpenAssoc.Deny;
+	if (view.OpenAssoc.DenyExecutables) {
 		auto envs = UtilGetEnvInfo();
 		denyExt += envs[L"PATHEXT"];
 	}
@@ -306,7 +230,7 @@ bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool b
 	if (bDenyOnly) {
 		return true;
 	} else {
-		const auto acceptList = UtilSplitString(OpenAssoc.Accept, L";");
+		const auto acceptList = UtilSplitString(view.OpenAssoc.Accept, L";");
 		for (const auto& accept : acceptList) {
 			if (UtilExtMatchSpec(lpszPath, accept)) {
 				return true;
