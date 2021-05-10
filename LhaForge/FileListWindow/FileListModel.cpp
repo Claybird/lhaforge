@@ -121,11 +121,7 @@ const ARCHIVE_ENTRY_INFO* CFileListModel::GetFileListItemByIndex(int iIndex)cons
 	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//not sorted
 		return m_lpCurrentDir->getChild(iIndex);
 	}else{
-		if(m_bSortAtoZ){
-			return m_SortedChildren[iIndex].get();
-		}else{
-			return m_SortedChildren[numChildren-1-iIndex].get();
-		}
+		return m_SortedChildren[iIndex].get();
 	}
 }
 
