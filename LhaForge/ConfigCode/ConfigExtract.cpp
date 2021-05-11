@@ -27,6 +27,7 @@
 #include "ConfigFile.h"
 #include "ConfigExtract.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
 #include "resource.h"
 
 void CConfigExtract::load(const CConfigFile &Config)
@@ -130,4 +131,16 @@ void CConfigExtract::store(CConfigFile &Config)const
 
 	//解凍対象から外す拡張子
 	Config.setValue(section, L"DenyExt", DenyExt);
+}
+
+//checks file extension
+bool CConfigExtract::isPathAcceptableToExtract(const std::filesystem::path& path)const
+{
+	const auto denyList = UtilSplitString(DenyExt, L";");
+	for (const auto& deny : denyList) {
+		if (UtilExtMatchSpec(path, deny)) {
+			return false;
+		}
+	}
+	return true;
 }

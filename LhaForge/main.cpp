@@ -319,8 +319,8 @@ void procMain()
 		} else {
 			CConfigExtract ConfExtract;
 			ConfExtract.load(config);
-			bool isDenied = toLower(ConfExtract.DenyExt).find(toLower(std::filesystem::path(cli.FileList.front()).extension())) == -1;
-			if (!isDenied && CLFArchive::is_known_format(cli.FileList.front())) {
+			bool allowed = ConfExtract.isPathAcceptableToExtract(cli.FileList.front());
+			if (allowed && CLFArchive::is_known_format(cli.FileList.front())) {
 				DoExtract(config, cli);
 			} else {
 				DoCompress(config, cli);

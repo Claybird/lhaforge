@@ -49,5 +49,6 @@ public:
 	virtual ~CConfigExtract(){}
 	virtual void load(const CConfigFile&);
 	virtual void store(CConfigFile&)const;
+	bool isPathAcceptableToExtract(const std::filesystem::path& path)const;
 };
 
