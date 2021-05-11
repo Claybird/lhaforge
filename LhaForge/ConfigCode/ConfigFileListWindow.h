@@ -90,6 +90,6 @@ public:
 	}
 
 	//checks file extension whether file is allowed to be opened.
-	bool isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const;
+	bool isPathAcceptableToOpenAssoc(const std::filesystem::path &path, bool bDenyOnly)const;
 };
 

@@ -213,17 +213,17 @@ void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
 }
 
 //checks file extension whether file is allowed to be opened.
-bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool bDenyOnly)const
+bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(const std::filesystem::path& path, bool bDenyOnly)const
 {
 	auto denyExt = view.OpenAssoc.Deny;
 	if (view.OpenAssoc.DenyExecutables) {
 		auto envs = UtilGetEnvInfo();
-		denyExt += envs[L"PATHEXT"];
+		denyExt += L";" + envs[L"PATHEXT"];
 	}
 
 	const auto denyList = UtilSplitString(denyExt, L";");
 	for (const auto& deny : denyList) {
-		if (UtilExtMatchSpec(lpszPath, deny)) {
+		if (UtilExtMatchSpec(path, deny)) {
 			return false;
 		}
 	}
@@ -232,7 +232,7 @@ bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(LPCTSTR lpszPath, bool b
 	} else {
 		const auto acceptList = UtilSplitString(view.OpenAssoc.Accept, L";");
 		for (const auto& accept : acceptList) {
-			if (UtilExtMatchSpec(lpszPath, accept)) {
+			if (UtilExtMatchSpec(path, accept)) {
 				return true;
 			}
 		}
