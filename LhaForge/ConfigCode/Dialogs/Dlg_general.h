@@ -89,7 +89,6 @@ public:
 	BEGIN_DDX_MAP(CConfigDlgGeneral)
 		DDX_CHECK(IDC_CHECK_WARN_NETWORK, m_Config.WarnNetwork)
 		DDX_CHECK(IDC_CHECK_WARN_REMOVABLE, m_Config.WarnRemovable)
-		DDX_CHECK(IDC_CHECK_NOTIFY_SHELL, m_Config.NotifyShellAfterProcess)
 		DDX_TEXT(IDC_EDIT_TEMP_PATH, m_Config.TempPath)
 		DDX_RADIO(IDC_RADIO_LOSTDIR_ASK_TO_CREATE, m_Config.OnDirNotFound)
 		DDX_RADIO(IDC_RADIO_VIEW_LOG_ON_ERROR, m_Config.LogViewEvent)

@@ -25,13 +25,9 @@
 #pragma once
 #include "ConfigFile.h"
 
-enum LOSTDIR;
-enum LOGVIEW;
-
 struct CConfigGeneral:public IConfigIO{
 public:
 	struct tagFiler{
-		virtual ~tagFiler(){}
 		std::wstring FilerPath;
 		std::wstring Param;
 		bool UseFiler;
@@ -39,7 +35,6 @@ public:
 
 	bool WarnNetwork;
 	bool WarnRemovable;
-	bool NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
 	int/*LOSTDIR*/ OnDirNotFound;
 	int/*LOGVIEW*/ LogViewEvent;
 

@@ -858,10 +858,8 @@ void compress_helper(
 		progressHandler,
 		passphraseHandler);
 
-	if (args.general.NotifyShellAfterProcess) {
-		//notify shell
-		::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH, archivePath.c_str(), nullptr);
-	}
+	//notify shell
+	::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH, archivePath.c_str(), nullptr);
 
 	//open output directory
 	if (args.compress.OpenDir) {

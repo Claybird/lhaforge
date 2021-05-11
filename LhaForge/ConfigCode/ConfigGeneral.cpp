@@ -28,25 +28,21 @@
 #include "ConfigFile.h"
 #include "ConfigGeneral.h"
 
-void CConfigGeneral::loadOutput(const CConfigFile &Config)
+void CConfigGeneral::loadOutput(const CConfigFile& Config)
 {
 	const auto section = L"Output";
-	// 出力先種類に対する警告
-	WarnNetwork=Config.getBool(section ,L"WarnNetwork", false);
-	WarnRemovable=Config.getBool(section, L"WarnRemovable", false);
 
-	// 出力先が見つからない場合の設定
+	WarnNetwork = Config.getBool(section, L"WarnNetwork", false);
+	WarnRemovable = Config.getBool(section, L"WarnRemovable", false);
 	OnDirNotFound = (LOSTDIR)Config.getIntRange(section, L"OnDirNotFound", 0, LOSTDIR_LAST_ITEM, LOSTDIR_ERROR);
 }
 
 void CConfigGeneral::storeOutput(CConfigFile &Config)const
 {
 	const auto section = L"Output";
-	// 出力先種類に対する警告
 	Config.setValue(section, L"WarnNetwork", WarnNetwork);
 	Config.setValue(section, L"WarnRemovable", WarnRemovable);
 
-	// 出力先が見つからない場合の設定
 	Config.setValue(section, L"OnDirNotFound", OnDirNotFound);
 }
 
@@ -83,7 +79,6 @@ void CConfigGeneral::storeFiler(CConfigFile &Config)const
 void CConfigGeneral::loadGeneral(const CConfigFile &Config)
 {
 	const auto section = L"General";
-	NotifyShellAfterProcess=Config.getBool(section, L"NotifyShell", false);
 
 	TempPath = Config.getText(section, L"TempPath", L"");
 }
@@ -91,7 +86,23 @@ void CConfigGeneral::loadGeneral(const CConfigFile &Config)
 void CConfigGeneral::storeGeneral(CConfigFile &Config)const
 {
 	const auto section = L"General";
-	Config.setValue(section, L"NotifyShell", NotifyShellAfterProcess);
 
 	Config.setValue(section, L"TempPath", TempPath);
 }
+
+#ifdef UNIT_TEST
+TEST(config, CConfigGeneral)
+{
+	CConfigFile emptyFile;
+	CConfigGeneral conf;
+	conf.load(emptyFile);
+
+	EXPECT_FALSE(conf.Filer.UseFiler);
+	EXPECT_FALSE(conf.WarnNetwork);
+	EXPECT_FALSE(conf.WarnRemovable);
+	EXPECT_EQ(LOSTDIR_ERROR, conf.OnDirNotFound);
+	EXPECT_EQ(LOGVIEW_ON_ERROR, conf.LogViewEvent);
+	EXPECT_TRUE(conf.TempPath.empty());
+}
+#endif
+

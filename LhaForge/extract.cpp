@@ -676,10 +676,8 @@ bool GUI_extract_multiple_files(
 			auto original_files = enumerateOriginalArchives(archive_path);
 			LF_deleteOriginalArchives(args.extract.MoveToRecycleBin, args.extract.DeleteNoConfirm, original_files);
 		}
-		if (args.general.NotifyShellAfterProcess) {
-			//notify shell that output is completed
-			::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_PATH, output_dir.c_str(), NULL);
-		}
+		//notify shell that output is completed
+		::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_PATH, output_dir.c_str(), NULL);
 	}
 
 	bool bAllOK = true;
