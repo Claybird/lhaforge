@@ -77,32 +77,22 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	_DIALOG.Create(ScrollWindow);\
 	CString strTitle;\
 	_DIALOG.GetWindowText(strTitle);\
-	HTREEITEM hItem=SelectTreeView.InsertItem(strTitle, _ROOTITEM, TVI_LAST);\
-	SelectTreeView.SetItemData(hItem,(DWORD_PTR)_DIALOG.m_hWnd);\
+	hLastAddedItem=SelectTreeView.InsertItem(strTitle, _ROOTITEM, TVI_LAST);\
+	SelectTreeView.SetItemData(hLastAddedItem,(DWORD_PTR)_DIALOG.m_hWnd);\
 }
 
 	//add dialog pages
-	ADD_PAGE(PageGeneral,TVI_ROOT);
+	HTREEITEM hLastAddedItem = NULL;
+	ADD_PAGE(PageGeneral, TVI_ROOT);
 	ADD_PAGE(PageShellExt,TVI_ROOT);
 	ADD_PAGE(PageShortcut,TVI_ROOT);
 	ADD_PAGE(PageFileListWindow,TVI_ROOT);
 	ADD_PAGE(PageCompressGeneral,TVI_ROOT);
+	HTREEITEM hItemDetail = hLastAddedItem;	//PageCompressGeneral
 	ADD_PAGE(PageExtractGeneral,TVI_ROOT);
 	ADD_PAGE(PageAssociation,TVI_ROOT);
 	ADD_PAGE(PageOpenAction,TVI_ROOT);
 	ADD_PAGE(PageVersion,TVI_ROOT);
-
-	//detail
-	m_ConfigDlgList.insert(&PageDetail);
-	PageDetail.LoadConfig(mr_Config);
-	PageDetail.Create(ScrollWindow);
-	HTREEITEM hItemDetail;
-	{
-		CString Buffer;
-		PageDetail.GetWindowTextW(Buffer);
-		hItemDetail=SelectTreeView.InsertItem(Buffer, TVI_ROOT, TVI_LAST);
-	}
-	SelectTreeView.SetItemData(hItemDetail, (DWORD_PTR)PageDetail.m_hWnd);
 
 	//ADD_PAGE(PageZIP,hItemDetail);
 	//ADD_PAGE(Page7Z,hItemDetail);

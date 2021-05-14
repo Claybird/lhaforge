@@ -32,7 +32,6 @@
 #include "Dialogs/Dlg_compress_general.h"
 #include "Dialogs/Dlg_extract_general.h"
 #include "Dialogs/Dlg_assoc.h"
-#include "Dialogs/Dlg_detail.h"
 #include "Dialogs/Dlg_shortcut.h"
 #include "Dialogs/Dlg_filelistwindow.h"
 #include "Dialogs/Dlg_openaction.h"
@@ -50,7 +49,6 @@ protected:
 	CConfigDlgExtractGeneral		PageExtractGeneral;
 	CConfigDlgAssociation			PageAssociation;
 	CConfigDlgOpenAction			PageOpenAction;
-	CConfigDlgDetail				PageDetail;
 	CConfigDlgShortcut				PageShortcut;
 	CConfigDlgFileListWindow		PageFileListWindow;
 

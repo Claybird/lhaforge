@@ -25,7 +25,7 @@
 #pragma once
 #include "ConfigFile.h"
 
-enum OPENACTION{
+enum OPENACTION:int{
 	OPENACTION_EXTRACT,
 	OPENACTION_LIST,
 	OPENACTION_TEST,
@@ -34,7 +34,7 @@ enum OPENACTION{
 	ENUM_COUNT_AND_LASTITEM(OPENACTION),
 };
 
-struct CConfigOpenAction:public IConfigIO{	//関連付けで開いた場合(/m)のデフォルト動作
+struct CConfigOpenAction:public IConfigIO{
 public:
 	OPENACTION OpenAction;
 	OPENACTION OpenAction_Shift;

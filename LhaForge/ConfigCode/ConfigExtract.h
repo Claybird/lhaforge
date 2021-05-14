@@ -38,13 +38,11 @@ public:
 	bool CreateNoFolderIfSingleFileOnly;
 	bool LimitExtractFileCount;
 	int MaxExtractFileCount;
-	bool DeleteArchiveAfterExtract;	//正常に解凍できた圧縮ファイルを削除
-	bool MoveToRecycleBin;			//解凍後ファイルをごみ箱に移動
-	bool DeleteNoConfirm;			//確認せずに削除/ごみ箱に移動
-	bool ForceDelete;				//解凍エラーを検知できない場合も削除
-	bool MinimumPasswordRequest;	//パスワード入力回数を最小にするならTRUE
+	bool DeleteArchiveAfterExtract;
+	bool MoveToRecycleBin;
+	bool DeleteNoConfirm;
 
-	std::wstring DenyExt;		//解凍対象から外す拡張子
+	std::wstring DenyExt;
 public:
 	virtual ~CConfigExtract(){}
 	virtual void load(const CConfigFile&);

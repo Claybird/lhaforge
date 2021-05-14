@@ -24,28 +24,26 @@
 
 #pragma once
 #include "ConfigFile.h"
+#include "ArchiverCode/archive.h"
 
-enum OUTPUT_TO;
-enum LF_ARCHIVE_FORMAT;
 struct CConfigCompress:public IConfigIO{
 public:
+
 	int/*OUTPUT_TO*/ OutputDirType;
 	std::wstring OutputDirUserSpecified;
 	bool OpenDir;
 	bool SpecifyOutputFilename;
-	bool LimitCompressFileCount;	//同時に圧縮するファイルの数を限定するならtrue
-	int MaxCompressFileCount;		//同時に圧縮するファイルの数の上限
-	bool UseDefaultParameter;	//デフォルト圧縮パラメータを使用するならtrue
-	LF_ARCHIVE_FORMAT DefaultType;	//デフォルト圧縮パラメータ(形式指定)
-	int DefaultOptions;			//デフォルト圧縮パラメータのオプション
+	bool LimitCompressFileCount;
+	int MaxCompressFileCount;
+	bool UseDefaultParameter;
+	LF_ARCHIVE_FORMAT DefaultType;
+	int DefaultOptions;
 
-	bool DeleteAfterCompress;	//正常に圧縮できたファイルを削除
-	bool MoveToRecycleBin;		//圧縮後ファイルをごみ箱に移動
-	bool DeleteNoConfirm;		//確認せずに削除/ごみ箱に移動
-	bool ForceDelete;			//正常処理を確認できない形式でも削除
+	bool DeleteAfterCompress;
+	bool MoveToRecycleBin;
+	bool DeleteNoConfirm;
 
-	bool IgnoreTopDirectory;	//「フォルダより下のファイルを圧縮」
-	bool IgnoreTopDirectoryRecursively;	//「再帰的にフォルダより下のファイルを圧縮」:TODO
+	int/*IGNORE_TOP_DIR*/ IgnoreTopDirectory;
 public:
 	virtual ~CConfigCompress(){}
 	virtual void load(const CConfigFile&);

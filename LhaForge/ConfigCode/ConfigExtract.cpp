@@ -46,43 +46,19 @@ void CConfigExtract::load(const CConfigFile &Config)
 		}
 	}
 
-	//解凍後フォルダを開くかどうか
 	OpenDir = Config.getBool(section, L"OpenFolder", true);
-
-	//解凍時フォルダを二重にするかどうか
 	CreateDir = (CREATE_OUTPUT_DIR)Config.getIntRange(section, L"CreateDir", 0, CREATE_OUTPUT_DIR_LAST_ITEM, CREATE_OUTPUT_DIR_ALWAYS);
-
-	//解凍時ファイルを確認せずに上書きするかどうか
 	ForceOverwrite = Config.getBool(section, L"ForceOverwrite", false);
 
-	//解凍時フォルダ名から数字と記号を削除する
 	RemoveSymbolAndNumber = Config.getBool(section, L"RemoveSymbolAndNumber", false);
-
-	//解凍時ファイル・フォルダが一つだけの時フォルダを作らない
 	CreateNoFolderIfSingleFileOnly = Config.getBool(section, L"CreateNoFolderIfSingleFileOnly", false);
 
-	//同時に解凍するファイル数を制限する
 	LimitExtractFileCount = Config.getBool(section, L"LimitExtractFileCount", false);
-
-	//同時に解凍するファイル数の上限
 	MaxExtractFileCount = std::max(1, Config.getInt(section, L"MaxExtractFileCount", 1));
-
-	//正常に解凍できた圧縮ファイルを削除
 	DeleteArchiveAfterExtract = Config.getBool(section, L"DeleteArchiveAfterExtract", false);
 
-	//解凍後ファイルをごみ箱に移動
 	MoveToRecycleBin = Config.getBool(section, L"MoveToRecycleBin", true);
-
-	//確認せずにアーカイブを削除/ごみ箱に移動
 	DeleteNoConfirm = Config.getBool(section, L"DeleteNoConfirm", false);
-
-	//解凍エラーを検知できない場合も削除
-	ForceDelete = Config.getBool(section, L"ForceDelete", false);
-
-	//パスワード入力回数を最小にするならTRUE
-	MinimumPasswordRequest = Config.getBool(section, L"MinimumPasswordRequest", false);
-
-	//解凍対象から外す拡張子
 	DenyExt = Config.getText(section, L"DenyExt", UtilLoadString(IDS_DENYEXT_DEFAULT));
 }
 
@@ -93,43 +69,16 @@ void CConfigExtract::store(CConfigFile &Config)const
 
 	Config.setValue(section, L"OutputDir", OutputDirUserSpecified);
 
-	//解凍後フォルダを開くかどうか
 	Config.setValue(section, L"OpenFolder", OpenDir);
-
-	//解凍時フォルダを二重にするかどうか
 	Config.setValue(section, L"CreateDir", CreateDir);
-
-	//解凍時ファイルを確認せずに上書きするかどうか
 	Config.setValue(section, L"ForceOverwrite", ForceOverwrite);
-
-	//解凍時フォルダ名から数字と記号を削除する
 	Config.setValue(section, L"RemoveSymbolAndNumber", RemoveSymbolAndNumber);
-
-	//解凍時ファイル・フォルダが一つだけの時フォルダを作らない
 	Config.setValue(section, L"CreateNoFolderIfSingleFileOnly", CreateNoFolderIfSingleFileOnly);
-
-	//同時に解凍するファイル数を制限する
 	Config.setValue(section, L"LimitExtractFileCount", LimitExtractFileCount);
-
-	//同時に解凍するファイル数の上限
 	Config.setValue(section, L"MaxExtractFileCount", MaxExtractFileCount);
-
-	//正常に解凍できた圧縮ファイルを削除
 	Config.setValue(section, L"DeleteArchiveAfterExtract", DeleteArchiveAfterExtract);
-
-	//解凍後ファイルをごみ箱に移動
 	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
-
-	//確認せずにアーカイブを削除/ごみ箱に移動
 	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
-
-	//解凍エラーを検知できない場合も削除
-	Config.setValue(section, L"ForceDelete", ForceDelete);
-
-	//パスワード入力回数を最小にするならTRUE
-	Config.setValue(section, L"MinimumPasswordRequest", MinimumPasswordRequest);
-
-	//解凍対象から外す拡張子
 	Config.setValue(section, L"DenyExt", DenyExt);
 }
 
@@ -144,3 +93,19 @@ bool CConfigExtract::isPathAcceptableToExtract(const std::filesystem::path& path
 	}
 	return true;
 }
+
+#ifdef UNIT_TEST
+TEST(config, CConfigExtract)
+{
+	CConfigFile emptyFile;
+	CConfigExtract conf;
+	conf.load(emptyFile);
+
+	conf.DenyExt = L".docx;;.exe;.zipx";
+
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.txt"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.docx"));
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.zip"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.zipx"));
+}
+#endif

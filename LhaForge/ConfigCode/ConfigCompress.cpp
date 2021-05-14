@@ -31,9 +31,7 @@
 void CConfigCompress::load(const CConfigFile &Config)
 {
 	const auto section = L"Compress";
-	//出力先の種類
 	OutputDirType = (OUTPUT_TO)Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
-	//出力先のパス
 	auto value=Config.getText(section, L"OutputDir", L"");
 	if (value.empty()) {
 		OutputDirUserSpecified = L"";
@@ -44,78 +42,65 @@ void CConfigCompress::load(const CConfigFile &Config)
 			OutputDirUserSpecified = L"";
 		}
 	}
-	//圧縮後フォルダを開くかどうか
 	OpenDir=Config.getBool(section, L"OpenFolder", true);
 
-	//出力ファイル名を指定するかどうか
 	SpecifyOutputFilename=Config.getBool(section, L"SpecifyName", false);
-
-	//同時に圧縮するファイル数を制限する
 	LimitCompressFileCount=Config.getBool(section, L"LimitCompressFileCount", false);
-
-	//同時に圧縮するファイル数の上限
 	MaxCompressFileCount = std::max(1, Config.getInt(section, L"MaxCompressFileCount", 0));
 
-	//デフォルト圧縮パラメータを使用するならtrue
 	UseDefaultParameter=Config.getBool(section, L"UseDefaultParameter", false);
-
-	//デフォルト圧縮パラメータ(形式指定)
-	//TODO DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
-	DefaultType = LF_FMT_INVALID;
-
-	//デフォルト圧縮パラメータのオプション
+	DefaultType = (LF_ARCHIVE_FORMAT)Config.getIntRange(section,
+		L"DefaultType", LF_FMT_INVALID, LF_ARCHIVE_FORMAT_LAST_ITEM, LF_FMT_INVALID);
 	DefaultOptions=Config.getInt(section, L"DefaultOptions", 0);
 
-	//正常に圧縮できたファイルを削除
 	DeleteAfterCompress=Config.getBool(section, L"DeleteAfterCompress", false);
-	//圧縮後ファイルをごみ箱に移動
 	MoveToRecycleBin=Config.getBool(section, L"MoveToRecycleBin", true);
-	//確認せずに削除/ごみ箱に移動
 	DeleteNoConfirm=Config.getBool(section, L"DeleteNoConfirm", false);
-	//正常処理を確認できない形式でも削除
-	ForceDelete=Config.getBool(section, L"ForceDelete", false);
 
-	//「フォルダより下のファイルを圧縮」
-	IgnoreTopDirectory=Config.getBool(section, L"IgnoreTopDirectory", false);
+	IgnoreTopDirectory = Config.getIntRange(section,
+		L"IgnoreTopDirectory", 0, (int)IGNORE_TOP_DIR::IGNORE_TOP_DIR_LAST_ITEM, (int)IGNORE_TOP_DIR::None);
 }
 
 void CConfigCompress::store(CConfigFile &Config)const
 {
 	const auto section = L"Compress";
-	//出力先の種類
 	Config.setValue(section, L"OutputDirType", OutputDirType);
-	//出力先のパス
 	Config.setValue(section, L"OutputDir", OutputDirUserSpecified);
-	//圧縮後フォルダを開くかどうか
 	Config.setValue(section, L"OpenFolder", OpenDir);
 
-	//出力ファイル名を指定するかどうか
 	Config.setValue(section, L"SpecifyName", SpecifyOutputFilename);
-
-	//同時に圧縮するファイル数を制限する
 	Config.setValue(section, L"LimitCompressFileCount", LimitCompressFileCount);
-
-	//同時に圧縮するファイル数の上限
 	Config.setValue(section, L"MaxCompressFileCount", MaxCompressFileCount);
-
-	//デフォルト圧縮パラメータを使用するならtrue
 	Config.setValue(section, L"UseDefaultParameter", UseDefaultParameter);
-
-	//デフォルト圧縮パラメータ(形式指定)
 	Config.setValue(section, L"DefaultType", DefaultType);
-
-	//デフォルト圧縮パラメータのオプション
 	Config.setValue(section, L"DefaultOptions", DefaultOptions);
-
-	//正常に圧縮できたファイルを削除
 	Config.setValue(section, L"DeleteAfterCompress", DeleteAfterCompress);
-	//圧縮後ファイルをごみ箱に移動
 	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
-	//確認せずに削除/ごみ箱に移動
 	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
-	//正常処理を確認できない形式でも削除
-	Config.setValue(section, L"ForceDelete", ForceDelete);
-
-	//「フォルダより下のファイルを圧縮」
-	Config.setValue(section, L"IgnoreTopDirectory", IgnoreTopDirectory);
+	Config.setValue(section, L"IgnoreTopDirectory", (int)IgnoreTopDirectory);
 }
+
+#ifdef UNIT_TEST
+TEST(config, CConfigCompress)
+{
+	CConfigFile emptyFile;
+	CConfigCompress conf;
+	conf.load(emptyFile);
+
+	EXPECT_EQ(OUTPUT_TO_DESKTOP, conf.OutputDirType);
+	EXPECT_TRUE(conf.OutputDirUserSpecified.empty());
+	EXPECT_TRUE(conf.OpenDir);
+	EXPECT_FALSE(conf.SpecifyOutputFilename);
+	EXPECT_FALSE(conf.LimitCompressFileCount);
+	EXPECT_EQ(1, conf.MaxCompressFileCount);
+	EXPECT_FALSE(conf.UseDefaultParameter);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::LF_FMT_INVALID, conf.DefaultType);
+	EXPECT_EQ(0, conf.DefaultOptions);
+
+	EXPECT_FALSE(conf.DeleteAfterCompress);
+	EXPECT_TRUE(conf.MoveToRecycleBin);
+	EXPECT_FALSE(conf.DeleteNoConfirm);
+
+	EXPECT_EQ((int)IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
+}
+#endif

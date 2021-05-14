@@ -29,61 +29,73 @@
 void CConfigShellExt::loadShellMenu(const CConfigFile &Config)
 {
 	const auto section = L"ShellMenu";
-	// 右クリックメニューの表示・非表示
+	// enable/disable context menu
 	ShellMenuCompress=Config.getBool(section, L"Compress", true);
 	ShellMenuExtract=Config.getBool(section, L"Extract", true);
 	ShellMenuList=Config.getBool(section, L"List", true);
 	ShellMenuTest=Config.getBool(section, L"Test", true);
 
-	// サブメニュー以下に放り込む
+	// push under submenu
 	ShellMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
 void CConfigShellExt::storeShellMenu(CConfigFile &Config)const
 {
 	const auto section = L"ShellMenu";
-	// 右クリックメニューの表示・非表示
+	// enable/disable context menu
 	Config.setValue(section, L"Compress", ShellMenuCompress);
 	Config.setValue(section, L"Extract", ShellMenuExtract);
 	Config.setValue(section, L"List", ShellMenuList);
 	Config.setValue(section, L"Test", ShellMenuTest);
 
-	// サブメニュー以下に放り込む
+	// push under submenu
 	Config.setValue(section, L"UnderSubMenu", ShellMenuUnderSubMenu);
 }
 
 void CConfigShellExt::loadDragMenu(const CConfigFile &Config)
 {
 	const auto section = L"DragMenu";
-	// 右ドラッグメニューの表示・非表示
 	DragMenuCompress=Config.getBool(section, L"Compress", true);
 	DragMenuExtract=Config.getBool(section, L"Extract", true);
-	// サブメニュー以下に放り込む
 	DragMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
 void CConfigShellExt::storeDragMenu(CConfigFile &Config)const
 {
 	const auto section = L"DragMenu";
-	// 右ドラッグメニューの表示・非表示
 	Config.setValue(section, L"Compress", DragMenuCompress);
 	Config.setValue(section, L"Extract", DragMenuExtract);
-	// サブメニュー以下に放り込む
 	Config.setValue(section, L"UnderSubMenu", DragMenuUnderSubMenu);
 }
 
 void CConfigShellExt::loadExtraMenu(const CConfigFile &Config)
 {
 	const auto section = L"ExtraMenu";
-	// 拡張メニューの表示
 	ForceExtraMenu=Config.getBool(section, L"ForceExtraMenu", false);
 }
 
 void CConfigShellExt::storeExtraMenu(CConfigFile &Config)const
 {
 	const auto section = L"ExtraMenu";
-	// 拡張メニューの表示
 	Config.setValue(section, L"ForceExtraMenu", ForceExtraMenu);
 }
 
 
+#ifdef UNIT_TEST
+TEST(config, CConfigShellExt)
+{
+	CConfigFile emptyFile;
+	CConfigShellExt conf;
+	conf.load(emptyFile);
+
+	EXPECT_TRUE(conf.ShellMenuCompress);
+	EXPECT_TRUE(conf.ShellMenuExtract);
+	EXPECT_TRUE(conf.ShellMenuList);
+	EXPECT_TRUE(conf.ShellMenuTest);
+	EXPECT_FALSE(conf.ShellMenuUnderSubMenu);
+	EXPECT_TRUE(conf.DragMenuCompress);
+	EXPECT_TRUE(conf.DragMenuExtract);
+	EXPECT_FALSE(conf.DragMenuUnderSubMenu);
+	EXPECT_FALSE(conf.ForceExtraMenu);
+}
+#endif

@@ -26,11 +26,9 @@
 #include "ConfigFile.h"
 #include "ConfigOpenAction.h"
 
-// 関連付け動作設定
 void CConfigOpenAction::load(const CConfigFile &Config)
 {
 	const auto section = L"OpenAction";
-	//動作選択
 	OpenAction = (OPENACTION)Config.getIntRange(section, L"OpenAction", 0, OPENACTION_LAST_ITEM, OPENACTION_EXTRACT);
 	OpenAction_Shift = (OPENACTION)Config.getIntRange(section, L"OpenAction_Shift", 0, OPENACTION_LAST_ITEM, OPENACTION_LIST);
 	OpenAction_Ctrl = (OPENACTION)Config.getIntRange(section, L"OpenAction_Ctrl", 0, OPENACTION_LAST_ITEM, OPENACTION_TEST);
@@ -39,8 +37,20 @@ void CConfigOpenAction::load(const CConfigFile &Config)
 void CConfigOpenAction::store(CConfigFile &Config)const
 {
 	const auto section = L"OpenAction";
-	//動作選択
 	Config.setValue(section, L"OpenAction", OpenAction);
 	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
 	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
 }
+
+#ifdef UNIT_TEST
+TEST(config, CConfigOpenAction)
+{
+	CConfigFile emptyFile;
+	CConfigOpenAction conf;
+	conf.load(emptyFile);
+
+	EXPECT_EQ(OPENACTION_EXTRACT, conf.OpenAction);
+	EXPECT_EQ(OPENACTION_LIST, conf.OpenAction_Shift);
+	EXPECT_EQ(OPENACTION_TEST, conf.OpenAction_Ctrl);
+}
+#endif

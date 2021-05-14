@@ -239,3 +239,24 @@ bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(const std::filesystem::p
 	}
 	return false;
 }
+
+#ifdef UNIT_TEST
+TEST(config, CConfigFileListWindow)
+{
+	CConfigFile emptyFile;
+	CConfigFileListWindow conf;
+	conf.load(emptyFile);
+	conf.view.OpenAssoc.Deny = L".exe;.bat";
+	conf.view.OpenAssoc.Accept = L".txt";
+
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", true));
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", true));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", true));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", true));
+
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", false));
+}
+#endif

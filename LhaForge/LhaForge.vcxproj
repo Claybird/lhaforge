@@ -83,7 +83,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_compress_general.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_filelistwindow.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_general.h" />

@@ -282,31 +282,37 @@ COMPRESS_SOURCES buildCompressSources(
 	targets.basePath = getSourcesBasePath(givenFiles);
 	try {
 		if (givenFiles.size() == 1 && std::filesystem::is_directory(givenFiles[0])) {
-			if (args.compress.IgnoreTopDirectory) {
-				if (args.compress.IgnoreTopDirectoryRecursively) {
-					auto parent = givenFiles[0];
-					auto files = UtilEnumSubFileAndDirectory(parent);
-					for (;;) {
-						if (files.size() == 1 && std::filesystem::is_directory(files[0])) {
-							parent = files[0];
-							auto files_sub = UtilEnumSubFileAndDirectory(parent);
-							if (!files_sub.empty()) {
-								files = files_sub;
-								continue;
-							}
+			switch ((IGNORE_TOP_DIR)args.compress.IgnoreTopDirectory) {
+			case IGNORE_TOP_DIR::Recursive:
+			{
+				auto parent = givenFiles[0];
+				auto files = UtilEnumSubFileAndDirectory(parent);
+				for (;;) {
+					if (files.size() == 1 && std::filesystem::is_directory(files[0])) {
+						parent = files[0];
+						auto files_sub = UtilEnumSubFileAndDirectory(parent);
+						if (!files_sub.empty()) {
+							files = files_sub;
+							continue;
 						}
-						sourcePathList = getAllSourceFiles(files);
-						targets.basePath = getSourcesBasePath(sourcePathList);
-						break;
 					}
-				} else {
-					auto di = std::filesystem::directory_iterator(givenFiles.front());
-					if (std::filesystem::begin(di) != std::filesystem::end(di)) {	//not an empty dir
-						targets.basePath = givenFiles.front();
-					}
+					sourcePathList = getAllSourceFiles(files);
+					targets.basePath = getSourcesBasePath(sourcePathList);
+					break;
 				}
-			} else {
+			}break;
+			case IGNORE_TOP_DIR::FirstTop:
+			{
+				auto di = std::filesystem::directory_iterator(givenFiles.front());
+				if (std::filesystem::begin(di) != std::filesystem::end(di)) {	//not an empty dir
+					targets.basePath = givenFiles.front();
+				}
+			}
+				break;
+			case IGNORE_TOP_DIR::None:
+			default:
 				targets.basePath = std::filesystem::path(targets.basePath).parent_path();
+				break;
 			}
 		}
 
@@ -394,8 +400,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 		LF_COMPRESS_ARGS fake_args;
 		fake_args.load(CConfigFile());
-		fake_args.compress.IgnoreTopDirectory = false;
-		fake_args.compress.IgnoreTopDirectoryRecursively = false;
+		fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::None;
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
@@ -432,8 +437,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 		LF_COMPRESS_ARGS fake_args;
 		fake_args.load(CConfigFile());
-		fake_args.compress.IgnoreTopDirectory = true;
-		fake_args.compress.IgnoreTopDirectoryRecursively = true;
+		fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::Recursive;
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
@@ -464,8 +468,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 		LF_COMPRESS_ARGS fake_args;
 		fake_args.load(CConfigFile());
-		fake_args.compress.IgnoreTopDirectory = false;
-		fake_args.compress.IgnoreTopDirectoryRecursively = false;
+		fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::None;
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir, sources.basePath);
@@ -491,8 +494,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 		LF_COMPRESS_ARGS fake_args;
 		fake_args.load(CConfigFile());
-		fake_args.compress.IgnoreTopDirectory = true;
-		fake_args.compress.IgnoreTopDirectoryRecursively = false;
+		fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::FirstTop;
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir / L"b", sources.basePath);
@@ -518,8 +520,7 @@ TEST(compress, buildCompressSources_confirmOutputFile)
 
 		LF_COMPRESS_ARGS fake_args;
 		fake_args.load(CConfigFile());
-		fake_args.compress.IgnoreTopDirectory = true;
-		fake_args.compress.IgnoreTopDirectoryRecursively = true;
+		fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::Recursive;
 		auto sources = buildCompressSources(fake_args, givenFiles);
 
 		EXPECT_EQ(dir / L"b/c", sources.basePath);
@@ -668,8 +669,7 @@ TEST(compress, compressOneArchive)
 
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.load(CConfigFile());
-	fake_args.compress.IgnoreTopDirectory = false;
-	fake_args.compress.IgnoreTopDirectoryRecursively = false;
+	fake_args.compress.IgnoreTopDirectory = (int)IGNORE_TOP_DIR::None;
 
 	auto sources = buildCompressSources(fake_args, givenFiles);
 	auto single_source = buildCompressSources(fake_args, { source_dir / L"a/test.txt" });

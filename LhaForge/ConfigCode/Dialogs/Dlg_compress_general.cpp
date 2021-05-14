@@ -49,7 +49,6 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 
 	::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN), m_Config.DeleteAfterCompress);
 	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM), m_Config.DeleteAfterCompress);
-	::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE), m_Config.DeleteAfterCompress);
 
 	DoDataExchange(FALSE);
 
@@ -163,7 +162,6 @@ LRESULT CConfigDlgCompressGeneral::OnCheckDelete(WORD wNotifyCode, WORD wID, HWN
 		BOOL State=CButton(GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS)).GetCheck();
 		::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN),State);
 		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM),State);
-		::EnableWindow(GetDlgItem(IDC_CHECK_FORCE_DELETE),State);
 	}
 	return 0;
 }
