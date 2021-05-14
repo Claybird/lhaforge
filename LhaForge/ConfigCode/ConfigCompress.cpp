@@ -25,6 +25,7 @@
 #include "stdafx.h"
 #include "ArchiverCode/archive.h"
 #include "ConfigFile.h"
+#include "Compress.h"
 #include "ConfigCompress.h"
 #include "Utilities/FileOperation.h"
 
@@ -58,7 +59,7 @@ void CConfigCompress::load(const CConfigFile &Config)
 	DeleteNoConfirm=Config.getBool(section, L"DeleteNoConfirm", false);
 
 	IgnoreTopDirectory = Config.getIntRange(section,
-		L"IgnoreTopDirectory", 0, (int)IGNORE_TOP_DIR::IGNORE_TOP_DIR_LAST_ITEM, (int)IGNORE_TOP_DIR::None);
+		L"IgnoreTopDirectory", 0, (int)COMPRESS_IGNORE_TOP_DIR::LastItem, (int)COMPRESS_IGNORE_TOP_DIR::None);
 }
 
 void CConfigCompress::store(CConfigFile &Config)const
@@ -101,6 +102,6 @@ TEST(config, CConfigCompress)
 	EXPECT_TRUE(conf.MoveToRecycleBin);
 	EXPECT_FALSE(conf.DeleteNoConfirm);
 
-	EXPECT_EQ((int)IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
+	EXPECT_EQ((int)COMPRESS_IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
 }
 #endif

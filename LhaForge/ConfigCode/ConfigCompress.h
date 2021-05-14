@@ -43,7 +43,7 @@ public:
 	bool MoveToRecycleBin;
 	bool DeleteNoConfirm;
 
-	int/*IGNORE_TOP_DIR*/ IgnoreTopDirectory;
+	int/*COMPRESS_IGNORE_TOP_DIR*/ IgnoreTopDirectory;
 public:
 	virtual ~CConfigCompress(){}
 	virtual void load(const CConfigFile&);

@@ -33,6 +33,14 @@
 #include "ConfigCode/ConfigCompressFormat.h"
 
 
+enum class COMPRESS_IGNORE_TOP_DIR :int {
+	None,
+	FirstTop,
+	Recursive,
+	ItemCount,
+	LastItem = ItemCount-1,
+};
+
 struct LF_COMPRESS_ARGS {
 	CConfigGeneral general;
 	CConfigCompress compress;

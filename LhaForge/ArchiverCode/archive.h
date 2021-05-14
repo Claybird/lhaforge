@@ -58,13 +58,6 @@ enum CREATE_OUTPUT_DIR{
 	ENUM_COUNT_AND_LASTITEM(CREATE_OUTPUT_DIR)
 };
 
-enum class IGNORE_TOP_DIR :int {
-	None,
-	FirstTop,
-	Recursive,
-	ENUM_COUNT_AND_LASTITEM(IGNORE_TOP_DIR),
-};
-
 /*
 //TODO
 //---following are extracted other than libarchive
