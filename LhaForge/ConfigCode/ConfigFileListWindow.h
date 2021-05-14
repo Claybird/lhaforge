@@ -23,6 +23,7 @@
 */
 
 #pragma once
+#include "FileListWindow/FileListModel.h"
 #include "FileListWindow/MenuCommand.h"
 #include "ConfigFile.h"
 

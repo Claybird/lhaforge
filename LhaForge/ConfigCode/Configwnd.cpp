@@ -27,13 +27,20 @@
 #include "configwnd.h"
 #include "Utilities/OSUtil.h"
 #include "FileListWindow/MenuCommand.h"
+#include "Dialogs/Dlg_version.h"
+#include "Dialogs/Dlg_general.h"
+#include "Dialogs/Dlg_compress_general.h"
+#include "Dialogs/Dlg_extract_general.h"
+#include "Dialogs/Dlg_assoc.h"
+#include "Dialogs/Dlg_shortcut.h"
+#include "Dialogs/Dlg_filelistwindow.h"
+#include "Dialogs/Dlg_openaction.h"
+#include "Dialogs/Dlg_shellext.h"
 
 
 CConfigDialog::CConfigDialog(CConfigFile &cfg)
 	:mr_Config(cfg),
 	hActiveDialogWnd(NULL),
-	PageShellExt(*this),
-	PageAssociation(*this),
 	m_nAssistRequireCount(0)
 {
 	try {
@@ -69,38 +76,40 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ScrollWindow.Create(m_hWnd, rect, NULL, WS_CHILD | WS_VISIBLE, WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT);
 
 	//tree view; select items
-	SelectTreeView=GetDlgItem(IDC_TREE_SELECT_PROPPAGE);
+	SelectTreeView = GetDlgItem(IDC_TREE_SELECT_PROPPAGE);
 
-#define ADD_PAGE(_DIALOG,_ROOTITEM) {\
-	m_ConfigDlgList.insert(&_DIALOG);\
-	_DIALOG.LoadConfig(mr_Config);\
-	_DIALOG.Create(ScrollWindow);\
-	CString strTitle;\
-	_DIALOG.GetWindowText(strTitle);\
-	hLastAddedItem=SelectTreeView.InsertItem(strTitle, _ROOTITEM, TVI_LAST);\
-	SelectTreeView.SetItemData(hLastAddedItem,(DWORD_PTR)_DIALOG.m_hWnd);\
-}
+	auto ADD_PAGE = [&](IConfigDlgBase* _pDIALOG, HTREEITEM _ROOTITEM) {
+		m_ConfigDlgList.push_back(_pDIALOG);
+		_pDIALOG->LoadConfig(mr_Config);
+		_pDIALOG->Create(ScrollWindow);
+		HWND hWndDlg = _pDIALOG->GetDialogHandle();
+		std::wstring strTitle;
+		strTitle.resize(512);
+		::GetWindowText(hWndDlg, &strTitle[0], strTitle.size());
+		HTREEITEM hItem = SelectTreeView.InsertItem(strTitle.c_str(), _ROOTITEM, TVI_LAST);
+		SelectTreeView.SetItemData(hItem, (DWORD_PTR)hWndDlg);
+		return hItem;
+	};
 
 	//add dialog pages
-	HTREEITEM hLastAddedItem = NULL;
-	ADD_PAGE(PageGeneral, TVI_ROOT);
-	ADD_PAGE(PageShellExt,TVI_ROOT);
-	ADD_PAGE(PageShortcut,TVI_ROOT);
-	ADD_PAGE(PageFileListWindow,TVI_ROOT);
-	ADD_PAGE(PageCompressGeneral,TVI_ROOT);
-	HTREEITEM hItemDetail = hLastAddedItem;	//PageCompressGeneral
-	ADD_PAGE(PageExtractGeneral,TVI_ROOT);
-	ADD_PAGE(PageAssociation,TVI_ROOT);
-	ADD_PAGE(PageOpenAction,TVI_ROOT);
-	ADD_PAGE(PageVersion,TVI_ROOT);
+	ADD_PAGE(new CConfigDlgGeneral, TVI_ROOT);
+	ADD_PAGE(new CConfigDlgShellExt(*this),TVI_ROOT);
+	ADD_PAGE(new CConfigDlgShortcut,TVI_ROOT);
+	ADD_PAGE(new CConfigDlgFileListWindow,TVI_ROOT);
+	HTREEITEM hItemDetail = ADD_PAGE(new CConfigDlgCompressGeneral,TVI_ROOT);
+	ADD_PAGE(new CConfigDlgExtractGeneral,TVI_ROOT);
+	ADD_PAGE(new CConfigDlgAssociation(*this),TVI_ROOT);
+	ADD_PAGE(new CConfigDlgOpenAction,TVI_ROOT);
+	ADD_PAGE(new CConfigDlgVersion,TVI_ROOT);
 
 	//ADD_PAGE(PageZIP,hItemDetail);
 	//ADD_PAGE(Page7Z,hItemDetail);
 
 	// first page
-	PageGeneral.ShowWindow(SW_SHOW);
-	ScrollWindow.SetClient(PageGeneral);
-	hActiveDialogWnd=PageGeneral;
+	HWND hFirstPage = m_ConfigDlgList[0]->GetDialogHandle();
+	::ShowWindow(hFirstPage, SW_SHOW);
+	ScrollWindow.SetClient(hFirstPage);
+	hActiveDialogWnd= hFirstPage;
 	SelectTreeView.SetFocus();
 
 	// init dialog resize

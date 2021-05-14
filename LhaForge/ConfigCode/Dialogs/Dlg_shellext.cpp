@@ -26,6 +26,7 @@
 #include "ConfigCode/ConfigFile.h"
 #include "Dlg_shellext.h"
 #include "Utilities/shellmanager.h"
+#include "Utilities/FileOperation.h"
 #include "ConfigCode/ConfigWnd.h"
 
 LRESULT CConfigDlgShellExt::OnInitDialog(HWND hWnd, LPARAM lParam)

@@ -27,31 +27,12 @@
 #include "resource.h"
 #include "ConfigFile.h"
 #include "Dialogs/Dlg_Base.h"
-#include "Dialogs/Dlg_version.h"
-#include "Dialogs/Dlg_general.h"
-#include "Dialogs/Dlg_compress_general.h"
-#include "Dialogs/Dlg_extract_general.h"
-#include "Dialogs/Dlg_assoc.h"
-#include "Dialogs/Dlg_shortcut.h"
-#include "Dialogs/Dlg_filelistwindow.h"
-#include "Dialogs/Dlg_openaction.h"
-#include "Dialogs/Dlg_shellext.h"
 
 #define WM_USER_WM_SIZE		(WM_APP+1)
 
 class CConfigDialog : public CDialogImpl<CConfigDialog>, public CDialogResize<CConfigDialog>
 {
 protected:
-	CConfigDlgGeneral				PageGeneral;
-	CConfigDlgShellExt				PageShellExt;
-	CConfigDlgVersion				PageVersion;
-	CConfigDlgCompressGeneral		PageCompressGeneral;
-	CConfigDlgExtractGeneral		PageExtractGeneral;
-	CConfigDlgAssociation			PageAssociation;
-	CConfigDlgOpenAction			PageOpenAction;
-	CConfigDlgShortcut				PageShortcut;
-	CConfigDlgFileListWindow		PageFileListWindow;
-
 	HWND hActiveDialogWnd;
 	CTreeViewCtrl SelectTreeView;
 
@@ -62,7 +43,7 @@ protected:
 
 	UINT m_nAssistRequireCount;//0: no need to call LFAssistant; 0<: need to call
 
-	std::set<IConfigDlgBase*> m_ConfigDlgList;
+	std::vector<IConfigDlgBase*> m_ConfigDlgList;
 public:
 	enum { IDD = IDD_DIALOG_CONFIG };
 
@@ -84,7 +65,12 @@ public:
 	END_DLGRESIZE_MAP()
 
 	CConfigDialog(CConfigFile &cfg);
-	virtual ~CConfigDialog() {}
+	virtual ~CConfigDialog() {
+		for (auto& p : m_ConfigDlgList) {
+			delete p;
+		}
+		m_ConfigDlgList.clear();
+	}
 
 	LRESULT OnTreeSelect(LPNMHDR pnmh);
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
