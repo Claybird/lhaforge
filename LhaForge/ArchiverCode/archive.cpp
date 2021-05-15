@@ -45,19 +45,19 @@ TEST(archive, guessSuitableArchiver)
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 {
 	switch (format) {
-	case LF_FMT_ZIP:
-	case LF_FMT_7Z:
-	case LF_FMT_GZ:
-	case LF_FMT_BZ2:
-	case LF_FMT_LZMA:
-	case LF_FMT_XZ:
-	case LF_FMT_ZSTD:
-	case LF_FMT_TAR:
-	case LF_FMT_TAR_GZ:
-	case LF_FMT_TAR_BZ2:
-	case LF_FMT_TAR_LZMA:
-	case LF_FMT_TAR_XZ:
-	case LF_FMT_TAR_ZSTD:
+	case LF_ARCHIVE_FORMAT::ZIP:
+	case LF_ARCHIVE_FORMAT::_7Z:
+	case LF_ARCHIVE_FORMAT::GZ:
+	case LF_ARCHIVE_FORMAT::BZ2:
+	case LF_ARCHIVE_FORMAT::LZMA:
+	case LF_ARCHIVE_FORMAT::XZ:
+	case LF_ARCHIVE_FORMAT::ZSTD:
+	case LF_ARCHIVE_FORMAT::TAR:
+	case LF_ARCHIVE_FORMAT::TAR_GZ:
+	case LF_ARCHIVE_FORMAT::TAR_BZ2:
+	case LF_ARCHIVE_FORMAT::TAR_LZMA:
+	case LF_ARCHIVE_FORMAT::TAR_XZ:
+	case LF_ARCHIVE_FORMAT::TAR_ZSTD:
 		return std::make_unique<CLFArchiveLA>();
 	default:
 		RAISE_EXCEPTION(L"Unknown format");
@@ -66,19 +66,19 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 #ifdef UNIT_TEST
 TEST(archive, guessSuitableArchiver2)
 {
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_ZIP));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_7Z));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_GZ));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_BZ2));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_LZMA));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_XZ));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_ZSTD));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_GZ));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_BZ2));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_LZMA));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_XZ));
-	EXPECT_NO_THROW(guessSuitableArchiver(LF_FMT_TAR_ZSTD));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::ZIP));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::_7Z));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::GZ));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::BZ2));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::LZMA));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::XZ));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::ZSTD));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_GZ));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_BZ2));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_LZMA));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_XZ));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_ZSTD));
 }
 #endif
 
@@ -126,7 +126,7 @@ TEST(CLFArchive, write_open)
 	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
 	{
 		CLFArchive a;
-		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zip", LF_FMT_ZIP, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, CLFPassphraseNULL()));
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, CLFPassphraseNULL()));
 	}
 	UtilDeleteDir(temp / L"test_write_open", true);
 	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
@@ -157,19 +157,19 @@ LF_COMPRESS_CAPABILITY CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT 
 TEST(CLFArchive, get_compression_capability_formatExt)
 {
 	const wchar_t* path = L"abc.ext";
-	EXPECT_EQ(L".zip", CLFArchive::get_compression_capability(LF_FMT_ZIP).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".7z", CLFArchive::get_compression_capability(LF_FMT_7Z).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".ext.gz", CLFArchive::get_compression_capability(LF_FMT_GZ).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".ext.bz2", CLFArchive::get_compression_capability(LF_FMT_BZ2).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".ext.lzma", CLFArchive::get_compression_capability(LF_FMT_LZMA).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".ext.xz", CLFArchive::get_compression_capability(LF_FMT_XZ).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".ext.zst", CLFArchive::get_compression_capability(LF_FMT_ZSTD).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar", CLFArchive::get_compression_capability(LF_FMT_TAR).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar.gz", CLFArchive::get_compression_capability(LF_FMT_TAR_GZ).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar.bz2", CLFArchive::get_compression_capability(LF_FMT_TAR_BZ2).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar.lzma", CLFArchive::get_compression_capability(LF_FMT_TAR_LZMA).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar.xz", CLFArchive::get_compression_capability(LF_FMT_TAR_XZ).formatExt(path, LF_WOPT_STANDARD));
-	EXPECT_EQ(L".tar.zst", CLFArchive::get_compression_capability(LF_FMT_TAR_ZSTD).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".zip", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::ZIP).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".7z", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::_7Z).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.gz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::GZ).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.bz2", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::BZ2).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.lzma", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::LZMA).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.xz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::XZ).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.zst", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::ZSTD).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.gz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_GZ).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.bz2", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_BZ2).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.lzma", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_LZMA).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.xz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_XZ).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.zst", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_ZSTD).formatExt(path, LF_WOPT_STANDARD));
 }
 #endif
 

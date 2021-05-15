@@ -107,7 +107,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 	const std::wstring& cmdline,
 	std::function<void(const std::wstring& msg)> errorHandler)
 {
-	PROCESS_MODE ProcessMode = PROCESS_AUTOMATIC;
+	PROCESS_MODE ProcessMode = PROCESS_MODE::AUTOMATIC;
 
 	UTIL_CODEPAGE uCodePage = UTIL_CODEPAGE::UTF8;	//default encoding for response file
 
@@ -147,8 +147,8 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 				}
 			} else if (L"/c" == key) {//compress
 				value = toLower(value);
-				ProcessMode = PROCESS_COMPRESS;
-				cli.CompressType = LF_FMT_INVALID;	//format not specified
+				ProcessMode = PROCESS_MODE::COMPRESS;
+				cli.CompressType = LF_ARCHIVE_FORMAT::INVALID;	//format not specified
 				if (!value.empty()) {
 					//lookup table
 					for (const auto &p : g_CompressionCmdParams) {
@@ -158,37 +158,37 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 							break;
 						}
 					}
-					if (-1 == cli.CompressType) {
+					if (LF_ARCHIVE_FORMAT::INVALID == cli.CompressType) {
 						throw LF_INVALID_PARAMETER(arg.first, arg.second);
 					}
 				}
 			} else if (L"/e" == key) {//extract
-				ProcessMode = PROCESS_EXTRACT;
+				ProcessMode = PROCESS_MODE::EXTRACT;
 			} else if (L"/l" == key) {//list mode
-				ProcessMode = PROCESS_LIST;
+				ProcessMode = PROCESS_MODE::LIST;
 			} else if (L"/t" == key) {//test mode
-				ProcessMode = PROCESS_TEST;
+				ProcessMode = PROCESS_MODE::TEST;
 			} else if (L"/m" == key) {//select mode
-				ProcessMode = PROCESS_MANAGED;
+				ProcessMode = PROCESS_MODE::MANAGED;
 			} else if (L"/s" == key) {//single compression
 				cli.bSingleCompression = true;
 			} else if (L"/o" == key) {//output directory
 				if (value.empty()) {
-					cli.OutputToOverride = OUTPUT_TO_DEFAULT;
+					cli.OutputToOverride = OUTPUT_TO::NoOverride;
 					cli.OutputDir.clear();
 				}else{
-					cli.OutputToOverride = OUTPUT_TO_SPECIFIC_DIR;
+					cli.OutputToOverride = OUTPUT_TO::SpecificDir;
 					cli.OutputDir = value;
 				}
 			}else if (L"/od" == key) {	//to desktop
 				cli.OutputDir.clear();
-				cli.OutputToOverride = OUTPUT_TO_DESKTOP;
+				cli.OutputToOverride = OUTPUT_TO::Desktop;
 			} else if (L"/os" == key) {	//same directory as input files
 				cli.OutputDir.clear();
-				cli.OutputToOverride = OUTPUT_TO_SAME_DIR;
+				cli.OutputToOverride = OUTPUT_TO::SameDir;
 			} else if (L"/oa" == key) {	//ask everytime
 				cli.OutputDir.clear();
-				cli.OutputToOverride = OUTPUT_TO_ALWAYS_ASK_WHERE;
+				cli.OutputToOverride = OUTPUT_TO::AlwaysAsk;
 			} else if (L"/@" == key || L"/$" == key) {//file listed in file
 				if (value.empty()) {
 					throw LF_INVALID_PARAMETER(arg.first, L"(empty)");
@@ -202,7 +202,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 						}
 					} catch (LF_EXCEPTION) {
 						errorHandler(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
-						return std::make_pair(PROCESS_INVALID, cli);
+						return std::make_pair(PROCESS_MODE::INVALID, cli);
 					}
 				}
 			} else if (L"/f" == key) {//output file name
@@ -248,13 +248,13 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 				cli.OutputDir = UtilGetCompletePathName(cli.OutputDir);
 			} catch (LF_EXCEPTION) {
 				errorHandler(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
-				return std::make_pair(PROCESS_INVALID, cli);
+				return std::make_pair(PROCESS_MODE::INVALID, cli);
 			}
 		}
 	} catch (const LF_INVALID_PARAMETER &e) {
 		auto msg = Format(UtilLoadString(IDS_ERROR_INVALID_PARAMETER), e._parameter.c_str());
 		errorHandler(msg);
-		return std::make_pair(PROCESS_INVALID, cli);
+		return std::make_pair(PROCESS_MODE::INVALID, cli);
 	}
 
 	{
@@ -272,7 +272,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			} catch (LF_EXCEPTION) {
 				//failed to get absolute path
 				errorHandler(UtilLoadString(IDS_ERROR_FAIL_GET_ABSPATH));
-				return std::make_pair(PROCESS_INVALID, cli);
+				return std::make_pair(PROCESS_MODE::INVALID, cli);
 			}
 
 			//remove last separator
@@ -285,7 +285,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 	}
 	if (cli.FileList.empty()) {
 		//no files, then go to configuration
-		return std::make_pair(PROCESS_CONFIGURE, cli);
+		return std::make_pair(PROCESS_MODE::CONFIGURE, cli);
 	}
 
 	return std::make_pair(ProcessMode, cli);
@@ -305,7 +305,7 @@ TEST(commandLineInfo, ParseCommandLine)
 	//specific config file
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /cfg:%temp%\\lhaforge.ini", errorHandler);
-		EXPECT_EQ(PROCESS_CONFIGURE, mode);
+		EXPECT_EQ(PROCESS_MODE::CONFIGURE, mode);
 		EXPECT_EQ(std::filesystem::temp_directory_path() / L"lhaforge.ini", std::filesystem::path(cli.ConfigPath).lexically_normal());
 	}
 
@@ -313,7 +313,7 @@ TEST(commandLineInfo, ParseCommandLine)
 	{
 		for (const auto &p : g_CompressionCmdParams) {
 			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:%s %s", p.name.c_str(), dir.c_str()), errorHandler);
-			EXPECT_EQ(PROCESS_COMPRESS, mode);
+			EXPECT_EQ(PROCESS_MODE::COMPRESS, mode);
 			EXPECT_EQ(1, cli.FileList.size());
 			EXPECT_EQ(p.Type, cli.CompressType);
 			EXPECT_FALSE(cli.bSingleCompression);
@@ -321,7 +321,7 @@ TEST(commandLineInfo, ParseCommandLine)
 		}
 		{
 			auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /c /s /f:C:\\temp\\test.zip " + dir.wstring(), errorHandler);
-			EXPECT_EQ(PROCESS_COMPRESS, mode);
+			EXPECT_EQ(PROCESS_MODE::COMPRESS, mode);
 			EXPECT_TRUE(cli.bSingleCompression);
 			EXPECT_EQ(L"C:\\temp\\test.zip", cli.OutputFileName);
 		}
@@ -329,25 +329,25 @@ TEST(commandLineInfo, ParseCommandLine)
 	//extract
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /l " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_LIST, mode);
+		EXPECT_EQ(PROCESS_MODE::LIST, mode);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /t " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_TEST, mode);
+		EXPECT_EQ(PROCESS_MODE::TEST, mode);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /m " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_MANAGED, mode);
+		EXPECT_EQ(PROCESS_MODE::MANAGED, mode);
 	}
 
 	//unknown option
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /unknown_parameter", errorHandler);
-		EXPECT_EQ(PROCESS_INVALID, mode);
+		EXPECT_EQ(PROCESS_MODE::INVALID, mode);
 	}
 	//---file list & code page
 	{
@@ -373,7 +373,7 @@ TEST(commandLineInfo, ParseCommandLine)
 		CCurrentDirManager mngr(dir);
 		{
 			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:zip /cp:utf-8 /@:%s work/e.txt", responseFile.c_str()), errorHandler);
-			EXPECT_EQ(PROCESS_COMPRESS, mode);
+			EXPECT_EQ(PROCESS_MODE::COMPRESS, mode);
 			ASSERT_EQ(files.size(), cli.FileList.size());
 			EXPECT_EQ(files[0], cli.FileList[1]);
 			EXPECT_EQ(files[1], cli.FileList[2]);
@@ -384,7 +384,7 @@ TEST(commandLineInfo, ParseCommandLine)
 		}
 		{
 			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:zip /cp:utf-8 /$:%s work/e.txt", responseFile.c_str()), errorHandler);
-			EXPECT_EQ(PROCESS_COMPRESS, mode);
+			EXPECT_EQ(PROCESS_MODE::COMPRESS, mode);
 			ASSERT_EQ(files.size(), cli.FileList.size());
 			EXPECT_EQ(files[0], cli.FileList[1]);
 			EXPECT_EQ(files[1], cli.FileList[2]);
@@ -395,7 +395,7 @@ TEST(commandLineInfo, ParseCommandLine)
 		}
 		{
 			auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /c:zip work/*.txt", responseFile.c_str()), errorHandler);
-			EXPECT_EQ(PROCESS_COMPRESS, mode);
+			EXPECT_EQ(PROCESS_MODE::COMPRESS, mode);
 			ASSERT_EQ(files.size(), cli.FileList.size());
 			EXPECT_EQ(std::set<std::wstring>(files.begin(), files.end()), std::set<std::wstring>(cli.FileList.begin(), cli.FileList.end()));
 		}
@@ -404,8 +404,8 @@ TEST(commandLineInfo, ParseCommandLine)
 	//output directory
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /o " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(OUTPUT_TO_DEFAULT, cli.OutputToOverride);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+		EXPECT_EQ(OUTPUT_TO::NoOverride, cli.OutputToOverride);
 		EXPECT_TRUE(cli.OutputDir.empty());
 		//default values
 		EXPECT_EQ(CMDLINEINFO::ACTION::Default, cli.IgnoreTopDirOverride);
@@ -413,86 +413,86 @@ TEST(commandLineInfo, ParseCommandLine)
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /e /o:%s %s", UtilGetTempPath().c_str(), dir.c_str()), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(OUTPUT_TO_SPECIFIC_DIR, cli.OutputToOverride);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+		EXPECT_EQ(OUTPUT_TO::SpecificDir, cli.OutputToOverride);
 		EXPECT_EQ(UtilGetTempPath(), cli.OutputDir);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /od " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(OUTPUT_TO_DESKTOP, cli.OutputToOverride);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+		EXPECT_EQ(OUTPUT_TO::Desktop, cli.OutputToOverride);
 		EXPECT_TRUE(cli.OutputDir.empty());
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /os " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(OUTPUT_TO_SAME_DIR, cli.OutputToOverride);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+		EXPECT_EQ(OUTPUT_TO::SameDir, cli.OutputToOverride);
 		EXPECT_TRUE(cli.OutputDir.empty());
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /oa " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(OUTPUT_TO_ALWAYS_ASK_WHERE, cli.OutputToOverride);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+		EXPECT_EQ(OUTPUT_TO::AlwaysAsk, cli.OutputToOverride);
 		EXPECT_TRUE(cli.OutputDir.empty());
 	}
 
 	//directory control
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(EXTRACT_CREATE_DIR::Always, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:always " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(EXTRACT_CREATE_DIR::Always, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:no " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(EXTRACT_CREATE_DIR::Never, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:single " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir, cli.CreateDirOverride);
 	}
 	{
 		auto [mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:singled " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(EXTRACT_CREATE_DIR::SkipIfSingleDirectory, cli.CreateDirOverride);
 	}
 
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /popdir:no " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::False, cli.IgnoreTopDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /popdir:yes " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::True, cli.IgnoreTopDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /popdir " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::True, cli.IgnoreTopDirOverride);
 	}
 
 	//delete source file after process
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /delete " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::True, cli.DeleteAfterProcess);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /delete:yes " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::True, cli.DeleteAfterProcess);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /delete:no " + dir.wstring(), errorHandler);
-		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(CMDLINEINFO::ACTION::False, cli.DeleteAfterProcess);
 	}
 

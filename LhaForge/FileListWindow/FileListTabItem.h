@@ -36,8 +36,8 @@ struct CFileListTabItem{
 protected:
 	struct COMMON {
 		struct LISTVIEW {
-			std::array<int, FILEINFO_ITEM_COUNT> columnOrder;
-			std::array<int, FILEINFO_ITEM_COUNT> columnWidth;
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> columnOrder;
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> columnWidth;
 			DWORD style;
 		}listview;
 		struct SPLITTER {

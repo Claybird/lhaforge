@@ -113,13 +113,13 @@ PROCESS_MODE selectOpenAction()
 	COpenActionDialog Dialog;
 	switch (Dialog.DoModal()) {
 	case IDC_BUTTON_OPENACTION_EXTRACT:
-		return PROCESS_EXTRACT;
+		return PROCESS_MODE::EXTRACT;
 	case IDC_BUTTON_OPENACTION_LIST:
-		return PROCESS_LIST;
+		return PROCESS_MODE::LIST;
 	case IDC_BUTTON_OPENACTION_TEST:
-		return PROCESS_TEST;
+		return PROCESS_MODE::TEST;
 	default:
-		return PROCESS_INVALID;
+		return PROCESS_MODE::INVALID;
 	}
 }
 
@@ -132,13 +132,13 @@ bool DoCompress(CConfigFile &config, CMDLINEINFO &cli)
 	ConfCompress.load(config);
 	ConfGeneral.load(config);
 
-	if(LF_FMT_INVALID == cli.CompressType){
+	if(LF_ARCHIVE_FORMAT::INVALID == cli.CompressType){
 		if(ConfCompress.UseDefaultParameter){
 			cli.CompressType = ConfCompress.DefaultType;
 			cli.Options = ConfCompress.DefaultOptions;
 		}else{	//not default parameter
 			auto [format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
-			if(LF_FMT_INVALID ==format){	//cancel
+			if(LF_ARCHIVE_FORMAT::INVALID ==format){	//cancel
 				return false;
 			}else{
 				cli.CompressType = format;
@@ -232,7 +232,7 @@ bool DoTest(CConfigFile &config,CMDLINEINFO &cli)
 void procMain()
 {
 	auto[ProcessMode, cli] = ParseCommandLine(GetCommandLineW(), ErrorMessage);
-	if (PROCESS_INVALID == ProcessMode) {
+	if (PROCESS_MODE::INVALID == ProcessMode) {
 		return;
 	}
 
@@ -254,45 +254,45 @@ void procMain()
 		bool control = GetKeyState(VK_CONTROL) < 0;
 
 		switch (ProcessMode) {
-		case PROCESS_COMPRESS:
+		case PROCESS_MODE::COMPRESS:
 			if (control) {
 				//single compression if ctrl is pressed
 				cli.bSingleCompression = true;
 			}
 			break;
-		case PROCESS_EXTRACT:
+		case PROCESS_MODE::EXTRACT:
 			if (shift) {
-				ProcessMode = PROCESS_LIST;	//list mode if shift is pressed
+				ProcessMode = PROCESS_MODE::LIST;	//list mode if shift is pressed
 			} else if (control) {
-				ProcessMode = PROCESS_TEST;	//test mode if ctrl is pressed
+				ProcessMode = PROCESS_MODE::TEST;	//test mode if ctrl is pressed
 			}
 			break;
-		case PROCESS_MANAGED:
+		case PROCESS_MODE::MANAGED:
 		{
 			CConfigOpenAction ConfOpenAction;
 			ConfOpenAction.load(config);
 			OPENACTION OpenAction;
 			if (shift) {	//---when shift is pressed
-				OpenAction = ConfOpenAction.OpenAction_Shift;
+				OpenAction = (OPENACTION)ConfOpenAction.OpenAction_Shift;
 			} else if (control) {	//---when ctrl is pressed
-				OpenAction = ConfOpenAction.OpenAction_Ctrl;
+				OpenAction = (OPENACTION)ConfOpenAction.OpenAction_Ctrl;
 			} else {	//---default
-				OpenAction = ConfOpenAction.OpenAction;
+				OpenAction = (OPENACTION)ConfOpenAction.OpenAction;
 			}
 			switch (OpenAction) {
-			case OPENACTION_EXTRACT:
-				ProcessMode = PROCESS_EXTRACT;
+			case OPENACTION::EXTRACT:
+				ProcessMode = PROCESS_MODE::EXTRACT;
 				break;
-			case OPENACTION_LIST:
-				ProcessMode = PROCESS_LIST;
+			case OPENACTION::LIST:
+				ProcessMode = PROCESS_MODE::LIST;
 				break;
-			case OPENACTION_TEST:
-				ProcessMode = PROCESS_TEST;
+			case OPENACTION::TEST:
+				ProcessMode = PROCESS_MODE::TEST;
 				break;
-			case OPENACTION_ASK:
+			case OPENACTION::ASK:
 			default:
 				ProcessMode = selectOpenAction();
-				if (ProcessMode == PROCESS_INVALID) {
+				if (ProcessMode == PROCESS_MODE::INVALID) {
 					return;
 				}
 				break;
@@ -307,13 +307,13 @@ void procMain()
 	LF_setProcessTempPath(ConfGeneral.TempPath);
 
 	switch (ProcessMode) {
-	case PROCESS_COMPRESS:
+	case PROCESS_MODE::COMPRESS:
 		DoCompress(config, cli);
 		break;
-	case PROCESS_EXTRACT:
+	case PROCESS_MODE::EXTRACT:
 		DoExtract(config, cli);
 		break;
-	case PROCESS_AUTOMATIC:
+	case PROCESS_MODE::AUTOMATIC:
 		if (std::filesystem::is_directory(cli.FileList.front())) {
 			DoCompress(config, cli);
 		} else {
@@ -327,13 +327,13 @@ void procMain()
 			}
 		}
 		break;
-	case PROCESS_LIST:
+	case PROCESS_MODE::LIST:
 		DoList(config, cli);
 		break;
-	case PROCESS_TEST:
+	case PROCESS_MODE::TEST:
 		DoTest(config, cli);
 		break;
-	case PROCESS_CONFIGURE:
+	case PROCESS_MODE::CONFIGURE:
 	default:
 	{
 		CConfigDialog confdlg(config);

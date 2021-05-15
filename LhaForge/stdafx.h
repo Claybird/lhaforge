@@ -85,7 +85,7 @@ extern CAppModule _Module;
 #endif
 
 //enum
-#define ENUM_COUNT_AND_LASTITEM(x) x##_ITEM_COUNT,x##_LAST_ITEM=(x##_ITEM_COUNT-1)
+#define ENUM_COUNT_AND_LASTITEM ItemCount,LastItem=(ItemCount-1)
 #define COUNTOF(x) (sizeof(x)/sizeof(x[0]))
 
 #define ASSERT(x)	assert(x)

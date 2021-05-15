@@ -57,30 +57,30 @@ protected:
 		return TRUE;
 	}
 	void OnCommand(UINT nCode, int nID, HWND hWnd) {
-#define BUTTON_PARAM(x) case IDC_BUTTON_FORMAT_##x: format=LF_FMT_##x;break
+#define BUTTON_PARAM(x,y) case IDC_BUTTON_FORMAT_##x: format=LF_ARCHIVE_FORMAT::##y;break
 		DoDataExchange(TRUE);
 		LF_ARCHIVE_FORMAT format;
 		switch (nID) {
-		BUTTON_PARAM(ZIP);
-		BUTTON_PARAM(7Z);
-		BUTTON_PARAM(GZ);
-		BUTTON_PARAM(BZ2);
-		BUTTON_PARAM(LZMA);
-		BUTTON_PARAM(XZ);
-		BUTTON_PARAM(ZSTD);
-		BUTTON_PARAM(TAR);
-		BUTTON_PARAM(TAR_GZ);
-		BUTTON_PARAM(TAR_BZ2);
-		BUTTON_PARAM(TAR_LZMA);
-		BUTTON_PARAM(TAR_XZ);
-		BUTTON_PARAM(TAR_ZSTD);
+			BUTTON_PARAM(ZIP, ZIP);
+			BUTTON_PARAM(7Z, _7Z);
+			BUTTON_PARAM(GZ, GZ);
+			BUTTON_PARAM(BZ2, BZ2);
+			BUTTON_PARAM(LZMA, LZMA);
+			BUTTON_PARAM(XZ, XZ);
+			BUTTON_PARAM(ZSTD, ZSTD);
+			BUTTON_PARAM(TAR, TAR);
+			BUTTON_PARAM(TAR_GZ, TAR_GZ);
+			BUTTON_PARAM(TAR_BZ2, TAR_BZ2);
+			BUTTON_PARAM(TAR_LZMA, TAR_LZMA);
+			BUTTON_PARAM(TAR_XZ, TAR_XZ);
+			BUTTON_PARAM(TAR_ZSTD, TAR_ZSTD);
 		case IDCANCEL:
-			format = LF_FMT_INVALID;
+			format = LF_ARCHIVE_FORMAT::INVALID;
 			break;
 		default:
 			return;
 		}
-		EndDialog(format);
+		EndDialog((int)format);
 	}
 
 public:

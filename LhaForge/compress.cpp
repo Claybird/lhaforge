@@ -50,8 +50,8 @@ void parseCompressOption(const CConfigFile& config, LF_COMPRESS_ARGS& args, cons
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
-		if (OUTPUT_TO_DEFAULT != lpCmdLineInfo->OutputToOverride) {
-			args.compress.OutputDirType = lpCmdLineInfo->OutputToOverride;
+		if (OUTPUT_TO::NoOverride != lpCmdLineInfo->OutputToOverride) {
+			args.compress.OutputDirType = (int)lpCmdLineInfo->OutputToOverride;
 		}
 		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
 			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {
@@ -184,8 +184,8 @@ std::wstring determineDefaultArchiveTitle(
 #ifdef UNIT_TEST
 TEST(compress, determineDefaultArchiveTitle)
 {
-	EXPECT_EQ(L"source.zip", determineDefaultArchiveTitle(LF_FMT_ZIP, LF_WOPT_STANDARD, L"/path/to/source.txt"));
-	EXPECT_EQ(L"source.txt.gz", determineDefaultArchiveTitle(LF_FMT_GZ, LF_WOPT_STANDARD, L"/path/to/source.txt"));
+	EXPECT_EQ(L"source.zip", determineDefaultArchiveTitle(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, L"/path/to/source.txt"));
+	EXPECT_EQ(L"source.txt.gz", determineDefaultArchiveTitle(LF_ARCHIVE_FORMAT::GZ, LF_WOPT_STANDARD, L"/path/to/source.txt"));
 }
 #endif
 
@@ -572,11 +572,10 @@ std::wstring determineDefaultArchiveDir(
 TEST(compress, determineDefaultArchiveDir)
 {
 	auto temp = std::filesystem::path(UtilGetTempPath());
-	EXPECT_EQ(UtilGetDesktopPath(), determineDefaultArchiveDir(OUTPUT_TO_DESKTOP, temp, L"C:/path_to_dir"));
-	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_SAME_DIR, temp, L"C:/path_to_dir"));
-	EXPECT_EQ(L"C:/path_to_dir", determineDefaultArchiveDir(OUTPUT_TO_SPECIFIC_DIR, temp, L"C:/path_to_dir"));
-	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_ALWAYS_ASK_WHERE, temp, L"C:/path_to_dir"));
-	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO_ALWAYS_ASK_WHERE, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(UtilGetDesktopPath(), determineDefaultArchiveDir(OUTPUT_TO::Desktop, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO::SameDir, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(L"C:/path_to_dir", determineDefaultArchiveDir(OUTPUT_TO::SpecificDir, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO::AlwaysAsk, temp, L"C:/path_to_dir"));
 }
 
 #endif
@@ -680,22 +679,22 @@ TEST(compress, compressOneArchive)
 		LF_WRITE_OPTIONS options;
 	};
 	const std::vector<PATTERN> patterns = {
-		{L"output.zip",	LF_FMT_ZIP, LF_WOPT_STANDARD},	//zip
-		{L"enc.zip",	LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION},	//zip, encrypted
-		{L"output.7z",	LF_FMT_7Z,	LF_WOPT_STANDARD},
-		{L"output.tar",	LF_FMT_TAR, LF_WOPT_STANDARD},
-		{L"output.tar.gz",	LF_FMT_TAR_GZ, LF_WOPT_STANDARD},
-		{L"output.tar.bz2",	LF_FMT_TAR_BZ2, LF_WOPT_STANDARD},
-		{L"output.tar.lzma",	LF_FMT_TAR_LZMA, LF_WOPT_STANDARD},
-		{L"output.tar.xz",	LF_FMT_TAR_XZ, LF_WOPT_STANDARD},
-		{L"output.tar.zstd",	LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD},
+		{L"output.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD},	//zip
+		{L"enc.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION},	//zip, encrypted
+		{L"output.7z",	LF_ARCHIVE_FORMAT::_7Z,	LF_WOPT_STANDARD},
+		{L"output.tar",	LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD},
+		{L"output.tar.gz",	LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD},
+		{L"output.tar.bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD},
+		{L"output.tar.lzma",	LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD},
+		{L"output.tar.xz",	LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD},
+		{L"output.tar.zstd",	LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD},
 
 		//not an archive, single file only
-		{L"output.gz",	LF_FMT_GZ,	LF_WOPT_STANDARD},
-		{L"output.bz2",	LF_FMT_BZ2,	LF_WOPT_STANDARD},
-		{L"output.lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD },
-		{L"output.xz",	LF_FMT_XZ,	LF_WOPT_STANDARD},
-		{L"output.zst",	LF_FMT_ZSTD, LF_WOPT_STANDARD},
+		{L"output.gz",	LF_ARCHIVE_FORMAT::GZ,	LF_WOPT_STANDARD},
+		{L"output.bz2",	LF_ARCHIVE_FORMAT::BZ2,	LF_WOPT_STANDARD},
+		{L"output.lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD },
+		{L"output.xz",	LF_ARCHIVE_FORMAT::XZ,	LF_WOPT_STANDARD},
+		{L"output.zst",	LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD},
 	};
 	for (const auto &p : patterns) {
 		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / p.archive_name;
@@ -800,7 +799,7 @@ void compress_helper(
 				pathOutputDir = tmp.operator LPCWSTR();
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {
-					args.compress.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
+					args.compress.OutputDirType = (int)OUTPUT_TO::SpecificDir;
 					args.compress.OutputDirUserSpecified = pathOutputDir.c_str();
 				}
 			} else {
@@ -826,7 +825,7 @@ void compress_helper(
 		pathOutputDir / defaultArchiveTitle,
 		sources,
 		cap.formatExt(givenFiles.front(), options),
-		args.compress.SpecifyOutputFilename || args.compress.OutputDirType == OUTPUT_TO_ALWAYS_ASK_WHERE);
+		args.compress.SpecifyOutputFilename || args.compress.OutputDirType == (int)OUTPUT_TO::AlwaysAsk);
 
 	//delete archive
 	if (std::filesystem::exists(archivePath)) {
@@ -962,13 +961,13 @@ bool GUI_compress_multiple_files(
 	}
 	//---display logs
 	bool displayLog = false;
-	switch (args.general.LogViewEvent) {
-	case LOGVIEW_ON_ERROR:
+	switch ((LOGVIEW)args.general.LogViewEvent) {
+	case LOGVIEW::OnError:
 		if (!bAllOK) {
 			displayLog = true;
 		}
 		break;
-	case LOGVIEW_ALWAYS:
+	case LOGVIEW::Always:
 		displayLog = true;
 		break;
 	}
@@ -984,32 +983,32 @@ bool GUI_compress_multiple_files(
 
 
 const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
-	{L"zip",		LF_FMT_ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
-	{L"zippass",	LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
-//	{L"zipsfx",	LF_FMT_ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
-//	{L"zippasssfx",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
-//	{L"zipsplit",	LF_FMT_ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
-//	{L"zippasssplit",LF_FMT_ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
-	{L"7z",		LF_FMT_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
-//	{L"7zpass",	LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
-//	{L"7zsfx",	LF_FMT_7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
-//	{L"7zsplit",	LF_FMT_7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
-//	{L"7zpasssplit",LF_FMT_7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
-	{L"gz",		LF_FMT_GZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_GZ},
-	{L"bz2",		LF_FMT_BZ2,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_BZ2},
-	{L"lzma",	LF_FMT_LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
-	{L"xz",		LF_FMT_XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
-	{L"zstd",	LF_FMT_ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
-	{L"tar",		LF_FMT_TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
-	{L"tgz",		LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},		//compatibility
-	{L"tar+gz",	LF_FMT_TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
-	{L"tbz",		LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},			//compatibility
-	{L"tar+bz2",	LF_FMT_TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
-	{L"tlz",		LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},		//compatibility
-	{L"tar+lzma",LF_FMT_TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
-	{L"txz",		LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},		//compatibility
-	{L"tar+xz",	LF_FMT_TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
-	{L"tar+zstd",LF_FMT_TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
+	{L"zip",		LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
+	{L"zippass",	LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
+//	{L"zipsfx",	LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
+//	{L"zippasssfx",LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
+//	{L"zipsplit",	LF_ARCHIVE_FORMAT::ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
+//	{L"zippasssplit",LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
+	{L"7z",		LF_ARCHIVE_FORMAT::_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
+//	{L"7zpass",	LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
+//	{L"7zsfx",	LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
+//	{L"7zsplit",	LF_ARCHIVE_FORMAT::7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
+//	{L"7zpasssplit",LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
+	{L"gz",		LF_ARCHIVE_FORMAT::GZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_GZ},
+	{L"bz2",		LF_ARCHIVE_FORMAT::BZ2,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_BZ2},
+	{L"lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
+	{L"xz",		LF_ARCHIVE_FORMAT::XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
+	{L"zstd",	LF_ARCHIVE_FORMAT::ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
+	{L"tar",		LF_ARCHIVE_FORMAT::TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
+	{L"tgz",		LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},		//compatibility
+	{L"tar+gz",	LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
+	{L"tbz",		LF_ARCHIVE_FORMAT::TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},			//compatibility
+	{L"tar+bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
+	{L"tlz",		LF_ARCHIVE_FORMAT::TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},		//compatibility
+	{L"tar+lzma",LF_ARCHIVE_FORMAT::TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
+	{L"txz",		LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},		//compatibility
+	{L"tar+xz",	LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
+	{L"tar+zstd",LF_ARCHIVE_FORMAT::TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
 };
 
 
@@ -1026,24 +1025,24 @@ const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT 
 #ifdef UNIT_TEST
 TEST(compress, get_archive_format_args)
 {
-	EXPECT_EQ(L"zip", get_archive_format_args(LF_FMT_ZIP, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"zippass", get_archive_format_args(LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION).name);
-	EXPECT_EQ(L"7z", get_archive_format_args(LF_FMT_7Z, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"gz", get_archive_format_args(LF_FMT_GZ, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"bz2", get_archive_format_args(LF_FMT_BZ2, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"lzma", get_archive_format_args(LF_FMT_LZMA, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"xz", get_archive_format_args(LF_FMT_XZ, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"zstd", get_archive_format_args(LF_FMT_ZSTD, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"tar", get_archive_format_args(LF_FMT_TAR, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"tgz", get_archive_format_args(LF_FMT_TAR_GZ, LF_WOPT_STANDARD).name);
-	//EXPECT_EQ(L"tar+gz", get_archive_format_args(LF_FMT_TAR_GZ, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"tbz", get_archive_format_args(LF_FMT_TAR_BZ2, LF_WOPT_STANDARD).name);
-	//EXPECT_EQ(L"tar+bz2", get_archive_format_args(LF_FMT_TAR_BZ2, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"tlz", get_archive_format_args(LF_FMT_TAR_LZMA, LF_WOPT_STANDARD).name);
-	//EXPECT_EQ(L"tar+lzma", get_archive_format_args(LF_FMT_TAR_LZMA, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"txz", get_archive_format_args(LF_FMT_TAR_XZ, LF_WOPT_STANDARD).name);
-	//EXPECT_EQ(L"tar+xz", get_archive_format_args(LF_FMT_TAR_XZ, LF_WOPT_STANDARD).name);
-	EXPECT_EQ(L"tar+zstd", get_archive_format_args(LF_FMT_TAR_ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"zip", get_archive_format_args(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"zippass", get_archive_format_args(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION).name);
+	EXPECT_EQ(L"7z", get_archive_format_args(LF_ARCHIVE_FORMAT::_7Z, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"gz", get_archive_format_args(LF_ARCHIVE_FORMAT::GZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"bz2", get_archive_format_args(LF_ARCHIVE_FORMAT::BZ2, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"lzma", get_archive_format_args(LF_ARCHIVE_FORMAT::LZMA, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"xz", get_archive_format_args(LF_ARCHIVE_FORMAT::XZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tgz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+gz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tbz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+bz2", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tlz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+lzma", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"txz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+xz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar+zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD).name);
 }
 #endif
 

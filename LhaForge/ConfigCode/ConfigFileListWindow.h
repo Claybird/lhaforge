@@ -54,8 +54,8 @@ public:
 		bool DisplayFileSizeInByte;
 		bool DisplayPathOnly;
 		struct LISTVIEW_COLUMN {
-			std::array<int, FILEINFO_ITEM_COUNT> order;
-			std::array<int, FILEINFO_ITEM_COUNT> width;
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> order;
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> width;
 		}column;
 
 		bool ExpandTree;	//true to expand treeview on startup

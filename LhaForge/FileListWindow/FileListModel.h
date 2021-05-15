@@ -30,18 +30,18 @@
 #include "Utilities/FileOperation.h"
 #include "compress.h"
 
-enum FILEINFO_TYPE{
-	FILEINFO_INVALID=-1,
-	FILEINFO_FILENAME,
-	FILEINFO_FULLPATH,
-	FILEINFO_ORIGINALSIZE,
-	FILEINFO_TYPENAME,
-	FILEINFO_FILETIME,
-	FILEINFO_COMPRESSEDSIZE,
-	FILEINFO_METHOD,
-	FILEINFO_RATIO,		//compression ratio
+enum class FILEINFO_TYPE : int {
+	INVALID = -1,
+	FILENAME,
+	FULLPATH,
+	ORIGINALSIZE,
+	TYPENAME,
+	FILETIME,
+	COMPRESSEDSIZE,
+	METHOD,
+	RATIO,		//compression ratio
 
-	ENUM_COUNT_AND_LASTITEM(FILEINFO),
+	ENUM_COUNT_AND_LASTITEM,
 };
 
 struct CConfigFile;	//TODO: remove
@@ -66,7 +66,7 @@ public:
 	CFileListModel(const LF_COMPRESS_ARGS& compressArgs, ILFPassphrase& passphrase) :
 		m_lpCurrentDir(nullptr),
 		m_bSortAtoZ(true),
-		m_nSortKeyType(FILEINFO_INVALID),
+		m_nSortKeyType((int)FILEINFO_TYPE::INVALID),
 		m_Content(passphrase),
 		mr_compressArgs(compressArgs)
 	{}

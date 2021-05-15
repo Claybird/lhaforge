@@ -37,8 +37,7 @@ enum class COMPRESS_IGNORE_TOP_DIR :int {
 	None,
 	FirstTop,
 	Recursive,
-	ItemCount,
-	LastItem = ItemCount-1,
+	ENUM_COUNT_AND_LASTITEM
 };
 
 struct LF_COMPRESS_ARGS {

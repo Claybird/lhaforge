@@ -25,15 +25,15 @@
 #pragma once
 
 //LhaForge mode
-enum PROCESS_MODE{
-	PROCESS_INVALID,
-	PROCESS_CONFIGURE,
-	PROCESS_COMPRESS,
-	PROCESS_EXTRACT,
-	PROCESS_AUTOMATIC,	//extract if possible, compress otherwise
-	PROCESS_LIST,
-	PROCESS_TEST,
-	PROCESS_MANAGED,	//depends on users' keyboard state
+enum class PROCESS_MODE : int {
+	INVALID,
+	CONFIGURE,
+	COMPRESS,
+	EXTRACT,
+	AUTOMATIC,	//extract if possible, compress otherwise
+	LIST,
+	TEST,
+	MANAGED,	//depends on users' keyboard state
 };
 
 
@@ -49,10 +49,10 @@ struct CMDLINEINFO{
 		True,
 	};
 	CMDLINEINFO() :
-		CompressType(LF_FMT_INVALID),
+		CompressType(LF_ARCHIVE_FORMAT::INVALID),
 		Options(0),
 		bSingleCompression(false),
-		OutputToOverride(OUTPUT_TO_DEFAULT),
+		OutputToOverride(OUTPUT_TO::NoOverride),
 		CreateDirOverride(EXTRACT_CREATE_DIR::NoOverride),
 		IgnoreTopDirOverride(ACTION::Default),
 		DeleteAfterProcess(ACTION::Default)

@@ -72,23 +72,23 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 		) {
 		view.ListStyle = LVS_ICON;
 	}
-	view.SortColumnIndex = Config.getIntRange(section, L"SortColumn", FILEINFO_INVALID, FILEINFO_LAST_ITEM, FILEINFO_FILENAME);
+	view.SortColumnIndex = Config.getIntRange(section, L"SortColumn", (int)FILEINFO_TYPE::INVALID, (int)FILEINFO_TYPE::LastItem, (int)FILEINFO_TYPE::FILENAME);
 	view.SortAtoZ = Config.getBool(section, L"AtoZ", true);
 	view.ExpandTree = Config.getBool(section, L"ExpandTree", false);
 	view.DisplayFileSizeInByte = Config.getBool(section, L"DisplayFileSizeInByte", false);
 	view.DisplayPathOnly = Config.getBool(section, L"DisplayPathOnly", false);
 
 	{
-		for (int i = 0; i < FILEINFO_ITEM_COUNT; i++) {
+		for (int i = 0; i < (int)FILEINFO_TYPE::ItemCount; i++) {
 			view.column.order[i] = i;
 		}
 		auto buf = Config.getText(section, L"ColumnOrder", L"");
 		if (!buf.empty()) {
 			std::vector<int> numArr = UtilStringToIntArray(buf);
-			for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++) {
+			for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_TYPE::ItemCount); idx++) {
 				int columnPosition = numArr[idx];
 				if (columnPosition < 0)columnPosition = -1;
-				if (columnPosition >= FILEINFO_ITEM_COUNT) {
+				if (columnPosition >= (int)FILEINFO_TYPE::ItemCount) {
 					columnPosition = idx;
 				}
 				view.column.order[idx] = columnPosition;
@@ -96,12 +96,12 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 		}
 	}
 	{
-		for (int i = 0; i < FILEINFO_ITEM_COUNT; i++) {
+		for (int i = 0; i < (int)FILEINFO_TYPE::ItemCount; i++) {
 			view.column.width[i] = -1;
 		}
 		auto buf = Config.getText(section, L"ColumnWidth", L"");
 		std::vector<int> numArr = UtilStringToIntArray(buf);
-		for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_ITEM_COUNT); idx++) {
+		for (int idx = 0; idx < std::min((int)numArr.size(), (int)FILEINFO_TYPE::ItemCount); idx++) {
 			view.column.width[idx] = numArr[idx];
 		}
 	}
@@ -162,20 +162,20 @@ void CConfigFileListWindow::store_sub(CConfigFile &Config)const
 
 	{
 		std::wstring buf;
-		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			buf += Format(L"%d",view.column.order[i]);
-			if(i!=FILEINFO_ITEM_COUNT-1){
-				buf+=L",";
+		for (int i = 0; i < (int)FILEINFO_TYPE::ItemCount; i++) {
+			buf += Format(L"%d", view.column.order[i]);
+			if (i != (int)FILEINFO_TYPE::ItemCount - 1) {
+				buf += L",";
 			}
 		}
 		Config.setValue(section, L"ColumnOrder", buf);
 	}
 	{
 		std::wstring buf;
-		for(int i=0;i<FILEINFO_ITEM_COUNT;i++){
-			buf += Format(L"%d",view.column.width[i]);
-			if(i!=FILEINFO_ITEM_COUNT-1){
-				buf+=L",";
+		for (int i = 0; i < (int)FILEINFO_TYPE::ItemCount; i++) {
+			buf += Format(L"%d", view.column.width[i]);
+			if (i != (int)FILEINFO_TYPE::ItemCount - 1) {
+				buf += L",";
 			}
 		}
 		Config.setValue(section, L"ColumnWidth", buf);

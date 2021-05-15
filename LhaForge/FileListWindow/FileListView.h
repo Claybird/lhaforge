@@ -71,7 +71,7 @@ protected:
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 protected:
-	std::array<int/*FILEINFO_TYPE*/, FILEINFO_ITEM_COUNT> m_ColumnIndexArray;	//-1 if invisible
+	std::array<int/*FILEINFO_TYPE*/, (int)FILEINFO_TYPE::ItemCount> m_ColumnIndexArray;	//-1 if invisible
 	
 	CLFShellDataManager			m_ShellDataManager;
 	CImageList					m_SortImageList;
@@ -120,8 +120,8 @@ protected:
 public:
 	CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW);
 	virtual ~CFileListView(){}
-	bool SetColumnState(const std::array<int, FILEINFO_ITEM_COUNT>& columnOrder, const std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray);	//リストビューのカラムをセットする
-	void GetColumnState(std::array<int, FILEINFO_ITEM_COUNT>& columnOrder, std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray);
+	bool SetColumnState(const std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnOrder, const std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnWidthArray);	//リストビューのカラムをセットする
+	void GetColumnState(std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnOrder, std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnWidthArray);
 
 	void SetDisplayFileSizeInByte(bool b){m_bDisplayFileSizeInByte=b;}
 	void SetDisplayPathOnly(bool b){m_bPathOnly=b;}

@@ -113,7 +113,7 @@ std::filesystem::path determineExtractBaseDir(
 				outputDir = pathOutputDir;
 				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
 				if (keepConfig) {
-					args.extract.OutputDirType = OUTPUT_TO_SPECIFIC_DIR;
+					args.extract.OutputDirType = (int)OUTPUT_TO::SpecificDir;
 					args.extract.OutputDirUserSpecified = pathOutputDir.c_str();
 				}
 			} else {
@@ -132,11 +132,11 @@ std::filesystem::path determineExtractBaseDir(
 TEST(extract, determineExtractBaseDir) {
 	LF_EXTRACT_ARGS fakeArg;
 	fakeArg.load(CConfigFile());
-	fakeArg.extract.OutputDirType = OUTPUT_TO::OUTPUT_TO_SPECIFIC_DIR;
+	fakeArg.extract.OutputDirType = (int)OUTPUT_TO::SpecificDir;
 	fakeArg.extract.OutputDirUserSpecified = std::filesystem::current_path().c_str();
 	fakeArg.general.WarnNetwork = FALSE;
 	fakeArg.general.WarnRemovable = FALSE;
-	fakeArg.general.OnDirNotFound = LOSTDIR_FORCE_CREATE;
+	fakeArg.general.OnDirNotFound = (int)LOSTDIR::ForceCreate;
 
 	auto out = determineExtractBaseDir(L"path_to_archive/archive.ext", fakeArg);
 	EXPECT_EQ(std::filesystem::current_path(), out);
@@ -359,8 +359,8 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEI
 
 	//overwrite with command line arguments
 	if (lpCmdLineInfo) {
-		if (OUTPUT_TO_DEFAULT != lpCmdLineInfo->OutputToOverride) {
-			args.extract.OutputDirType = lpCmdLineInfo->OutputToOverride;
+		if (OUTPUT_TO::NoOverride != lpCmdLineInfo->OutputToOverride) {
+			args.extract.OutputDirType = (int)lpCmdLineInfo->OutputToOverride;
 		}
 		if (EXTRACT_CREATE_DIR::NoOverride != lpCmdLineInfo->CreateDirOverride) {
 			args.extract.CreateDir = (int)lpCmdLineInfo->CreateDirOverride;
@@ -759,13 +759,13 @@ bool GUI_extract_multiple_files(
 	}
 	//---display logs
 	bool displayLog = false;
-	switch (args.general.LogViewEvent) {
-	case LOGVIEW_ON_ERROR:
+	switch ((LOGVIEW)args.general.LogViewEvent) {
+	case LOGVIEW::OnError:
 		if (!bAllOK) {
 			displayLog = true;
 		}
 		break;
-	case LOGVIEW_ALWAYS:
+	case LOGVIEW::Always:
 		displayLog = true;
 		break;
 	}

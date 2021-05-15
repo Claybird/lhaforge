@@ -38,7 +38,7 @@ GetCompressShortcutInfo(HWND hWnd)
 
 		//choose format
 		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
-		if (format == LF_FMT_INVALID)CANCEL_EXCEPTION();
+		if (format == LF_ARCHIVE_FORMAT::INVALID)CANCEL_EXCEPTION();
 
 		//find args
 		try {

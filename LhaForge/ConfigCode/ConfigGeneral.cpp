@@ -34,7 +34,7 @@ void CConfigGeneral::loadOutput(const CConfigFile& Config)
 
 	WarnNetwork = Config.getBool(section, L"WarnNetwork", false);
 	WarnRemovable = Config.getBool(section, L"WarnRemovable", false);
-	OnDirNotFound = (LOSTDIR)Config.getIntRange(section, L"OnDirNotFound", 0, LOSTDIR_LAST_ITEM, LOSTDIR_ERROR);
+	OnDirNotFound = Config.getIntRange(section, L"OnDirNotFound", 0, (int)LOSTDIR::LastItem, (int)LOSTDIR::Error);
 }
 
 void CConfigGeneral::storeOutput(CConfigFile &Config)const
@@ -49,7 +49,7 @@ void CConfigGeneral::storeOutput(CConfigFile &Config)const
 void CConfigGeneral::loadLogView(const CConfigFile &Config)
 {
 	const auto section = L"LogView";
-	LogViewEvent = (LOGVIEW)Config.getIntRange(section, L"LogViewEvent", 0, LOGVIEW_LAST_ITEM, LOGVIEW_ON_ERROR);
+	LogViewEvent = Config.getIntRange(section, L"LogViewEvent", 0, (int)LOGVIEW::LastItem, (int)LOGVIEW::OnError);
 }
 
 void CConfigGeneral::storeLogView(CConfigFile &Config)const
@@ -100,8 +100,8 @@ TEST(config, CConfigGeneral)
 	EXPECT_FALSE(conf.Filer.UseFiler);
 	EXPECT_FALSE(conf.WarnNetwork);
 	EXPECT_FALSE(conf.WarnRemovable);
-	EXPECT_EQ(LOSTDIR_ERROR, conf.OnDirNotFound);
-	EXPECT_EQ(LOGVIEW_ON_ERROR, conf.LogViewEvent);
+	EXPECT_EQ((int)LOSTDIR::Error, conf.OnDirNotFound);
+	EXPECT_EQ((int)LOGVIEW::OnError, conf.LogViewEvent);
 	EXPECT_TRUE(conf.TempPath.empty());
 }
 #endif

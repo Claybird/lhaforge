@@ -37,19 +37,19 @@ std::filesystem::path LF_get_output_dir(
 	I_LF_GET_OUTPUT_DIR_CALLBACK &ask_callback)
 {
 	switch (outputDirType) {
-	case OUTPUT_TO_SAME_DIR:
+	case OUTPUT_TO::SameDir:
 		//directory is same as the original file path
 		return original_file_path.parent_path().generic_wstring();
-	case OUTPUT_TO_ALWAYS_ASK_WHERE:
+	case OUTPUT_TO::AlwaysAsk:
 		return ask_callback();
-	case OUTPUT_TO_SPECIFIC_DIR:	//use provided path
+	case OUTPUT_TO::SpecificDir:	//use provided path
 		if (user_specified_path && wcslen(user_specified_path) > 0) {
 			return user_specified_path;
 		} else {
 			//user did not provide a valid path; fall back to desktop
 		}
 		//FALLTHROUGH
-	case OUTPUT_TO_DESKTOP:
+	case OUTPUT_TO::Desktop:
 	default:
 		return UtilGetDesktopPath();
 	}
@@ -70,7 +70,7 @@ TEST(CommonUtil, LF_get_output_dir) {
 	};
 	LF_GET_OUTPUT_DIR_TEST_CALLBACK output_dir_callback;
 	output_dir_callback.setArchivePath(L"C:/path_to/test_archive.ext");
-	auto outputDir = LF_get_output_dir(OUTPUT_TO_SAME_DIR, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
+	auto outputDir = LF_get_output_dir(OUTPUT_TO::SameDir, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
 	EXPECT_EQ(L"C:/path_to", outputDir);
 }
 #endif
@@ -139,7 +139,7 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 	if (status.type() == std::filesystem::file_type::not_found) {
 		//destination does not exist
 		switch (OnDirNotFound) {
-		case LOSTDIR_ASK_TO_CREATE:
+		case LOSTDIR::AskToCreate:
 		{
 			auto strMsg = Format(UtilLoadString(IDS_ASK_CREATE_DIR), outputDir.c_str());
 			if (IDNO == UtilMessageBox(NULL, strMsg, MB_YESNO | MB_ICONQUESTION)) {
@@ -147,7 +147,7 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 			}
 		}
 			//FALLTHROUGH
-		case LOSTDIR_FORCE_CREATE:
+		case LOSTDIR::ForceCreate:
 			try {
 				std::filesystem::create_directories(outputDir);
 			} catch (const std::filesystem::filesystem_error) {
@@ -164,9 +164,9 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 TEST(CommonUtil, LF_ask_and_make_sure_output_dir_exists) {
 	auto target = UtilGetTempPath() / L"make_sure_test";
 	EXPECT_FALSE(std::filesystem::exists(target));
-	EXPECT_THROW(LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_ERROR), LF_EXCEPTION);
+	EXPECT_THROW(LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::Error), LF_EXCEPTION);
 	EXPECT_FALSE(std::filesystem::exists(target));
-	LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::LOSTDIR_FORCE_CREATE);
+	LF_ask_and_make_sure_output_dir_exists(target.c_str(), LOSTDIR::ForceCreate);
 	EXPECT_TRUE(std::filesystem::exists(target));
 	UtilDeleteDir(target, true);
 }

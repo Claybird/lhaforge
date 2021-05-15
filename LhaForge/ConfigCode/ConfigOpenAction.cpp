@@ -29,9 +29,9 @@
 void CConfigOpenAction::load(const CConfigFile &Config)
 {
 	const auto section = L"OpenAction";
-	OpenAction = (OPENACTION)Config.getIntRange(section, L"OpenAction", 0, OPENACTION_LAST_ITEM, OPENACTION_EXTRACT);
-	OpenAction_Shift = (OPENACTION)Config.getIntRange(section, L"OpenAction_Shift", 0, OPENACTION_LAST_ITEM, OPENACTION_LIST);
-	OpenAction_Ctrl = (OPENACTION)Config.getIntRange(section, L"OpenAction_Ctrl", 0, OPENACTION_LAST_ITEM, OPENACTION_TEST);
+	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
+	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
+	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
 }
 
 void CConfigOpenAction::store(CConfigFile &Config)const
@@ -49,8 +49,8 @@ TEST(config, CConfigOpenAction)
 	CConfigOpenAction conf;
 	conf.load(emptyFile);
 
-	EXPECT_EQ(OPENACTION_EXTRACT, conf.OpenAction);
-	EXPECT_EQ(OPENACTION_LIST, conf.OpenAction_Shift);
-	EXPECT_EQ(OPENACTION_TEST, conf.OpenAction_Ctrl);
+	EXPECT_EQ((int)OPENACTION::EXTRACT, conf.OpenAction);
+	EXPECT_EQ((int)OPENACTION::LIST, conf.OpenAction_Shift);
+	EXPECT_EQ((int)OPENACTION::TEST, conf.OpenAction_Ctrl);
 }
 #endif

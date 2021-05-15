@@ -30,7 +30,7 @@
 LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	{
-		bool bActive = (OUTPUT_TO_SPECIFIC_DIR == m_Config.OutputDirType);
+		bool bActive = ((int)OUTPUT_TO::SpecificDir == m_Config.OutputDirType);
 		SetDlgItemText(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR, m_Config.OutputDirUserSpecified.c_str());
 		::EnableWindow(GetDlgItem(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR), bActive);
 		::EnableWindow(GetDlgItem(IDC_BUTTON_EXTRACT_BROWSE_FOLDER), bActive);

@@ -25,20 +25,20 @@
 #pragma once
 #include "ConfigFile.h"
 
-enum OPENACTION:int{
-	OPENACTION_EXTRACT,
-	OPENACTION_LIST,
-	OPENACTION_TEST,
-	OPENACTION_ASK,
+enum class OPENACTION:int{
+	EXTRACT,
+	LIST,
+	TEST,
+	ASK,
 
-	ENUM_COUNT_AND_LASTITEM(OPENACTION),
+	ENUM_COUNT_AND_LASTITEM
 };
 
 struct CConfigOpenAction:public IConfigIO{
 public:
-	OPENACTION OpenAction;
-	OPENACTION OpenAction_Shift;
-	OPENACTION OpenAction_Ctrl;
+	int/*OPENACTION*/ OpenAction;
+	int/*OPENACTION*/ OpenAction_Shift;
+	int/*OPENACTION*/ OpenAction_Ctrl;
 public:
 	virtual ~CConfigOpenAction(){}
 	virtual void load(const CConfigFile&);

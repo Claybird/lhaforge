@@ -34,7 +34,7 @@
 void CConfigExtract::load(const CConfigFile &Config)
 {
 	const auto section = L"Extract";
-	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
+	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, (int)OUTPUT_TO::LastItem, (int)OUTPUT_TO::Desktop);
 
 	auto value = Config.getText(section, L"OutputDir", L"");
 	if (value.empty()) {

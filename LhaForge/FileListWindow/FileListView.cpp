@@ -39,14 +39,14 @@ struct COLUMN_DEFAULTS{
 };
 
 static const std::vector<COLUMN_DEFAULTS> g_defaults = {
-	{FILEINFO_FILENAME, IDS_FILELIST_COLUMN_FILENAME, 100, LVCFMT_LEFT},
-	{FILEINFO_FULLPATH, IDS_FILELIST_COLUMN_FULLPATH, 200, LVCFMT_LEFT},
-	{FILEINFO_ORIGINALSIZE, IDS_FILELIST_COLUMN_ORIGINALSIZE, 90, LVCFMT_RIGHT},
-	{FILEINFO_TYPENAME, IDS_FILELIST_COLUMN_TYPENAME, 120, LVCFMT_LEFT},
-	{FILEINFO_FILETIME, IDS_FILELIST_COLUMN_FILETIME, 120, LVCFMT_LEFT},
-	{FILEINFO_COMPRESSEDSIZE, IDS_FILELIST_COLUMN_COMPRESSEDSIZE, 90, LVCFMT_RIGHT},
-	{FILEINFO_METHOD, IDS_FILELIST_COLUMN_METHOD, 60, LVCFMT_LEFT},
-	{FILEINFO_RATIO, IDS_FILELIST_COLUMN_RATIO, 60, LVCFMT_RIGHT},
+	{FILEINFO_TYPE::FILENAME, IDS_FILELIST_COLUMN_FILENAME, 100, LVCFMT_LEFT},
+	{FILEINFO_TYPE::FULLPATH, IDS_FILELIST_COLUMN_FULLPATH, 200, LVCFMT_LEFT},
+	{FILEINFO_TYPE::ORIGINALSIZE, IDS_FILELIST_COLUMN_ORIGINALSIZE, 90, LVCFMT_RIGHT},
+	{FILEINFO_TYPE::TYPENAME, IDS_FILELIST_COLUMN_TYPENAME, 120, LVCFMT_LEFT},
+	{FILEINFO_TYPE::FILETIME, IDS_FILELIST_COLUMN_FILETIME, 120, LVCFMT_LEFT},
+	{FILEINFO_TYPE::COMPRESSEDSIZE, IDS_FILELIST_COLUMN_COMPRESSEDSIZE, 90, LVCFMT_RIGHT},
+	{FILEINFO_TYPE::METHOD, IDS_FILELIST_COLUMN_METHOD, 60, LVCFMT_LEFT},
+	{FILEINFO_TYPE::RATIO, IDS_FILELIST_COLUMN_RATIO, 60, LVCFMT_RIGHT},
 };
 
 
@@ -83,8 +83,8 @@ LRESULT CFileListView::OnDestroy()
 }
 
 bool CFileListView::SetColumnState(
-	const std::array<int, FILEINFO_ITEM_COUNT>& columnOrder,
-	const std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray)
+	const std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnOrder,
+	const std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnWidthArray)
 {
 	//delete all columns
 	if(GetHeader().IsWindow()){
@@ -98,20 +98,20 @@ bool CFileListView::SetColumnState(
 
 	// add default column to list view
 	for (const auto& item : g_defaults) {
-		if (-1 != index_of(columnOrder, item.type)) {
-			int nIndex = InsertColumn(item.type, UtilLoadString(item.resourceID).c_str(), item.align, item.defaultWidth, -1);
-			m_ColumnIndexArray[nIndex] = item.type;
+		if (-1 != index_of(columnOrder, (int)item.type)) {
+			int nIndex = InsertColumn((int)item.type, UtilLoadString(item.resourceID).c_str(), item.align, item.defaultWidth, -1);
+			m_ColumnIndexArray[nIndex] = (int)item.type;
 		}
 	}
 
 	//column order
 	int nValidColumns=0;
-	for(; nValidColumns <FILEINFO_ITEM_COUNT; nValidColumns++){
+	for(; nValidColumns <(int)FILEINFO_TYPE::ItemCount; nValidColumns++){
 		if(-1==columnOrder[nValidColumns])break;
 	}
 
 	//convert order
-	std::array<int, FILEINFO_ITEM_COUNT> indexArray;
+	std::array<int, (int)FILEINFO_TYPE::ItemCount> indexArray;
 	indexArray.fill(-1);
 	for (int i = 0; i < nValidColumns; i++) {
 		int nIndex = index_of(m_ColumnIndexArray, columnOrder[i]);
@@ -134,14 +134,14 @@ bool CFileListView::SetColumnState(
 }
 
 void CFileListView::GetColumnState(
-	std::array<int, FILEINFO_ITEM_COUNT>& columnOrder,
-	std::array<int, FILEINFO_ITEM_COUNT>& columnWidthArray)
+	std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnOrder,
+	std::array<int, (int)FILEINFO_TYPE::ItemCount>& columnWidthArray)
 {
 	//get column order
 	int nValidCount = GetHeader().GetItemCount();
-	ASSERT(nValidCount <=FILEINFO_ITEM_COUNT);
+	ASSERT(nValidCount <=(int)FILEINFO_TYPE::ItemCount);
 
-	std::array<int, FILEINFO_ITEM_COUNT> orderArray;
+	std::array<int, (int)FILEINFO_TYPE::ItemCount> orderArray;
 	orderArray.fill(-1);
 	GetColumnOrderArray(nValidCount, &orderArray[0]);
 	//convert order
@@ -225,25 +225,25 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	cMenu.LoadMenu(IDR_LISTVIEW_HEADER_MENU);
 	CMenuHandle cSubMenu(cMenu.GetSubMenu(0));
 
-	std::array<int, FILEINFO_ITEM_COUNT> columnOrder;
-	std::array<int, FILEINFO_ITEM_COUNT> columnWidthArray;
+	std::array<int, (int)FILEINFO_TYPE::ItemCount> columnOrder;
+	std::array<int, (int)FILEINFO_TYPE::ItemCount> columnWidthArray;
 	GetColumnState(columnOrder, columnWidthArray);
 
 	struct{
 		FILEINFO_TYPE type;
 		UINT nMenuID;
 	}menuTable[]={
-		{FILEINFO_FULLPATH,			ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH},
-		{FILEINFO_ORIGINALSIZE,		ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE},
-		{FILEINFO_TYPENAME,			ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME},
-		{FILEINFO_FILETIME,			ID_MENUITEM_LISTVIEW_COLUMN_FILETIME},
-		{FILEINFO_COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
-		{FILEINFO_METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
-		{FILEINFO_RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
+		{FILEINFO_TYPE::FULLPATH,		ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH},
+		{FILEINFO_TYPE::ORIGINALSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE},
+		{FILEINFO_TYPE::TYPENAME,		ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME},
+		{FILEINFO_TYPE::FILETIME,		ID_MENUITEM_LISTVIEW_COLUMN_FILETIME},
+		{FILEINFO_TYPE::COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
+		{FILEINFO_TYPE::METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
+		{FILEINFO_TYPE::RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
 	};
 
 	for(const auto &item: menuTable){
-		bool bEnabled=(-1!=index_of(columnOrder, item.type));
+		bool bEnabled=(-1!=index_of(columnOrder, (int)item.type));
 		cSubMenu.CheckMenuItem(item.nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 
@@ -256,14 +256,14 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	}else if(ID_MENUITEM_LISTVIEW_COLUMN_RESET==nRet){
 		//reset
 		for (size_t i = 0; i < g_defaults.size();i++) {
-			columnOrder[i] = g_defaults[i].type;
+			columnOrder[i] = (int)g_defaults[i].type;
 			columnWidthArray[i] = g_defaults[i].defaultWidth;
 		}
 	}else{
 		auto size = columnOrder.size();
 		for (const auto &item : menuTable) {
 			if (item.nMenuID == nRet) {
-				auto type = item.type;
+				auto type = (int)item.type;
 				for (size_t i = 0; i < size; i++) {
 					if (type == columnOrder[i]) {
 						//disable existing, slide items
@@ -277,7 +277,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 						//enable adding default
 						columnOrder[i] = type;
 						for (const auto &d : g_defaults) {
-							if (d.type == type) {
+							if ((int)d.type == type) {
 								columnWidthArray[i] = d.defaultWidth;
 								break;
 							}
@@ -336,13 +336,13 @@ LRESULT CFileListView::OnFindAsYouType(LPNMHDR pnmh)
 
 void CFileListView::SortItem(int iCol)
 {
-	if (!(iCol >= 0 && iCol < FILEINFO_ITEM_COUNT))return;
+	if (!(iCol >= 0 && iCol < (int)FILEINFO_TYPE::ItemCount))return;
 
 	if (iCol == mr_Model.GetSortKeyType()) {
 		if (mr_Model.IsSortAtoZ()) {
 			mr_Model.SetSortAtoZ(false);
 		} else {	//disable sort
-			mr_Model.SetSortKeyType(FILEINFO_INVALID);
+			mr_Model.SetSortKeyType((int)FILEINFO_TYPE::INVALID);
 			mr_Model.SetSortAtoZ(true);
 		}
 	} else {
@@ -377,7 +377,7 @@ void CFileListView::UpdateSortIcon()
 
 		//set icon
 		int iCol = mr_Model.GetSortKeyType();
-		if (iCol != FILEINFO_INVALID && iCol < count) {
+		if (iCol != (int)FILEINFO_TYPE::INVALID && iCol < count) {
 			HDITEM hdi = { 0 };
 			hdi.mask = HDI_FORMAT;
 
@@ -416,16 +416,16 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	auto lpNode = mr_Model.GetFileListItemByIndex(pstLVDInfo->item.iItem);
 	if(!lpNode)return 0;
 
-	ASSERT(pstLVDInfo->item.iSubItem>=0 && pstLVDInfo->item.iSubItem<FILEINFO_ITEM_COUNT);
-	if (pstLVDInfo->item.iSubItem < 0 || pstLVDInfo->item.iSubItem >= FILEINFO_ITEM_COUNT)return 0;
+	ASSERT(pstLVDInfo->item.iSubItem>=0 && pstLVDInfo->item.iSubItem<(int)FILEINFO_TYPE::ItemCount);
+	if (pstLVDInfo->item.iSubItem < 0 || pstLVDInfo->item.iSubItem >= (int)FILEINFO_TYPE::ItemCount)return 0;
 
 	std::wstring info;
-	switch(m_ColumnIndexArray[pstLVDInfo->item.iSubItem]){
-	case FILEINFO_FILENAME:
+	switch((FILEINFO_TYPE)(m_ColumnIndexArray[pstLVDInfo->item.iSubItem])){
+	case FILEINFO_TYPE::FILENAME:
 		if (pstLVDInfo->item.mask & LVIF_TEXT)info = lpNode->_entryName;
 		if (pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage = m_ShellDataManager.GetIconIndex(lpNode->getExt().c_str());
 		break;
-	case FILEINFO_FULLPATH:
+	case FILEINFO_TYPE::FULLPATH:
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if(m_bPathOnly){
 				info = lpNode->_entry.path.parent_path();
@@ -434,7 +434,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	case FILEINFO_ORIGINALSIZE:
+	case FILEINFO_TYPE::ORIGINALSIZE:
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if (m_bDisplayFileSizeInByte) {
 				info = Format(L"%llu Bytes", lpNode->_originalSize);
@@ -443,12 +443,12 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	case FILEINFO_TYPENAME:
+	case FILEINFO_TYPE::TYPENAME:
 		if (pstLVDInfo->item.mask & LVIF_TEXT) {
 			info = m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());
 		}
 		break;
-	case FILEINFO_FILETIME:
+	case FILEINFO_TYPE::FILETIME:
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if (lpNode->_entry.path.empty()) {
 				info = L"---";
@@ -457,7 +457,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	case FILEINFO_COMPRESSEDSIZE:
+	case FILEINFO_TYPE::COMPRESSEDSIZE:
 		if (pstLVDInfo->item.mask & LVIF_TEXT) {
 			if (lpNode->_entry.compressed_size == -1) {
 				info = L"---";
@@ -466,12 +466,12 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
-	case FILEINFO_METHOD:
+	case FILEINFO_TYPE::METHOD:
 		if (pstLVDInfo->item.mask & LVIF_TEXT) {
 			info = lpNode->_entry.method_name;
 		}
 		break;
-	case FILEINFO_RATIO:
+	case FILEINFO_TYPE::RATIO:
 		if (pstLVDInfo->item.mask & LVIF_TEXT) {
 			if (lpNode->_entry.compressed_size == -1) {
 				info = L"---";

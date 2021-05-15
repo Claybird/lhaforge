@@ -118,7 +118,7 @@ const ARCHIVE_ENTRY_INFO* CFileListModel::GetFileListItemByIndex(int iIndex)cons
 
 	if(iIndex<0 || numChildren<=(unsigned)iIndex)return nullptr;
 
-	if(FILEINFO_INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//not sorted
+	if((int)FILEINFO_TYPE::INVALID==m_nSortKeyType || m_SortedChildren.empty()){	//not sorted
 		return m_lpCurrentDir->getChild(iIndex);
 	}else{
 		return m_SortedChildren[iIndex].get();
@@ -138,7 +138,7 @@ struct FILELIST_SORT_COMPARATOR{
 	}
 	bool compare_no_reversed(const std::shared_ptr<ARCHIVE_ENTRY_INFO>& x, const std::shared_ptr<ARCHIVE_ENTRY_INFO>& y)const {
 		switch(Type){
-		case FILEINFO_FILENAME:
+		case FILEINFO_TYPE::FILENAME:
 			{
 				//directory priority
 				if(x->is_directory()){
@@ -155,15 +155,15 @@ struct FILELIST_SORT_COMPARATOR{
 					return (result<0);
 				}
 			}
-		case FILEINFO_FULLPATH:
+		case FILEINFO_TYPE::FULLPATH:
 			return (_wcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
-		case FILEINFO_ORIGINALSIZE:
+		case FILEINFO_TYPE::ORIGINALSIZE:
 			if(x->_originalSize == y->_originalSize){
 				return defaultOrder(x, y);
 			}else{
 				return (x->_originalSize < y->_originalSize);
 			}
-		case FILEINFO_TYPENAME:
+		case FILEINFO_TYPE::TYPENAME:
 			{
 				int result = _wcsicmp(x->getExt().c_str(), y->getExt().c_str());
 				if(result == 0){
@@ -172,7 +172,7 @@ struct FILELIST_SORT_COMPARATOR{
 					return (result < 0);
 				}
 			}
-		case FILEINFO_FILETIME:
+		case FILEINFO_TYPE::FILETIME:
 			{
 				if(x->_entry.stat.st_mtime == y->_entry.stat.st_mtime){
 					return defaultOrder(x, y);
@@ -180,19 +180,19 @@ struct FILELIST_SORT_COMPARATOR{
 					return (x->_entry.stat.st_mtime < y->_entry.stat.st_mtime);
 				}
 			}
-		case FILEINFO_COMPRESSEDSIZE:
+		case FILEINFO_TYPE::COMPRESSEDSIZE:
 			if (x->_entry.compressed_size == y->_entry.compressed_size) {
 				return defaultOrder(x, y);
 			} else {
 				return (x->_entry.compressed_size < y->_entry.compressed_size);
 			}
-		case FILEINFO_METHOD:
+		case FILEINFO_TYPE::METHOD:
 			if (x->_entry.method_name == y->_entry.method_name) {
 				return defaultOrder(x, y);
 			} else {
 				return (_wcsicmp(x->_entry.method_name.c_str(), y->_entry.method_name.c_str()) < 0);
 			}
-		case FILEINFO_RATIO:
+		case FILEINFO_TYPE::RATIO:
 			if (x->compress_ratio() == y->compress_ratio()) {
 				return defaultOrder(x, y);
 			} else {
@@ -209,10 +209,10 @@ void CFileListModel::SortCurrentEntries()
 {
 	if(m_lpCurrentDir){
 		FILEINFO_TYPE Type=(FILEINFO_TYPE)m_nSortKeyType;
-		if (FILEINFO_INVALID != Type) {
+		if (FILEINFO_TYPE::INVALID != Type) {
 			m_SortedChildren = m_lpCurrentDir->_children;
 
-			if (Type<FILEINFO_INVALID || Type>FILEINFO_LAST_ITEM)return;
+			if (Type<FILEINFO_TYPE::INVALID || Type>FILEINFO_TYPE::LastItem)return;
 			FILELIST_SORT_COMPARATOR comp;
 			comp.Type = Type;
 			comp.bReversed = !m_bSortAtoZ;

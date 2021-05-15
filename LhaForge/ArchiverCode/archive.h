@@ -26,48 +26,39 @@
 
 #pragma once
 
-enum LOGVIEW{
-	LOGVIEW_ON_ERROR,
-	LOGVIEW_ALWAYS,
-	LOGVIEW_NEVER,
+enum class LOGVIEW : int {
+	OnError,
+	Always,
+	Never,
 
-	ENUM_COUNT_AND_LASTITEM(LOGVIEW),
-};
-enum LOSTDIR{
-	LOSTDIR_ASK_TO_CREATE,
-	LOSTDIR_FORCE_CREATE,
-	LOSTDIR_ERROR,
-
-	ENUM_COUNT_AND_LASTITEM(LOSTDIR),
-};
-enum OUTPUT_TO{
-	OUTPUT_TO_DEFAULT=-1,
-	OUTPUT_TO_DESKTOP,
-	OUTPUT_TO_SAME_DIR,
-	OUTPUT_TO_SPECIFIC_DIR,
-	OUTPUT_TO_ALWAYS_ASK_WHERE,
-
-	ENUM_COUNT_AND_LASTITEM(OUTPUT_TO),
+	ENUM_COUNT_AND_LASTITEM
 };
 
-/*
-//TODO
-//---following are extracted other than libarchive
-{LF_FMT_ACE, NOT_BY_LIBARCHIVE, false, L".ace", true, {}},
-{ LF_FMT_JAK, NOT_BY_LIBARCHIVE, false, L".jak", true, {} },
-{ LF_FMT_BZA, NOT_BY_LIBARCHIVE, false, L".bza", true, {} },
-{ LF_FMT_GZA, NOT_BY_LIBARCHIVE, false, L".gza", true, {} },
-{ LF_FMT_ISH, NOT_BY_LIBARCHIVE, false, L".ish", false, {} },
-*/
-
-
-enum class LF_RESULT {
+enum class LF_RESULT :int {
 	OK,//successful or archive test passed
 	NG,//abnormal end or archive test failed
 	CANCELED,//user cancel
 	NOTARCHIVE,//not an archive
 	NOTIMPL,//not implemented
 };
+
+enum class LOSTDIR : int {
+	AskToCreate,
+	ForceCreate,
+	Error,
+
+	ENUM_COUNT_AND_LASTITEM
+};
+enum class OUTPUT_TO :int {
+	NoOverride = -1,
+	Desktop,
+	SameDir,
+	SpecificDir,
+	AlwaysAsk,
+
+	ENUM_COUNT_AND_LASTITEM
+};
+
 
 struct ARCHIVE_EXCEPTION : public LF_EXCEPTION {
 	int _errno;
@@ -84,24 +75,23 @@ struct ARCHIVE_EXCEPTION : public LF_EXCEPTION {
 	virtual ~ARCHIVE_EXCEPTION() {}
 };
 
-enum LF_ARCHIVE_FORMAT {
-	LF_FMT_INVALID = -1,
+enum class LF_ARCHIVE_FORMAT :int {
+	INVALID = -1,
+	ZIP,
+	_7Z,
+	GZ,
+	BZ2,
+	LZMA,
+	XZ,
+	ZSTD,
+	TAR,
+	TAR_GZ,
+	TAR_BZ2,
+	TAR_LZMA,
+	TAR_XZ,
+	TAR_ZSTD,
 
-	LF_FMT_ZIP,
-	LF_FMT_7Z,
-	LF_FMT_GZ,
-	LF_FMT_BZ2,
-	LF_FMT_LZMA,
-	LF_FMT_XZ,
-	LF_FMT_ZSTD,
-	LF_FMT_TAR,
-	LF_FMT_TAR_GZ,
-	LF_FMT_TAR_BZ2,
-	LF_FMT_TAR_LZMA,
-	LF_FMT_TAR_XZ,
-	LF_FMT_TAR_ZSTD,
-
-	ENUM_COUNT_AND_LASTITEM(LF_ARCHIVE_FORMAT)
+	ENUM_COUNT_AND_LASTITEM
 };
 
 enum LF_WRITE_OPTIONS {

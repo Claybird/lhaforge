@@ -28,48 +28,44 @@
 #include "Utilities/FileOperation.h"
 #include "Association.h"
 
-enum ASSOC_TYPE{
-	ASSOC_LZH,
-	ASSOC_LZS,
-	ASSOC_LHA,
+enum class ASSOC_TYPE : int {
+	LZH,
+	LZS,
+	LHA,
 
-	ASSOC_ZIP,
-	ASSOC_CAB,
-	ASSOC_ZIPX,
+	ZIP,
+	CAB,
+	ZIPX,
 
-	ASSOC_7Z,
+	_7Z,
 
-	ASSOC_RAR,
-	ASSOC_ACE,
-	ASSOC_ARJ,
-	ASSOC_BZA,
-	ASSOC_GZA,
-	ASSOC_JAK,
+	RAR,
+	ACE,
+	ARJ,
+	BZA,
+	GZA,
+	JAK,
 
-	ASSOC_UUE,
-	ASSOC_ISH,
+	UUE,
+	ISH,
 
-	ASSOC_TAR,
-	ASSOC_GZ,
-	ASSOC_BZ2,
-	ASSOC_XZ,
-	ASSOC_LZMA,
-	ASSOC_ZSTD,
-	ASSOC_Z,
-	ASSOC_CPIO,
-	ASSOC_TGZ,
-	ASSOC_TBZ,
-	ASSOC_TAR_XZ,
-	ASSOC_TAR_LZMA,
+	TAR,
+	GZ,
+	BZ2,
+	XZ,
+	LZMA,
+	ZSTD,
+	Z,
+	CPIO,
+	TGZ,
+	TBZ,
+	TAR_XZ,
+	TAR_LZMA,
 	//ASSOC_TAR_ZSTD,
-	ASSOC_TAZ,
-	ASSOC_ISO,
+	TAZ,
+	ISO,
 
-	ENUM_COUNT_AND_LASTITEM(ASSOC_TYPE),
-};
-
-const int NO_DEFAULT_ASSOCS[]={
-	ASSOC_ISO,
+	ENUM_COUNT_AND_LASTITEM,
 };
 
 
@@ -125,7 +121,7 @@ protected:
 		COLUMN_EXT,
 		COLUMN_FORMAT,
 	};
-	std::array<ASSOC_SETTINGS, ASSOC_TYPE_ITEM_COUNT> AssocSettings;
+	std::array<ASSOC_SETTINGS, (int)ASSOC_TYPE::ItemCount> AssocSettings;
 
 	CListViewCtrl m_assocList;
 	CImageListManaged m_imageList;

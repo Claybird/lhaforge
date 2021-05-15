@@ -33,7 +33,7 @@ LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	SetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, m_Config.OutputDirUserSpecified.c_str());
 
-	bool bActive=(OUTPUT_TO_SPECIFIC_DIR==m_Config.OutputDirType);
+	bool bActive=((int)OUTPUT_TO::SpecificDir==m_Config.OutputDirType);
 	::EnableWindow(GetDlgItem(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR), bActive);
 	::EnableWindow(GetDlgItem(IDC_BUTTON_COMPRESS_BROWSE_FOLDER), bActive);
 
@@ -118,7 +118,7 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 {
 	if(BN_CLICKED==wNotifyCode){
 		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
-		if(format == LF_FMT_INVALID)return 1;	//cancel
+		if(format == LF_ARCHIVE_FORMAT::INVALID)return 1;	//cancel
 
 		//find suitable options
 		try {
@@ -144,7 +144,7 @@ LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WO
 
 void CConfigDlgCompressGeneral::SetParameterInfo()
 {
-	if(LF_FMT_INVALID==m_Config.DefaultType){
+	if(LF_ARCHIVE_FORMAT::INVALID==m_Config.DefaultType){
 		SetDlgItemText(IDC_EDIT_DEFAULTPARAMETER, L"");
 	}else{
 		try {

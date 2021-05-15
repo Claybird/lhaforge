@@ -32,7 +32,7 @@
 void CConfigCompress::load(const CConfigFile &Config)
 {
 	const auto section = L"Compress";
-	OutputDirType = (OUTPUT_TO)Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
+	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, (int)OUTPUT_TO::LastItem, (int)OUTPUT_TO::Desktop);
 	auto value=Config.getText(section, L"OutputDir", L"");
 	if (value.empty()) {
 		OutputDirUserSpecified = L"";
@@ -51,7 +51,7 @@ void CConfigCompress::load(const CConfigFile &Config)
 
 	UseDefaultParameter=Config.getBool(section, L"UseDefaultParameter", false);
 	DefaultType = (LF_ARCHIVE_FORMAT)Config.getIntRange(section,
-		L"DefaultType", LF_FMT_INVALID, LF_ARCHIVE_FORMAT_LAST_ITEM, LF_FMT_INVALID);
+		L"DefaultType", (int)LF_ARCHIVE_FORMAT::INVALID, (int)LF_ARCHIVE_FORMAT::LastItem, (int)LF_ARCHIVE_FORMAT::INVALID);
 	DefaultOptions=Config.getInt(section, L"DefaultOptions", 0);
 
 	DeleteAfterCompress=Config.getBool(section, L"DeleteAfterCompress", false);
@@ -73,7 +73,7 @@ void CConfigCompress::store(CConfigFile &Config)const
 	Config.setValue(section, L"LimitCompressFileCount", LimitCompressFileCount);
 	Config.setValue(section, L"MaxCompressFileCount", MaxCompressFileCount);
 	Config.setValue(section, L"UseDefaultParameter", UseDefaultParameter);
-	Config.setValue(section, L"DefaultType", DefaultType);
+	Config.setValue(section, L"DefaultType", (int)DefaultType);
 	Config.setValue(section, L"DefaultOptions", DefaultOptions);
 	Config.setValue(section, L"DeleteAfterCompress", DeleteAfterCompress);
 	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
@@ -88,14 +88,14 @@ TEST(config, CConfigCompress)
 	CConfigCompress conf;
 	conf.load(emptyFile);
 
-	EXPECT_EQ(OUTPUT_TO_DESKTOP, conf.OutputDirType);
+	EXPECT_EQ((int)OUTPUT_TO::Desktop, conf.OutputDirType);
 	EXPECT_TRUE(conf.OutputDirUserSpecified.empty());
 	EXPECT_TRUE(conf.OpenDir);
 	EXPECT_FALSE(conf.SpecifyOutputFilename);
 	EXPECT_FALSE(conf.LimitCompressFileCount);
 	EXPECT_EQ(1, conf.MaxCompressFileCount);
 	EXPECT_FALSE(conf.UseDefaultParameter);
-	EXPECT_EQ(LF_ARCHIVE_FORMAT::LF_FMT_INVALID, conf.DefaultType);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::INVALID, conf.DefaultType);
 	EXPECT_EQ(0, conf.DefaultOptions);
 
 	EXPECT_FALSE(conf.DeleteAfterCompress);

@@ -57,28 +57,28 @@ struct LA_COMPRESSION_CAPABILITY :public LF_COMPRESS_CAPABILITY {
 };
 
 const static std::vector<LA_COMPRESSION_CAPABILITY> g_la_capabilities = {
-	{LF_FMT_ZIP, L".zip", true, {
+	{LF_ARCHIVE_FORMAT::ZIP, L".zip", true, {
 		LF_WOPT_STANDARD,
 		LF_WOPT_DATA_ENCRYPTION
 		}, ARCHIVE_FORMAT_ZIP, },
-	{LF_FMT_7Z, L".7z", true, {
+	{LF_ARCHIVE_FORMAT::_7Z, L".7z", true, {
 		LF_WOPT_STANDARD,
 		//LF_WOPT_DATA_ENCRYPTION,
 		//LF_WOPT_HEADER_ENCRYPTION,
 		//LF_WOPT_DATA_ENCRYPTION | LF_WOPT_HEADER_ENCRYPTION,
 		//LF_WOPT_SFX | LF_WOPT_DATA_ENCRYPTION
 		}, ARCHIVE_FORMAT_7ZIP, },
-	{LF_FMT_GZ, L"{ext}.gz", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_GZIP, },
-	{LF_FMT_BZ2, L"{ext}.bz2", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_BZIP2, },
-	{LF_FMT_LZMA, L"{ext}.lzma", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZMA, },
-	{LF_FMT_XZ, L"{ext}.xz", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_XZ, },
-	{LF_FMT_ZSTD, L"{ext}.zst", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_ZSTD, },
-	{LF_FMT_TAR, L".tar", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR},
-	{LF_FMT_TAR_GZ, L".tar.gz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_GZIP, },
-	{LF_FMT_TAR_BZ2, L".tar.bz2", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_BZIP2, },
-	{LF_FMT_TAR_LZMA, L".tar.lzma", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZMA, },
-	{LF_FMT_TAR_XZ, L".tar.xz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_XZ, },
-	{LF_FMT_TAR_ZSTD, L".tar.zst", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_ZSTD, },
+	{LF_ARCHIVE_FORMAT::GZ, L"{ext}.gz", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_GZIP, },
+	{LF_ARCHIVE_FORMAT::BZ2, L"{ext}.bz2", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_BZIP2, },
+	{LF_ARCHIVE_FORMAT::LZMA, L"{ext}.lzma", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZMA, },
+	{LF_ARCHIVE_FORMAT::XZ, L"{ext}.xz", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_XZ, },
+	{LF_ARCHIVE_FORMAT::ZSTD, L"{ext}.zst", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_ZSTD, },
+	{LF_ARCHIVE_FORMAT::TAR, L".tar", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR},
+	{LF_ARCHIVE_FORMAT::TAR_GZ, L".tar.gz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_GZIP, },
+	{LF_ARCHIVE_FORMAT::TAR_BZ2, L".tar.bz2", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_BZIP2, },
+	{LF_ARCHIVE_FORMAT::TAR_LZMA, L".tar.lzma", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZMA, },
+	{LF_ARCHIVE_FORMAT::TAR_XZ, L".tar.xz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_XZ, },
+	{LF_ARCHIVE_FORMAT::TAR_ZSTD, L".tar.zst", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_ZSTD, },
 };
 
 
@@ -544,7 +544,7 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 	CConfigFile mngr;
 	fake_args.load(mngr);
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD);
 		EXPECT_EQ(4, la_options.size());
 		EXPECT_EQ("deflate", la_options.at("compression"));
 		EXPECT_EQ("9", la_options.at("compression-level"));
@@ -553,7 +553,7 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 		EXPECT_EQ("enabled", la_options.at("zip64"));
 	}
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZIP, LF_WOPT_DATA_ENCRYPTION);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION);
 		EXPECT_EQ(5, la_options.size());
 		EXPECT_EQ("deflate", la_options.at("compression"));
 		EXPECT_EQ("9", la_options.at("compression-level"));
@@ -562,45 +562,45 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 		EXPECT_EQ("enabled", la_options.at("zip64"));
 	}
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_7Z, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::_7Z, LF_WOPT_STANDARD);
 		EXPECT_EQ(2, la_options.size());
 		EXPECT_EQ("deflate", la_options.at("compression"));
 		EXPECT_EQ("9", la_options.at("compression-level"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_TAR, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD);
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_GZ, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::GZ, LF_WOPT_STANDARD);
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("9", la_options.at("compression-level"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_BZ2, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::BZ2, LF_WOPT_STANDARD);
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("9", la_options.at("compression-level"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_XZ, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::XZ, LF_WOPT_STANDARD);
 		EXPECT_EQ(2, la_options.size());
 		EXPECT_EQ("9", la_options.at("compression-level"));
 		EXPECT_EQ("0", la_options.at("threads"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_LZMA, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::LZMA, LF_WOPT_STANDARD);
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("9", la_options.at("compression-level"));
 	}
 
 	{
-		auto la_options = getLAOptionsFromConfig(fake_args, LF_FMT_ZSTD, LF_WOPT_STANDARD);
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD);
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("3", la_options.at("compression-level"));
 	}
@@ -730,7 +730,7 @@ TEST(CLFArchiveLA, get_format_name)
 
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		a.write_open(temp, LF_FMT_ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
 		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
 	}
 	UtilDeletePath(temp);
@@ -914,7 +914,7 @@ TEST(CLFArchiveLA, add_entry)
 		CLFArchiveLA a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		a.write_open(temp, LF_FMT_ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
 		LF_ENTRY_STAT e;
 		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
 		a.add_directory_entry(e);

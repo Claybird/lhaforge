@@ -37,8 +37,7 @@ enum class EXTRACT_CREATE_DIR :int {
 	SkipIfSingleFileOrDir,	//skip archive-named-directory, if its root contains single *directory or file*
 	SkipIfSingleDirectory,	//skip archive-named-directory, if its root contains single *directory*
 
-	ItemCount,
-	LastItem = ItemCount-1,
+	ENUM_COUNT_AND_LASTITEM
 };
 
 struct LF_EXTRACT_ARGS {

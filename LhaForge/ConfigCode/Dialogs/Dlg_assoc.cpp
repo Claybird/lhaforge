@@ -28,6 +28,11 @@
 #include "Utilities/StringUtil.h"
 #include <CommonControls.h>
 
+
+const ASSOC_TYPE NO_DEFAULT_ASSOCS[] = {
+	ASSOC_TYPE::ISO,
+};
+
 struct DLG_ASSOC_ITEM{
 	ASSOC_TYPE atype;
 	std::wstring ext;
@@ -35,41 +40,41 @@ struct DLG_ASSOC_ITEM{
 };
 
 const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
-	{ASSOC_LZH,	L".lzh",	L"LHA/LZH archive"},
-	{ASSOC_LZS,	L".lzs",	L"LHA/LZH archive"},
-	{ASSOC_LHA,	L".lha",	L"LHA/LZH archive"},
+	{ASSOC_TYPE::LZH,	L".lzh",	L"LHA/LZH archive"},
+	{ASSOC_TYPE::LZS,	L".lzs",	L"LHA/LZH archive"},
+	{ASSOC_TYPE::LHA,	L".lha",	L"LHA/LZH archive"},
 
-	{ASSOC_ZIP,	L".zip",	L"ZIP archive"},
-	{ASSOC_CAB,	L".cab",	L"\"Microsoft Cabinet\" archive"},
-	{ASSOC_ZIPX,	L".zipx",	L"WinZip advanced ZIP archive"},
+	{ASSOC_TYPE::ZIP,	L".zip",	L"ZIP archive"},
+	{ASSOC_TYPE::CAB,	L".cab",	L"\"Microsoft Cabinet\" archive"},
+	{ASSOC_TYPE::ZIPX,	L".zipx",	L"WinZip advanced ZIP archive"},
 
-	{ASSOC_7Z,	L".7z",		L"7-Zip archive"},
+	{ASSOC_TYPE::_7Z,	L".7z",		L"7-Zip archive"},
 
-	{ASSOC_RAR,	L".rar",	L"WinRAR archive"},
-	{ASSOC_ACE,	L".ace",	L"WinAce archive"},
-	{ASSOC_ARJ,	L".arj",	L"ARJ archive"},
-	{ASSOC_BZA,	L".bza",	L"BGA32.dll archive"},
-	{ASSOC_GZA,	L".gza",	L"BGA32.dll archive"},
-	{ASSOC_JAK,	L".jak",	L"JACK32.dll splitted file"},
+	{ASSOC_TYPE::RAR,	L".rar",	L"WinRAR archive"},
+	{ASSOC_TYPE::ACE,	L".ace",	L"WinAce archive"},
+	{ASSOC_TYPE::ARJ,	L".arj",	L"ARJ archive"},
+	{ASSOC_TYPE::BZA,	L".bza",	L"BGA32.dll archive"},
+	{ASSOC_TYPE::GZA,	L".gza",	L"BGA32.dll archive"},
+	{ASSOC_TYPE::JAK,	L".jak",	L"JACK32.dll splitted file"},
 
-	{ASSOC_UUE,	L".uue",	L"uuencode binary-to-text encoding"},
-	{ASSOC_ISH,	L".ish",	L"ish binary-to-text encoding"},
+	{ASSOC_TYPE::UUE,	L".uue",	L"uuencode binary-to-text encoding"},
+	{ASSOC_TYPE::ISH,	L".ish",	L"ish binary-to-text encoding"},
 
-	{ASSOC_TAR,	L".tar",	L"\"Tape Archives\" format"},
-	{ASSOC_GZ,	L".gz",		L"gzip compression format"},
-	{ASSOC_BZ2,	L".bz2",	L"bzip2 compression format"},
-	{ASSOC_XZ,	L".xz",		L"\"XZ Utils\" compression format"},
-	{ASSOC_LZMA,	L".lzma",	L"Lempel-Ziv-Markov chain-Algorithm compression format"},
-	{ASSOC_ZSTD,	L".zst",	L"Facebook Zstandard compression format"},
-	{ASSOC_Z,	L".z",		L"\"UNIX Compress\" format"},
-	{ASSOC_CPIO,	L".cpio",	L"UNIX cpio compression format"},
-	{ASSOC_TGZ,	L".tgz",	L"tar+gz archive"},
-	{ASSOC_TBZ,	L".tbz",	L"tar+bz2 archive"},
-	{ASSOC_TAR_XZ,	L".txz",L"tar+xz archive"},
-	{ASSOC_TAR_LZMA,L".tlz",	L"tar+lzma archive"},
-	{ASSOC_TAZ,	L".taz",	L"tar+z archive"},
+	{ASSOC_TYPE::TAR,	L".tar",	L"\"Tape Archives\" format"},
+	{ASSOC_TYPE::GZ,		L".gz",		L"gzip compression format"},
+	{ASSOC_TYPE::BZ2,	L".bz2",	L"bzip2 compression format"},
+	{ASSOC_TYPE::XZ,		L".xz",		L"\"XZ Utils\" compression format"},
+	{ASSOC_TYPE::LZMA,	L".lzma",	L"Lempel-Ziv-Markov chain-Algorithm compression format"},
+	{ASSOC_TYPE::ZSTD,	L".zst",	L"Facebook Zstandard compression format"},
+	{ASSOC_TYPE::Z,		L".z",		L"\"UNIX Compress\" format"},
+	{ASSOC_TYPE::CPIO,	L".cpio",	L"UNIX cpio compression format"},
+	{ASSOC_TYPE::TGZ,	L".tgz",	L"tar+gz archive"},
+	{ASSOC_TYPE::TBZ,	L".tbz",	L"tar+bz2 archive"},
+	{ASSOC_TYPE::TAR_XZ,	L".txz",L"tar+xz archive"},
+	{ASSOC_TYPE::TAR_LZMA,L".tlz",	L"tar+lzma archive"},
+	{ASSOC_TYPE::TAZ,	L".taz",	L"tar+z archive"},
 
-	{ASSOC_ISO,	L".iso",	L"[No default]ISO 9660 file system format"},
+	{ASSOC_TYPE::ISO,	L".iso",	L"[No default]ISO 9660 file system format"},
 };
 
 //--------------------------------------------
@@ -104,7 +109,7 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 	}
 
 	for(const auto& item: DLG_ASSOC_TABLE){
-		auto& assoc = AssocSettings[item.atype];
+		auto& assoc = AssocSettings[(int)item.atype];
 		const auto &ext = item.ext;
 		assoc.AssocInfo.Ext = ext;
 		assoc.formatName = item.formatName;
@@ -238,7 +243,7 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		auto &item = AssocSettings[aType];
 		switch(wID){
 		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:
-			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), aType)){
+			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), (ASSOC_TYPE)aType)){
 				item.AssocInfo.isAssociated = true;
 				m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
 				item.bChanged = true;

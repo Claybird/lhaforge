@@ -33,12 +33,13 @@ class CConfigDlgOpenAction : public LFConfigDialogBase<CConfigDlgOpenAction>
 {
 protected:
 	CConfigOpenAction	m_Config;
-
-	CButton Radio_OpenAction[OPENACTION_ITEM_COUNT];
-	CButton Radio_OpenAction_Shift[OPENACTION_ITEM_COUNT];
-	CButton Radio_OpenAction_Ctrl[OPENACTION_ITEM_COUNT];
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_OPENACTION };
+	BEGIN_DDX_MAP(CConfigDlgOpenAction)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT, m_Config.OpenAction)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT_SHIFT, m_Config.OpenAction_Shift)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT_CTRL, m_Config.OpenAction_Ctrl)
+	END_DDX_MAP()
 
 	BEGIN_MSG_MAP_EX(CConfigDlgOpenAction)
 		MSG_WM_INITDIALOG(OnInitDialog)
@@ -47,53 +48,13 @@ public:
 	CConfigDlgOpenAction() {}
 	virtual ~CConfigDlgOpenAction() {}
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
-		//---normal
-		Radio_OpenAction[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT);
-		Radio_OpenAction[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST);
-		Radio_OpenAction[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST);
-		Radio_OpenAction[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK);
-
-		Radio_OpenAction[m_Config.OpenAction].SetCheck(true);
-		//---Shift pressed
-		Radio_OpenAction_Shift[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_SHIFT);
-		Radio_OpenAction_Shift[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST_SHIFT);
-		Radio_OpenAction_Shift[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST_SHIFT);
-		Radio_OpenAction_Shift[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK_SHIFT);
-
-		Radio_OpenAction_Shift[m_Config.OpenAction_Shift].SetCheck(true);
-		//---Ctrl pressed
-		Radio_OpenAction_Ctrl[OPENACTION_EXTRACT] = GetDlgItem(IDC_RADIO_OPENACTION_EXTRACT_CTRL);
-		Radio_OpenAction_Ctrl[OPENACTION_LIST] = GetDlgItem(IDC_RADIO_OPENACTION_LIST_CTRL);
-		Radio_OpenAction_Ctrl[OPENACTION_TEST] = GetDlgItem(IDC_RADIO_OPENACTION_TEST_CTRL);
-		Radio_OpenAction_Ctrl[OPENACTION_ASK] = GetDlgItem(IDC_RADIO_OPENACTION_ASK_CTRL);
-
-		Radio_OpenAction_Ctrl[m_Config.OpenAction_Ctrl].SetCheck(true);
-
+		DoDataExchange(FALSE);
 		return TRUE;
 	}
 	LRESULT OnApply() {
-		//---normal
-		for (int i = 0; i < COUNTOF(Radio_OpenAction); i++) {
-			if (Radio_OpenAction[i].GetCheck()) {
-				m_Config.OpenAction = (OPENACTION)i;
-				break;
-			}
+		if (!DoDataExchange(TRUE)) {
+			return FALSE;
 		}
-		//---Shift pressed
-		for (int i = 0; i < COUNTOF(Radio_OpenAction_Shift); i++) {
-			if (Radio_OpenAction_Shift[i].GetCheck()) {
-				m_Config.OpenAction_Shift = (OPENACTION)i;
-				break;
-			}
-		}
-		//---Ctrl pressed
-		for (int i = 0; i < COUNTOF(Radio_OpenAction_Ctrl); i++) {
-			if (Radio_OpenAction_Ctrl[i].GetCheck()) {
-				m_Config.OpenAction_Ctrl = (OPENACTION)i;
-				break;
-			}
-		}
-
 		return TRUE;
 	}
 
