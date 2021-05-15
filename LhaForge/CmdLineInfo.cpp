@@ -210,11 +210,13 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			} else if (L"/mkdir" == key) {//output directory control
 				value = toLower(value);
 				if (L"no" == value) {
-					cli.CreateDirOverride = CREATE_OUTPUT_DIR_NEVER;
+					cli.CreateDirOverride = EXTRACT_CREATE_DIR::Never;
 				} else if (L"single" == value) {
-					cli.CreateDirOverride = CREATE_OUTPUT_DIR_SINGLE;
+					cli.CreateDirOverride = EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+				} else if (L"singled" == value) {
+					cli.CreateDirOverride = EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
 				} else if (L"always" == value || value.empty()) {
-					cli.CreateDirOverride = CREATE_OUTPUT_DIR_ALWAYS;
+					cli.CreateDirOverride = EXTRACT_CREATE_DIR::Always;
 				} else {
 					throw LF_INVALID_PARAMETER(arg.first, arg.second);
 				}
@@ -438,22 +440,27 @@ TEST(commandLineInfo, ParseCommandLine)
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(CREATE_OUTPUT_DIR_ALWAYS, cli.CreateDirOverride);
+		EXPECT_EQ(EXTRACT_CREATE_DIR::Always, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:always " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(CREATE_OUTPUT_DIR_ALWAYS, cli.CreateDirOverride);
+		EXPECT_EQ(EXTRACT_CREATE_DIR::Always, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:no " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(CREATE_OUTPUT_DIR_NEVER, cli.CreateDirOverride);
+		EXPECT_EQ(EXTRACT_CREATE_DIR::Never, cli.CreateDirOverride);
 	}
 	{
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:single " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_EXTRACT, mode);
-		EXPECT_EQ(CREATE_OUTPUT_DIR_SINGLE, cli.CreateDirOverride);
+		EXPECT_EQ(EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir, cli.CreateDirOverride);
+	}
+	{
+		auto [mode, cli] = ParseCommandLine(L"LhaForge.exe /e /mkdir:singled " + dir.wstring(), errorHandler);
+		EXPECT_EQ(PROCESS_EXTRACT, mode);
+		EXPECT_EQ(EXTRACT_CREATE_DIR::SkipIfSingleDirectory, cli.CreateDirOverride);
 	}
 
 	{

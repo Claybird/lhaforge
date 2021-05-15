@@ -25,6 +25,7 @@
 #include "stdafx.h"
 #include "Dlg_extract_general.h"
 #include "Utilities/OSUtil.h"
+#include "extract.h"
 
 LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
@@ -36,8 +37,7 @@ LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	}
 
 	{
-		bool bActive = (CREATE_OUTPUT_DIR_NEVER != m_Config.CreateDir);
-		::EnableWindow(GetDlgItem(IDC_CHECK_CREATE_NO_FOLDER_IF_SINGLE_FILE_ONLY), bActive);
+		bool bActive = (int(EXTRACT_CREATE_DIR::Never) != m_Config.CreateDir);
 		::EnableWindow(GetDlgItem(IDC_CHECK_REMOVE_SYMBOL_AND_NUMBER), bActive);
 	}
 
@@ -111,7 +111,6 @@ LRESULT CConfigDlgExtractGeneral::OnRadioCreateDirectory(WORD wNotifyCode, WORD 
 {
 	if(BN_CLICKED==wNotifyCode){
 		bool bActive = (!CButton(GetDlgItem(IDC_RADIO_CREATE_NO_FOLDER)).GetCheck());
-		::EnableWindow(GetDlgItem(IDC_CHECK_CREATE_NO_FOLDER_IF_SINGLE_FILE_ONLY),bActive);
 		::EnableWindow(GetDlgItem(IDC_CHECK_REMOVE_SYMBOL_AND_NUMBER),bActive);
 	}
 	return 0;

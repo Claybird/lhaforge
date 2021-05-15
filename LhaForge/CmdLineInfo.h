@@ -39,6 +39,7 @@ enum PROCESS_MODE{
 
 #include "ArchiverCode/archive.h"
 #include "Utilities/OSUtil.h"
+#include "extract.h"
 
 // command line arguments
 struct CMDLINEINFO{
@@ -52,7 +53,7 @@ struct CMDLINEINFO{
 		Options(0),
 		bSingleCompression(false),
 		OutputToOverride(OUTPUT_TO_DEFAULT),
-		CreateDirOverride(CREATE_OUTPUT_DIR_DEFAULT),
+		CreateDirOverride(EXTRACT_CREATE_DIR::NoOverride),
 		IgnoreTopDirOverride(ACTION::Default),
 		DeleteAfterProcess(ACTION::Default)
 		{}
@@ -65,7 +66,7 @@ struct CMDLINEINFO{
 	bool bSingleCompression;
 	std::filesystem::path ConfigPath;
 	OUTPUT_TO OutputToOverride;
-	CREATE_OUTPUT_DIR CreateDirOverride;
+	EXTRACT_CREATE_DIR CreateDirOverride;
 	ACTION IgnoreTopDirOverride;
 	ACTION DeleteAfterProcess;
 };

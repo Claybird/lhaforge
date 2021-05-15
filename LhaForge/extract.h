@@ -24,12 +24,22 @@
 
 #pragma once
 
-#include "CmdLineInfo.h"
 #include "CommonUtil.h"
 
 #include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "ConfigCode/ConfigExtract.h"
+
+enum class EXTRACT_CREATE_DIR :int {
+	NoOverride = -1,	//do not override configured behavior
+	Always,	//always create archive-named-directory
+	Never,	//never create archive-named-directory, just its contents
+	SkipIfSingleFileOrDir,	//skip archive-named-directory, if its root contains single *directory or file*
+	SkipIfSingleDirectory,	//skip archive-named-directory, if its root contains single *directory*
+
+	ItemCount,
+	LastItem = ItemCount-1,
+};
 
 struct LF_EXTRACT_ARGS {
 	//	std::wstring outputPath;
@@ -76,6 +86,7 @@ struct CLFOverwriteConfirmFORCED : public ILFOverwriteConfirm {
 	}
 };
 
+struct CMDLINEINFO;
 std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,

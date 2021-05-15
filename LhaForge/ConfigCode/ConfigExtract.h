@@ -25,8 +25,6 @@
 #pragma once
 #include "ConfigFile.h"
 
-enum OUTPUT_TO;
-enum CREATE_OUTPUT_DIR;
 struct CConfigExtract:public IConfigIO{
 public:
 	int/*OUTPUT_TO*/ OutputDirType;
@@ -35,7 +33,6 @@ public:
 	int/*CREATE_OUTPUT_DIR*/ CreateDir;
 	bool ForceOverwrite;
 	bool RemoveSymbolAndNumber;
-	bool CreateNoFolderIfSingleFileOnly;
 	bool LimitExtractFileCount;
 	int MaxExtractFileCount;
 	bool DeleteArchiveAfterExtract;

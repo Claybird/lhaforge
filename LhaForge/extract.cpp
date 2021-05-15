@@ -33,6 +33,7 @@
 #include "Utilities/OSUtil.h"
 #include "Utilities/Utility.h"
 #include "CommonUtil.h"
+#include "CmdLineInfo.h"
 
 
 std::filesystem::path trimArchiveName(bool RemoveSymbolAndNumber, const std::filesystem::path& archive_path)
@@ -142,76 +143,89 @@ TEST(extract, determineExtractBaseDir) {
 }
 #endif
 
-struct PRE_EXTRACT_CHECK {
-	bool allInOneDir;	//true if all the contents are under one root directory
-	std::filesystem::path baseDirName;	//valid if allInOneDir is true
+enum class PRE_EXTRACT_CHECK :int {
+	unknown,
+	singleDir,	//all the contents are under one root directory
+	singleFile,
+	multipleEntries,
+};
 
-	PRE_EXTRACT_CHECK() :allInOneDir(false){}
-	void check(ILFArchiveFile &arc) {
-		bool bFirst = true;
+std::tuple<PRE_EXTRACT_CHECK, std::filesystem::path /*baseDirName*/>
+preExtractCheck(ILFArchiveFile &arc)
+{
+	std::filesystem::path baseDirName;
+	auto result = PRE_EXTRACT_CHECK::unknown;
+	bool bFirst = true;
 
-		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-			auto path = LF_sanitize_pathname(entry->path);
-			//to remove trailing '/'
-			path = UtilPathRemoveLastSeparator(path);
-			auto path_components = UtilSplitString(path, L"/");
-			if (path_components.empty())continue;
+	for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		auto path = LF_sanitize_pathname(entry->path);
+		//to remove trailing '/'
+		path = UtilPathRemoveLastSeparator(path);
+		auto path_components = UtilSplitString(path, L"/");
+		if (path_components.empty())continue;
 
-			if (bFirst) {
-				if (entry->is_directory() || path_components.size() > 1) {
-					this->baseDirName = path_components.front();
-					this->allInOneDir = true;
-				} else {
-					this->allInOneDir = false;
-					return;
-				}
-				bFirst = false;
+		if (bFirst) {
+			if (entry->is_directory() || path_components.size() > 1) {
+				baseDirName = path_components.front();
+				result = PRE_EXTRACT_CHECK::singleDir;
 			} else {
-				if (0 != _wcsicmp(this->baseDirName.c_str(), path_components.front().c_str())) {
+				result = PRE_EXTRACT_CHECK::singleFile;
+			}
+			bFirst = false;
+		} else {
+			if (PRE_EXTRACT_CHECK::singleFile == result) {
+				result = PRE_EXTRACT_CHECK::multipleEntries;
+				baseDirName.clear();
+				break;
+			} else if (PRE_EXTRACT_CHECK::singleDir == result) {
+				if (0 != _wcsicmp(baseDirName.c_str(), path_components.front().c_str())) {
 					//another root entry found
-					this->allInOneDir = false;
-					return;
+					result = PRE_EXTRACT_CHECK::multipleEntries;
+					baseDirName.clear();
+					break;
 				}
 			}
 		}
 	}
-};
+	return { result,baseDirName };
+}
 
 #ifdef UNIT_TEST
-TEST(extract, PRE_EXTRACT_CHECK) {
+TEST(extract, preExtractCheck) {
 	{
-		PRE_EXTRACT_CHECK c;
-		c.check(CLFArchiveNULL());
-		EXPECT_FALSE(c.allInOneDir);
+		auto [result, baseDirName] = preExtractCheck(CLFArchiveNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::unknown, result);
 	}
 	{
-		PRE_EXTRACT_CHECK c;
 		CLFArchive a;
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
-		c.check(a);
-		EXPECT_FALSE(c.allInOneDir);
+		auto [result, baseDirName] = preExtractCheck(a);
+		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
-		PRE_EXTRACT_CHECK c;
 		CLFArchive a;
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", CLFPassphraseNULL());
-		c.check(a);
-		EXPECT_FALSE(c.allInOneDir);
+		auto [result, baseDirName] = preExtractCheck(a);
+		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
-		PRE_EXTRACT_CHECK c;
 		CLFArchive a;
 		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFPassphraseNULL());
-		c.check(a);
-		EXPECT_FALSE(c.allInOneDir);
+		auto [result, baseDirName] = preExtractCheck(a);
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
 	}
 	{
-		PRE_EXTRACT_CHECK c;
+		CLFArchive a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		auto [result, baseDirName] = preExtractCheck(a);
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
+	}
+	{
 		CLFArchive a;
 		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
-		c.check(a);
-		EXPECT_TRUE(c.allInOneDir);
-		EXPECT_EQ(L"test", c.baseDirName);
+		auto [result, baseDirName] = preExtractCheck(a);
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleDir, result);
+		EXPECT_EQ(L"test", baseDirName);
 	}
 }
 
@@ -224,25 +238,33 @@ std::filesystem::path determineExtractDir(
 	const LF_EXTRACT_ARGS& args)
 {
 	bool needToCreateDir;
-	switch (args.extract.CreateDir) {
-	case CREATE_OUTPUT_DIR_ALWAYS:
-		needToCreateDir = true;
+	switch ((EXTRACT_CREATE_DIR)args.extract.CreateDir) {
+	case EXTRACT_CREATE_DIR::Never:
+		needToCreateDir = false;
 		break;
-	case CREATE_OUTPUT_DIR_SINGLE:
-		if (args.extract.CreateNoFolderIfSingleFileOnly) {
-			PRE_EXTRACT_CHECK result;
-			result.check(arc);
-			if (result.allInOneDir) {
-				needToCreateDir = false;
-			} else {
-				needToCreateDir = true;
-			}
+	case EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir:
+	{
+		auto [result, baseDirName] = preExtractCheck(arc);
+		if (PRE_EXTRACT_CHECK::multipleEntries != result) {
+			needToCreateDir = false;
 		} else {
 			needToCreateDir = true;
 		}
 		break;
-	case CREATE_OUTPUT_DIR_NEVER:
-		needToCreateDir = false;
+	}
+	case EXTRACT_CREATE_DIR::SkipIfSingleDirectory:
+	{
+		auto [result, baseDirName] = preExtractCheck(arc);
+		if (PRE_EXTRACT_CHECK::singleDir == result) {
+			needToCreateDir = false;
+		} else {
+			needToCreateDir = true;
+		}
+		break;
+	}
+	case EXTRACT_CREATE_DIR::Always:
+	default:
+		needToCreateDir = true;
 		break;
 	}
 
@@ -258,24 +280,75 @@ std::filesystem::path determineExtractDir(
 TEST(extract, determineExtractDir) {
 	LF_EXTRACT_ARGS fakeArg;
 	fakeArg.load(CConfigFile());
-	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_NEVER;
-	fakeArg.extract.RemoveSymbolAndNumber = false;
-	CLFArchiveNULL arc;
-	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
-	EXPECT_EQ(L"path_to_output",
-		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+	{
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Never;
+		fakeArg.extract.RemoveSymbolAndNumber = false;
+		CLFArchiveNULL arc;
+		arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
 
-	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
-	EXPECT_EQ(L"path_to_output",
-		determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
+		arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
+	}
 
-	fakeArg.extract.CreateDir = CREATE_OUTPUT_DIR_ALWAYS;
-	arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
-	EXPECT_EQ(L"path_to_output/archive",
-		determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
-	arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
-	EXPECT_EQ(L"path_to_output/archive",
-		determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
+	{
+		CLFArchiveNULL arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Always;
+		arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output/archive",
+			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+		arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output/archive",
+			determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
+	}
+
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+	}
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output/test",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+	}
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output/test_extract",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		EXPECT_EQ(L"path_to_output/test_extract",
+			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+	}
 }
 #endif
 
@@ -289,8 +362,8 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEI
 		if (OUTPUT_TO_DEFAULT != lpCmdLineInfo->OutputToOverride) {
 			args.extract.OutputDirType = lpCmdLineInfo->OutputToOverride;
 		}
-		if (CREATE_OUTPUT_DIR_DEFAULT != lpCmdLineInfo->CreateDirOverride) {
-			args.extract.CreateDir = lpCmdLineInfo->CreateDirOverride;
+		if (EXTRACT_CREATE_DIR::NoOverride != lpCmdLineInfo->CreateDirOverride) {
+			args.extract.CreateDir = (int)lpCmdLineInfo->CreateDirOverride;
 		}
 		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
 			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {

@@ -26,6 +26,7 @@
 #include "ArchiverCode/archive.h"
 #include "ConfigFile.h"
 #include "ConfigExtract.h"
+#include "Extract.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/Utility.h"
 #include "resource.h"
@@ -33,7 +34,7 @@
 void CConfigExtract::load(const CConfigFile &Config)
 {
 	const auto section = L"Extract";
-	OutputDirType = (OUTPUT_TO)Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
+	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, OUTPUT_TO_LAST_ITEM, OUTPUT_TO_DESKTOP);
 
 	auto value = Config.getText(section, L"OutputDir", L"");
 	if (value.empty()) {
@@ -47,11 +48,13 @@ void CConfigExtract::load(const CConfigFile &Config)
 	}
 
 	OpenDir = Config.getBool(section, L"OpenFolder", true);
-	CreateDir = (CREATE_OUTPUT_DIR)Config.getIntRange(section, L"CreateDir", 0, CREATE_OUTPUT_DIR_LAST_ITEM, CREATE_OUTPUT_DIR_ALWAYS);
+
+	CreateDir = Config.getIntRange(section, L"CreateDir",
+		0, (int)EXTRACT_CREATE_DIR::LastItem, (int)EXTRACT_CREATE_DIR::Always);
+
 	ForceOverwrite = Config.getBool(section, L"ForceOverwrite", false);
 
 	RemoveSymbolAndNumber = Config.getBool(section, L"RemoveSymbolAndNumber", false);
-	CreateNoFolderIfSingleFileOnly = Config.getBool(section, L"CreateNoFolderIfSingleFileOnly", false);
 
 	LimitExtractFileCount = Config.getBool(section, L"LimitExtractFileCount", false);
 	MaxExtractFileCount = std::max(1, Config.getInt(section, L"MaxExtractFileCount", 1));
@@ -73,7 +76,6 @@ void CConfigExtract::store(CConfigFile &Config)const
 	Config.setValue(section, L"CreateDir", CreateDir);
 	Config.setValue(section, L"ForceOverwrite", ForceOverwrite);
 	Config.setValue(section, L"RemoveSymbolAndNumber", RemoveSymbolAndNumber);
-	Config.setValue(section, L"CreateNoFolderIfSingleFileOnly", CreateNoFolderIfSingleFileOnly);
 	Config.setValue(section, L"LimitExtractFileCount", LimitExtractFileCount);
 	Config.setValue(section, L"MaxExtractFileCount", MaxExtractFileCount);
 	Config.setValue(section, L"DeleteArchiveAfterExtract", DeleteArchiveAfterExtract);
