@@ -89,6 +89,7 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
     <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
@@ -116,6 +117,7 @@
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Utilities\CustomControl.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
     <ClInclude Include="Utilities\Semaphore.h" />

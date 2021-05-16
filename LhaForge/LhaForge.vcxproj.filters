@@ -323,6 +323,12 @@
     <ClInclude Include="ConfigCode\ConfigFile.h">
       <Filter>Configs\Other</Filter>
     </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h">
+      <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CustomControl.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">
