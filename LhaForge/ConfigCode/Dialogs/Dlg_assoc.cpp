@@ -181,7 +181,7 @@ LRESULT CConfigDlgAssociation::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//icons - make sure to use large icons only
 	m_assocList.SetImageList(m_imageList, LVSIL_NORMAL);
 	m_assocList.SetImageList(m_imageList, LVSIL_SMALL);
-	m_assocList.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_HEADERDRAGDROP);
+	m_assocList.SetExtendedListViewStyle(LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 	// report mode
 	DWORD Style = m_assocList.GetWindowLong(GWL_STYLE);
