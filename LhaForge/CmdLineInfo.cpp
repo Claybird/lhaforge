@@ -343,6 +343,10 @@ TEST(commandLineInfo, ParseCommandLine)
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /m " + dir.wstring(), errorHandler);
 		EXPECT_EQ(PROCESS_MODE::MANAGED, mode);
 	}
+	{
+		auto [mode, cli] = ParseCommandLine(L"LhaForge.exe " + dir.wstring(), errorHandler);
+		EXPECT_EQ(PROCESS_MODE::AUTOMATIC, mode);
+	}
 
 	//unknown option
 	{
