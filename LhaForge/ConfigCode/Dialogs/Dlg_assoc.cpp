@@ -29,6 +29,46 @@
 #include <CommonControls.h>
 
 
+enum class ASSOC_TYPE : int {
+	LZH,
+	LZS,
+	LHA,
+
+	ZIP,
+	CAB,
+	ZIPX,
+
+	_7Z,
+
+	RAR,
+	ACE,
+	ARJ,
+	BZA,
+	GZA,
+	JAK,
+
+	UUE,
+	ISH,
+
+	TAR,
+	GZ,
+	BZ2,
+	XZ,
+	LZMA,
+	ZSTD,
+	Z,
+	CPIO,
+	TGZ,
+	TBZ,
+	TAR_XZ,
+	TAR_LZMA,
+	//ASSOC_TAR_ZSTD,
+	TAZ,
+	ISO,
+
+	ENUM_COUNT_AND_LASTITEM,
+};
+
 const ASSOC_TYPE NO_DEFAULT_ASSOCS[] = {
 	ASSOC_TYPE::ISO,
 };
@@ -78,6 +118,12 @@ const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
 };
 
 //--------------------------------------------
+
+CConfigDlgAssociation::CConfigDlgAssociation(CConfigDialog& dlg)
+	:mr_ConfigDlg(dlg)
+{
+	AssocSettings.resize((int)ASSOC_TYPE::ItemCount);
+}
 
 void CConfigDlgAssociation::updateImageList()
 {

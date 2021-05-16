@@ -28,46 +28,6 @@
 #include "Utilities/FileOperation.h"
 #include "Association.h"
 
-enum class ASSOC_TYPE : int {
-	LZH,
-	LZS,
-	LHA,
-
-	ZIP,
-	CAB,
-	ZIPX,
-
-	_7Z,
-
-	RAR,
-	ACE,
-	ARJ,
-	BZA,
-	GZA,
-	JAK,
-
-	UUE,
-	ISH,
-
-	TAR,
-	GZ,
-	BZ2,
-	XZ,
-	LZMA,
-	ZSTD,
-	Z,
-	CPIO,
-	TGZ,
-	TBZ,
-	TAR_XZ,
-	TAR_LZMA,
-	//ASSOC_TAR_ZSTD,
-	TAZ,
-	ISO,
-
-	ENUM_COUNT_AND_LASTITEM,
-};
-
 
 class ASSOC_SETTINGS {
 public:
@@ -121,7 +81,7 @@ protected:
 		COLUMN_EXT,
 		COLUMN_FORMAT,
 	};
-	std::array<ASSOC_SETTINGS, (int)ASSOC_TYPE::ItemCount> AssocSettings;
+	std::vector<ASSOC_SETTINGS> AssocSettings;
 
 	CListViewCtrl m_assocList;
 	CImageListManaged m_imageList;
@@ -163,7 +123,7 @@ public:
 	LRESULT OnSetIcon(WORD, WORD, HWND, BOOL&);
 	LRESULT OnApply();
 
-	CConfigDlgAssociation(CConfigDialog &dlg):mr_ConfigDlg(dlg){}
+	CConfigDlgAssociation(CConfigDialog& dlg);
 
 	void LoadConfig(CConfigFile& Config){}
 	void StoreConfig(CConfigFile& Config, CConfigFile& assistant);
