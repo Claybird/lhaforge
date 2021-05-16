@@ -71,12 +71,13 @@ public:
 	{ }
 };
 
-class CLFComboListViewCtrl :public CWindowImpl<CLFComboListViewCtrl, CListViewCtrl> {
+class CLFComboListViewCtrl :public CWindowImpl<CLFComboListViewCtrl, CListViewCtrl>, public CCustomDraw< CLFComboListViewCtrl>{
 public:
 	struct CONTENT_DATA {
 		std::wstring key;
+		std::vector<std::wstring> options;	//separator if options is empty
 		int selection;
-		std::vector<std::wstring> options;
+		void* userData;
 	};
 protected:
 	CComboBox _combo;
@@ -88,6 +89,7 @@ public:
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ENDSCROLL, OnItemScrolled)	//follow list view scroll
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_KEYDOWN, OnKeyDown)	//open combo box menu
 		COMMAND_CODE_HANDLER_EX(CBN_SELCHANGE, OnOptionChanged)	//update selection
+		REFLECTED_NOTIFY_CODE_HANDLER(NM_CUSTOMDRAW, OnCustomDraw)
 		DEFAULT_REFLECTION_HANDLER()
 	END_MSG_MAP()
 
@@ -150,16 +152,27 @@ public:
 			InsertItem(&li);
 
 			auto& item = _data[i];
-			item.selection = std::min(std::max(0, item.selection), (int)item.options.size() - 1);
-			SetItemText(i, 0, item.key.c_str());
-			SetItemText(i, 1, item.options[item.selection].c_str());
+			if (item.options.empty()) {
+				//separator
+				item.selection = -1;
+				SetItemText(i, 0, item.key.c_str());
+				SetItemText(i, 1, L"");
+			} else {
+				//standard item
+				item.selection = std::min(std::max(0, item.selection), (int)item.options.size() - 1);
+				SetItemText(i, 0, item.key.c_str());
+				SetItemText(i, 1, item.options[item.selection].c_str());
+			}
 		}
 	}
 	const std::vector<CONTENT_DATA>& GetContentData()const { return _data; }
 
 	LRESULT OnItemChanged(LPNMHDR pnmh) {
 		NM_LISTVIEW* pView = (NM_LISTVIEW*)pnmh;
-		if (pView->iItem >= 0 && pView->iItem < (int)_data.size() && pView->uNewState & LVIS_SELECTED) {
+		if (pView->iItem >= 0
+			&& pView->iItem < (int)_data.size()
+			&& (pView->uNewState & LVIS_SELECTED)
+			&& !_data[pView->iItem].options.empty()) {
 			_combo.ResetContent();
 			for (const auto& opt : _data[pView->iItem].options) {
 				_combo.AddString(opt.c_str());
@@ -202,6 +215,26 @@ public:
 			_combo.ShowDropDown(TRUE);
 		}
 		return 0;
+	}
+
+	//---custom draw
+	DWORD OnPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd) {
+		if (lpnmcd->hdr.hwndFrom == m_hWnd)return CDRF_NOTIFYITEMDRAW;
+		return CDRF_DODEFAULT;
+	}
+	DWORD OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd) {
+		if (lpnmcd->hdr.hwndFrom == m_hWnd) {
+			//change color to indicate separator
+			LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
+			if (_data[lpnmcd->dwItemSpec].options.empty()) {
+				lpnmlv->clrText = RGB(0, 0, 0);
+				lpnmlv->clrTextBk = RGB(192, 192, 192);
+				return CDRF_NOTIFYITEMDRAW;
+			}else{
+				return CDRF_DODEFAULT;
+			}
+		}
+		return CDRF_DODEFAULT;
 	}
 };
 
