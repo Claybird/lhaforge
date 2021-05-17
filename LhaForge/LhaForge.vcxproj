@@ -35,6 +35,7 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp" />
     <ClCompile Include="ConfigCode\test\test_configfile.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>

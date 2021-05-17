@@ -24,6 +24,7 @@
 
 #pragma once
 #include "ConfigFile.h"
+#include "Utilities/Utility.h"
 
 struct CConfigCompressFormatBase :public IConfigIO {
 public:
@@ -152,43 +153,3 @@ public:
 	virtual ~CConfigCompressFormatZSTD() {}
 };
 
-/*
-is this necessary?
-
-class CConfigCompressFormats :public IConfigIO
-{
-	CConfigCompressFormat7Z _fmt7z;
-	CConfigCompressFormatBZ2 _fmtbz2;
-	CConfigCompressFormatGZ _fmtgz;
-	CConfigCompressFormatLZMA _fmtlzma;
-	CConfigCompressFormatTAR _fmttar;
-	CConfigCompressFormatXZ _fmtxz;
-	CConfigCompressFormatZIP _fmtzip;
-	CConfigCompressFormatZSTD _fmtzstd;
-protected:
-	virtual void load(CONFIG_SECTION& config) override {}
-	virtual void store(CONFIG_SECTION& config)const override {}
-public:
-	CConfigCompressFormats() {}
-	virtual ~CConfigCompressFormats() {}
-	virtual void load(CConfigFile& mngr) override {
-		_fmt7z.load(mngr);
-		_fmtbz2.load(mngr);
-		_fmtgz.load(mngr);
-		_fmtlzma.load(mngr);
-		_fmttar.load(mngr);
-		_fmtxz.load(mngr);
-		_fmtzip.load(mngr);
-		_fmtzstd.load(mngr);
-	}
-	virtual void store(CConfigFile& mngr)const override {
-		_fmt7z.store(mngr);
-		_fmtbz2.store(mngr);
-		_fmtgz.store(mngr);
-		_fmtlzma.store(mngr);
-		_fmttar.store(mngr);
-		_fmtxz.store(mngr);
-		_fmtzip.store(mngr);
-		_fmtzstd.store(mngr);
-	}
-};*/

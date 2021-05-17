@@ -36,6 +36,7 @@
 #include "Dialogs/Dlg_filelistwindow.h"
 #include "Dialogs/Dlg_openaction.h"
 #include "Dialogs/Dlg_shellext.h"
+#include "Dialogs/Dlg_tar.h"
 
 
 CConfigDialog::CConfigDialog(CConfigFile &cfg)
@@ -102,8 +103,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(new CConfigDlgOpenAction,TVI_ROOT);
 	ADD_PAGE(new CConfigDlgVersion,TVI_ROOT);
 
-	//ADD_PAGE(PageZIP,hItemDetail);
-	//ADD_PAGE(Page7Z,hItemDetail);
+	ADD_PAGE(new CConfigDlgTar, hItemDetail);
 
 	// first page
 	HWND hFirstPage = m_ConfigDlgList[0]->GetDialogHandle();

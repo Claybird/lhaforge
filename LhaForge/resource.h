@@ -10,8 +10,10 @@
 #define IDS_ENTER_PASSPRASE             6
 #define IDS_INPUT_TARGET_FOLDER         7
 #define IDS_LHAFORGE_VERSION_STRING     8
+#define IDS_CONFIG_FORMAT_KEY           9
 #define IDS_COMPRESS_FILE               10
 #define IDS_CONFIRM_OVERWRITE_MESSAGE   11
+#define IDS_CONFIG_FORMAT_VALUE         12
 #define IDS_ASK_CREATE_DIR              17
 #define IDS_ASK_FILELIST_DELETE_SELECTED 18
 #define IDS_ASK_ISOK_NETWORK            19
@@ -416,6 +418,7 @@
 #define IDC_RADIO_KEEP_TOP_DIRECTORY    1311
 #define IDC_RADIO_IGNORE_TOP_DIRECTORY2 1312
 #define IDC_RADIO_IGNORE_TOP_DIRECTORY_RECURSIVELY 1312
+#define IDC_LIST_BASE                   1313
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -505,9 +508,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        193
+#define _APS_NEXT_RESOURCE_VALUE        194
 #define _APS_NEXT_COMMAND_VALUE         40160
-#define _APS_NEXT_CONTROL_VALUE         1311
+#define _APS_NEXT_CONTROL_VALUE         1314
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

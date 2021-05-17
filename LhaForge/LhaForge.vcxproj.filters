@@ -112,6 +112,9 @@
     <ClCompile Include="ConfigCode\ConfigFile.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
