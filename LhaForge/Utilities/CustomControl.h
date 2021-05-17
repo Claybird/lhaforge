@@ -1,9 +1,9 @@
 #pragma once
 
-class LFShellFileOpenDialog : public CShellFileOpenDialog
+class CLFShellFileOpenDialog : public CShellFileOpenDialog
 {
 public:
-	LFShellFileOpenDialog(LPCWSTR lpszFileName = nullptr,
+	CLFShellFileOpenDialog(LPCWSTR lpszFileName = nullptr,
 		DWORD dwOptions = FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST,
 		LPCWSTR lpszDefExt = nullptr,
 		const COMDLG_FILTERSPEC* arrFilterSpec = nullptr,
@@ -21,7 +21,7 @@ public:
 		}
 	}
 
-	virtual ~LFShellFileOpenDialog()
+	virtual ~CLFShellFileOpenDialog()
 	{ }
 	std::vector<std::filesystem::path> GetMultipleFiles() {
 		std::vector<std::filesystem::path> files;
@@ -46,10 +46,10 @@ public:
 	}
 };
 
-class LFShellFileSaveDialog : public CShellFileSaveDialog
+class CLFShellFileSaveDialog : public CShellFileSaveDialog
 {
 public:
-	LFShellFileSaveDialog(LPCWSTR lpszFileName = nullptr,
+	CLFShellFileSaveDialog(LPCWSTR lpszFileName = nullptr,
 		DWORD dwOptions = FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST,
 		LPCWSTR lpszDefExt = nullptr,
 		const COMDLG_FILTERSPEC* arrFilterSpec = nullptr,
@@ -67,7 +67,7 @@ public:
 		}
 	}
 
-	virtual ~LFShellFileSaveDialog()
+	virtual ~CLFShellFileSaveDialog()
 	{ }
 };
 
@@ -174,6 +174,7 @@ public:
 			&& (pView->uNewState & LVIS_SELECTED)
 			&& !_data[pView->iItem].options.empty()) {
 
+			//_combo.LockWindowUpdate(TRUE);
 			_combo.ResetContent();
 			for (const auto& opt : _data[pView->iItem].options) {
 				_combo.AddString(opt.c_str());
@@ -185,6 +186,7 @@ public:
 			GetSubItemRect(pView->iItem, 1, LVIR_BOUNDS, &rect);
 			_combo.MoveWindow(rect);
 			_combo.ShowWindow(SW_SHOW);
+			//_combo.LockWindowUpdate(FALSE);
 		} else {
 			_combo.ShowWindow(SW_HIDE);
 		}
@@ -205,7 +207,9 @@ public:
 	LRESULT OnOptionChanged(UINT uNotifyCode, int nID, HWND hCtrl) {
 		int selected = GetSelectedIndex();
 		if (selected != -1 && _combo.IsWindow() && _combo.IsWindowVisible()) {
-			_data[selected].selection = _combo.GetCurSel();
+			auto& item = _data[selected];
+			item.selection = _combo.GetCurSel();
+			SetItemText(selected, 1, item.options[item.selection].c_str());
 		}
 		return 0;
 	}
