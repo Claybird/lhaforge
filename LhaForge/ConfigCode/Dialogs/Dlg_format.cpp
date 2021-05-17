@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "Dlg_tar.h"
+#include "Dlg_format.h"
 
 
 inline std::wstring mapConfigKeyToHumanReadableName(
@@ -92,7 +92,7 @@ inline std::wstring mapConfigKeyToHumanReadableName(
 }
 
 
-LRESULT CConfigDlgTar::OnInitDialog(HWND hWnd, LPARAM lParam)
+LRESULT CConfigDlgFormat::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	_listView.SetSubjectWindow(GetDlgItem(IDC_LIST_BASE));
 	clearData();

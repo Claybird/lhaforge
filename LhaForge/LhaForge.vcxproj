@@ -35,7 +35,7 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp" />
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
     <ClCompile Include="ConfigCode\test\test_configfile.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -90,7 +90,7 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h" />
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
     <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />

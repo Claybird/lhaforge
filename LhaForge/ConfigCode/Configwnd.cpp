@@ -36,7 +36,7 @@
 #include "Dialogs/Dlg_filelistwindow.h"
 #include "Dialogs/Dlg_openaction.h"
 #include "Dialogs/Dlg_shellext.h"
-#include "Dialogs/Dlg_tar.h"
+#include "Dialogs/Dlg_format.h"
 
 
 CConfigDialog::CConfigDialog(CConfigFile &cfg)
@@ -79,14 +79,18 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//tree view; select items
 	SelectTreeView = GetDlgItem(IDC_TREE_SELECT_PROPPAGE);
 
-	auto ADD_PAGE = [&](IConfigDlgBase* _pDIALOG, HTREEITEM _ROOTITEM) {
+	auto ADD_PAGE = [&](IConfigDlgBase* _pDIALOG, HTREEITEM _ROOTITEM, const wchar_t* pTitle = nullptr) {
 		m_ConfigDlgList.push_back(_pDIALOG);
 		_pDIALOG->LoadConfig(mr_Config);
 		_pDIALOG->Create(ScrollWindow);
 		HWND hWndDlg = _pDIALOG->GetDialogHandle();
 		std::wstring strTitle;
-		strTitle.resize(512);
-		::GetWindowText(hWndDlg, &strTitle[0], strTitle.size());
+		if (pTitle) {
+			strTitle = pTitle;
+		} else {
+			strTitle.resize(512);
+			::GetWindowText(hWndDlg, &strTitle[0], strTitle.size());
+		}
 		HTREEITEM hItem = SelectTreeView.InsertItem(strTitle.c_str(), _ROOTITEM, TVI_LAST);
 		SelectTreeView.SetItemData(hItem, (DWORD_PTR)hWndDlg);
 		return hItem;
@@ -103,7 +107,27 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	ADD_PAGE(new CConfigDlgOpenAction,TVI_ROOT);
 	ADD_PAGE(new CConfigDlgVersion,TVI_ROOT);
 
-	ADD_PAGE(new CConfigDlgTar, hItemDetail);
+	// format configuration
+	{
+		auto p = new CConfigDlgFormat;
+		p->AddConfig<CConfigCompressFormatZIP>();
+		ADD_PAGE(p, hItemDetail, L"ZIP");
+	}
+	{
+		auto p = new CConfigDlgFormat;
+		p->AddConfig<CConfigCompressFormat7Z>();
+		ADD_PAGE(p, hItemDetail, L"7Z");
+	}
+	{
+		auto p = new CConfigDlgFormat;
+		p->AddConfig<CConfigCompressFormatTAR>();
+		p->AddConfig<CConfigCompressFormatGZ>();
+		p->AddConfig<CConfigCompressFormatBZ2>();
+		p->AddConfig<CConfigCompressFormatXZ>();
+		p->AddConfig<CConfigCompressFormatLZMA>();
+		p->AddConfig<CConfigCompressFormatZSTD>();
+		ADD_PAGE(p, hItemDetail, L"TAR");
+	}
 
 	// first page
 	HWND hFirstPage = m_ConfigDlgList[0]->GetDialogHandle();

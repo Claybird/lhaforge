@@ -112,7 +112,7 @@
     <ClCompile Include="ConfigCode\ConfigFile.cpp">
       <Filter>Configs\Other</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp">
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
   </ItemGroup>
@@ -326,7 +326,7 @@
     <ClInclude Include="ConfigCode\ConfigFile.h">
       <Filter>Configs\Other</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h">
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CustomControl.h">

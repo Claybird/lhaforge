@@ -29,7 +29,7 @@
 #include "ConfigCode/ConfigCompressFormat.h"
 
 
-class CConfigDlgTar : public LFConfigDialogBase<CConfigDlgTar>
+class CConfigDlgFormat : public LFConfigDialogBase<CConfigDlgFormat>
 {
 protected:
 	CLFComboListViewCtrl _listView;
@@ -48,15 +48,8 @@ protected:
 		std::string key;
 	};
 public:
-	CConfigDlgTar() {
-		_configs.push_back(new CConfigCompressFormatTAR);
-		_configs.push_back(new CConfigCompressFormatGZ);
-		_configs.push_back(new CConfigCompressFormatBZ2);
-		_configs.push_back(new CConfigCompressFormatXZ);
-		_configs.push_back(new CConfigCompressFormatLZMA);
-		_configs.push_back(new CConfigCompressFormatZSTD);
-	}
-	virtual ~CConfigDlgTar() {
+	CConfigDlgFormat() {}
+	virtual ~CConfigDlgFormat() {
 		for (auto& c : _configs) {
 			delete c;
 		}
@@ -64,9 +57,14 @@ public:
 
 		clearData();
 	}
-	enum { IDD = IDD_PROPPAGE_CONFIG_TAR };
+	template<typename T>
+	void AddConfig() {	//call this before OnInitDialog()
+		_configs.push_back(new T);
+	}
 
-	BEGIN_MSG_MAP_EX(CConfigDlgTar)
+	enum { IDD = IDD_PROPPAGE_CONFIG_FORMAT };
+
+	BEGIN_MSG_MAP_EX(CConfigDlgFormat)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		REFLECT_NOTIFICATIONS_EX()	//reflect to CLFComboListViewCtrl
 	END_MSG_MAP()
