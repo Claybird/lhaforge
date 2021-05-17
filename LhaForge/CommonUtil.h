@@ -25,8 +25,6 @@
 #pragma once
 
 #include "ArchiverCode/archive.h"
-#include "Utilities/OSUtil.h"
-#include "Utilities/CustomControl.h"
 
 struct I_LF_GET_OUTPUT_DIR_CALLBACK {
 	virtual std::filesystem::path operator()() = 0;
@@ -41,25 +39,7 @@ struct LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK:I_LF_GET_OUTPUT_DIR_CALLBACK {
 			_default_path = std::filesystem::path(archivePath).parent_path();
 		}
 	}
-	std::filesystem::path operator()()override {
-		if (_skip_user_input) {
-			return _default_path;
-		} else {
-			CLFShellFileOpenDialog dlg(_default_path.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
-			if (IDOK == dlg.DoModal()) {
-				if (GetKeyState(VK_SHIFT) < 0) {
-					//TODO: is this operation is suitable?
-					_skip_user_input = true;
-				}
-				CString tmp;
-				dlg.GetFilePath(tmp);
-				_default_path = tmp.operator LPCWSTR();
-				return _default_path;
-			} else {
-				CANCEL_EXCEPTION();
-			}
-		}
-	}
+	std::filesystem::path operator()()override;
 };
 
 //returns output directory that corresponds to outputDirType
