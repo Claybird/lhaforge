@@ -85,6 +85,7 @@ protected:
 	std::vector<CONTENT_DATA> _data;
 public:
 	BEGIN_MSG_MAP(CLFComboListViewCtrl)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGING, OnItemChanging)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnItemChanged)	//move combo box
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ENDSCROLL, OnItemScrolled)	//follow list view scroll
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_KEYDOWN, OnKeyDown)	//open combo box menu
@@ -167,15 +168,24 @@ public:
 	}
 	const std::vector<CONTENT_DATA>& GetContentData()const { return _data; }
 
+	LRESULT OnItemChanging(LPNMHDR pnmh) {
+		if (_combo.IsWindow()) {
+			_combo.DestroyWindow();
+		}
+		return 0;
+	}
 	LRESULT OnItemChanged(LPNMHDR pnmh) {
+		if (_combo.IsWindow()) {
+			_combo.DestroyWindow();
+		}
 		NM_LISTVIEW* pView = (NM_LISTVIEW*)pnmh;
 		if (pView->iItem >= 0
 			&& pView->iItem < (int)_data.size()
 			&& (pView->uNewState & LVIS_SELECTED)
 			&& !_data[pView->iItem].options.empty()) {
+			_combo.Create(m_hWnd, NULL, NULL, WS_CHILD | CBS_DROPDOWNLIST);
+			_combo.SetFont(GetFont());
 
-			//_combo.LockWindowUpdate(TRUE);
-			_combo.ResetContent();
 			for (const auto& opt : _data[pView->iItem].options) {
 				_combo.AddString(opt.c_str());
 			}
@@ -186,9 +196,6 @@ public:
 			GetSubItemRect(pView->iItem, 1, LVIR_BOUNDS, &rect);
 			_combo.MoveWindow(rect);
 			_combo.ShowWindow(SW_SHOW);
-			//_combo.LockWindowUpdate(FALSE);
-		} else {
-			_combo.ShowWindow(SW_HIDE);
 		}
 		return 0;
 	}
@@ -216,8 +223,10 @@ public:
 	LRESULT OnKeyDown(LPNMHDR pnmh) {
 		LPNMLVKEYDOWN pKey = (LPNMLVKEYDOWN)pnmh;
 		if (pKey->wVKey == VK_DOWN && (pKey->flags & KF_ALTDOWN)) {
-			_combo.SetFocus();
-			_combo.ShowDropDown(TRUE);
+			if (_combo.IsWindow()) {
+				_combo.SetFocus();
+				_combo.ShowDropDown(TRUE);
+			}
 		}
 		return 0;
 	}
