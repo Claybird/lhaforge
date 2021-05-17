@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "Dlg_extract_general.h"
-#include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
 #include "extract.h"
 
 LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
@@ -87,7 +87,7 @@ LRESULT CConfigDlgExtractGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HWN
 		CString FolderPath;
 		GetDlgItemText(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR, FolderPath);
 
-		LFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+		CLFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
 			dlg.GetFilePath(FolderPath);
 			SetDlgItemText(IDC_EDIT_EXTRACT_TO_SPECIFIC_DIR, FolderPath);

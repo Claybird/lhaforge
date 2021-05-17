@@ -26,6 +26,7 @@
 #include "Dlg_filelistwindow.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/CustomControl.h"
 
 LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
@@ -68,7 +69,7 @@ void CConfigDlgFileListWindow::OnBrowsePath(UINT, int, HWND)
 
 	CString path;
 	GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, path);
-	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+	CLFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if (IDCANCEL != dlg.DoModal()) {
 		dlg.GetFilePath(path);
 		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, path);
@@ -79,7 +80,7 @@ void CConfigDlgFileListWindow::OnBrowseDir(UINT, int, HWND)
 {
 	CString path;
 	GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, path);
-	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+	CLFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 	if (IDCANCEL != dlg.DoModal()) {
 		dlg.GetFilePath(path);
 		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, path);
@@ -95,7 +96,7 @@ void CConfigDlgFileListWindow::OnBrowseCustomToolbarImage(UINT, int, HWND)
 
 	CString path;
 	GetDlgItemText(IDC_EDIT_CUSTOMTOOLBAR_IMAGE, path);
-	LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+	CLFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 	if (IDCANCEL != dlg.DoModal()) {
 		dlg.GetFilePath(path);
 		SetDlgItemText(IDC_EDIT_CUSTOMTOOLBAR_IMAGE, path);

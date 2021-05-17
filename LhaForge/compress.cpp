@@ -33,6 +33,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
 #include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigCompress.h"
 #include "ConfigCode/ConfigCompressFormat.h"
@@ -356,7 +357,7 @@ std::filesystem::path confirmOutputFile(
 		}
 
 		// "save as" dialog
-		LFShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
+		CLFShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
 		if (IDCANCEL == dlg.DoModal()) {
 			CANCEL_EXCEPTION();
 		}
@@ -792,7 +793,7 @@ void compress_helper(
 			break;
 		} else {
 			// Need to change path
-			LFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			CLFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
 				CString tmp;
 				dlg.GetFilePath(tmp);

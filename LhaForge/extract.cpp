@@ -31,6 +31,7 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
 #include "Utilities/Utility.h"
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
@@ -105,7 +106,7 @@ std::filesystem::path determineExtractBaseDir(
 			break;
 		} else {
 			// Need to change path
-			LFShellFileOpenDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			CLFShellFileOpenDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
 				CString tmp;
 				dlg.GetFilePath(tmp);

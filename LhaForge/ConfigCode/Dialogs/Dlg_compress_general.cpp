@@ -27,7 +27,7 @@
 #include "ArchiverCode/archive.h"
 #include "Dialogs/selectdlg.h"
 #include "compress.h"
-#include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
 
 LRESULT CConfigDlgCompressGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
@@ -85,7 +85,7 @@ LRESULT CConfigDlgCompressGeneral::OnBrowseFolder(WORD wNotifyCode, WORD wID, HW
 		CString FolderPath;
 		GetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, FolderPath);
 
-		LFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+		CLFShellFileOpenDialog dlg(FolderPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
 			dlg.GetFilePath(FolderPath);
 			SetDlgItemText(IDC_EDIT_COMPRESS_TO_SPECIFIC_DIR, FolderPath);

@@ -26,6 +26,7 @@
 #include "Dlg_Base.h"
 #include "resource.h"
 #include "Utilities/FileOperation.h"
+#include "Utilities/CustomControl.h"
 #include "Association.h"
 
 
@@ -216,7 +217,7 @@ public:
 		};
 
 		if (!DoDataExchange(TRUE))return;
-		LFShellFileOpenDialog dlg(IconPath.c_str(),
+		CLFShellFileOpenDialog dlg(IconPath.c_str(),
 			FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST,
 			nullptr, filter, COUNTOF(filter));
 		if (IDCANCEL != dlg.DoModal()) {

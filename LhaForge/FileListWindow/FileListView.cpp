@@ -28,6 +28,7 @@
 #include "Dialogs/LogListDialog.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 #include "Utilities/StringUtil.h"
+#include "Utilities/CustomControl.h"
 #include "Dialogs/TextInputDlg.h"
 #include "CommonUtil.h"
 
@@ -548,13 +549,13 @@ void CFileListView::OnAddItems(UINT uNotifyCode,int nID,HWND hWndCtrl)
 			{ L"All Files", L"*.*" },
 		};
 
-		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
+		CLFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 		if(IDOK==dlg.DoModal()){
 			files = dlg.GetMultipleFiles();
 		}
 	}else{
 		//add directory
-		LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+		CLFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 		if(IDOK==dlg.DoModal()){
 			CString path;
 			dlg.GetFilePath(path);

@@ -28,7 +28,7 @@
 #include "ArchiverCode/archive.h"
 #include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigGeneral.h"
-#include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
 
 class CConfigDlgGeneral : public LFConfigDialogBase<CConfigDlgGeneral>
 {
@@ -61,7 +61,7 @@ protected:
 				{L"Executable File(*.exe)",L"*.exe"},
 				{L"All Files", L"*.*"},
 			};
-			LFShellFileOpenDialog dlg(FilerPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
+			CLFShellFileOpenDialog dlg(FilerPath, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST, nullptr, filter, COUNTOF(filter));
 			if (IDOK == dlg.DoModal()) {
 				dlg.GetFilePath(FilerPath);
 				SetDlgItemTextW(IDC_EDIT_FILER_PATH, FilerPath);
@@ -74,7 +74,7 @@ protected:
 			CString path;
 			GetDlgItemTextW(IDC_EDIT_TEMP_PATH, path);
 
-			LFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			CLFShellFileOpenDialog dlg(path, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
 				dlg.GetFilePath(path);
 				SetDlgItemTextW(IDC_EDIT_TEMP_PATH, path);

@@ -6,6 +6,7 @@
 #include "OLE/DropTarget.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 #include "Dialogs/LogListDialog.h"
+#include "Utilities/CustomControl.h"
 
 //common part of CFileListView and CFileTreeView
 template<typename TBase, typename TWinTraits>
@@ -300,7 +301,7 @@ protected:
 		std::filesystem::path pathOutputDir = mr_Model.GetArchiveFileName().parent_path();
 		if (!bSameDir) {
 			//show dialog
-			LFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			CLFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK != dlg.DoModal()) {
 				return;	//cancel
 			}

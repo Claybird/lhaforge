@@ -671,7 +671,7 @@ void CFileListFrame::OnOpenArchive(UINT uNotifyCode, int nID, HWND hWndCtrl)
 		{ L"All Files", L"*.*" },
 	};
 
-	LFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
+	CLFShellFileOpenDialog dlg(nullptr, FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT, nullptr, filter, COUNTOF(filter));
 	if (IDCANCEL == dlg.DoModal()) {	//cancel
 		return;
 	}
