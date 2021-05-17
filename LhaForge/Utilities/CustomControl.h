@@ -173,6 +173,7 @@ public:
 			&& pView->iItem < (int)_data.size()
 			&& (pView->uNewState & LVIS_SELECTED)
 			&& !_data[pView->iItem].options.empty()) {
+
 			_combo.ResetContent();
 			for (const auto& opt : _data[pView->iItem].options) {
 				_combo.AddString(opt.c_str());
@@ -227,8 +228,8 @@ public:
 			//change color to indicate separator
 			LPNMLVCUSTOMDRAW lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
 			if (_data[lpnmcd->dwItemSpec].options.empty()) {
-				lpnmlv->clrText = RGB(0, 0, 0);
-				lpnmlv->clrTextBk = RGB(192, 192, 192);
+				lpnmlv->clrText = RGB(255, 255, 255);
+				lpnmlv->clrTextBk = RGB(64, 64, 64);
 				return CDRF_NOTIFYITEMDRAW;
 			}else{
 				return CDRF_DODEFAULT;
