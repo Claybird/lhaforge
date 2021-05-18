@@ -17,66 +17,66 @@ inline std::wstring mapConfigKeyToHumanReadableName(
 		}
 	}
 
-	const std::map<std::wstring, std::wstring> name_map = {
-		{L"format_zip",L"ZIP"},
-		{L"format_zip/compression",L"Compression method"},
-		{L"format_zip/compression/deflate",L"Deflate"},
-		{L"format_zip/compression/store",L"Store(No compression)"},
-		{L"format_zip/compression-level",L"Compression Level"},
+	const std::map<std::wstring, UINT> name_map = {
+		{L"format_zip",IDS_FORMAT_NAME_ZIP},
+		{L"format_zip/compression",IDS_COMPRESS_METHOD},
+		{L"format_zip/compression/deflate",IDS_COMPRESS_METHOD_DEFLATE},
+		{L"format_zip/compression/store",IDS_COMPRESS_METHOD_STORE},
+		{L"format_zip/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_zip/compression-level/{level}"},	default name
-		{L"format_zip/encryption",L"Encryption method"},
-		{L"format_zip/encryption/ZipCrypt",L"ZipCrypt"},
-		{L"format_zip/encryption/aes128",L"AES128"},
-		{L"format_zip/encryption/aes256",L"AES256"},
-		{L"format_zip/hdrcharset",L"Charset"},
-		{L"format_zip/hdrcharset/UTF-8",L"UTF-8"},
-		{L"format_zip/hdrcharset/CP_ACP",L"System Local(Not recommended)"},
-		{L"format_zip/zip64",L"Force ZIP64"},
-		{L"format_zip/zip64/enabled",L"On"},
-		{L"format_zip/zip64/",L"Off"},	//value is "", zero length string
+		{L"format_zip/encryption",IDS_ENCRYPTION_METHOD},
+		{L"format_zip/encryption/ZipCrypt",IDS_ENCRYPTION_ZIPCRYPT},
+		{L"format_zip/encryption/aes128",IDS_ENCRYPTION_AES128},
+		{L"format_zip/encryption/aes256",IDS_ENCRYPTION_AES256},
+		{L"format_zip/hdrcharset",IDS_COMPRESS_CHARSET},
+		{L"format_zip/hdrcharset/UTF-8",IDS_COMPRESS_CHARSET_UTF8},
+		{L"format_zip/hdrcharset/CP_ACP",IDS_COMPRESS_CHARSET_ACP},
+		{L"format_zip/zip64",IDS_COMPRESSION_FORCE_ZIP64},
+		{L"format_zip/zip64/enabled",IDS_COMPRESSION_FORCE_ZIP64_ON},
+		{L"format_zip/zip64/",IDS_COMPRESSION_FORCE_ZIP64_OFF},	//value is "", zero length string
 		//---
-		{L"format_7z",L"7z"},
-		{L"format_7z/compression",L"Compression method"},
-		{L"format_7z/compression/deflate",L"Deflate"},
-		{L"format_7z/compression/store",L"Store(No compression)"},
-		{L"format_7z/compression/bzip2",L"BZIP2"},
-		{L"format_7z/compression/lzma1",L"LZMA1"},
-		{L"format_7z/compression/lzma2",L"LZMA2"},
-		{L"format_7z/compression/PPMd",L"PPMd"},
-		{L"format_7z/compression-level",L"Compression Level"},
+		{L"format_7z",IDS_FORMAT_NAME_7Z},
+		{L"format_7z/compression",IDS_COMPRESS_METHOD},
+		{L"format_7z/compression/deflate",IDS_COMPRESS_METHOD_DEFLATE},
+		{L"format_7z/compression/store",IDS_COMPRESS_METHOD_STORE},
+		{L"format_7z/compression/bzip2",IDS_COMPRESS_METHOD_BZIP2},
+		{L"format_7z/compression/lzma1",IDS_COMPRESS_METHOD_LZMA1},
+		{L"format_7z/compression/lzma2",IDS_COMPRESS_METHOD_LZMA2},
+		{L"format_7z/compression/PPMd",IDS_COMPRESS_METHOD_PPMD},
+		{L"format_7z/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_7z/compression-level/{level}"},	default name
 		//---
-		{L"format_tar",L"TAR"},
-		{L"format_tar/hdrcharset",L"Charset"},
-		{L"format_tar/hdrcharset/UTF-8",L"UTF-8"},
-		{L"format_tar/hdrcharset/CP_ACP",L"System Local(Not recommended)"},
+		{L"format_tar",IDS_FORMAT_NAME_TAR},
+		{L"format_tar/hdrcharset",IDS_COMPRESS_CHARSET},
+		{L"format_tar/hdrcharset/UTF-8",IDS_COMPRESS_CHARSET_UTF8},
+		{L"format_tar/hdrcharset/CP_ACP",IDS_COMPRESS_CHARSET_ACP},
 		//---
-		{L"format_gz",L"gzip"},
-		{L"format_gz/compression-level",L"Compression Level"},
+		{L"format_gz",IDS_FORMAT_NAME_GZ},
+		{L"format_gz/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_gz/compression-level/{level}",}, default name
 		//---
-		{L"format_bz2",L"bzip2"},
-		{L"format_bz2/compression-level",L"Compression Level"},
+		{L"format_bz2",IDS_FORMAT_NAME_BZ2},
+		{L"format_bz2/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_bz2/compression-level/{level}",}, default name
 		//---
-		{L"format_xz",L"xz"},
-		{L"format_xz/compression-level",L"Compression Level"},
+		{L"format_xz",IDS_FORMAT_NAME_XZ},
+		{L"format_xz/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_xz/compression-level/{level}",}, default name
-		{L"format_xz/threads",L"Multithread process"},
-		{L"format_xz/threads/0",L"Use full cpu"},
-		{L"format_xz/threads/1",L"Single thread"},
+		{L"format_xz/threads",IDS_COMPRESS_MULTI_THREAD},
+		{L"format_xz/threads/0",IDS_COMPRESS_MT_ALL_CORES},
+		{L"format_xz/threads/1",IDS_COMPRESS_MT_SINGLE_THREAD},
 		//---
-		{L"format_lzma",L"lzma"},
-		{L"format_lzma/compression-level",L"Compression Level"},
+		{L"format_lzma",IDS_FORMAT_NAME_LZMA},
+		{L"format_lzma/compression-level",IDS_COMPRESS_LEVEL},
 		//{L"format_lzma/compression-level/{level}",}, default name
 		//---
-		{L"format_zstd",L"ZStandard"},
-		{L"format_zstd/compression-level",L"Compression Level"},
-		{L"format_zstd/compression-level/3",L"Default"},
-		{L"format_zstd/compression-level/1",L"Fastest"},
-		{L"format_zstd/compression-level/9",L"High"},
-		{L"format_zstd/compression-level/15",L"Even higher"},
-		{L"format_zstd/compression-level/22",L"Ultra"},
+		{L"format_zstd",IDS_FORMAT_NAME_ZSTD},
+		{L"format_zstd/compression-level",IDS_COMPRESS_LEVEL},
+		{L"format_zstd/compression-level/3",IDS_COMPRESS_LEVEL_DEFAULT},
+		{L"format_zstd/compression-level/1",IDS_COMPRESS_LEVEL_FASTEST},
+		{L"format_zstd/compression-level/9",IDS_COMPRESS_LEVEL_HIGH},
+		{L"format_zstd/compression-level/15",IDS_COMPRESS_LEVEL_EVEN_HIGHER},
+		{L"format_zstd/compression-level/22",IDS_COMPRESS_LEVEL_ULTRA},
 	};
 
 	auto ite = name_map.find(map_name);
@@ -87,7 +87,7 @@ inline std::wstring mapConfigKeyToHumanReadableName(
 			else return key;
 		} else return section_name;
 	} else {
-		return (*ite).second;
+		return UtilLoadString((*ite).second);
 	}
 }
 

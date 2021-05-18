@@ -1024,12 +1024,15 @@ END
 
 STRINGTABLE
 BEGIN
+    IDS_COMPRESS_LEVEL      "圧縮レベル"
     IDS_ASK_CREATE_DIR      "出力先フォルダ '%s' は存在しません。作成しますか？"
     IDS_ASK_FILELIST_DELETE_SELECTED "選択ファイルをアーカイブから削除しますか？"
     IDS_ASK_ISOK_NETWORK    "この処理の出力先はネットワーク上にありますが、このまま出力先を変更せずに処理を続行しますか？"
     IDS_ASK_ISOK_REMOVABLE  "この処理の出力先は取り外し可能なディスクですが、このまま出力先を変更せずに処理を続行しますか？"
     IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK 
                             "このショートカットを利用して圧縮を行う場合、\n・圧縮のたびに形式を選ぶ\nもしくは\n・ここであらかじめ圧縮形式を決めておく\nを選ぶことが出来ます。\nこのショートカットによる圧縮の形式をいま設定しておきますか？"
+    IDS_COMPRESS_METHOD_STORE "無圧縮"
+    IDS_COMPRESS_METHOD_BZIP2 "BZIP2"
     IDS_ERROR_ACCESS_OUTPUT_FILE "出力先ファイル '%s' にアクセスできません。"
     IDS_ERROR_CANNOT_EXECUTE "プログラム '%s' を実行できません。\n詳細情報:%s"
     IDS_ERROR_CANNOT_MAKE_DIR "出力先フォルダ '%s' を作成できませんでした。"
@@ -1042,7 +1045,11 @@ END
 
 STRINGTABLE
 BEGIN
+    IDS_COMPRESS_METHOD_LZMA1 "LZMA1"
     IDS_ERROR_DIR_NOTFOUND  "出力先フォルダ '%s' が見つかりませんでした。"
+    IDS_COMPRESS_METHOD_LZMA2 "LZMA2"
+    IDS_COMPRESS_METHOD_PPMd "PPMd"
+    IDS_COMPRESS_LEVEL_DEFAULT "標準"
     IDS_ERROR_DND_FAILED    "ドラッグ&ドロップ操作に失敗しました。"
     IDS_ERROR_FAIL_GET_ABSPATH "ファイル名の取得に失敗しました。(絶対パス)"
     IDS_ERROR_FAIL_GET_LONGNAME "ファイル名の取得に失敗しました。(ロングファイル名)"
@@ -1069,9 +1076,14 @@ BEGIN
     IDS_ERROR_OPEN_ARCHIVE  "圧縮ファイル '%s' をスキャン出来ませんでした。"
     IDS_ERROR_OUTPUT_DIR_NOT_SPECIFIED "出力先フォルダが指定されていません。"
     IDS_ERROR_SAME_INPUT_AND_OUTPUT "'%s' は入力ファイルと同じ名前です。別の名前を指定してください。"
+    IDS_COMPRESS_LEVEL_FASTEST "速度重視"
+    IDS_COMPRESS_LEVEL_HIGH "圧縮率重視"
     IDS_ERROR_SINGLE_FILE_ONLY "この形式では複数のファイルを圧縮することは出来ません。"
     IDS_ERROR_TEMPORARY_FILE_ACCESS "一時ファイルにアクセスできません。"
     IDS_ERROR_TEMPORARY_FILE_CREATE "一時ファイルを作成できません。"
+    IDS_COMPRESS_LEVEL_EVEN_HIGHER "さらに圧縮率重視"
+    IDS_COMPRESS_LEVEL_ULTRA "最高圧縮率"
+    IDS_COMPRESS_MULTI_THREAD "マルチスレッド処理"
 END
 
 STRINGTABLE
@@ -1089,6 +1101,8 @@ BEGIN
     IDS_CONFIRM_OVERWRITE_MESSAGE 
                             "ファイル '%s'\r\n 既にディスク上に同名ファイルが存在します。\r\n ディスク上のファイル(更新日時 %d年%d月%d日、%d時%d分%d秒、サイズ%I64uバイト)を、圧縮ファイル中の同名ファイル(サイズ%dバイト)で置き換えますか?"
     IDS_CONFIG_FORMAT_VALUE "値"
+    IDS_COMPRESS_METHOD     "圧縮メソッド"
+    IDS_COMPRESS_METHOD_DEFLATE "Deflate"
 END
 
 STRINGTABLE
@@ -1127,6 +1141,7 @@ END
 
 STRINGTABLE
 BEGIN
+    IDS_COMPRESS_MT_ALL_CORES "並列処理"
     IDS_FILELIST_SEARCH     "ファイル構造を調べています..."
     IDS_FILELIST_COLUMN_ATTRIBUTE "属性"
     IDS_FILELIST_COLUMN_FILENAME "ファイル名"
@@ -1135,6 +1150,7 @@ BEGIN
     IDS_FILELIST_COLUMN_FULLPATH "格納パス"
     IDS_FILELIST_COLUMN_TYPENAME "ファイル種別"
     IDS_FILELIST_FILETIME_FORMAT "%04d/%02d/%02d %02d:%02d:%02d"
+    IDS_COMPRESS_MT_SINGLE_THREAD "並列処理無し"
     IDS_FILELIST_FORMAT_UNKNOWN 
                             "ファイル '%s' を閲覧できません。\n・適切な解凍DLLが見つからない\n・ファイルが壊れている\n・サポートされていない形式である\n・ファイル名に対応していない文字が含まれている\nのいずれかの可能性があります。最新版の解凍DLLを取得して試してください。"
     IDS_FORMAT_NAME_7Z      "7z"
@@ -1147,7 +1163,17 @@ END
 STRINGTABLE
 BEGIN
     IDS_FORMAT_NAME_BZ2     "BZip2"
+    IDS_COMPRESS_CHARSET    "文字コード"
+    IDS_COMPRESS_CHARSET_UTF8 "UNICODE(UTF-8)"
+    IDS_COMPRESS_CHARSET_ACP "ANSI/Shift_JIS(非推奨)"
+    IDS_ENCRYPTION_METHOD   "暗号化方式"
     IDS_FORMAT_NAME_GZ      "GZip"
+    IDS_ENCRYPTION_ZIPCRYPT "ZipCrypt"
+    IDS_ENCRYPTION_AES128   "AES128"
+    IDS_ENCRYPTION_AES256   "AES256"
+    IDS_COMPRESSION_FORCE_ZIP64 "ZIP64の強制"
+    IDS_COMPRESSION_FORCE_ZIP64_ON "有効"
+    IDS_COMPRESSION_FORCE_ZIP64_OFF "無効(互換性重視)"
 END
 
 STRINGTABLE
