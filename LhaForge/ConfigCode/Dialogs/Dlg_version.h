@@ -46,8 +46,8 @@ public:
 		link_url.SetHyperLink(L"https://claybird.sakura.ne.jp/");
 
 		link_mailto.SetHyperLinkExtendedStyle(HLINK_USETAGS);
-		link_mailto.SubclassWindow(GetDlgItem(IDC_MAILTO));
-		link_mailto.SetHyperLink(L"mailto:claybird.without.wing" L"@gmail.com");
+		link_mailto.SubclassWindow(GetDlgItem(IDC_GITHUB));
+		link_mailto.SetHyperLink(L"https://github.com/Claybird/");
 		return TRUE;
 	}
 	LRESULT OnApply(){return TRUE;}

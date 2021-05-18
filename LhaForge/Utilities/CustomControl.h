@@ -138,8 +138,8 @@ public:
 
 		CRect rc;
 		GetClientRect(&rc);
-		InsertColumn(0, column0.c_str(), LVCFMT_LEFT, 80, -1);
-		InsertColumn(1, column1.c_str(), LVCFMT_LEFT, rc.Width() - 80 - GetSystemMetrics(SM_CXVSCROLL), -1);
+		InsertColumn(0, column0.c_str(), LVCFMT_LEFT, 150, -1);
+		InsertColumn(1, column1.c_str(), LVCFMT_LEFT, rc.Width() - 150 - GetSystemMetrics(SM_CXVSCROLL), -1);
 
 		UINT columns[] = { 0,1 };
 		for (int i = 0; i < (int)_data.size(); i++) {

@@ -212,8 +212,8 @@ BEGIN
     LTEXT           "LhaForge Beta",IDC_STATIC,31,7,146,8
     LTEXT           "Copyright (C) 2005- Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
     LTEXT           "配布元:<a>泥巣 [https://claybird.sakura.ne.jp/]</a>",IDC_URL,15,59,159,8
-    LTEXT           "mailto:<a>claybird.without.wing@gmail.com</a>",IDC_MAILTO,15,68,151,8
     LTEXT           "バグ、感想、要望等は上記連絡先まで。",IDC_STATIC,15,77,129,8
+    LTEXT           "github:<a>https://github.com/Claybird/</a>",IDC_GITHUB,15,68,151,8
 END
 
 IDD_PROPPAGE_CONFIG_GENERAL DIALOGEX 0, 0, 295, 265
@@ -1016,6 +1016,11 @@ BEGIN
     0
 END
 
+IDD_PROPPAGE_VERSION AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1141,7 +1146,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMPRESS_MT_ALL_CORES "並列処理"
+    IDS_COMPRESS_MT_ALL_CORES "有効"
     IDS_FILELIST_SEARCH     "ファイル構造を調べています..."
     IDS_FILELIST_COLUMN_ATTRIBUTE "属性"
     IDS_FILELIST_COLUMN_FILENAME "ファイル名"
@@ -1150,7 +1155,7 @@ BEGIN
     IDS_FILELIST_COLUMN_FULLPATH "格納パス"
     IDS_FILELIST_COLUMN_TYPENAME "ファイル種別"
     IDS_FILELIST_FILETIME_FORMAT "%04d/%02d/%02d %02d:%02d:%02d"
-    IDS_COMPRESS_MT_SINGLE_THREAD "並列処理無し"
+    IDS_COMPRESS_MT_SINGLE_THREAD "無効"
     IDS_FILELIST_FORMAT_UNKNOWN 
                             "ファイル '%s' を閲覧できません。\n・適切な解凍DLLが見つからない\n・ファイルが壊れている\n・サポートされていない形式である\n・ファイル名に対応していない文字が含まれている\nのいずれかの可能性があります。最新版の解凍DLLを取得して試してください。"
     IDS_FORMAT_NAME_7Z      "7z"
