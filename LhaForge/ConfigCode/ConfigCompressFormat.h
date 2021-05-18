@@ -81,7 +81,7 @@ public:
 		{L"hdrcharset",{
 			L"UTF-8",L"CP_ACP"}},
 		{L"zip64",{
-				L"enabled"/*any non-empty string*/,L""/*empty is to avoid zip64*/}},
+				L""/*empty is to avoid zip64*/,L"enabled"/*any non-empty string*/}},
 	}) {}
 	virtual ~CConfigCompressFormatZIP() {}
 };
