@@ -85,7 +85,6 @@ protected:
 	std::vector<CONTENT_DATA> _data;
 public:
 	BEGIN_MSG_MAP(CLFComboListViewCtrl)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGING, OnItemChanging)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnItemChanged)	//move combo box
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_ENDSCROLL, OnItemScrolled)	//follow list view scroll
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(LVN_KEYDOWN, OnKeyDown)	//open combo box menu
@@ -168,17 +167,11 @@ public:
 	}
 	const std::vector<CONTENT_DATA>& GetContentData()const { return _data; }
 
-	LRESULT OnItemChanging(LPNMHDR pnmh) {
-		if (_combo.IsWindow()) {
-			_combo.DestroyWindow();
-		}
-		return 0;
-	}
 	LRESULT OnItemChanged(LPNMHDR pnmh) {
 		if (_combo.IsWindow()) {
 			_combo.DestroyWindow();
 		}
-		NM_LISTVIEW* pView = (NM_LISTVIEW*)pnmh;
+		auto* pView = (NM_LISTVIEW*)pnmh;
 		if (pView->iItem >= 0
 			&& pView->iItem < (int)_data.size()
 			&& (pView->uNewState & LVIS_SELECTED)
