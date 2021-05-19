@@ -160,7 +160,7 @@ bool DoCompress(CConfigFile &config, CMDLINEINFO &cli)
 		(LF_WRITE_OPTIONS)cli.Options,
 		CLFProgressHandlerGUI(nullptr),
 		config,
-		cli);
+		&cli);
 }
 
 bool DoExtract(CConfigFile &config,CMDLINEINFO &cli)

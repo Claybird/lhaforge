@@ -108,7 +108,7 @@ bool GUI_compress_multiple_files(
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
 	const CConfigFile& config,
-	CMDLINEINFO& CmdLineInfo);
+	const CMDLINEINFO* lpCmdLineInfo);
 
 //command line parameter table
 struct COMPRESS_COMMANDLINE_PARAMETER{

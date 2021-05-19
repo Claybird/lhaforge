@@ -741,7 +741,7 @@ void compress_helper(
 	const std::vector<std::filesystem::path> &givenFiles,
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
-	CMDLINEINFO& CmdLineInfo,
+	const CMDLINEINFO* lpCmdLineInfo,
 	ARCLOG &arcLog,
 	LF_COMPRESS_ARGS &args,
 	ILFProgressHandler &progressHandler,
@@ -773,12 +773,12 @@ void compress_helper(
 
 	//output directory
 	std::filesystem::path pathOutputDir;
-	if (!CmdLineInfo.OutputDir.empty()) {
-		pathOutputDir = CmdLineInfo.OutputDir;
+	if (lpCmdLineInfo && !lpCmdLineInfo->OutputDir.empty()) {
+		pathOutputDir = lpCmdLineInfo->OutputDir;
 	} else {
-		auto p = std::filesystem::path(CmdLineInfo.OutputFileName).filename();
-		if (!CmdLineInfo.OutputFileName.empty() && p.has_parent_path()) {
-			pathOutputDir = p.parent_path();
+		auto OutputFileName = lpCmdLineInfo ? lpCmdLineInfo->OutputFileName : std::filesystem::path();
+		if (!OutputFileName.empty() && OutputFileName.filename().has_parent_path()) {
+			pathOutputDir = OutputFileName.filename().parent_path();
 		} else {
 			pathOutputDir = determineDefaultArchiveDir(
 				(OUTPUT_TO)args.compress.OutputDirType,
@@ -813,11 +813,11 @@ void compress_helper(
 
 	//archive file title
 	std::wstring defaultArchiveTitle;
-	if (CmdLineInfo.OutputFileName.empty()) {
+	if (!lpCmdLineInfo || lpCmdLineInfo->OutputFileName.empty()) {
 		defaultArchiveTitle = determineDefaultArchiveTitle(format, options, givenFiles.front());
 	} else {
 		//only filenames
-		defaultArchiveTitle = std::filesystem::path(CmdLineInfo.OutputFileName).filename();
+		defaultArchiveTitle = lpCmdLineInfo->OutputFileName.filename();
 	}
 
 	//confirm
@@ -896,20 +896,20 @@ bool GUI_compress_multiple_files(
 	LF_WRITE_OPTIONS options,
 	ILFProgressHandler &progressHandler,
 	const CConfigFile& config,
-	CMDLINEINFO& CmdLineInfo)
+	const CMDLINEINFO* lpCmdLineInfo)
 {
 	LF_COMPRESS_ARGS args;
-	parseCompressOption(config, args, &CmdLineInfo);
+	parseCompressOption(config, args, lpCmdLineInfo);
 
 	//do compression
-	if (0 != CmdLineInfo.Options) {
-		options = (LF_WRITE_OPTIONS)CmdLineInfo.Options;
+	if (lpCmdLineInfo && 0 != lpCmdLineInfo->Options) {
+		options = (LF_WRITE_OPTIONS)lpCmdLineInfo->Options;
 	}
 
 	size_t idxFile = 0, totalFiles = 1;
 
 	std::vector<ARCLOG> logs;
-	if (CmdLineInfo.bSingleCompression) {
+	if (lpCmdLineInfo && lpCmdLineInfo->bSingleCompression) {
 		totalFiles = givenFiles.size();
 		for (const auto &file : givenFiles) {
 			idxFile++;
@@ -919,7 +919,7 @@ bool GUI_compress_multiple_files(
 					{ file },
 					format,
 					options,
-					CmdLineInfo,
+					lpCmdLineInfo,
 					logs.back(),
 					args,
 					progressHandler,
@@ -943,7 +943,7 @@ bool GUI_compress_multiple_files(
 				givenFiles,
 				format,
 				options,
-				CmdLineInfo,
+				lpCmdLineInfo,
 				logs.back(),
 				args,
 				progressHandler,
