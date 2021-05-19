@@ -25,8 +25,8 @@
 #pragma once
 #include "Utilities/Utility.h"
 #include "resource.h"
-#include "ConfigFile.h"
-#include "Dialogs/Dlg_Base.h"
+#include "ConfigCode/ConfigFile.h"
+#include "Dlg_Base.h"
 
 #define WM_USER_WM_SIZE		(WM_APP+1)
 

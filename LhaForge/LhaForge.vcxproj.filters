@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="ConfigCode\Configwnd.cpp">
-      <Filter>Configs\Other</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -115,6 +112,9 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigCode\Dialogs\Configwnd.cpp">
+      <Filter>Configs\Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -157,9 +157,6 @@
   <ItemGroup>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Configwnd.h">
-      <Filter>Configs\Other</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h">
       <Filter>Configs\Dialogs</Filter>
@@ -331,6 +328,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\CustomControl.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\Dialogs\Configwnd.h">
+      <Filter>Configs\Dialogs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
