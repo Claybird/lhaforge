@@ -700,7 +700,7 @@ BEGIN
             VALUE "FileDescription", "LhaForge"
             VALUE "FileVersion", "Beta"
             VALUE "InternalName", "LhaForge"
-            VALUE "LegalCopyright", "Copyright (C) 2005- Claybird <claybird.without.wing@gmail.com>"
+            VALUE "LegalCopyright", "Copyright (C) 2005- Claybird <https://github.com/Claybird/lhaforge>"
             VALUE "OriginalFilename", "LhaForge.exe"
             VALUE "ProductName", "LhaForge"
             VALUE "ProductVersion", "Beta"
@@ -902,7 +902,7 @@ IDB_BITMAP_SORTMARK     BITMAP                  "sortmark.bmp"
 // Toolbar
 //
 
-IDR_MAINFRAME TOOLBAR 24, 24
+IDR_MAINFRAME TOOLBAR 32, 32
 BEGIN
     BUTTON      ID_MENUITEM_CLOSE_WINDOW
     BUTTON      ID_MENUITEM_OPENARCHIVE
