@@ -24,7 +24,7 @@
 
 #include "stdafx.h"
 #include "resource.h"
-#include "ConfigCode/configwnd.h"
+#include "ConfigCode/Dialogs/configwnd.h"
 #include "compress.h"
 #include "extract.h"
 #include "ArchiverCode/archive.h"

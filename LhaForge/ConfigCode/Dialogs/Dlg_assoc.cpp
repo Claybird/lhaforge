@@ -24,10 +24,8 @@
 
 #include "stdafx.h"
 #include "Dlg_assoc.h"
-#include "ConfigCode/configwnd.h"
+#include "ConfigCode/Dialogs/configwnd.h"
 #include "Utilities/StringUtil.h"
-#include <CommonControls.h>
-
 
 enum class ASSOC_TYPE : int {
 	LZH,

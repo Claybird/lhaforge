@@ -23,7 +23,7 @@
 */
 
 #include "stdafx.h"
-#include "ConfigCode/configwnd.h"
+#include "ConfigCode/Dialogs/configwnd.h"
 #include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigFileListWindow.h"
 #include "Dialogs/LogListDialog.h"
