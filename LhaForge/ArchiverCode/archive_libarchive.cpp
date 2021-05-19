@@ -550,7 +550,7 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 		EXPECT_EQ("9", la_options.at("compression-level"));
 		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
 		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("enabled", la_options.at("zip64"));
+		EXPECT_EQ("", la_options.at("zip64"));
 	}
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION);
@@ -559,7 +559,7 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 		EXPECT_EQ("9", la_options.at("compression-level"));
 		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
 		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("enabled", la_options.at("zip64"));
+		EXPECT_EQ("", la_options.at("zip64"));
 	}
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::_7Z, LF_WOPT_STANDARD);
