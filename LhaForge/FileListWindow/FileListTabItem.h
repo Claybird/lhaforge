@@ -161,25 +161,28 @@ public:
 		ApplySplitterState();
 	}
 	bool OpenArchive(const std::filesystem::path &arcpath, const std::wstring& mutexName, HANDLE hMutex) {
-		CLFScanProgressHandlerGUI progress(m_hFrameWnd);
-		try {
-			Model.Open(arcpath, progress);
-		} catch(const LF_EXCEPTION& e){
-			ErrorMessage(e.what());
-			return false;
-		}
+		{
+			CLFScanProgressHandlerGUI progress(m_hFrameWnd);
+			try {
+				Model.Open(arcpath, progress);
+			} catch (const LF_EXCEPTION& e) {
+				ErrorMessage(e.what());
+				return false;
+			}
 
-		//set property to frame window
-		if (hMutex) {
-			//when re-opening an archive, hMutex=nullptr
-			::SetPropW(m_hFrameWnd, mutexName.c_str(), this);
-			_hMutex.Attach(hMutex);
-			_strMutexName = mutexName;
-		}
+			//set property to frame window
+			if (hMutex) {
+				//when re-opening an archive, hMutex=nullptr
+				::SetPropW(m_hFrameWnd, mutexName.c_str(), this);
+				_hMutex.Attach(hMutex);
+				_strMutexName = mutexName;
+			}
 
-		//construct tree view structure
-		TreeView.ConstructTree();
-		if (_confFLW.view.ExpandTree)TreeView.ExpandTree();
+			//construct tree view structure
+			TreeView.ConstructTree();
+			if (_confFLW.view.ExpandTree)TreeView.ExpandTree();
+		}
+		SetForegroundWindow(m_hFrameWnd);
 		return true;
 	}
 
