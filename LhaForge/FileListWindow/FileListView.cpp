@@ -438,7 +438,7 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	case FILEINFO_TYPE::ORIGINALSIZE:
 		if(pstLVDInfo->item.mask & LVIF_TEXT){
 			if (m_bDisplayFileSizeInByte) {
-				info = Format(L"%llu Bytes", lpNode->_originalSize);
+				info = Format(L"%llu", lpNode->_originalSize);
 			}else{
 				info = UtilFormatSize(lpNode->_originalSize);
 			}
