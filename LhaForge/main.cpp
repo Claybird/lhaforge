@@ -199,7 +199,7 @@ bool DoList(CConfigFile &config,CMDLINEINFO &cli)
 	ListWindow.UpdateWindow();
 	bool bAllFailed = !tmp.empty();
 	for (const auto& item : tmp) {
-		HRESULT hr = ListWindow.OpenArchiveFile(item.c_str());
+		HRESULT hr = ListWindow.OpenArchiveFile(item);
 		if (SUCCEEDED(hr)) {
 			if (hr != S_FALSE)bAllFailed = false;
 		} else if (hr == E_ABORT) {
