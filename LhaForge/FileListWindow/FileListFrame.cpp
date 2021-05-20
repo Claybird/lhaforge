@@ -437,27 +437,21 @@ void CFileListFrame::EnableEntryExtractOperationMenu(bool bActive)
 void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 {
 	CConfigDialog confdlg(mr_Config);
-	if (IDOK == confdlg.DoModal()) {
-		try {
+	try {
+		if (IDOK == confdlg.DoModal()) {
 			mr_Config.save();
-		} catch (const LF_EXCEPTION& e) {
-			ErrorMessage(e.what());
-		}
-
-		MenuCommand_UpdateUserAppCommands(m_ConfFLW);
-		MenuCommand_MakeUserAppMenu(GetAdditionalMenuHandle(MENUTYPE::UserApp));
-		m_TabClientWnd->UpdateFileListConfig(m_ConfFLW);
-	} else {
-		//reload
-		try {
+		} else {
+			//reload
 			mr_Config.load();
-		} catch (const LF_EXCEPTION& e) {
-			ErrorMessage(e.what());
 		}
+	} catch (const LF_EXCEPTION& e) {
+		ErrorMessage(e.what());
 	}
 
 	m_ConfFLW.load(mr_Config);
 	m_compressArgs.load(mr_Config);
+	m_TabClientWnd->UpdateFileListConfig(m_ConfFLW);
+
 	//reload accelerator
 	if (m_ConfFLW.general.ExitWithEscape) {
 		if (m_AccelEx.IsNull())m_AccelEx.LoadAccelerators(IDR_ACCEL_EX);
@@ -465,6 +459,8 @@ void CFileListFrame::OnConfigure(UINT uNotifyCode, int nID, HWND hWndCtl)
 		m_AccelEx.DestroyObject();
 	}
 
+	MenuCommand_UpdateUserAppCommands(m_ConfFLW);
+	MenuCommand_MakeUserAppMenu(GetAdditionalMenuHandle(MENUTYPE::UserApp));
 	MenuCommand_MakeSendToCommands();
 	MenuCommand_MakeSendToMenu(GetAdditionalMenuHandle(MENUTYPE::SendTo));
 	DrawMenuBar();
