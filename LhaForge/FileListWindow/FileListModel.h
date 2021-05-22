@@ -117,7 +117,7 @@ public:
 	}
 	void EndFindItem() {
 		if (IsFindMode()) {
-			setCurrentDir(m_FoundItems._parent);
+			setCurrentDir(m_Content.getRootNode());
 		}
 	}
 
