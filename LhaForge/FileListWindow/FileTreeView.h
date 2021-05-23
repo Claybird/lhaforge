@@ -108,6 +108,8 @@ protected:
 		AddSearchFolder();
 		ConstructTree();
 
+		if (mr_confFLW.view.ExpandTree)ExpandTree();
+
 		EnableDropTarget(true);
 		return 0;
 	}

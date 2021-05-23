@@ -178,9 +178,7 @@ public:
 				_strMutexName = mutexName;
 			}
 
-			//construct tree view structure
-			TreeView.ConstructTree();
-			if (_confFLW.view.ExpandTree)TreeView.ExpandTree();
+			//tree view is updated via CFileTreeView::OnFileListArchiveLoaded
 		}
 		SetForegroundWindow(m_hFrameWnd);
 		return true;
