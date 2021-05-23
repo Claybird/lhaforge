@@ -1106,6 +1106,7 @@ BEGIN
     IDS_CONFIRM_OVERWRITE_MESSAGE 
                             "ファイル '%s'\r\n 既にディスク上に同名ファイルが存在します。\r\n ディスク上のファイル(更新日時 %d年%d月%d日、%d時%d分%d秒、サイズ%I64uバイト)を、圧縮ファイル中の同名ファイル(サイズ%dバイト)で置き換えますか?"
     IDS_CONFIG_FORMAT_VALUE "値"
+    IDS_TREE_SHOW_ALL_ITEM  "全て表示"
     IDS_COMPRESS_METHOD     "圧縮メソッド"
     IDS_COMPRESS_METHOD_DEFLATE "Deflate"
 END

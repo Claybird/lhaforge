@@ -14,6 +14,7 @@
 #define IDS_COMPRESS_FILE               10
 #define IDS_CONFIRM_OVERWRITE_MESSAGE   11
 #define IDS_CONFIG_FORMAT_VALUE         12
+#define IDS_TREE_SHOW_ALL_ITEM          13
 #define IDS_COMPRESS_METHOD             14
 #define IDS_COMPRESS_METHOD_DEFLATE     15
 #define IDS_COMPRESS_LEVEL              16

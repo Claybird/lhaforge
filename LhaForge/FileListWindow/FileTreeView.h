@@ -91,16 +91,21 @@ protected:
 		if (!hItem)return 0;
 
 		auto lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
-		ASSERT(lpNode);
-
-		if (!mr_Model.IsRoot())mr_Model.EndFindItem();
-		if (lpNode && lpNode != lpCurrent) {
-			mr_Model.setCurrentDir(lpNode);
+		if (lpNode) {
+			mr_Model.EndFindItem();
+			if (lpNode && lpNode != lpCurrent) {
+				mr_Model.setCurrentDir(lpNode);
+			}
+		} else {
+			//find all elements
+			auto lpFound = mr_Model.FindItem(L"*", mr_Model.GetRootNode());
+			mr_Model.setCurrentDir(lpFound);
 		}
 		return 0;
 	}
 	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
 		Clear();
+		AddSearchFolder();
 		ConstructTree();
 
 		EnableDropTarget(true);
@@ -141,7 +146,11 @@ protected:
 		OnContextMenu(m_hWnd, pt);
 		return 0;
 	}
-
+	enum :int {
+		dirIconClosed = 0,
+		dirIconOpened = 1,
+		archiveIconIndex = 2,
+	};
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
 	BOOL PreTranslateMessage(MSG* pMsg){return FALSE;}
@@ -151,10 +160,12 @@ public:
 		m_hDropHilight(NULL)
 	{}
 	virtual ~CFileTreeView(){}
+	void AddSearchFolder() {
+		HTREEITEM hItem = InsertItem(UtilLoadString(IDS_TREE_SHOW_ALL_ITEM).c_str(), TVI_ROOT, TVI_LAST);
+		SetItemImage(hItem, dirIconClosed, dirIconOpened);
+		SetItemData(hItem, NULL);
+	}
 	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr) {
-		const int dirIconClosed = 0;
-		const int dirIconOpened = 1;
-		const int archiveIconIndex = 2;
 		HTREEITEM hItem;
 		if (hParentItem) {
 			//directory
