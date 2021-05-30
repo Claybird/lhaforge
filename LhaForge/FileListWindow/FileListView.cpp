@@ -647,7 +647,9 @@ void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 
 		if(IDOK == dlg.DoModal()){
 			mr_Model.EndFindItem();
-			auto lpFound = mr_Model.FindItem(dlg.GetInputText(), mr_Model.getCurrentDir());
+			ARCHIVE_FIND_CONDITION afc;
+			afc.setFindByFullpath(dlg.GetInputText());
+			auto lpFound = mr_Model.FindItem(afc, mr_Model.getCurrentDir());
 			mr_Model.setCurrentDir(lpFound);
 		}
 	}

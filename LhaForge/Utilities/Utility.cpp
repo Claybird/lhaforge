@@ -197,7 +197,7 @@ bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pa
 {
 	if (pattern_string.empty())return false;
 	//characters to be escaped
-	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
+	const std::wstring escapeSubjects = L".(){}[]+^$|";
 
 	auto pattern = replace(pattern_string, L"*.*", L"*");	//compatibility
 	std::wstring regex_str;
@@ -205,6 +205,8 @@ bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pa
 		if (isIn(escapeSubjects, p)) {
 			regex_str += L"\\";
 			regex_str += p;
+		} else if (p == L'/' || p=='\\') {
+			regex_str += L"[/\\\\]";
 		} else if (p == L'*') {
 			regex_str += L".*?";
 		} else if (p == L'?') {
@@ -251,6 +253,19 @@ TEST(Utility, UtilPathMatchSpec) {
 	EXPECT_FALSE(UtilPathMatchSpec(L"test.tar.gz", L""));
 	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar"));
 
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc/*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*/def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc\\*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*\\def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc/*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*/def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc\\*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*\\def"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc/*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*/def"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc\\*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*\\def"));
+
 	//---possible regex
 	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"(.*)"));
 	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"[a-Z]*"));
@@ -263,6 +278,18 @@ TEST(Utility, UtilPathMatchSpec) {
 	EXPECT_TRUE(UtilPathMatchSpec(L".gitignore", L".gitignore"));
 	EXPECT_TRUE(UtilPathMatchSpec(L"abc.gitignore", L".gitignore"));
 	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"test"));
+
+	//---non ascii strings
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお/*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお\\*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/かきくけこ.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\かきくけこ.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*"));
 }
 #endif
 

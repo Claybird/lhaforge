@@ -33,6 +33,38 @@
 #include "CommonUtil.h"
 #include "ArcFileContent.h"
 
+bool ARCHIVE_FIND_CONDITION::matchItem(const ARCHIVE_ENTRY_INFO& p)const
+{
+	switch (key) {
+	case KEY::filename:
+		return UtilPathMatchSpec(p._entryName, patternStr);
+	case KEY::fullpath:
+		return UtilPathMatchSpec(p._entry.path, patternStr);
+	case KEY::originalSize:
+		switch (compare) {
+		case COMPARE::equal:
+			return (st_size == p._entry.stat.st_size);
+		case COMPARE::equalOrGreater:
+			return (st_size <= p._entry.stat.st_size);
+		case COMPARE::equalOrLess:
+			return (st_size >= p._entry.stat.st_size);
+		}
+	case KEY::mtime:
+		switch (compare) {
+		case COMPARE::equal:
+			return (st_mtime == p._entry.stat.st_mtime);
+		case COMPARE::equalOrGreater:
+			return (st_mtime <= p._entry.stat.st_mtime);
+		case COMPARE::equalOrLess:
+			return (st_mtime >= p._entry.stat.st_mtime);
+		}
+	case KEY::mode:
+		return (p._entry.stat.st_mode & st_mode_mask) != 0;
+	default:
+		ASSERT(!"This code cannot be run");
+		return false;
+	}
+}
 
 void CArchiveFileContent::scanArchiveStruct(
 	const std::filesystem::path& archiveName,
@@ -128,21 +160,21 @@ TEST(ArcFileContent, scanArchiveStruct)
 #endif
 
 
-std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findSubItem(
-	const std::wstring& pattern,
-	const ARCHIVE_ENTRY_INFO* parent)const
+std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findItem(
+	const ARCHIVE_FIND_CONDITION& condition,
+	const ARCHIVE_ENTRY_INFO* parent)const 
 {
+	if (!parent)parent = m_pRoot.get();
 	//---breadth first search
-
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > found;
 	for (auto& child : parent->_children) {
-		if (UtilPathMatchSpec(child->_entryName, pattern)) {
+		if (condition.matchItem(*(child.get()))) {
 			found.push_back(child);
 		}
 	}
 	for (auto& child : parent->_children) {
 		if (child->is_directory()) {
-			auto subFound = findSubItem(pattern, child.get());
+			auto subFound = findItem(condition, child.get());
 			found.insert(found.end(), subFound.begin(), subFound.end());
 		}
 	}
@@ -156,20 +188,67 @@ TEST(ArcFileContent, findItem)
 	CLFPassphraseNULL no_passphrase;
 	CArchiveFileContent content(no_passphrase);
 
+	ARCHIVE_FIND_CONDITION afc;
+
 	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
 	EXPECT_TRUE(content.isOK());
-	auto result = content.findItem(L"*");
+
+	//---by filename
+	afc.setFindByFilename(L"*");
+	auto result = content.findItem(afc);
 	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
-	result = content.findItem(L"*.*");
+
+	afc.setFindByFilename(L"*.*");
+	result = content.findItem(afc);
 	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
-	result = content.findItem(L".txt");
+
+	afc.setFindByFilename(L".txt");
+	result = content.findItem(afc);
 	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"*.txt");
+
+	afc.setFindByFilename(L"*.txt");
+	result = content.findItem(afc);
 	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"*.TXT");
+
+	afc.setFindByFilename(L".TXT");
+	result = content.findItem(afc);
 	EXPECT_EQ(4, result.size());
-	result = content.findItem(L"dirB");
+
+	afc.setFindByFilename(L"dirB");
+	result = content.findItem(afc);
 	EXPECT_EQ(1, result.size());
+
+	//---by fullpath
+	afc.setFindByFullpath(L"かきくけこ/*.txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	afc.setFindByFullpath(L"かきくけこ\\*.txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	//---by original size
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equal);
+	result = content.findItem(afc);
+	EXPECT_EQ(3, result.size());
+
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+	result = content.findItem(afc);
+	EXPECT_EQ(3, result.size());
+
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
+	result = content.findItem(afc);
+	EXPECT_EQ(8, result.size());
+
+	//---by st_mtime
+	afc.setFindByMTime(1589718815/* 2020-05-17T12:33:35+0000 */, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+	result = content.findItem(afc);
+	EXPECT_EQ(5, result.size());
+
+	//---by mode
+	afc.setFindByMode(S_IFDIR);
+	result = content.findItem(afc);
+	EXPECT_EQ(2, result.size());
 }
 #endif
 
@@ -223,7 +302,10 @@ TEST(ArcFileContent, extractEntries)
 
 		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
 		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*");
+
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*");
+		auto entries = content.findItem(afc);
 		EXPECT_EQ(8, entries.size());
 		entriesSub.clear();
 		for (auto entry : entries) {
@@ -267,7 +349,9 @@ TEST(ArcFileContent, extractEntries)
 
 		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
 		EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*.txt");
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*.txt");
+		auto entries = content.findItem(afc);
 		EXPECT_EQ(1, entries.size());
 		entriesSub.clear();
 		for (auto entry : entries) {
@@ -603,7 +687,10 @@ TEST(ArcFileContent, makeSureItemsExtracted)
 		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
 
 		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
-		auto entries = content.findItem(L"*");
+
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*");
+		auto entries = content.findItem(afc);
 		EXPECT_EQ(8, entries.size());
 
 		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;

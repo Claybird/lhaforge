@@ -44,7 +44,6 @@ enum class FILEINFO_TYPE : int {
 	ENUM_COUNT_AND_LASTITEM,
 };
 
-struct CConfigFile;	//TODO: remove
 class CFileListModel:public CEventDispatcher
 {
 protected:
@@ -110,8 +109,8 @@ public:
 	const ARCHIVE_ENTRY_INFO* GetFileListItemByIndex(int iIndex)const;
 
 	bool IsFindMode()const { return m_lpCurrentDir == &m_FoundItems; }
-	const ARCHIVE_ENTRY_INFO* FindItem(const std::wstring& mask, const ARCHIVE_ENTRY_INFO *parent) {
-		m_FoundItems._children = m_Content.findItem(mask, parent);
+	const ARCHIVE_ENTRY_INFO* FindItem(const ARCHIVE_FIND_CONDITION& condition, const ARCHIVE_ENTRY_INFO *parent=nullptr) {
+		m_FoundItems._children = m_Content.findItem(condition, parent);
 		m_FoundItems._parent = nullptr;
 		return &m_FoundItems;
 	}

@@ -161,6 +161,56 @@ struct ARCHIVE_ENTRY_INFO {
 	}
 };
 
+
+struct ARCHIVE_FIND_CONDITION {
+	enum class KEY :int {
+		filename,
+		fullpath,
+		originalSize,
+		mtime,
+		mode,	//directory or file
+		//compressedSize,
+		//ratio,
+	};
+
+	enum class COMPARE :int {	//valid on size and date
+		equal,
+		equalOrGreater,
+		equalOrLess,
+	};
+
+	KEY key;
+	std::wstring patternStr;	//pattern = replace(name_or_pattern, L"\\", L"/");
+	int64_t st_size;
+	__time64_t st_mtime;
+	unsigned short st_mode_mask;
+
+	COMPARE compare;
+	void setFindByFilename(const std::wstring& pattern) {
+		key = KEY::filename;
+		patternStr = pattern;
+	}
+	void setFindByFullpath(const std::wstring& pattern) {
+		key = KEY::fullpath;
+		patternStr = pattern;
+	}
+	void setFindByOriginalSize(uint64_t size, COMPARE compMode) {
+		key = KEY::originalSize;
+		st_size = size;
+		compare = compMode;
+	}
+	void setFindByMTime(__time64_t mtime, COMPARE compMode) {
+		key = KEY::mtime;
+		st_mtime = mtime;
+		compare = compMode;
+	}
+	void setFindByMode(unsigned short mode) {
+		key = KEY::mode;
+		st_mode_mask = mode;
+	}
+	bool matchItem(const ARCHIVE_ENTRY_INFO& p)const;	//true if item matches condition
+};
+
 class CArchiveFileContent{
 protected:
 	std::shared_ptr<ARCHIVE_ENTRY_INFO> m_pRoot;
@@ -172,11 +222,6 @@ protected:
 	bool m_bEncrypted;	//true if at least one entry is encrypted
 protected:
 	//---internal functions
-	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findSubItem(
-		const std::wstring& pattern,
-		const ARCHIVE_ENTRY_INFO* parent
-	)const;
-
 	void postScanArchive(ARCHIVE_ENTRY_INFO*);
 
 	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
@@ -210,13 +255,9 @@ public:
 	const ARCHIVE_ENTRY_INFO* getRootNode()const { return m_pRoot.get(); }
 	ARCHIVE_ENTRY_INFO* getRootNode() { return m_pRoot.get(); }
 	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findItem(
-		const std::wstring& name_or_pattern,
+		const ARCHIVE_FIND_CONDITION& condition,
 		const ARCHIVE_ENTRY_INFO* parent = nullptr
-	)const {
-		if (!parent)parent = m_pRoot.get();
-		auto pattern = replace(name_or_pattern, L"\\", L"/");
-		return findSubItem(pattern, parent);
-	}
+	)const;
 
 	void scanArchiveStruct(const std::filesystem::path& archiveName, ILFScanProgressHandler& progressHandler);
 

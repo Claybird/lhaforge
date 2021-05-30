@@ -98,7 +98,9 @@ protected:
 			}
 		} else {
 			//find all elements
-			auto lpFound = mr_Model.FindItem(L"*", mr_Model.GetRootNode());
+			ARCHIVE_FIND_CONDITION afc;
+			afc.setFindByFilename(L"*");
+			auto lpFound = mr_Model.FindItem(afc);
 			mr_Model.setCurrentDir(lpFound);
 		}
 		return 0;
