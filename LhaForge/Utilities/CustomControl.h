@@ -1,3 +1,27 @@
+/*
+* MIT License
+
+* Copyright (c) 2005- Claybird
+
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 #pragma once
 
 class CLFShellFileOpenDialog : public CShellFileOpenDialog
@@ -245,3 +269,35 @@ public:
 	}
 };
 
+class CLFBytesEdit :public CWindowImpl<CLFBytesEdit, CEdit>
+{
+protected:
+	CString _oldContent;
+public:
+	BEGIN_MSG_MAP(CLFBytesEdit)
+		REFLECTED_COMMAND_CODE_HANDLER_EX(EN_UPDATE, OnTextInput)
+		DEFAULT_REFLECTION_HANDLER()
+	END_MSG_MAP()
+
+	void SetSubjectWindow(HWND hWnd) {
+		SubclassWindow(hWnd);
+		GetWindowText(_oldContent);
+	}
+	LRESULT OnTextInput(UINT uNotifyCode, int nID, HWND hWnd) {
+		if (hWnd == m_hWnd) {
+			std::wregex pattern(L"\\d+[kKmMgGtTpPeE]?[Bb]?");
+			CString buf;
+			GetWindowText(buf);
+			if (!buf.IsEmpty()) {
+				if (!std::regex_match(buf.operator LPCWSTR(), pattern)) {
+					//force write back
+					SetWindowText(_oldContent);
+					//Warn by sound
+					MessageBeep(MB_ICONWARNING);
+				}
+			}
+			GetWindowText(_oldContent);
+		}
+		return 0;
+	}
+};
