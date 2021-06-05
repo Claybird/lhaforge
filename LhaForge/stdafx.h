@@ -56,6 +56,7 @@ extern CAppModule _Module;
 #include <filesystem>
 #include <fcntl.h>
 #include <functional>
+#include <inttypes.h>
 #include <io.h>
 #include <list>
 #include <Lmcons.h>
@@ -71,6 +72,7 @@ extern CAppModule _Module;
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 
 #include <SimpleIni.h>
 

@@ -300,4 +300,35 @@ public:
 		}
 		return 0;
 	}
+	static int64_t ParseSize(const std::wstring& str){
+		wchar_t unit;
+		int64_t size;
+		const std::string t = PRId64;
+		auto fmt = UtilUTF8toUNICODE(t);
+		if (2 != swscanf_s(str.c_str(), (L"%" + fmt + L"%c").c_str(), &size, &unit)) {
+			if (1 != swscanf_s(str.c_str(), (L"%" + fmt).c_str(), &size)) {
+				return -1;
+			}
+		}
+		unit = std::tolower(unit);
+		int64_t order_scale = 1LL;
+		switch (unit) {
+		case L'b':
+			order_scale = 1LL;	break;
+		case L'k':
+			order_scale = 1LL << 10;	break;
+		case L'm':
+			order_scale = 1LL << 20;	break;
+		case L'g':
+			order_scale = 1LL << 30;	break;
+		case L't':
+			order_scale = 1LL << 40;	break;
+		case L'p':
+			order_scale = 1LL << 50;	break;
+		case L'e':
+			order_scale = 1LL << 60;	break;
+		}
+		return size * order_scale;
+	}
+
 };
