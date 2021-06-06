@@ -132,3 +132,5 @@ void merge_map(T &dest, const T &src) {	//merge, overwriting
 	}
 	//dest.merge will modify src and will not overwrite existing item
 }
+
+FILETIME UtilUnixToFILETIME(__time64_t t);

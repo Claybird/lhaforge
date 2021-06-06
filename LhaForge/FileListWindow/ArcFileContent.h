@@ -167,7 +167,7 @@ struct ARCHIVE_FIND_CONDITION {
 		filename,
 		fullpath,
 		originalSize,
-		mtime,
+		mdate,
 		mode,	//directory or file
 		//compressedSize,
 		//ratio,
@@ -182,7 +182,7 @@ struct ARCHIVE_FIND_CONDITION {
 	KEY key;
 	std::wstring patternStr;	//pattern = replace(name_or_pattern, L"\\", L"/");
 	int64_t st_size;
-	__time64_t st_mtime;
+	SYSTEMTIME mdate;
 	unsigned short st_mode_mask;
 
 	COMPARE compare;
@@ -199,9 +199,9 @@ struct ARCHIVE_FIND_CONDITION {
 		st_size = size;
 		compare = compMode;
 	}
-	void setFindByMTime(__time64_t mtime, COMPARE compMode) {
-		key = KEY::mtime;
-		st_mtime = mtime;
+	void setFindByMDate(SYSTEMTIME m, COMPARE compMode) {
+		key = KEY::mdate;
+		mdate = m;
 		compare = compMode;
 	}
 	void setFindByMode(unsigned short mode) {

@@ -364,3 +364,27 @@ TEST(Utility, merge_map) {
 #endif
 
 
+FILETIME UtilUnixToFILETIME(__time64_t t)
+{
+	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	FILETIME ft;
+	ft.dwLowDateTime = (DWORD)ll;
+	ft.dwHighDateTime = ll >> 32;
+	return ft;
+}
+
+#ifdef UNIT_TEST
+TEST(Utility, UtilUnixToFILETIME)
+{
+	auto ft = UtilUnixToFILETIME(946730096);	//2000-01-01T12:34:56
+	SYSTEMTIME systime;
+	FileTimeToSystemTime(&ft, &systime);
+
+	EXPECT_EQ(2000, systime.wYear);
+	EXPECT_EQ(1, systime.wMonth);
+	EXPECT_EQ(1, systime.wDay);
+	EXPECT_EQ(12, systime.wHour);
+	EXPECT_EQ(34, systime.wMinute);
+	EXPECT_EQ(56, systime.wSecond);
+}
+#endif

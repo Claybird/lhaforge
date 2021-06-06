@@ -49,17 +49,37 @@ bool ARCHIVE_FIND_CONDITION::matchItem(const ARCHIVE_ENTRY_INFO& p)const
 		case COMPARE::equalOrLess:
 			return (st_size >= p._entry.stat.st_size);
 		}
-	case KEY::mtime:
+	case KEY::mdate:
+		//by day
+	{
+		if (p._entry.stat.st_mtime == 0)return false;	//no date provided
+		auto ft_gmt = UtilUnixToFILETIME(p._entry.stat.st_mtime);
+		FILETIME ft_local;
+		FileTimeToLocalFileTime(&ft_gmt, &ft_local);
+		SYSTEMTIME systime = {};
+		FileTimeToSystemTime(&ft_local, &systime);
+
 		switch (compare) {
 		case COMPARE::equal:
-			return (st_mtime == p._entry.stat.st_mtime);
+			return (mdate.wYear == systime.wYear)
+				&& (mdate.wMonth == systime.wMonth)
+				&& (mdate.wDay == systime.wDay);
 		case COMPARE::equalOrGreater:
-			return (st_mtime <= p._entry.stat.st_mtime);
+			return (mdate.wYear < systime.wYear)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth < systime.wMonth)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth == systime.wMonth && mdate.wDay <= systime.wDay);
 		case COMPARE::equalOrLess:
-			return (st_mtime >= p._entry.stat.st_mtime);
+			return (mdate.wYear > systime.wYear)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth > systime.wMonth)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth == systime.wMonth && mdate.wDay >= systime.wDay);
 		}
+	}
 	case KEY::mode:
-		return (p._entry.stat.st_mode & st_mode_mask) != 0;
+		if (st_mode_mask & S_IFDIR) {
+			return p.is_directory();
+		} else {
+			return (p._entry.stat.st_mode & st_mode_mask) != 0;
+		}
 	default:
 		ASSERT(!"This code cannot be run");
 		return false;
@@ -240,15 +260,36 @@ TEST(ArcFileContent, findItem)
 	result = content.findItem(afc);
 	EXPECT_EQ(8, result.size());
 
-	//---by st_mtime
-	afc.setFindByMTime(1589718815/* 2020-05-17T12:33:35+0000 */, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
-	result = content.findItem(afc);
-	EXPECT_EQ(5, result.size());
-
 	//---by mode
 	afc.setFindByMode(S_IFDIR);
 	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	afc.setFindByMode(S_IFREG);
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	//------------------
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_mtime.zip", CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+
+	//---by st_mtime, in date unit
+	SYSTEMTIME st = {};
+	st.wYear = 2021;
+	st.wMonth = 6;
+	st.wDay = 4;
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equal);
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+	result = content.findItem(afc);
 	EXPECT_EQ(2, result.size());
+
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
 }
 #endif
 
