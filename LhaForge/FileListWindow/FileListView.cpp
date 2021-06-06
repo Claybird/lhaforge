@@ -637,18 +637,16 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	}
 	UtilSetTextOnClipboard(info);
 }
-
+#include "Dialogs/FindDlg.h"
 void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	if(ID_MENUITEM_FINDITEM_END==nID){
 		mr_Model.EndFindItem();
 	}else{
-		CTextInputDialog dlg(UtilLoadString(IDS_INPUT_FIND_PARAM), false);
-
-		if(IDOK == dlg.DoModal()){
+		CLFFindDialog dlg;
+		if (IDOK == dlg.DoModal()) {
+			auto afc = dlg.getCondition();
 			mr_Model.EndFindItem();
-			ARCHIVE_FIND_CONDITION afc;
-			afc.setFindByFullpath(dlg.GetInputText());
 			auto lpFound = mr_Model.FindItem(afc, mr_Model.getCurrentDir());
 			mr_Model.setCurrentDir(lpFound);
 		}

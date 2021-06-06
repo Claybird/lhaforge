@@ -115,6 +115,9 @@
     <ClCompile Include="ConfigCode\Dialogs\Configwnd.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\CustomControl.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -331,6 +334,9 @@
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Configwnd.h">
       <Filter>Configs\Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs\FindDlg.h">
+      <Filter>Dialogs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
