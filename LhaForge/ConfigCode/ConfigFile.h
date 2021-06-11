@@ -57,6 +57,10 @@ struct CConfigFile
 		auto value = getInt(section, key, defaultValue);
 		return std::max(std::min(value, nMax), nMin);
 	}
+	int64_t getInt64(const std::wstring& section, const std::wstring& key, int64_t defaultValue)const {
+		auto value = m_Config.GetValue(section.c_str(), key.c_str(), Format(L"%lld", defaultValue).c_str());
+		return _wtoi64(value);
+	}
 	double getDouble(const std::wstring& section, const std::wstring& key, double defaultValue)const {
 		return m_Config.GetDoubleValue(section.c_str(), key.c_str(), defaultValue);
 	}
@@ -69,6 +73,9 @@ struct CConfigFile
 	}
 	void setValue(const std::wstring& section, const std::wstring& key, int value) {
 		m_Config.SetLongValue(section.c_str(), key.c_str(), value);
+	}
+	void setValue(const std::wstring& section, const std::wstring& key, int64_t value) {
+		m_Config.SetValue(section.c_str(), key.c_str(), Format(L"%lld", value).c_str());
 	}
 	void setValue(const std::wstring& section, const std::wstring& key, double value) {
 		m_Config.SetDoubleValue(section.c_str(), key.c_str(), value);

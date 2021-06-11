@@ -179,6 +179,10 @@ TEST(ConfigFile, basic)
 		EXPECT_EQ(1.5, conf.getDouble(L"section3", L"key_added", 0.0));
 		conf.setValue(L"section3", L"key_added", L"abc");
 		EXPECT_EQ(L"abc", conf.getText(L"section3", L"key_added", L""));
+
+		int64_t large_value = 1099511627776L;
+		conf.setValue(L"int64",L"int64_t", large_value);
+		EXPECT_EQ(large_value, conf.getInt64(L"int64", L"int64_t", 0));
 	}
 	UtilDeletePath(tmpPath);
 	EXPECT_FALSE(std::filesystem::exists(tmpPath));
