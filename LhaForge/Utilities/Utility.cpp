@@ -364,7 +364,7 @@ TEST(Utility, merge_map) {
 #endif
 
 
-FILETIME UtilUnixToFILETIME(__time64_t t)
+FILETIME UtilUnixTimeToFileTime(__time64_t t)
 {
 	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
 	FILETIME ft;
@@ -374,9 +374,9 @@ FILETIME UtilUnixToFILETIME(__time64_t t)
 }
 
 #ifdef UNIT_TEST
-TEST(Utility, UtilUnixToFILETIME)
+TEST(Utility, UtilUnixTimeToFileTimeime)
 {
-	auto ft = UtilUnixToFILETIME(946730096);	//2000-01-01T12:34:56
+	auto ft = UtilUnixTimeToFileTime(946730096);	//2000-01-01T12:34:56
 	SYSTEMTIME systime;
 	FileTimeToSystemTime(&ft, &systime);
 
@@ -388,3 +388,21 @@ TEST(Utility, UtilUnixToFILETIME)
 	EXPECT_EQ(56, systime.wSecond);
 }
 #endif
+
+__time64_t UtilFileTimeToUnixTime(FILETIME ft)
+{
+	int64_t ll = ((int64_t)ft.dwLowDateTime) + (((int64_t)ft.dwHighDateTime) << 32);
+
+	__time64_t ut = ll / 10000000L - 11644473600;
+	return ut;
+}
+
+#ifdef UNIT_TEST
+TEST(Utility, UtilFileTimeToUnixTime)
+{
+	FILETIME ft = UtilUnixTimeToFileTime(946730096);
+
+	EXPECT_EQ(946730096, UtilFileTimeToUnixTime(ft));
+}
+#endif
+
