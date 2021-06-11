@@ -112,6 +112,38 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 	view.OpenAssoc.Accept = Config.getText(section, L"OpenAssocAccept", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT));
 	view.OpenAssoc.Deny = Config.getText(section, L"OpenAssocDeny", UtilLoadString(IDS_FILELIST_OPENASSOC_DEFAULT_DENY));
 	view.OpenAssoc.DenyExecutables = Config.getBool(section, L"DenyPathExt", true);
+
+	//search folder
+	{
+		view.searchFolderItems.clear();
+		auto count = Config.getInt(section, L"SearchItemCount", 0);
+		for (int i = 0; i < count; i++) {
+			std::wstring name = Config.getText(section, Format(L"SearchItemName%d", i), L"");
+			ARCHIVE_FIND_CONDITION cond = {};
+			cond.compare = (ARCHIVE_FIND_CONDITION::COMPARE)Config.getIntRange(section, Format(L"SearchItemCompare%d", i), 0, (int)ARCHIVE_FIND_CONDITION::COMPARE::LastItem, 0);
+			cond.key = (ARCHIVE_FIND_CONDITION::KEY)Config.getIntRange(section, Format(L"SearchItemKey%d", i), 0, (int)ARCHIVE_FIND_CONDITION::KEY::LastItem, 0);
+			switch (cond.key) {
+			case ARCHIVE_FIND_CONDITION::KEY::originalSize:
+				cond.st_size = Config.getInt64(section, Format(L"SearchItemSize%d", i), 0);
+				break;
+			case ARCHIVE_FIND_CONDITION::KEY::mdate:
+			{
+				auto ft = UtilUnixTimeToFileTime(Config.getInt64(section, Format(L"SearchItemMdate%d", i), 0));
+				FileTimeToSystemTime(&ft, &cond.mdate);
+			}
+				break;
+			case ARCHIVE_FIND_CONDITION::KEY::mode:
+				cond.st_mode_mask = Config.getInt(section, Format(L"SearchItemModeMask%d", i), 0);
+				break;
+			case ARCHIVE_FIND_CONDITION::KEY::filename:	//FALLTHROUGH
+			case ARCHIVE_FIND_CONDITION::KEY::fullpath:	//FALLTHROUGH
+			default:
+				cond.patternStr = Config.getText(section, Format(L"SearchItemPattern%d", i), L"*");
+				break;
+			}
+			view.searchFolderItems.push_back(std::make_pair<>(name, cond));
+		}
+	}
 }
 
 void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
@@ -187,6 +219,25 @@ void CConfigFileListWindow::store_sub(CConfigFile &Config)const
 	Config.setValue(section, L"CustomToolbarImage", view.strCustomToolbarImage);
 	Config.setValue(section, L"ShowToolbar", view.ShowToolbar);
 	Config.setValue(section, L"ShowTreeView", view.ShowTreeView);
+
+	//search folder
+	{
+		Config.setValue(section, L"SearchItemCount", (int)view.searchFolderItems.size());
+		for (int i = 0; i < (int)view.searchFolderItems.size(); i++) {
+			const auto& name = view.searchFolderItems[i].first;
+			const auto& cond = view.searchFolderItems[i].second;
+			Config.setValue(section, Format(L"SearchItemName%d", i), name);
+			Config.setValue(section, Format(L"SearchItemCompare%d", i), (int)cond.compare);
+			Config.setValue(section, Format(L"SearchItemKey%d", i), (int)cond.key);
+			Config.setValue(section, Format(L"SearchItemSize%d", i), cond.st_size);
+
+			FILETIME ft;
+			SystemTimeToFileTime(&cond.mdate, &ft);
+			Config.setValue(section, Format(L"SearchItemMdate%d", i), UtilFileTimeToUnixTime(ft));
+			Config.setValue(section, Format(L"SearchItemModeMask%d", i), cond.st_mode_mask);
+			Config.setValue(section, Format(L"SearchItemPattern%d", i), cond.patternStr);
+		}
+	}
 }
 
 void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const

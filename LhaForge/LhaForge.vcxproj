@@ -36,7 +36,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
-    <ClCompile Include="ConfigCode\test\test_configfile.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -138,6 +137,7 @@
     <Image Include="app_test.ico" />
     <Image Include="compress.ico" />
     <Image Include="extract.ico" />
+    <Image Include="graphics\search.ico" />
     <Image Include="LhaForge.ico" />
     <Image Include="list.ico" />
     <Image Include="sortmark.bmp" />

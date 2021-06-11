@@ -171,12 +171,14 @@ struct ARCHIVE_FIND_CONDITION {
 		mode,	//directory or file
 		//compressedSize,
 		//ratio,
+		ENUM_COUNT_AND_LASTITEM
 	};
 
 	enum class COMPARE :int {	//valid on size and date
 		equal,
 		equalOrGreater,
 		equalOrLess,
+		ENUM_COUNT_AND_LASTITEM
 	};
 
 	KEY key;

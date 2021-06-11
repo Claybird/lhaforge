@@ -71,6 +71,8 @@ public:
 		}OpenAssoc;
 
 		std::vector<CLFMenuCommandItem> MenuCommandArray;	//Open with app
+
+		std::vector<std::pair<std::wstring, ARCHIVE_FIND_CONDITION> > searchFolderItems;
 	}view;
 
 protected:

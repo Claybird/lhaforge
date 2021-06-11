@@ -31,6 +31,12 @@ class CFileTreeView:public CFileViewBase<CFileTreeView,CTreeViewCtrl>
 protected:
 	CImageList	m_ImageList;
 	std::map<const ARCHIVE_ENTRY_INFO*,HTREEITEM> m_TreeItemMap;
+	struct TREE_USER_DATA {
+		TREE_USER_DATA() :pFind(nullptr), pInfo(nullptr) {}
+		const ARCHIVE_FIND_CONDITION* pFind;
+		const ARCHIVE_ENTRY_INFO* pInfo;
+	};
+	std::vector<std::shared_ptr<TREE_USER_DATA>> m_GC;
 protected:
 	HTREEITEM m_hDropHilight;	//highlited item handle for drag-drop
 protected:
@@ -62,8 +68,7 @@ protected:
 
 		mr_Model.addEventListener(m_hWnd);
 
-		m_ImageList.Create(::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CXSMICON), ILC_COLOR32 | ILC_MASK, 8, 1);
-		SetImageList(m_ImageList, TVSIL_NORMAL);
+		m_ImageList.Create(::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CXSMICON), ILC_COLOR32 | ILC_MASK, 1, 1);
 
 		//directory icons
 		//-close
@@ -76,6 +81,12 @@ protected:
 		m_ImageList.AddIcon(shfi.hIcon);
 		DestroyIcon(shfi.hIcon);
 
+		//search icons
+		CIcon ico;
+		ico.LoadIcon(MAKEINTRESOURCE(IDI_ICON_SEARCH));
+		m_ImageList.AddIcon(ico);
+
+		SetImageList(m_ImageList, TVSIL_NORMAL);
 		return lRes;
 	}
 	LRESULT OnDestroy() {
@@ -84,24 +95,42 @@ protected:
 		return 0;
 	}
 
+	void AddSearchFolder() {
+		//root - search folder
+		HTREEITEM hParent = InsertItem(UtilLoadString(IDS_TREE_SEARCH_FOLDER).c_str(), TVI_ROOT, TVI_LAST);
+		SetItemImage(hParent, searchIconIndex, searchIconIndex);
+		SetItemData(hParent, NULL);
+		//search conditions
+		for (const auto& pair : mr_confFLW.view.searchFolderItems) {
+			const auto &name = pair.first;
+			const auto &cond = pair.second;
+
+			//title only, no icon
+			HTREEITEM hItem = InsertItem(name.c_str(), hParent, TVI_LAST);
+			auto p = std::make_shared<TREE_USER_DATA>();
+			p->pFind = &cond;
+			m_GC.push_back(p);
+			SetItemData(hItem, (DWORD_PTR)p.get());
+		}
+	}
 	LRESULT OnTreeSelect(LPNMHDR) {
 		auto lpCurrent = mr_Model.getCurrentDir();
 
 		HTREEITEM hItem = GetSelectedItem();
 		if (!hItem)return 0;
 
-		auto lpNode = (ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
-		if (lpNode) {
+		auto lpData = (TREE_USER_DATA*)GetItemData(hItem);
+		if (lpData) {
 			mr_Model.EndFindItem();
-			if (lpNode && lpNode != lpCurrent) {
-				mr_Model.setCurrentDir(lpNode);
+			if (lpData->pInfo) {
+				if (lpData->pInfo != lpCurrent) {
+					mr_Model.setCurrentDir(lpData->pInfo);
+				}
+			} else if(lpData->pFind){
+				//find all elements
+				auto lpFound = mr_Model.FindItem(*(lpData->pFind));
+				mr_Model.setCurrentDir(lpFound);
 			}
-		} else {
-			//find all elements
-			ARCHIVE_FIND_CONDITION afc;
-			afc.setFindByFilename(L"*");
-			auto lpFound = mr_Model.FindItem(afc);
-			mr_Model.setCurrentDir(lpFound);
 		}
 		return 0;
 	}
@@ -153,7 +182,8 @@ protected:
 	enum :int {
 		dirIconClosed = 0,
 		dirIconOpened = 1,
-		archiveIconIndex = 2,
+		searchIconIndex = 2,
+		archiveIconIndex = 3,
 	};
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
@@ -164,11 +194,6 @@ public:
 		m_hDropHilight(NULL)
 	{}
 	virtual ~CFileTreeView(){}
-	void AddSearchFolder() {
-		HTREEITEM hItem = InsertItem(UtilLoadString(IDS_TREE_SHOW_ALL_ITEM).c_str(), TVI_ROOT, TVI_LAST);
-		SetItemImage(hItem, dirIconClosed, dirIconOpened);
-		SetItemData(hItem, NULL);
-	}
 	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr) {
 		HTREEITEM hItem;
 		if (hParentItem) {
@@ -191,7 +216,10 @@ public:
 
 		m_TreeItemMap.insert({ lpNode,hItem });
 		//set node pointer
-		SetItemData(hItem, (DWORD_PTR)lpNode);
+		auto p = std::make_shared<TREE_USER_DATA>();
+		p->pInfo = lpNode;
+		m_GC.push_back(p);
+		SetItemData(hItem, (DWORD_PTR)p.get());
 
 		//process children
 		UINT numItems = lpNode->getNumChildren();
@@ -207,6 +235,7 @@ public:
 	void Clear() {
 		DeleteAllItems();
 		m_TreeItemMap.clear();
+		m_GC.clear();
 	}
 	void ExpandTree() {
 		for (const auto &item : m_TreeItemMap) {

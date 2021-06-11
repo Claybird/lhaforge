@@ -53,7 +53,7 @@ bool ARCHIVE_FIND_CONDITION::matchItem(const ARCHIVE_ENTRY_INFO& p)const
 		//by day
 	{
 		if (p._entry.stat.st_mtime == 0)return false;	//no date provided
-		auto ft_gmt = UtilUnixToFILETIME(p._entry.stat.st_mtime);
+		auto ft_gmt = UtilUnixTimeToFileTime(p._entry.stat.st_mtime);
 		FILETIME ft_local;
 		FileTimeToLocalFileTime(&ft_gmt, &ft_local);
 		SYSTEMTIME systime = {};

@@ -14,7 +14,6 @@
 #define IDS_COMPRESS_FILE               10
 #define IDS_CONFIRM_OVERWRITE_MESSAGE   11
 #define IDS_CONFIG_FORMAT_VALUE         12
-#define IDS_TREE_SHOW_ALL_ITEM          13
 #define IDS_COMPRESS_METHOD             14
 #define IDS_COMPRESS_METHOD_DEFLATE     15
 #define IDS_COMPRESS_LEVEL              16
@@ -101,6 +100,7 @@
 #define IDS_COMPRESSION_FORCE_ZIP64     89
 #define IDS_COMPRESSION_FORCE_ZIP64_ON  90
 #define IDS_COMPRESSION_FORCE_ZIP64_OFF 91
+#define IDS_TREE_SEARCH_FOLDER          92
 #define IDS_FORMAT_NAME_TAR             96
 #define IDS_FORMAT_NAME_TBZ             97
 #define IDS_FORMAT_NAME_TGZ             98
@@ -185,6 +185,7 @@
 #define IDR_MENU_ASSOC                  191
 #define IDR_ASSOC_POPUP                 191
 #define IDD_DIALOG_FIND                 195
+#define IDI_ICON_SEARCH                 197
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
@@ -420,7 +421,6 @@
 #define IDC_BY_MTIME_EQUAL              1320
 #define IDC_BY_MTIME_EQUAL_OR_GREATER   1321
 #define IDC_CONDITION_DATE              1322
-#define IDC_SPLIT1                      1323
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -510,7 +510,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        197
+#define _APS_NEXT_RESOURCE_VALUE        198
 #define _APS_NEXT_COMMAND_VALUE         40160
 #define _APS_NEXT_CONTROL_VALUE         1324
 #define _APS_NEXT_SYMED_VALUE           102

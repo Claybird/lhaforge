@@ -88,9 +88,6 @@
     <ClCompile Include="Utilities\Utility.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\test\test_configfile.cpp">
-      <Filter>Configs\Other\test</Filter>
-    </ClCompile>
     <ClCompile Include="FileListWindow\MenuCommand.cpp">
       <Filter>FileListWindow</Filter>
     </ClCompile>
@@ -152,9 +149,6 @@
     </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configs\Other\test">
-      <UniqueIdentifier>{5ddd1314-39a1-46a4-8078-4cfcc104a9a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -369,6 +363,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="graphics\search.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
