@@ -185,7 +185,7 @@
 #define IDR_MENU_ASSOC                  191
 #define IDR_ASSOC_POPUP                 191
 #define IDD_DIALOG_FIND                 195
-#define IDI_ICON_SEARCH                 197
+#define IDI_ICON_SEARCH                 2005
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
