@@ -60,6 +60,8 @@ std::vector<int> UtilStringToIntArray(const std::wstring&);
 
 // (size in bytes) to (size in suitable unit)
 std::wstring UtilFormatSize(UINT64 size);
+//compatible with CLFBytesEdit
+std::wstring UtilFormatSizeStrict(UINT64 size);
 
 std::wstring UtilFormatTime(__time64_t timer);
 

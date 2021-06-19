@@ -443,6 +443,46 @@ TEST(StringUtil, UtilFormatSize) {
 }
 #endif
 
+//compatible with CLFBytesEdit
+std::wstring UtilFormatSizeStrict(UINT64 size)
+{
+	if (-1 == size) {
+		return L"---";
+	}
+	const std::vector<std::pair<UINT64, std::wstring> > units = {
+		{1024 * 1024 * 1024 * 1024ull * 1024ull, L"PB"},
+		{1024 * 1024 * 1024 * 1024ull, L"TB"},
+		{1024 * 1024 * 1024, L"GB" },
+		{1024 * 1024, L"MB"},
+		{1024, L"KB"},
+		{1, L"B"},
+	};
+
+	for (const auto& unit : units) {
+		if (size % unit.first == 0) {
+			return Format(L"%llu%s", size / unit.first, unit.second.c_str());
+		}
+	}
+
+	return Format(L"%llu%s", size / units.back().first, units.back().second.c_str());
+}
+#ifdef UNIT_TEST
+TEST(StringUtil, UtilFormatSizeStrict) {
+	EXPECT_EQ(L"---", UtilFormatSizeStrict(-1));
+	EXPECT_EQ(L"1B", UtilFormatSizeStrict(1));
+	EXPECT_EQ(L"1000B", UtilFormatSizeStrict(1000));
+	EXPECT_EQ(L"1KB", UtilFormatSizeStrict(1024));
+	EXPECT_EQ(L"1025B", UtilFormatSizeStrict(1025));
+	EXPECT_EQ(L"1MB", UtilFormatSizeStrict(1024 * 1024));
+	EXPECT_EQ(L"1048577B", UtilFormatSizeStrict(1024 * 1024 + 1));
+	EXPECT_EQ(L"1025KB", UtilFormatSizeStrict(1024 * 1025));
+	EXPECT_EQ(L"1GB", UtilFormatSizeStrict(1024 * 1024 * 1024));
+	EXPECT_EQ(L"1TB", UtilFormatSizeStrict(1024 * 1024 * 1024 * 1024ull));
+	EXPECT_EQ(L"1PB", UtilFormatSizeStrict(1024 * 1024 * 1024 * 1024ull * 1024ull));
+	EXPECT_EQ(L"10PB", UtilFormatSizeStrict(1024 * 1024 * 1024 * 1024ull * 1024ull * 10));
+}
+#endif
+
 std::wstring UtilFormatTime(__time64_t timer)
 {
 	std::wstring buf;
