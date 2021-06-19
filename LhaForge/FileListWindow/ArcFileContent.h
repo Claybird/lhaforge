@@ -211,6 +211,7 @@ struct ARCHIVE_FIND_CONDITION {
 		st_mode_mask = mode;
 	}
 	bool matchItem(const ARCHIVE_ENTRY_INFO& p)const;	//true if item matches condition
+	std::wstring toString()const;
 };
 
 class CArchiveFileContent{

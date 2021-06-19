@@ -86,6 +86,75 @@ bool ARCHIVE_FIND_CONDITION::matchItem(const ARCHIVE_ENTRY_INFO& p)const
 	}
 }
 
+std::wstring ARCHIVE_FIND_CONDITION::toString()const
+{
+	std::wstring desc;
+	switch (key) {
+	case KEY::filename:
+		if (patternStr==L"*" || patternStr == L"*.*") {
+			desc = UtilLoadString(IDS_SEARCH_EVERYTHING);
+		} else {
+			desc = Format(UtilLoadString(IDS_SEARCH_BY_FILENAME), patternStr.c_str());
+		}
+		break;
+	case KEY::fullpath:
+		if (patternStr == L"*" || patternStr == L"*.*") {
+			desc = UtilLoadString(IDS_SEARCH_EVERYTHING);
+		} else {
+			desc = Format(UtilLoadString(IDS_SEARCH_BY_FILEPATH), patternStr.c_str());
+		}
+		break;
+	case KEY::originalSize:
+	{
+		std::wstring cond;
+		switch (compare) {
+		case COMPARE::equal:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL), st_size);
+			break;
+		case COMPARE::equalOrGreater:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_GREATER), st_size);
+			break;
+		case COMPARE::equalOrLess:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_LESS), st_size);
+			break;
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_ORIGINAL_SIZE), cond.c_str());
+		break;
+	}
+	case KEY::mdate:
+	{
+		std::wstring cond;
+		switch (compare) {
+		case COMPARE::equal:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		case COMPARE::equalOrGreater:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL_OR_GREATER), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		case COMPARE::equalOrLess:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL_OR_LESS), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_MDATE), cond.c_str());
+		break;
+	}
+	case KEY::mode:
+	{
+		std::wstring cond;
+		if (st_mode_mask & S_IFDIR) {
+			cond = UtilLoadString(IDS_COND_FOLDER);
+		} else {
+			cond = UtilLoadString(IDS_COND_FILE);
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_MODE), cond.c_str());
+		break;
+	}
+	}
+	return desc;
+}
+
+
+//-----
 void CArchiveFileContent::scanArchiveStruct(
 	const std::filesystem::path& archiveName,
 	ILFScanProgressHandler& progressHandler)
