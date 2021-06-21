@@ -23,6 +23,9 @@
 */
 
 #pragma once
+#include "resource.h"
+#include "Utilities/CustomControl.h"
+#include "FileListWindow/ArcFileContent.h"
 
 enum class FIND_CONDITION:int {
 	filename_match,
@@ -40,10 +43,13 @@ enum class FIND_CONDITION:int {
 
 class CLFFindDialog : public CDialogImpl<CLFFindDialog>, public LFWinDataExchange<CLFFindDialog>
 {
+#ifdef UNIT_TEST
+	FRIEND_TEST(CLFFindDialog, getCondition);
+	FRIEND_TEST(CLFFindDialog, setCondition);
+#endif
 protected:
 	std::wstring _path;
 	std::wstring _sizeStr;
-	int64_t _size;
 	SYSTEMTIME _date;
 	int/*FIND_CONDITION*/ _condition;
 
@@ -86,15 +92,29 @@ public:
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDOK, OnButton)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
-		MSG_WM_COMMAND(OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_FILENAME, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_FULLPATH, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_FILESIZE_EQUAL, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_FILESIZE_EQUAL_OR_LESS, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_FILESIZE_EQUAL_OR_GREATER, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_MTIME_EQUAL, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_MTIME_EQUAL_OR_GREATER, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_MTIME_EQUAL_OR_OLDER, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_CONDITION_FILE, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_CONDITION_DIRECTORY, OnRadios)
+		COMMAND_ID_HANDLER_EX(IDC_BY_CONDITION_EVERYTHING, OnRadios)
 		REFLECT_COMMAND_CODE(EN_UPDATE)	//CLFBytesEdit
 	END_MSG_MAP()
+
+	CLFFindDialog(){
+		GetLocalTime(&_date);
+		_condition = 0;
+	}
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
 		_bytesEdit.SetSubjectWindow(GetDlgItem(IDC_CONDITION_SIZE));
 		_datePicker = GetDlgItem(IDC_CONDITION_DATE);
-		_condition = 0;
-		Button_SetCheck(GetDlgItem(IDC_BY_FILENAME), TRUE);
+		_datePicker.SetSystemTime(GDT_VALID, &_date);
 		DoDataExchange(FALSE);
 		updateDialog();
 		return TRUE;
@@ -102,7 +122,15 @@ public:
 	void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		DoDataExchange(TRUE);
 		_datePicker.GetSystemTime(&_date);
-		_size = CLFBytesEdit::ParseSize(_sizeStr);
+		int64_t size = CLFBytesEdit::ParseSize(_sizeStr);
+		if(nID==IDOK && size == -1) {
+			if ((int)FIND_CONDITION::original_size_equal == _condition ||
+				(int)FIND_CONDITION::original_size_equal_or_greater == _condition ||
+				(int)FIND_CONDITION::original_size_equal_or_less == _condition) {
+				MessageBeep(MB_ICONASTERISK);
+				return;
+			}
+		}
 		EndDialog(nID);
 	}
 	void OnRadios(UINT uNotifyCode, int nID, HWND hWndCtl) {
@@ -116,6 +144,7 @@ public:
 		}
 	}
 	ARCHIVE_FIND_CONDITION getCondition()const {		//valid after closed with IDOK
+		int64_t size = CLFBytesEdit::ParseSize(_sizeStr);
 		ARCHIVE_FIND_CONDITION afc = {};
 		switch ((FIND_CONDITION)_condition) {
 		case FIND_CONDITION::filename_match:
@@ -125,13 +154,13 @@ public:
 			afc.setFindByFullpath(_path);
 			break;
 		case FIND_CONDITION::original_size_equal:
-			afc.setFindByOriginalSize(_size, ARCHIVE_FIND_CONDITION::COMPARE::equal);
+			afc.setFindByOriginalSize(size, ARCHIVE_FIND_CONDITION::COMPARE::equal);
 			break;
 		case FIND_CONDITION::original_size_equal_or_less:
-			afc.setFindByOriginalSize(_size, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
+			afc.setFindByOriginalSize(size, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
 			break;
 		case FIND_CONDITION::original_size_equal_or_greater:
-			afc.setFindByOriginalSize(_size, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+			afc.setFindByOriginalSize(size, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
 			break;
 		case FIND_CONDITION::mdate_equal:
 			afc.setFindByMDate(_date, ARCHIVE_FIND_CONDITION::COMPARE::equal);
@@ -155,6 +184,63 @@ public:
 		}
 
 		return afc;
+	}
+	void setCondition(const ARCHIVE_FIND_CONDITION& afc) {
+		switch (afc.key) {
+		case ARCHIVE_FIND_CONDITION::KEY::filename:
+			if (afc.patternStr == L"*" || afc.patternStr == L"*.*") {
+				_condition = (int)FIND_CONDITION::everything;
+			} else {
+				_condition = (int)FIND_CONDITION::filename_match;
+				_path = afc.patternStr;
+			}
+			break;
+		case ARCHIVE_FIND_CONDITION::KEY::fullpath:
+			if (afc.patternStr == L"*" || afc.patternStr == L"*.*") {
+				_condition = (int)FIND_CONDITION::everything;
+			} else {
+				_condition = (int)FIND_CONDITION::filepath_match;
+				_path = afc.patternStr;
+			}
+			break;
+		case ARCHIVE_FIND_CONDITION::KEY::originalSize:
+			switch (afc.compare) {
+			case ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater:
+				_condition = (int)FIND_CONDITION::original_size_equal_or_greater;
+				break;
+			case ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess:
+				_condition = (int)FIND_CONDITION::original_size_equal_or_less;
+				break;
+			case ARCHIVE_FIND_CONDITION::COMPARE::equal:
+			default:
+				_condition = (int)FIND_CONDITION::original_size_equal;
+				break;
+			}
+			_sizeStr = UtilFormatSizeStrict(afc.st_size);
+			break;
+		case ARCHIVE_FIND_CONDITION::KEY::mdate:
+			switch (afc.compare) {
+			case ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater:
+				_condition = (int)FIND_CONDITION::mdate_equal_or_newer;
+				break;
+			case ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess:
+				_condition = (int)FIND_CONDITION::mdate_equal_or_older;
+				break;
+			case ARCHIVE_FIND_CONDITION::COMPARE::equal:
+			default:
+				_condition = (int)FIND_CONDITION::mdate_equal;
+				break;
+			}
+			_date = afc.mdate;
+			break;
+		case ARCHIVE_FIND_CONDITION::KEY::mode:
+			if(afc.st_mode_mask == S_IFDIR) {
+				_condition = (int)FIND_CONDITION::all_directories;
+			} else {
+				_condition = (int)FIND_CONDITION::all_files;
+			}
+			break;
+		}
 	}
 };
 

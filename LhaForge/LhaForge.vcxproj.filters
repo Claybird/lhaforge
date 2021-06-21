@@ -115,6 +115,9 @@
     <ClCompile Include="Utilities\CustomControl.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Dialogs\FindDlg.cpp">
+      <Filter>Dialogs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">

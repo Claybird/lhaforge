@@ -36,6 +36,7 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
+    <ClCompile Include="Dialogs\FindDlg.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
