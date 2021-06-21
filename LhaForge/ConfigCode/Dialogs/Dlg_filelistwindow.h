@@ -33,10 +33,11 @@ class CConfigDlgFileListWindow : public LFConfigDialogBase<CConfigDlgFileListWin
 {
 protected:
 	CConfigFileListWindow	m_Config;
+	CListViewCtrl List_Search;
 	CListViewCtrl List_Command;
 
-	std::vector<CLFMenuCommandItem> m_MenuCommandArray;
-	CLFMenuCommandItem *m_lpMenuCommandItem;	//command item in edit
+	CLFMenuCommandItem* m_lpMenuCommandItem;	//command item in edit
+	std::pair<std::wstring,ARCHIVE_FIND_CONDITION>* m_lpSearchItem;	//search folder item in edit
 
 	void OnClearTemporary(UINT, int, HWND) {
 		//clear remaining temoorary directory
@@ -60,6 +61,7 @@ protected:
 
 	LRESULT OnGetDispInfo(LPNMHDR pnmh);
 	LRESULT OnSelect(LPNMHDR pnmh);
+
 	LRESULT OnUserAppMoveUpDown(WORD,WORD,HWND,BOOL&);
 	LRESULT OnUserAppNew(WORD,WORD,HWND,BOOL&);
 	LRESULT OnUserAppDelete(WORD,WORD,HWND,BOOL&);
@@ -69,23 +71,45 @@ protected:
 		return 0;
 	}
 
-	void getUserAppEdit() {
-		CString buf;
-		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, buf);
-		m_lpMenuCommandItem->Path = buf;
-		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, buf);
-		m_lpMenuCommandItem->Param = buf;
-		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, buf);
-		m_lpMenuCommandItem->Dir = buf;
-		GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, buf);
-		m_lpMenuCommandItem->Caption = buf;
+	void updateUserAppEdit() {
+		if (m_lpMenuCommandItem) {
+			CString buf;
+			GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, buf);
+			m_lpMenuCommandItem->Path = buf;
+			GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, buf);
+			m_lpMenuCommandItem->Param = buf;
+			GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, buf);
+			m_lpMenuCommandItem->Dir = buf;
+			GetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, buf);
+			m_lpMenuCommandItem->Caption = buf;
+		}
 	}
 	void setUserAppEdit() {
-		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, m_lpMenuCommandItem->Path.c_str());
-		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, m_lpMenuCommandItem->Param.c_str());
-		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, m_lpMenuCommandItem->Dir.c_str());
-		SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, m_lpMenuCommandItem->Caption.c_str());
+		if (m_lpMenuCommandItem) {
+			SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PATH, m_lpMenuCommandItem->Path.c_str());
+			SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_PARAM, m_lpMenuCommandItem->Param.c_str());
+			SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_DIR, m_lpMenuCommandItem->Dir.c_str());
+			SetDlgItemText(IDC_EDIT_FILELIST_USERAPP_CAPTION, m_lpMenuCommandItem->Caption.c_str());
+		}
 	}
+
+	LRESULT OnSearchItemMoveUpDown(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSearchItemNew(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSearchItemDelete(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSearchItemEdit(WORD, WORD, HWND, BOOL&);
+	void updateSearchItemName() {
+		if (m_lpSearchItem) {
+			CString buf;
+			GetDlgItemText(IDC_EDIT_SEARCH_FOLDER_NAME, buf);
+			m_lpSearchItem->first = buf;
+		}
+	}
+	void setSearchItemName() {
+		if (m_lpSearchItem) {
+			SetDlgItemText(IDC_EDIT_SEARCH_FOLDER_NAME, m_lpSearchItem->first.c_str());
+		}
+	}
+
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_FILELISTWINDOW };
 
@@ -123,6 +147,13 @@ public:
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_BROWSE_CUSTOMTOOLBAR_IMAGE, OnBrowseCustomToolbarImage)
 
 		COMMAND_ID_HANDLER(IDC_CHECK_DISABLE_TAB, OnCheckChanged)
+
+		COMMAND_ID_HANDLER(IDC_BUTTON_SEARCH_ITEM_NEW, OnSearchItemNew)
+		COMMAND_ID_HANDLER(IDC_BUTTON_SEARCH_ITEM_DELETE, OnSearchItemDelete)
+		COMMAND_ID_HANDLER(IDC_BUTTON_SEARCH_ITEM_MOVEUP, OnSearchItemMoveUpDown)
+		COMMAND_ID_HANDLER(IDC_BUTTON_SEARCH_ITEM_MOVEDOWN, OnSearchItemMoveUpDown)
+		COMMAND_ID_HANDLER(IDC_BUTTON_SEARCH_ITEM_EDIT, OnSearchItemEdit)
+
 		MSG_WM_INITDIALOG(OnInitDialog)
 	END_MSG_MAP()
 

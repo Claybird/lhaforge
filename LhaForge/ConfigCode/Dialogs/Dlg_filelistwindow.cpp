@@ -27,12 +27,12 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/CustomControl.h"
+#include "Dialogs/FindDlg.h"
 
 LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 {
 	DoDataExchange(FALSE);
 
-	m_MenuCommandArray = m_Config.view.MenuCommandArray;
 	m_lpMenuCommandItem = nullptr;
 
 	CRect rect;
@@ -40,7 +40,16 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 	List_Command.GetClientRect(rect);
 	List_Command.InsertColumn(0, L"", LVCFMT_LEFT, rect.Width());
 	List_Command.SetExtendedListViewStyle(List_Command.GetExtendedListViewStyle() | LVS_EX_FULLROWSELECT);
-	List_Command.SetItemCount(m_MenuCommandArray.size());
+	List_Command.SetItemCount(m_Config.view.MenuCommandArray.size());
+
+	m_lpSearchItem = nullptr;
+
+	List_Search = GetDlgItem(IDC_LIST_SEARCH_FOLDER);
+	List_Search.GetClientRect(rect);
+	List_Search.InsertColumn(0, UtilLoadString(IDS_SEARCH_FOLDER_NAME).c_str(), LVCFMT_LEFT, 180);
+	List_Search.InsertColumn(1, UtilLoadString(IDS_SEARCH_FOLDER_CONDITION).c_str(), LVCFMT_LEFT, rect.Width() - 180);
+	List_Search.SetExtendedListViewStyle(List_Search.GetExtendedListViewStyle() | LVS_EX_FULLROWSELECT);
+	List_Search.SetItemCount(m_Config.view.searchFolderItems.size());
 
 	BOOL tmp = {};
 	OnCheckChanged(0, 0, nullptr, tmp);
@@ -53,10 +62,8 @@ LRESULT CConfigDlgFileListWindow::OnApply()
 		return FALSE;
 	}
 
-	if(m_lpMenuCommandItem){
-		getUserAppEdit();
-	}
-	m_Config.view.MenuCommandArray = m_MenuCommandArray;
+	updateUserAppEdit();
+	updateSearchItemName();
 	return TRUE;
 }
 
@@ -107,101 +114,208 @@ LRESULT CConfigDlgFileListWindow::OnGetDispInfo(LPNMHDR pnmh)
 {
 	LV_DISPINFO* pstLVDInfo=(LV_DISPINFO*)pnmh;
 
-	auto &item = pstLVDInfo->item;
+	auto& item = pstLVDInfo->item;
+	if (pnmh->hwndFrom == List_Command) {
+		if (item.mask & LVIF_TEXT) {
+			const auto& mca = m_Config.view.MenuCommandArray;
+			if (item.iItem < 0 || (unsigned)item.iItem >= mca.size())return 1;
 
-	if (item.iItem < 0 || (unsigned)item.iItem >= m_MenuCommandArray.size())return 1;
-	CLFMenuCommandItem &mci=m_MenuCommandArray[item.iItem];
+			const CLFMenuCommandItem& mci = mca[item.iItem];
+			wcsncpy_s(item.pszText, item.cchTextMax, mci.Caption.c_str(), item.cchTextMax);
+		}
+	} else if (pnmh->hwndFrom == List_Search) {
+		if (item.mask & LVIF_TEXT) {
+			const auto& sfis = m_Config.view.searchFolderItems;
+			if (item.iItem < 0 || (unsigned)item.iItem >= sfis.size())return 1;
 
-	if(item.mask & LVIF_TEXT){
-		wcsncpy_s(item.pszText, item.cchTextMax, mci.Caption.c_str(), item.cchTextMax);
+			const auto& sfi = sfis[item.iItem];
+			if (item.iSubItem == 0){
+				wcsncpy_s(item.pszText, item.cchTextMax, sfi.first.c_str(), item.cchTextMax);
+			} else {
+				wcsncpy_s(item.pszText, item.cchTextMax, sfi.second.toString().c_str(), item.cchTextMax);
+			}
+		}
 	}
 	return 0;
 }
 
 LRESULT CConfigDlgFileListWindow::OnSelect(LPNMHDR pnmh)
 {
-	if (m_lpMenuCommandItem) {
-		getUserAppEdit();
-	}
+	if (pnmh->hwndFrom == List_Command) {
+		updateUserAppEdit();
 
-	int iItem = List_Command.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
-	if (0 <= iItem && (unsigned)iItem < m_MenuCommandArray.size()) {
-		m_lpMenuCommandItem = &m_MenuCommandArray[iItem];
-		setUserAppEdit();
+		auto& mca = m_Config.view.MenuCommandArray;
+		int iItem = List_Command.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
+		if (0 <= iItem && (unsigned)iItem < mca.size()) {
+			m_lpMenuCommandItem = &mca[iItem];
+			setUserAppEdit();
+		}
+	} else if (pnmh->hwndFrom == List_Search) {
+		updateSearchItemName();
+
+		auto& sfis = m_Config.view.searchFolderItems;
+		int iItem = List_Search.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
+		if (0 <= iItem && (unsigned)iItem < sfis.size()) {
+			m_lpSearchItem = &sfis[iItem];
+			setSearchItemName();
+		}
 	}
 	return 0;
 }
 
-LRESULT CConfigDlgFileListWindow::OnUserAppMoveUpDown(WORD, WORD wID, HWND, BOOL&)
+//move item in list. return new position
+template<typename T>
+int updown_base(std::vector<T>& subject, bool up, CListViewCtrl& listView)
 {
-	if (m_lpMenuCommandItem) {
-		getUserAppEdit();
-	}
-	bool up = (IDC_BUTTON_FILELIST_USERAPP_MOVEUP == wID);
-	int iItem = List_Command.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
-	if (iItem < 0 || (unsigned)iItem >= m_MenuCommandArray.size())return FALSE;
+	int iItem = listView.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
+	if (iItem < 0 || (unsigned)iItem >= subject.size())return iItem;
 
-	int swapTarget;
+	int newPos;
 	if (up) {
 		if (0 == iItem) {
 			MessageBeep(MB_ICONASTERISK);
-			return TRUE;
+			return iItem;
 		}
-		swapTarget = iItem - 1;
+		newPos = iItem - 1;
 	} else {
-		if (m_MenuCommandArray.size() - 1 == (unsigned)iItem) {
+		if (subject.size() - 1 == (unsigned)iItem) {
 			MessageBeep(MB_ICONASTERISK);
-			return TRUE;
+			return iItem;
 		}
-		swapTarget = iItem + 1;
+		newPos = iItem + 1;
 	}
-	std::swap(m_MenuCommandArray[iItem], m_MenuCommandArray[swapTarget]);
-	setUserAppEdit();
+	std::swap(subject[iItem], subject[newPos]);
 
-	List_Command.EnsureVisible(swapTarget, FALSE);
-	List_Command.SetItemState(swapTarget, LVIS_SELECTED, LVIS_SELECTED);
-	return TRUE;
+	listView.EnsureVisible(newPos, FALSE);
+	listView.SetItemState(newPos, LVIS_SELECTED, LVIS_SELECTED);
+
+	return newPos;
+}
+
+LRESULT CConfigDlgFileListWindow::OnUserAppMoveUpDown(WORD, WORD wID, HWND, BOOL&)
+{
+	updateUserAppEdit();
+
+	auto& mca = m_Config.view.MenuCommandArray;
+	bool up = (IDC_BUTTON_FILELIST_USERAPP_MOVEUP == wID);
+	auto newPos = updown_base(mca, up, List_Command);
+	m_lpMenuCommandItem = &mca[newPos];
+	setUserAppEdit();
+	return 0;
+}
+
+LRESULT CConfigDlgFileListWindow::OnSearchItemMoveUpDown(WORD, WORD wID, HWND, BOOL&)
+{
+	updateSearchItemName();
+
+	auto& sfis = m_Config.view.searchFolderItems;
+	bool up = (IDC_BUTTON_SEARCH_ITEM_MOVEUP == wID);
+	auto newPos = updown_base(sfis, up, List_Search);
+	m_lpSearchItem = &sfis[newPos];
+	setSearchItemName();
+	return 0;
 }
 
 LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD, WORD, HWND, BOOL&)
 {
 	//save old item
-	if (m_lpMenuCommandItem) {
-		getUserAppEdit();
-	}
+	updateUserAppEdit();
 
+	auto& mca = m_Config.view.MenuCommandArray;
 	CLFMenuCommandItem mci;
 	mci.Caption = L"UserApp";
 	mci.Param = L"%S";
-	m_MenuCommandArray.push_back(mci);
-	int iItem = m_MenuCommandArray.size() - 1;
-	m_lpMenuCommandItem = &m_MenuCommandArray[iItem];
+	mca.push_back(mci);
+	m_lpMenuCommandItem = &mca.back();
 
 	setUserAppEdit();
-	List_Command.SetItemCount(m_MenuCommandArray.size());
-	List_Command.EnsureVisible(iItem, FALSE);
-	List_Command.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
-	return TRUE;
+	auto& lv = List_Command;
+	lv.SetItemCount(mca.size());
+	int iItem = mca.size() - 1;
+	lv.EnsureVisible(iItem, FALSE);
+	lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
+	return 0;
+}
+
+LRESULT CConfigDlgFileListWindow::OnSearchItemNew(WORD, WORD, HWND, BOOL&)
+{
+	//save old item
+	updateSearchItemName();
+
+	CLFFindDialog dlg;
+	if (IDOK == dlg.DoModal()) {
+		auto& sfis = m_Config.view.searchFolderItems;
+		auto sfi = dlg.getCondition();
+		sfis.push_back(std::make_pair(L"New Search", sfi));
+		m_lpSearchItem = &sfis.back();
+
+		setSearchItemName();
+		auto& lv = List_Search;
+		lv.SetItemCount(sfis.size());
+		int iItem = sfis.size() - 1;
+		lv.EnsureVisible(iItem, FALSE);
+		lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
+	}
+	return 0;
 }
 
 LRESULT CConfigDlgFileListWindow::OnUserAppDelete(WORD,WORD,HWND,BOOL&)
 {
-	int iItem=List_Command.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
-	if(iItem<0||(unsigned)iItem>=m_MenuCommandArray.size())return FALSE;
+	auto& mca = m_Config.view.MenuCommandArray;
+	auto& lv = List_Command;
+	int iItem=lv.GetNextItem(-1,LVNI_ALL|LVNI_SELECTED);
+	if(iItem<0||(unsigned)iItem>= mca.size())return 0;
 
-	auto ite=m_MenuCommandArray.begin();
-	m_MenuCommandArray.erase(m_MenuCommandArray.begin() + iItem);
+	mca.erase(mca.begin() + iItem);
 
-	List_Command.SetItemCount(m_MenuCommandArray.size());
-	if(m_MenuCommandArray.empty()){
+	lv.SetItemCount(mca.size());
+	if(mca.empty()){
 		m_lpMenuCommandItem = nullptr;
 	} else {
 		if (iItem > 0)iItem--;
-		m_lpMenuCommandItem = &m_MenuCommandArray[iItem];
+		m_lpMenuCommandItem = &mca[iItem];
 		setUserAppEdit();
 
-		List_Command.EnsureVisible(iItem, FALSE);
-		List_Command.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
+		lv.EnsureVisible(iItem, FALSE);
+		lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
 	}
-	return TRUE;
+	return 0;
 }
+
+LRESULT CConfigDlgFileListWindow::OnSearchItemDelete(WORD, WORD, HWND, BOOL&)
+{
+	auto& sfis = m_Config.view.searchFolderItems;
+	auto& lv = List_Search;
+	int iItem = lv.GetNextItem(-1, LVNI_ALL | LVNI_SELECTED);
+	if (iItem < 0 || (unsigned)iItem >= sfis.size())return 0;
+
+	sfis.erase(sfis.begin() + iItem);
+
+	lv.SetItemCount(sfis.size());
+	if (sfis.empty()) {
+		m_lpSearchItem = nullptr;
+	} else {
+		if (iItem > 0)iItem--;
+		m_lpSearchItem = &sfis[iItem];
+		setSearchItemName();
+
+		lv.EnsureVisible(iItem, FALSE);
+		lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
+	}
+	return 0;
+}
+
+LRESULT CConfigDlgFileListWindow::OnSearchItemEdit(WORD, WORD, HWND, BOOL&)
+{
+	updateSearchItemName();
+	if (m_lpSearchItem) {
+		CLFFindDialog dlg;
+		dlg.setCondition(m_lpSearchItem->second);
+		if (IDOK == dlg.DoModal()) {
+			m_lpSearchItem->second = dlg.getCondition();
+			List_Search.Invalidate();
+		}
+	}
+	return 0;
+}
+
