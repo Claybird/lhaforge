@@ -107,15 +107,16 @@ std::wstring ARCHIVE_FIND_CONDITION::toString()const
 	case KEY::originalSize:
 	{
 		std::wstring cond;
+		auto size = UtilFormatSizeStrict(st_size);
 		switch (compare) {
 		case COMPARE::equal:
-			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL), st_size);
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL), size.c_str());
 			break;
 		case COMPARE::equalOrGreater:
-			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_GREATER), st_size);
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_GREATER), size.c_str());
 			break;
 		case COMPARE::equalOrLess:
-			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_LESS), st_size);
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_LESS), size.c_str());
 			break;
 		}
 		desc = Format(UtilLoadString(IDS_SEARCH_BY_ORIGINAL_SIZE), cond.c_str());

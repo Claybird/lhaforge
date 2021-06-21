@@ -72,12 +72,12 @@ public:
 	) {
 		_extracting_filename = extracting_file_path.c_str();
 		_extracting_filesize = (
-			UtilFormatSize(extracting_file_size) + Format(L" (%d Bytes)", extracting_file_size)
+			UtilFormatSize(extracting_file_size) + Format(L" (%llu Bytes)", extracting_file_size)
 			).c_str();
 		_extracting_filetime = UtilFormatTime(extracting_file_mtime).c_str();
 		_existing_filename = existing_file_path.c_str();
 		_existing_filesize =(
-			UtilFormatSize(existing_file_size) + Format(L" (%d Bytes)", existing_file_size)
+			UtilFormatSize(existing_file_size) + Format(L" (%llu Bytes)", existing_file_size)
 			).c_str();
 		_existing_filetime = UtilFormatTime(existing_file_mtime).c_str();
 	}
