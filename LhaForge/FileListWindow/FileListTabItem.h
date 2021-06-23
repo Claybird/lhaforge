@@ -159,6 +159,7 @@ public:
 	void ApplyUpdatedConfig() {
 		ApplyListViewState();
 		ApplySplitterState();
+		TreeView.ApplyUpdatedConfig();
 	}
 	bool OpenArchive(const std::filesystem::path &arcpath, const std::wstring& mutexName, HANDLE hMutex) {
 		{

@@ -242,6 +242,15 @@ public:
 			Expand(item.second);
 		}
 	}
+	void ApplyUpdatedConfig() {
+		Clear();
+		AddSearchFolder();
+		ConstructTree();
+
+		if (mr_confFLW.view.ExpandTree)ExpandTree();
+
+		EnableDropTarget(true);
+	}
 
 	bool IsValidDropTarget(const HIGHLIGHT&)const override { return true; }
 
