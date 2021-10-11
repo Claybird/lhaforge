@@ -35,6 +35,14 @@ protected:
 		TREE_USER_DATA() :pFind(nullptr), pInfo(nullptr) {}
 		const ARCHIVE_FIND_CONDITION* pFind;
 		const ARCHIVE_ENTRY_INFO* pInfo;
+		bool isDirectory()const {
+			if (pInfo) {
+				if (!pInfo->_parent || pInfo->is_directory()) {
+					return true;
+				}
+			}
+			return false;
+		}
 	};
 	std::vector<std::shared_ptr<TREE_USER_DATA>> m_GC;
 protected:
@@ -113,13 +121,19 @@ protected:
 			SetItemData(hItem, (DWORD_PTR)p.get());
 		}
 	}
+	const TREE_USER_DATA* GetTreeItemUserData(HTREEITEM hItem)const {
+		if (!hItem)return 0;
+		auto lpData = (TREE_USER_DATA*)GetItemData(hItem);
+		return lpData;
+	}
+
 	LRESULT OnTreeSelect(LPNMHDR) {
 		auto lpCurrent = mr_Model.getCurrentDir();
 
 		HTREEITEM hItem = GetSelectedItem();
 		if (!hItem)return 0;
 
-		auto lpData = (TREE_USER_DATA*)GetItemData(hItem);
+		auto lpData = GetTreeItemUserData(hItem);
 		if (lpData) {
 			mr_Model.EndFindItem();
 			if (lpData->pInfo) {
@@ -163,8 +177,10 @@ protected:
 		std::vector<const ARCHIVE_ENTRY_INFO*> items;
 		HTREEITEM hItem = GetSelectedItem();
 		if (hItem) {
-			const ARCHIVE_ENTRY_INFO* lpNode = (const ARCHIVE_ENTRY_INFO*)GetItemData(hItem);
-			items.push_back(lpNode);
+			auto lpNode = GetTreeItemUserData(hItem);
+			if (lpNode && lpNode->pInfo) {
+				items.push_back(lpNode->pInfo);
+			}
 		}
 		//always one item maximum
 		ASSERT(items.size() <= 1);
@@ -252,7 +268,14 @@ public:
 		EnableDropTarget(true);
 	}
 
-	bool IsValidDropTarget(const HIGHLIGHT&)const override { return true; }
+	bool IsValidDropTarget(const HIGHLIGHT& hl)const override {
+		if (m_dropHighlight.isValid()) {
+			auto lpNode = GetTreeItemUserData(hl.itemTree);
+			//cannot be dropped into a search folder
+			if (lpNode && !lpNode->isDirectory())return false;
+		}
+		return true;
+	}
 
 	//dropped
 	virtual HRESULT Drop(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {
@@ -272,13 +295,9 @@ public:
 			ScreenToClient(&ptTemp);
 			auto target = HitTest(ptTemp, nullptr);
 
-			auto lpNode = (const ARCHIVE_ENTRY_INFO*)GetItemData(target);
-			if (lpNode) {
-				if (lpNode->is_directory()) {
-					return AddItemsToDirectory(lpNode, files);
-				} else {
-					return E_HANDLE;
-				}
+			auto lpNode = GetTreeItemUserData(target);
+			if (lpNode && lpNode->isDirectory()) {
+				return AddItemsToDirectory(lpNode->pInfo, files);
 			} else {
 				return E_HANDLE;
 			}
