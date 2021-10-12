@@ -122,8 +122,8 @@ protected:
 		}
 	}
 	const TREE_USER_DATA* GetTreeItemUserData(HTREEITEM hItem)const {
-		if (!hItem)return 0;
-		auto lpData = (TREE_USER_DATA*)GetItemData(hItem);
+		if (!hItem)return nullptr;
+		auto lpData = (const TREE_USER_DATA*)GetItemData(hItem);
 		return lpData;
 	}
 
@@ -269,10 +269,15 @@ public:
 	}
 
 	bool IsValidDropTarget(const HIGHLIGHT& hl)const override {
-		if (m_dropHighlight.isValid()) {
+		if (hl.isValid()) {
 			auto lpNode = GetTreeItemUserData(hl.itemTree);
-			//cannot be dropped into a search folder
-			if (lpNode && !lpNode->isDirectory())return false;
+			if (lpNode) {
+				if (lpNode->isDirectory())return true;
+				//cannot be dropped into a search folder
+				else return false;
+			}else{
+				return false;
+			}
 		}
 		return true;
 	}
