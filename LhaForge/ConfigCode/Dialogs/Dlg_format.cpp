@@ -113,7 +113,7 @@ LRESULT CConfigDlgFormat::OnInitDialog(HWND hWnd, LPARAM lParam)
 				mo = mapConfigKeyToHumanReadableName(c->section_name, item.first.c_str(), mo.c_str());
 			}
 
-			auto userData = new INTERNAL_DATA{ c,key };
+			auto userData = new USER_DATA{ c,key };
 			CLFComboListViewCtrl::CONTENT_DATA d = {
 				mapConfigKeyToHumanReadableName(c->section_name,item.first.c_str(),nullptr),
 				mapped_options,

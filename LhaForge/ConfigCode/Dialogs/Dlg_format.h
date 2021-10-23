@@ -38,13 +38,13 @@ protected:
 	void clearData() {
 		for (auto& d : _data) {
 			if (d.userData) {
-				delete (std::pair<CConfigCompressFormatBase*, std::string>*)d.userData;
+				delete (USER_DATA*)d.userData;
 			}
 		}
 		_data.clear();
 	}
-	struct INTERNAL_DATA{
-		CConfigCompressFormatBase* c;
+	struct USER_DATA{
+		CConfigCompressFormatBase* c;	//item in _configs
 		std::string key;
 	};
 public:
@@ -81,12 +81,15 @@ public:
 		_data = _listView.GetContentData();
 		for (auto& d : _data) {
 			if (d.userData) {
-				auto p = (std::pair<CConfigCompressFormatBase*, std::string>*)d.userData;
-				auto c = p->first;
-				auto key = p->second;
-
+				auto p = (USER_DATA*)d.userData;
+				const auto& k_v = p->c->key_and_valid_values;
 				int curSel = d.selection;
-				c->params[key] = UtilToUTF8(d.options[curSel]);
+				auto ite = k_v.find(UtilUTF8toUNICODE(p->key));
+
+				if (ite != k_v.end()) {
+					const auto& raw_options = (*ite).second;
+					p->c->params[p->key] = UtilToUTF8(raw_options[curSel]);
+				}
 			}
 		}
 

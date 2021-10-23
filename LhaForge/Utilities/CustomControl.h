@@ -99,7 +99,7 @@ class CLFComboListViewCtrl :public CWindowImpl<CLFComboListViewCtrl, CListViewCt
 public:
 	struct CONTENT_DATA {
 		std::wstring key;
-		std::vector<std::wstring> options;	//separator if options is empty
+		std::vector<std::wstring> options;	//human readable name; separator if options is empty
 		int selection;
 		void* userData;
 	};
