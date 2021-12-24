@@ -199,9 +199,6 @@ protected:
 	void OnContextMenu(HWND hWndCtrl, CPoint &Point) {
 		//enumerate selected items
 		auto items = GetSelectedItems();
-		if (items.empty())return;
-		const ARCHIVE_ENTRY_INFO* item = items.front();
-
 		if (-1 == Point.x&&-1 == Point.y) {
 			//from keyboard; menu is shown on the left top corner
 			Point.x = Point.y = 0;
@@ -210,37 +207,46 @@ protected:
 
 		CMenu cMenu;
 		CMenuHandle cSubMenu;
-		HWND hWndSendTo = nullptr;
-		if (item->_parent) {
-			hWndSendTo = m_hWnd;
-			//standard menu
-			cMenu.LoadMenu(IDR_FILELIST_POPUP);
+		if (items.empty()) {
+			//empty selection, or search folder selected
+			cMenu.LoadMenu(IDR_SEARCH_FOLDER_POPUP);
 			cSubMenu = cMenu.GetSubMenu(0);
-			if (!mr_Model.IsModifySupported()) {
-				cMenu.EnableMenuItem(ID_MENUITEM_DELETE_SELECTED, MF_GRAYED | MF_BYCOMMAND);
-			}
-
-			//add command to sub-menu
-			auto menuCount = cSubMenu.GetMenuItemCount();
-			int iIndex = -1;
-			for (auto i = 0; i <= menuCount; i++) {
-				if (-1 == cSubMenu.GetMenuItemID(i)) {	//popup
-					iIndex = i;
-					break;
-				}
-			}
-			ASSERT(-1 != iIndex);
-			if (-1 != iIndex) {
-				MenuCommand_MakeUserAppMenu(cSubMenu.GetSubMenu(iIndex));
-				MenuCommand_MakeSendToMenu(cSubMenu.GetSubMenu(iIndex + 1));
-			}
+			cSubMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, Point.x, Point.y, m_hFrameWnd, nullptr);
 		} else {
-			hWndSendTo = m_hFrameWnd;
-			//root menu
-			cMenu.LoadMenu(IDR_ARCHIVE_POPUP);
-			cSubMenu = cMenu.GetSubMenu(0);
+			const ARCHIVE_ENTRY_INFO* item = items.front();
+
+			HWND hWndSendTo = nullptr;
+			if (item->_parent) {
+				hWndSendTo = m_hWnd;
+				//standard menu
+				cMenu.LoadMenu(IDR_FILELIST_POPUP);
+				cSubMenu = cMenu.GetSubMenu(0);
+				if (!mr_Model.IsModifySupported()) {
+					cMenu.EnableMenuItem(ID_MENUITEM_DELETE_SELECTED, MF_GRAYED | MF_BYCOMMAND);
+				}
+
+				//add command to sub-menu
+				auto menuCount = cSubMenu.GetMenuItemCount();
+				int iIndex = -1;
+				for (auto i = 0; i <= menuCount; i++) {
+					if (-1 == cSubMenu.GetMenuItemID(i)) {	//popup
+						iIndex = i;
+						break;
+					}
+				}
+				ASSERT(-1 != iIndex);
+				if (-1 != iIndex) {
+					MenuCommand_MakeUserAppMenu(cSubMenu.GetSubMenu(iIndex));
+					MenuCommand_MakeSendToMenu(cSubMenu.GetSubMenu(iIndex + 1));
+				}
+			} else {
+				hWndSendTo = m_hFrameWnd;
+				//root menu
+				cMenu.LoadMenu(IDR_ARCHIVE_POPUP);
+				cSubMenu = cMenu.GetSubMenu(0);
+			}
+			cSubMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, Point.x, Point.y, hWndSendTo, nullptr);
 		}
-		cSubMenu.TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, Point.x, Point.y, hWndSendTo, nullptr);
 	}
 	void OnDelete(UINT uNotifyCode, int nID, HWND hWndCtrl){
 		auto items = GetSelectedItems();

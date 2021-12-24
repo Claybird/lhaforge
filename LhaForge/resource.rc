@@ -907,6 +907,14 @@ BEGIN
     END
 END
 
+IDR_SEARCH_FOLDER_POPUP MENU
+BEGIN
+    POPUP "POPUP"
+    BEGIN
+        MENUITEM "設定",                          ID_MENUITEM_CONFIGURE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1383,6 +1391,7 @@ BEGIN
                             "全てのアーカイブを解凍後、タブを閉じます\n全て解凍して閉じる"
     ID_MENUITEM_EXTRACT_ARCHIVE_ALL "全てのアーカイブを解凍します\n全てのアーカイブを解凍"
 END
+
 
 #endif    // 日本語 (日本) resources
 /////////////////////////////////////////////////////////////////////////////
