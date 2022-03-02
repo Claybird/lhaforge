@@ -97,12 +97,12 @@ std::filesystem::path UtilGetModulePath();
 std::filesystem::path UtilGetModuleDirectoryPath();
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath);
-
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize = 0);
 
 class CAutoFile {
 protected:
 	FILE *_fp;
+	std::filesystem::path _path;
 	CAutoFile(const CAutoFile&) = delete;
 	const CAutoFile& operator=(const CAutoFile&) = delete;
 public:
@@ -116,17 +116,19 @@ public:
 		if (_fp) {
 			fclose(_fp);
 			_fp = NULL;
+			_path.clear();
 		}
 	}
-	void open(const std::filesystem::path& fname, const std::wstring& mode = L"r") {
+	void open(const std::filesystem::path& fname, const std::wstring& mode = L"rb") {
 		close();
+		_path = fname;
 		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
 		if (err==0 && _fp) {
 			//set buffer size
 			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024);
 		}
 	}
+	const std::filesystem::path &get_path()const { return _path; }
 };
-
 
 void touchFile(const std::filesystem::path& path);

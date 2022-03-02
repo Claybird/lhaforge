@@ -527,7 +527,7 @@ TEST(FileOperation, UtilGetModulePath_UtilGetModuleDirectoryPath) {
 #endif
 
 //read whole file
-std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath)
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize)
 {
 	if (filePath.empty())RAISE_EXCEPTION(L"Invalid Argument");
 	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(L"File not found");
@@ -535,6 +535,9 @@ std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath)
 	struct _stat64 stat = {};
 	if (0 != _wstat64(filePath.c_str(), &stat))RAISE_EXCEPTION(L"Failed to get filesize");
 	auto file_size = (size_t)stat.st_size;
+	if (maxSize != 0) {
+		file_size = std::min(file_size, maxSize);
+	}
 
 	CAutoFile fp;
 	fp.open(filePath, L"rb");
@@ -565,6 +568,12 @@ TEST(FileOperation, UtilReadFile) {
 		read.push_back('\0');
 		EXPECT_EQ("test file content", std::string((const char*)&read[0]));
 	}
+	{
+		auto read = UtilReadFile(fname, 5);
+		EXPECT_EQ(size_t(5), read.size());
+		read.push_back('\0');
+		EXPECT_EQ("test ", std::string((const char*)&read[0]));
+	}
 	std::filesystem::remove(fname);
 }
 
@@ -585,11 +594,20 @@ TEST(FileOperation, touchFile_CAutoFile)
 	EXPECT_FALSE(std::filesystem::exists(dir));
 	std::filesystem::create_directories(dir);
 
-	auto filename = dir / L"a.txt";
-	EXPECT_FALSE(std::filesystem::exists(filename));
-	touchFile(filename);
-	EXPECT_TRUE(std::filesystem::exists(filename));
+	{
+		CAutoFile fp;
+		auto filename = dir / L"a.txt";
+		EXPECT_FALSE(std::filesystem::exists(filename));
+		fp.open(filename);
+		EXPECT_FALSE(fp.is_opened());
 
+		touchFile(filename);
+
+		EXPECT_TRUE(std::filesystem::exists(filename));
+		fp.open(filename);
+		EXPECT_TRUE(fp.is_opened());
+		EXPECT_EQ(filename, fp.get_path());
+	}
 
 	UtilDeletePath(dir);
 	EXPECT_FALSE(std::filesystem::exists(dir));
