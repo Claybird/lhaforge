@@ -118,6 +118,9 @@
     <ClCompile Include="Dialogs\FindDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiverCode\archive_bga.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -334,6 +337,9 @@
     </ClInclude>
     <ClInclude Include="Dialogs\FindDlg.h">
       <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_bga.h">
+      <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

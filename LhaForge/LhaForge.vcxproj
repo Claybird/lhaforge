@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiverCode\archive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_bga.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="Utilities\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ArchiverCode\archive_bga.h" />
     <ClInclude Include="ArchiverCode\archive_libarchive.h" />
     <ClInclude Include="ArchiverCode\archive.h" />
     <ClInclude Include="Association.h" />
@@ -259,7 +261,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>true</EnablePREfast>
@@ -307,7 +309,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -353,7 +355,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
