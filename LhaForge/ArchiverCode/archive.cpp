@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "archive.h"
 #include "archive_libarchive.h"
+#include "archive_bga.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -28,6 +29,7 @@ TEST(archive, exceptions)
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
 	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();
+	if (CLFArchiveBGA::is_known_format(path))return std::make_unique<CLFArchiveBGA>();
 	RAISE_EXCEPTION(L"Unknown format");
 }
 
@@ -38,6 +40,9 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_extract.zip"));
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_extract.zipx"));
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_broken_crc.zip"));
+
+	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
+	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.bza"));
 }
 
 #endif
