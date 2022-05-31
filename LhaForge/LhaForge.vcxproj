@@ -16,8 +16,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiverCode\archive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_arj.cpp" />
     <ClCompile Include="ArchiverCode\archive_bga.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
+    <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -68,9 +70,11 @@
     <ClCompile Include="Utilities\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ArchiverCode\archive_arj.h" />
     <ClInclude Include="ArchiverCode\archive_bga.h" />
     <ClInclude Include="ArchiverCode\archive_libarchive.h" />
     <ClInclude Include="ArchiverCode\archive.h" />
+    <ClInclude Include="ArchiverCode\mini_lzh_decoder.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />
     <ClInclude Include="CommonUtil.h" />

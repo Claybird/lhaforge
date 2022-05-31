@@ -121,6 +121,12 @@
     <ClCompile Include="ArchiverCode\archive_bga.cpp">
       <Filter>ArchiverCode</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiverCode\archive_arj.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -339,6 +345,12 @@
       <Filter>Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ArchiverCode\archive_bga.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_arj.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\mini_lzh_decoder.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>
