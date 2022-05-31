@@ -2,6 +2,7 @@
 #include "archive.h"
 #include "archive_libarchive.h"
 #include "archive_bga.h"
+#include "archive_arj.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -28,12 +29,16 @@ TEST(archive, exceptions)
 
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
-	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();
 	if (CLFArchiveBGA::is_known_format(path))return std::make_unique<CLFArchiveBGA>();
+	if (CLFArchiveARJ::is_known_format(path))return std::make_unique<CLFArchiveARJ>();
+
+	//check for libarchive is weak, in the current implementation
+	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();
 	RAISE_EXCEPTION(L"Unknown format");
 }
 
 #ifdef UNIT_TEST
+#include "CommonUtil.h"
 TEST(archive, guessSuitableArchiver)
 {
 	const auto dir = LF_PROJECT_DIR() / L"test";
@@ -42,7 +47,26 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_broken_crc.zip"));
 
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
+	{
+		auto a = guessSuitableArchiver(dir / L"test.gza");
+		a->read_open(dir / L"test.gza", CLFPassphraseNULL());
+		a->read_entry_begin();
+		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
+	}
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.bza"));
+	{
+		auto a = guessSuitableArchiver(dir / L"test.bza");
+		a->read_open(dir / L"test.bza", CLFPassphraseNULL());
+		a->read_entry_begin();
+		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
+	}
+	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.arj"));
+	{
+		auto a = guessSuitableArchiver(dir / L"test.arj");
+		a->read_open(dir / L"test.arj", CLFPassphraseNULL());
+		a->read_entry_begin();
+		EXPECT_EQ(L"ARJ", a->get_format_name());
+	}
 }
 
 #endif
