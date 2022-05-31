@@ -33,6 +33,9 @@ size_t CLFArchiveARJ::Header::find_header(const unsigned char* hdr, unsigned lon
 {
 	long last = (siz - 2 - HEADERSIZE_MAX > 50000 ?
 		50000 : siz - 2 - HEADERSIZE_MAX);
+	if (siz < HEADERSIZE_MAX + 2) {
+		last = siz;
+	}
 
 	for (long i = 0; i < last; i++) {
 		// Flag
