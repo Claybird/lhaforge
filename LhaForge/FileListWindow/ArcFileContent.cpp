@@ -548,9 +548,15 @@ void CArchiveFileContent::addEntries(
 			if (std::filesystem::is_regular_file(file)) {
 				RAW_FILE_READER provider;
 				provider.open(file);
+				uint64_t size = 0;
 				dest->add_file_entry(entry, [&]() {
 					auto data = provider();
-					progressHandler.onEntryIO(data.offset);
+					if (data.offset) {
+						size = data.offset->offset + data.size;
+					} else {
+						size += data.size;
+					}
+					progressHandler.onEntryIO(size);
 					return data;
 				});
 				progressHandler.onEntryIO(entry.stat.st_size);

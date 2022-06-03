@@ -35,14 +35,13 @@ class CLzhDecoder2
 public:
 	virtual ~CLzhDecoder2() {}
 	struct INTERNAL {
-		INTERNAL(FILE* in):_file_offset(0), _in(in){}
+		INTERNAL(FILE* in): _in(in){}
 		virtual ~INTERNAL() {}
-		int64_t _file_offset;
 		FILE* _in;
-		virtual LF_BUFFER_INFO decode() = 0;
+		virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)>) = 0;
 	};
 	void initDecoder(lzh_method mhd, FILE* infile, DWORD insize, DWORD outsize);
-	LF_BUFFER_INFO decode();
+	void decode(std::function<void(const void* buffer, size_t/*data size*/)>);
 protected:
 	std::shared_ptr<INTERNAL> _decoder;
 };

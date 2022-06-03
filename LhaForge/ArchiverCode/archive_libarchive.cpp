@@ -238,17 +238,19 @@ struct LA_FILE_TO_READ
 
 	operator struct archive*() { return _arc; }
 
-	LF_BUFFER_INFO read_block() {
-		LF_BUFFER_INFO ibi;
+	void read_block(std::function<void(const void*, int64_t/*data size*/, const offset_info*/*offset*/)> data_receiver) {
+		const void* buf;
 		size_t size;
-		int r = archive_read_data_block(_arc, &ibi.buffer, &size, &ibi.offset);
-		ibi.size = size;
+		la_int64_t offset;
+		int r = archive_read_data_block(_arc, &buf, &size, &offset);
 		if (ARCHIVE_EOF == r) {
-			ibi.make_eof();
+			data_receiver(nullptr, 0, 0);
 		} else if (r < ARCHIVE_OK) {
 			throw LA_EXCEPTION(_arc);
+		} else {
+			offset_info oi = { (uint64_t)offset };
+			data_receiver(buf, size, &oi);
 		}
-		return ibi;
 	}
 	static bool is_known_format(const std::filesystem::path &arcname) {
 		const size_t readSize = 10;
@@ -381,10 +383,10 @@ struct LA_FILE_TO_WRITE
 
 		while (true) {
 			LF_BUFFER_INFO ibi = dataProvider();
-			if (ibi.is_eof()) {
-				break;
-			} else {
+			if (ibi.size) {
 				archive_write_data(_arc, ibi.buffer, (size_t)ibi.size);
+			} else {
+				break;
 			}
 		}
 	}
@@ -862,10 +864,10 @@ TEST(CLFArchiveLA, read_entry)
 #endif
 
 //read file entry
-LF_BUFFER_INFO CLFArchiveLA::read_file_entry_block()
+void CLFArchiveLA::read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*/*offset*/)> data_receiver)
 {
 	if (_arc_read) {
-		return _arc_read->read_block();
+		_arc_read->read_block(data_receiver);
 	} else {
 		throw ARCHIVE_EXCEPTION(EFAULT);
 	}
@@ -975,7 +977,13 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 					dest_archive->_arc_write->add_entry(*entry, [&]() {
 						while (UtilDoMessageLoop())continue;	//TODO
 						//TODO progress handler
-						return _arc_read->read_block();
+						LF_BUFFER_INFO bi;
+						_arc_read->read_block([&](const void* buf, size_t size, const offset_info* offset) {
+							bi.buffer = buf;
+							bi.size = size;
+							bi.offset = offset;
+						});
+						return bi;
 					});
 				}
 			}

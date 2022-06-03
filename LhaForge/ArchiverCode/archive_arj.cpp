@@ -118,9 +118,6 @@ void CLFArchiveARJ::decode_f::initDecoder(FILE* fp, Header* hdr)
 	init_getbits();
 	getlen = getbuf = 0;
 	count = 0;
-	offset = 0;
-	_j = 0;
-	_r = 0;
 }
 
 void CLFArchiveARJ::decode_f::init_getbits()
@@ -197,62 +194,43 @@ short CLFArchiveARJ::decode_f::decode_len()
 	return c;
 }
 
-LF_BUFFER_INFO CLFArchiveARJ::decode_f::decode()
+void CLFArchiveARJ::decode_f::decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)
 {
+	std::array<BYTE, ARJ_DICSIZE> buf;
+	short r = 0, j = 0;
+	short i;
 	while (count < _header->h_Origsize) {
-		if (_j <= 0) {
-			auto c = decode_len();
-			if (c == 0) {
-				GETBITS(c, 8);
-				_internal_buffer[_r] = (BYTE)c;
-				count++;
-				if (++_r >= ARJ_DICSIZE) {
-					LF_BUFFER_INFO bi = {};
-					bi.buffer = &_internal_buffer[0];
-					bi.size = ARJ_DICSIZE;
-					bi.offset = offset;
-					offset += bi.size;
-					_r = 0;
-					return bi;
-				}
-			} else {
-				_j = c - 1 + THRESHOLD;
-				auto pos = decode_ptr();
-				if ((_i = _r - pos - 1) < 0)_i += ARJ_DICSIZE;
+		auto c = decode_len();
+		if (c == 0) {
+			GETBITS(c, 8);
+			buf[r] = (BYTE)c;
+			count++;
+			if (++r >= ARJ_DICSIZE) {
+				data_receiver(&buf[0], ARJ_DICSIZE);
+				r = 0;
 			}
-		}
-		if (_j > 0) {
-			while (_j-- > 0) {
+		} else {
+			j = c - 1 + THRESHOLD;
+			auto pos = decode_ptr();
+			if ((i = r - pos - 1) < 0)i += ARJ_DICSIZE;
+			while (j-- > 0) {
 				count++;
-				_internal_buffer[_r] = _internal_buffer[_i];
-				if (++_i >= ARJ_DICSIZE) {
-					_i = 0;
+				buf[r] = buf[i];
+				if (++i >= ARJ_DICSIZE) {
+					i = 0;
 				}
-				if (++_r >= ARJ_DICSIZE) {
-					LF_BUFFER_INFO bi;
-					bi.buffer = &_internal_buffer[0];
-					bi.size = _internal_buffer.size();
-					bi.offset = offset;
-					offset += bi.size;
-					_r = 0;
-					return bi;
+				if (++r >= ARJ_DICSIZE) {
+					data_receiver(&buf[0], ARJ_DICSIZE);
+					r = 0;
 				}
 			}
 		}
 	}
-	if (_r != 0) {
-		LF_BUFFER_INFO bi;
-		bi.buffer = &_internal_buffer[0];
-		bi.size = _r;
-		bi.offset = offset;
-		offset += bi.size;
-		_r = 0;
-		return bi;
+	if (r != 0) {
+		data_receiver(&buf[0], r);
 	}
 
-	LF_BUFFER_INFO bi;
-	bi.make_eof();
-	return bi;
+	data_receiver(nullptr, 0);
 }
 
 //----
@@ -404,29 +382,29 @@ void CLFArchiveARJ::read_entry_end()
 	_lzh.reset();
 }
 
-LF_BUFFER_INFO CLFArchiveARJ::read_file_entry_block()
+void CLFArchiveARJ::read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)
 {
-	LF_BUFFER_INFO info;
+	auto wrapper = [&](const void* buffer, size_t/*data size*/ size) {
+		if (buffer) {
+			_crc.update_crc((const BYTE*)buffer, (int)size);
+		} else {
+			if (_crc.get_crc() != _header->h_FileCRC)RAISE_EXCEPTION(L"File CRC error");
+		}
+		data_receiver(buffer, size, nullptr);
+	};
+
 	switch (_header->h_Method) {
 	case 0:
 	case 1:
 	case 2:
 	case 3:
-		info = _lzh->decode();
+		_lzh->decode(wrapper);
 		break;
 	case 4:
 	default:
-		info = _decode_f.decode();
+		_decode_f.decode(wrapper);
 		break;
 	}
-
-	if (info.is_eof()) {
-		if (_crc.get_crc() != _header->h_FileCRC)RAISE_EXCEPTION(L"File CRC error");
-	} else {
-		_crc.update_crc((const BYTE*)info.buffer, (int)info.size);
-	}
-
-	return info;
 }
 
 bool CLFArchiveARJ::is_known_format(const std::filesystem::path& arcname)
@@ -464,13 +442,15 @@ TEST(CLFArchiveARJ, read_open_many)
 
 		{
 			std::vector<char> tmp;
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				} else {
-					tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, size_t size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+					} else {
+						bEOF = true;
+					}
+					});
 			}
 			const char* content = ";kljd;lfj;lsdahg;has:hn:h :ahsd:fh:asdhg:ioh";
 			std::vector<char> tmp2(content, content + strlen(content));
@@ -521,13 +501,15 @@ TEST(CLFArchiveARJ, read_open_method0)
 
 	EXPECT_NO_THROW({
 		std::vector<char> tmp;
-		for (;;) {
-			auto buffer = a.read_file_entry_block();
-			if (buffer.is_eof()) {
-				break;
-			} else {
-				tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-			}
+		for (bool bEOF = false; !bEOF;) {
+			a.read_file_entry_block([&](const void* buf, size_t size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+				} else {
+					bEOF = true;
+				}
+			});
 		}
 		EXPECT_EQ(tmp.size(), entry->stat.st_size);
 		});
@@ -548,13 +530,15 @@ TEST(CLFArchiveARJ, read_open_method1)
 
 	EXPECT_NO_THROW({
 		std::vector<char> tmp;
-		for (;;) {
-			auto buffer = a.read_file_entry_block();
-			if (buffer.is_eof()) {
-				break;
-			} else {
-				tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-			}
+		for (bool bEOF = false; !bEOF;) {
+			a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+				} else {
+					bEOF = true;
+				}
+			});
 		}
 		EXPECT_EQ(tmp.size(), entry->stat.st_size);
 		});
@@ -575,13 +559,15 @@ TEST(CLFArchiveARJ, read_open_method2)
 
 	EXPECT_NO_THROW({
 		std::vector<char> tmp;
-		for (;;) {
-			auto buffer = a.read_file_entry_block();
-			if (buffer.is_eof()) {
-				break;
-			} else {
-				tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-			}
+		for (bool bEOF = false; !bEOF;) {
+			a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+				} else {
+					bEOF = true;
+				}
+			});
 		}
 		EXPECT_EQ(tmp.size(), entry->stat.st_size);
 		});
@@ -602,13 +588,15 @@ TEST(CLFArchiveARJ, read_open_method3)
 
 	EXPECT_NO_THROW({
 		std::vector<char> tmp;
-		for (;;) {
-			auto buffer = a.read_file_entry_block();
-			if (buffer.is_eof()) {
-				break;
-			} else {
-				tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-			}
+		for (bool bEOF = false; !bEOF;) {
+			a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+				} else {
+					bEOF = true;
+				}
+			});
 		}
 		EXPECT_EQ(tmp.size(), entry->stat.st_size);
 		});
@@ -629,13 +617,15 @@ TEST(CLFArchiveARJ, read_open_method4)
 
 	EXPECT_NO_THROW({
 		std::vector<char> tmp;
-		for (;;) {
-			auto buffer = a.read_file_entry_block();
-			if (buffer.is_eof()) {
-				break;
-			} else {
-				tmp.insert(tmp.end(), (const char*)buffer.buffer, ((const char*)buffer.buffer) + buffer.size);
-			}
+		for (bool bEOF = false; !bEOF;) {
+			a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					tmp.insert(tmp.end(), (const char*)buf, ((const char*)buf) + size);
+				} else {
+					bEOF = true;
+				}
+			});
 		}
 		EXPECT_EQ(tmp.size(), entry->stat.st_size);
 		});
@@ -649,11 +639,13 @@ TEST(CLFArchiveARJ, broken_file)
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method0.arj", CLFPassphraseNULL());
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (!buf) {
+						bEOF = true;
+					}
+					});
 			}
 			}, LF_EXCEPTION);
 	}
@@ -662,11 +654,13 @@ TEST(CLFArchiveARJ, broken_file)
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method1.arj", CLFPassphraseNULL());
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (!buf) {
+						bEOF = true;
+					}
+					});
 			}
 			}, LF_EXCEPTION);
 	}
@@ -675,11 +669,13 @@ TEST(CLFArchiveARJ, broken_file)
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method4.arj", CLFPassphraseNULL());
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, int64_t size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (!buf) {
+						bEOF = true;
+					}
+					});
 			}
 			}, LF_EXCEPTION);
 	}

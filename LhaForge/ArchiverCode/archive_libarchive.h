@@ -59,10 +59,9 @@ public:
 	bool is_bypass_io_supported()const override{ return false; }
 
 	//read entry
-	LF_BUFFER_INFO read_file_entry_block()override;
-	LF_BUFFER_INFO read_file_entry_bypass()override {
+	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override;
+	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
 		throw ARCHIVE_EXCEPTION(ENOSYS);
-		return LF_BUFFER_INFO();
 	}
 
 	//write entry

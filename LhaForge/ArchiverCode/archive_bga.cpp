@@ -71,11 +71,12 @@ CLFArchiveBGA::~CLFArchiveBGA()
 struct CLFArchiveBGA::DecoderGZ :public CLFArchiveBGA::Decoder
 {
 	std::array<unsigned char, 1024 * 1024> outbuf;
-	LF_BUFFER_INFO ret_buf;
 	int fd;
 	gzFile gz;
-	size_t size_remain;
-	DecoderGZ(const std::shared_ptr<BgaHeader> header, FILE* fp) :size_remain(header->original_size) {
+
+	const size_t total_size;
+	size_t offset;
+	DecoderGZ(const std::shared_ptr<BgaHeader> header, FILE* fp) :total_size(header->original_size), offset(0) {
 		fd = _dup(_fileno(fp));
 		_lseek(fd, ftell(fp), SEEK_SET);
 		fseek(fp, header->compressed_size, SEEK_CUR);
@@ -89,25 +90,23 @@ struct CLFArchiveBGA::DecoderGZ :public CLFArchiveBGA::Decoder
 	virtual ~DecoderGZ() {
 		gzclose(gz);
 	}
-	LF_BUFFER_INFO decode() {
-		if (size_remain == 0) {
-			ret_buf.make_eof();
+	void decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)override {
+		if (total_size <= offset) {
+			data_receiver(nullptr, 0);
 		} else {
-			ret_buf.offset += ret_buf.size;
-			ret_buf.buffer = &outbuf[0];
-
-			auto toRead = std::min(size_remain, outbuf.size());
+			auto toRead = std::min(total_size - offset, outbuf.size());
 			auto read = gzread(gz, &outbuf[0], toRead);
+
 			if (read == -1) {
 				RAISE_EXCEPTION(L"Unexpected error");
 			}
 			if (read != toRead) {
 				RAISE_EXCEPTION(L"Unexpected EOF");
 			}
-			ret_buf.size = read;
-			size_remain -= read;
+
+			data_receiver(&outbuf[0], read);
+			offset += read;
 		}
-		return ret_buf;
 	}
 };
 
@@ -116,10 +115,10 @@ struct CLFArchiveBGA::DecoderBZ2 :public CLFArchiveBGA::Decoder
 {
 	std::array<char, 4 * 1024 * 1024> outbuf;
 
-	LF_BUFFER_INFO ret_buf;
 	BZFILE* bz;
-	size_t size_remain;
-	DecoderBZ2(const std::shared_ptr<BgaHeader> header, FILE* fp) :size_remain(header->original_size) {
+	const int64_t total_size;
+	int64_t offset;
+	DecoderBZ2(const std::shared_ptr<BgaHeader> header, FILE* fp) :total_size(header->original_size), offset(0) {
 		fseek(fp, header->compressed_size, SEEK_CUR);
 		int status;
 		BZFILE* bz = BZ2_bzReadOpen(&status, fp, 0, 0, NULL, 0);
@@ -131,16 +130,13 @@ struct CLFArchiveBGA::DecoderBZ2 :public CLFArchiveBGA::Decoder
 		int status;
 		BZ2_bzReadClose(&status, bz);
 	}
-	LF_BUFFER_INFO decode() {
-		if (size_remain == 0) {
-			ret_buf.make_eof();
+	void decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)override {
+		if (total_size <= offset) {
+			data_receiver(nullptr, 0);
 		} else {
-			ret_buf.offset += ret_buf.size;
-			ret_buf.buffer = &outbuf[0];
-
+			auto toRead = std::min(total_size - offset, (int64_t)outbuf.size());
 			int status;
-			auto toRead = std::min(size_remain, outbuf.size());
-			auto read = BZ2_bzRead(&status, bz, &outbuf[0], toRead);
+			auto read = BZ2_bzRead(&status, bz, &outbuf[0], (int)toRead);
 
 			if (status != BZ_OK) {
 				RAISE_EXCEPTION(L"Unexpected error");
@@ -148,10 +144,10 @@ struct CLFArchiveBGA::DecoderBZ2 :public CLFArchiveBGA::Decoder
 			if (read != toRead) {
 				RAISE_EXCEPTION(L"Unexpected EOF");
 			}
-			ret_buf.size = read;
-			size_remain -= read;
+
+			data_receiver(&outbuf[0], read);
+			offset += read;
 		}
-		return ret_buf;
 	}
 };
 
@@ -159,41 +155,39 @@ struct CLFArchiveBGA::DecoderRaw :public CLFArchiveBGA::Decoder
 {
 	std::array<char, 4 * 1024 * 1024> outbuf;
 
-	LF_BUFFER_INFO ret_buf;
-	size_t size_remain;
+	const size_t total_size;
+	size_t offset;
 
 	FILE* _fp;
-	DecoderRaw(const std::shared_ptr<BgaHeader> header, FILE* fp) : _fp(fp), size_remain(header->original_size) {}
+	DecoderRaw(const std::shared_ptr<BgaHeader> header, FILE* fp) : _fp(fp), total_size(header->original_size), offset(0) {}
 	virtual ~DecoderRaw() {}
-	LF_BUFFER_INFO decode() {
-		if (size_remain == 0) {
-			ret_buf.make_eof();
+	void decode(std::function<void(const void*, int64_t/*data size*/) > data_receiver)override {
+		if (total_size <= offset) {
+			data_receiver(nullptr, 0);
 		} else {
-			ret_buf.offset += ret_buf.size;
-			ret_buf.buffer = &outbuf[0];
-
-			auto toRead = std::min(size_remain, outbuf.size());
+			auto toRead = std::min(total_size - offset, outbuf.size());
 			auto read = fread(&outbuf[0], 1, toRead, _fp);
 
 			if (read != toRead) {
 				RAISE_EXCEPTION(L"Unexpected EOF");
 			}
-			ret_buf.size = read;
-			size_remain -= read;
+
+			data_receiver(&outbuf[0], read);
+			offset += read;
 		}
-		return ret_buf;
 	}
 };
 
-LF_BUFFER_INFO CLFArchiveBGA::read_file_entry_block()
+void CLFArchiveBGA::read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info* offset)> data_receiver)
 {
-	LF_BUFFER_INFO buf;
-	if (_decoder)buf = _decoder->decode();
-
-	if (buf.is_eof()) {
-		_decoder.reset();
+	if (_decoder) {
+		_decoder->decode([&](const void* buffer, int64_t bufsize)->void {
+			data_receiver(buffer, bufsize, nullptr);
+			if (!buffer || bufsize == 0) {
+				_decoder.reset();
+			}
+		});
 	}
-	return buf;
 }
 
 
@@ -414,6 +408,33 @@ bool CLFArchiveBGA::isEntryCompressed()const
 
 #ifdef UNIT_TEST
 #include "CommonUtil.h"
+TEST(CLFArchiveBGA, scan_bza)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	{
+		CLFArchiveBGA a;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.bza", CLFPassphraseNULL());
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dir\\empty\\", entry->path.wstring());
+		EXPECT_TRUE(entry->stat.st_mode & _S_IFDIR);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dir\\test.txt", entry->path.wstring());
+		EXPECT_EQ(17, entry->compressed_size);
+		EXPECT_EQ(17, entry->stat.st_size);
+		EXPECT_EQ(L"Raw", entry->method_name);
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"dir\\ƒeƒXƒg.txt", entry->path.wstring());
+		EXPECT_EQ(17, entry->compressed_size);
+		EXPECT_EQ(17, entry->stat.st_size);
+		EXPECT_EQ(L"Raw", entry->method_name);
+	}
+}
+
 TEST(CLFArchiveBGA, read_bza)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -435,11 +456,17 @@ TEST(CLFArchiveBGA, read_bza)
 		{
 			std::vector<BYTE> tmp;
 			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
+				bool bEOF = false;
+				a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
+				if (bEOF) {
 					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
 				}
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x82, 0xE3, 0x81, 0x84, 0xE3, 0x81, 0x86, 0xE3, 0x81, 0x88, 0xE3, 0x81, 0x8A, 0x0D, 0x0A };
@@ -455,11 +482,17 @@ TEST(CLFArchiveBGA, read_bza)
 		{
 			std::vector<BYTE> tmp;
 			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
+				bool bEOF = false;
+				a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
+				if (bEOF) {
 					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
 				}
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x8B, 0xE3, 0x81, 0x8D, 0xE3, 0x81, 0x8F, 0xE3, 0x81, 0x91, 0xE3, 0x81, 0x93, 0x0D, 0x0A };
@@ -488,11 +521,17 @@ TEST(CLFArchiveBGA, read_gza)
 		{
 			std::vector<BYTE> tmp;
 			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
+				bool bEOF = false;
+				a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
+				if (bEOF) {
 					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
 				}
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x82, 0xE3, 0x81, 0x84, 0xE3, 0x81, 0x86, 0xE3, 0x81, 0x88, 0xE3, 0x81, 0x8A, 0x0D, 0x0A };
@@ -508,11 +547,17 @@ TEST(CLFArchiveBGA, read_gza)
 		{
 			std::vector<BYTE> tmp;
 			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
+				bool bEOF = false;
+				a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
+				if (bEOF) {
 					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
 				}
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x8B, 0xE3, 0x81, 0x8D, 0xE3, 0x81, 0x8F, 0xE3, 0x81, 0x91, 0xE3, 0x81, 0x93, 0x0D, 0x0A };
@@ -540,13 +585,15 @@ TEST(CLFArchiveBGA, read_bza_sfx)
 		EXPECT_EQ(L"Raw", entry->method_name);
 		{
 			std::vector<BYTE> tmp;
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x82, 0xE3, 0x81, 0x84, 0xE3, 0x81, 0x86, 0xE3, 0x81, 0x88, 0xE3, 0x81, 0x8A, 0x0D, 0x0A };
 			EXPECT_EQ(tmp2, tmp);
@@ -560,13 +607,15 @@ TEST(CLFArchiveBGA, read_bza_sfx)
 		EXPECT_EQ(L"Raw", entry->method_name);
 		{
 			std::vector<BYTE> tmp;
-			for (;;) {
-				auto buffer = a.read_file_entry_block();
-				if (buffer.is_eof()) {
-					break;
-				} else {
-					tmp.insert(tmp.end(), (const BYTE*)buffer.buffer, ((const BYTE*)buffer.buffer) + buffer.size);
-				}
+			for (bool bEOF = false; !bEOF;) {
+				a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					EXPECT_EQ(nullptr, offset);
+					if (buf) {
+						tmp.insert(tmp.end(), (const BYTE*)buf, ((const BYTE*)buf) + data_size);
+					} else {
+						bEOF = true;
+					}
+				});
 			}
 			std::vector<BYTE> tmp2 = { 0xE3, 0x81, 0x8B, 0xE3, 0x81, 0x8D, 0xE3, 0x81, 0x8F, 0xE3, 0x81, 0x91, 0xE3, 0x81, 0x93, 0x0D, 0x0A };
 			EXPECT_EQ(tmp2, tmp);

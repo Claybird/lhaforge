@@ -122,17 +122,15 @@ struct LF_COMPRESS_CAPABILITY {
 	}
 };
 
+struct offset_info {
+	uint64_t offset;	//absolute position
+	//int origin;
+};
+
 struct LF_BUFFER_INFO {
-	//contains buffer and its size
-	int64_t size;	//0 if it reaches EOF
-	int64_t offset;
 	const void* buffer;
-	bool is_eof()const { return nullptr == buffer; }
-	void make_eof() {
-		size = 0;
-		offset = 0;
-		buffer = nullptr;
-	}
+	size_t size;
+	const offset_info* offset;
 };
 
 struct ILFPassphrase {
@@ -204,6 +202,7 @@ struct LF_ENTRY_STAT {
 	virtual bool is_directory()const { return stat.st_mode & S_IFDIR; }
 };
 
+
 struct LF_COMPRESS_ARGS;
 class ILFArchiveFile
 {
@@ -234,9 +233,9 @@ public:
 	virtual bool is_bypass_io_supported() const = 0;
 
 	//read entry block; should be called until returned buffer becomes eof
-	virtual LF_BUFFER_INFO read_file_entry_block() = 0;
+	virtual void read_file_entry_block(std::function<void(const void*, size_t, const offset_info*)> data_receiver) = 0;
 	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	virtual LF_BUFFER_INFO read_file_entry_bypass() = 0;
+	virtual void read_file_entry_bypass(std::function<void(const void*, size_t, const offset_info*)> data_receiver) = 0;
 
 	//write entry
 	virtual void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider) = 0;
@@ -244,7 +243,6 @@ public:
 	virtual void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider) = 0;
 	virtual void add_directory_entry(const LF_ENTRY_STAT&) = 0;
 };
-
 
 
 struct ARCLOG {
@@ -345,12 +343,12 @@ public:
 	bool is_bypass_io_supported() const override { _LFA_SAFE_CALL(is_bypass_io_supported()); }
 
 	//read entry block; should be called until returned buffer becomes eof
-	LF_BUFFER_INFO read_file_entry_block()override {
-		_LFA_SAFE_CALL(read_file_entry_block());
+	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
+		_LFA_SAFE_CALL(read_file_entry_block(data_receiver));
 	}
 	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	LF_BUFFER_INFO read_file_entry_bypass()override {
-		_LFA_SAFE_CALL(read_file_entry_bypass());
+	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
+		_LFA_SAFE_CALL(read_file_entry_bypass(data_receiver));
 	}
 
 	//write entry
@@ -401,16 +399,12 @@ public:
 	void read_entry_end()override {}
 	bool is_bypass_io_supported() const override { return false; }
 	//read entry block; should be called until returned buffer becomes eof
-	LF_BUFFER_INFO read_file_entry_block()override {
-		LF_BUFFER_INFO buf;
-		buf.make_eof();
-		return buf;
+	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
+		data_receiver(nullptr, 0, 0);
 	}
 	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	LF_BUFFER_INFO read_file_entry_bypass()override {
-		LF_BUFFER_INFO buf;
-		buf.make_eof();
-		return buf;
+	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
+		data_receiver(nullptr, 0, 0);
 	}
 
 	//write entry

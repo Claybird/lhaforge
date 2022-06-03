@@ -478,18 +478,22 @@ std::filesystem::path extractCurrentEntry(
 				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
 			}
 			created = true;
-			for (;;) {
-				auto buffer = arc.read_file_entry_block();
-				if (buffer.is_eof()) {
-					progressHandler.onEntryIO(entry->stat.st_size);
-					break;
-				} else {
-					auto written = fwrite(buffer.buffer, 1, (size_t)buffer.size, fp);
-					if (written != buffer.size) {
-						RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+			for (bool bEOF = false;!bEOF;) {
+				arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					if (!buf || data_size == 0) {
+						progressHandler.onEntryIO(entry->stat.st_size);
+						bEOF = true;
+					} else {
+						if (offset && _ftelli64(fp) != offset->offset) {
+							_fseeki64(fp, offset->offset, SEEK_SET);
+						}
+						auto written = fwrite(buf, 1, data_size, fp);
+						if (written != data_size) {
+							RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+						}
+						progressHandler.onEntryIO(_ftelli64(fp));
 					}
-					progressHandler.onEntryIO(buffer.offset);
-				}
+				});
 			}
 			arcLog(outputPath, L"OK");
 			fp.close();
@@ -810,14 +814,20 @@ void testOneArchive(
 				arcLog(originalPath, L"directory");
 			} else {
 				//go
-				for (;;) {
-					auto buffer = arc.read_file_entry_block();
-					if (buffer.is_eof()) {
-						progressHandler.onEntryIO(entry->stat.st_size);
-						break;
-					} else {
-						progressHandler.onEntryIO(buffer.offset);
-					}
+				size_t global_offset = 0;
+				for (bool bEOF = false; !bEOF;) {
+					arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+						if (!buf || data_size == 0) {
+							progressHandler.onEntryIO(entry->stat.st_size);
+							bEOF = true;
+						} else {
+							global_offset += data_size;
+							if (offset && offset->offset != global_offset) {
+								global_offset = offset->offset;
+							}
+							progressHandler.onEntryIO(global_offset);
+						}
+					});
 				}
 				arcLog(originalPath, L"OK");
 			}

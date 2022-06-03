@@ -604,11 +604,15 @@ void compressOneArchive(
 			if (std::filesystem::is_regular_file(source.originalFullPath)) {
 				RAW_FILE_READER provider;
 				provider.open(source.originalFullPath);
+				uint64_t size = 0;
 				archive.add_file_entry(entry, [&]() {
 					auto data = provider();
-					if (!data.is_eof()) {
-						progressHandler.onEntryIO(data.offset);
+					if (data.offset) {
+						size = data.offset->offset + data.size;
+					} else {
+						size += data.size;
 					}
+					progressHandler.onEntryIO(size);
 					while (UtilDoMessageLoop())continue;
 					return data;
 				});
@@ -1064,7 +1068,7 @@ TEST(compress, RAW_FILE_READER)
 	std::vector<char> buf;
 	for (;;) {
 		auto bi = reader();
-		if (bi.is_eof())break;
+		if (!bi.size)break;
 		buf.insert(buf.end(), (const char*)(bi.buffer), (const char*)(bi.buffer) + bi.size);
 	}
 

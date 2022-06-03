@@ -73,22 +73,21 @@ struct LF_COMPRESS_ARGS {
 
 struct RAW_FILE_READER {
 	CAutoFile fp;
-	LF_BUFFER_INFO ibi;
 	std::vector<unsigned char> buffer;
 	RAW_FILE_READER() {
-		ibi.make_eof();
 		buffer.resize(1024 * 1024 * 32);	//32MB cache
 	}
 	virtual ~RAW_FILE_READER() {}
-	const LF_BUFFER_INFO& operator()() {
+	LF_BUFFER_INFO operator()() {
+		LF_BUFFER_INFO buf = {};
 		if (!fp || feof(fp)) {
-			ibi.make_eof();
+			return buf;
 		} else {
-			ibi.size = fread(&buffer[0], 1, buffer.size(), fp);
-			ibi.buffer = &buffer[0];
-			ibi.offset = _ftelli64(fp);
+			buf.buffer = &buffer[0];
+			buf.offset = nullptr;
+			buf.size = fread(&buffer[0], 1, buffer.size(), fp);
+			return buf;
 		}
-		return ibi;
 	}
 	void open(const std::filesystem::path& path) {
 		close();

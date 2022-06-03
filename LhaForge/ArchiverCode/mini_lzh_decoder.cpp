@@ -3,54 +3,37 @@
 
 struct UnstoreInternal :CLzhDecoder2::INTERNAL {
 	DWORD _cmpsize;
-	std::array<char, 65536> _buf;
 	UnstoreInternal(FILE* in, DWORD cmpsize) :INTERNAL(in), _cmpsize(cmpsize) {}
 	virtual ~UnstoreInternal() {}
-	virtual LF_BUFFER_INFO decode()override {
+	virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)> data_receiver)override {
+		std::array<char, 32768> buf;
 		if (_cmpsize == -1) {
-			LF_BUFFER_INFO info;
-			info.make_eof();
-			int how_much = fread(&_buf[0], 1, _buf.size(), _in);
-			if (0 != how_much) {
-				info.buffer = &_buf[0];
-				info.size = how_much;
-				info.offset = _file_offset;
-				_file_offset += info.size;
-			}
-			return info;
-		} else {
-			LF_BUFFER_INFO info;
-			info.make_eof();
-			if (_cmpsize > 0) {
-				int how_much = std::min(_cmpsize, (DWORD)_buf.size());
-				how_much = fread(&_buf[0], 1, how_much, _in);
-				if (0 == how_much) {
-					return info;
-				} else {
-					info.buffer = &_buf[0];
-					info.size = how_much;
-					info.offset = _file_offset;
-					_file_offset += info.size;
-					_cmpsize -= how_much;
+			int how_much;
+			while ((how_much = fread(&buf[0], 1, buf.size(), _in)) != 0) {
+				if (how_much == -1) {
+					break;
 				}
+				data_receiver(&buf[0], how_much);
 			}
-			return info;
 		}
+
+		while (_cmpsize > 0) {
+			int how_much = std::min(_cmpsize, (DWORD)buf.size());
+			if (0 >= (how_much = fread(&buf[0], 1, how_much, _in))) {
+				break;
+			}
+			data_receiver(&buf[0], how_much);
+			_cmpsize -= how_much;
+		}
+		data_receiver(nullptr, 0);
 	}
 };
 
 struct ArjDecodeInternal :CLzhDecoder2::INTERNAL {
-	DWORD _count;
 	WORD blocksize;
 	const int pbit, np, offset;
-	enum {
-		dicsiz = 26624
-	};
-	std::array<char, dicsiz> _buf;
-	DWORD _loc;
 	DWORD dicbit;
 	DWORD _cmpsize, _orisize;
-	int _i, _j, _k;
 
 	ArjDecodeInternal(FILE* in, DWORD cmpsize, DWORD orisize) :INTERNAL(in),
 		_cmpsize(cmpsize),
@@ -59,68 +42,47 @@ struct ArjDecodeInternal :CLzhDecoder2::INTERNAL {
 	{
 		init_getbits();
 		blocksize = 0;
-		_count = 0;
-		_loc = 0;
-		_i = 0;
-		_j = 0;
-		_k = -1;
 	}
 	virtual ~ArjDecodeInternal() {}
-	virtual LF_BUFFER_INFO decode()override {
-		LF_BUFFER_INFO info;
-		info.make_eof();
-		while(_count < _orisize) {
-			if (_k == -1) {
-				int c = Decode_C();
+	virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)> data_receiver)override {
+		const int dicsiz = 26624;
+		std::array<char, dicsiz> buf;
 
-				if (c <= 255) {
-					_buf[_loc++] = c;
-					_count++;
-					if (_loc == dicsiz) {
-						info.buffer = &_buf[0];
-						info.size = dicsiz;
-						info.offset = _file_offset;
-						_file_offset += info.size;
-						_loc = 0;
-						return info;
-					}
-				} else {
-					_j = c - offset;
-					_i = Decode_P();
-					if ((_i = _loc - _i - 1) < 0) {
-						_i += dicsiz;
-					}
-					_k = 0;	//go into decoder loop
+		DWORD loc = 0;
+		DWORD count = 0;
+		while(count < _orisize) {
+			int c = Decode_C();
+
+			if (c <= 255) {
+				buf[loc++] = c;
+				count++;
+				if (loc == dicsiz) {
+					data_receiver(&buf[0], dicsiz);
+					loc = 0;
 				}
-			}
-			if (_k != -1) {
-				//decoder loop
-				for (; _k < _j; _k++) {
-					_buf[_loc++] = _buf[_i];
-					_count++;
-					_i = (_i + 1) % dicsiz;
-					if (_loc >= dicsiz) {
-						info.buffer = &_buf[0];
-						info.size = _loc;
-						info.offset = _file_offset;
-						_file_offset += info.size;
-						_loc = 0;
-						return info;
+			} else {
+				int j = c - offset;
+				int i = Decode_P();
+				if ((i = loc - i - 1) < 0) {
+					i += dicsiz;
+				}
+
+				for (int k = 0; k < j; k++) {
+					buf[loc++] = buf[i];
+					count++;
+					i = (i + 1) % dicsiz;
+					if (loc >= dicsiz) {
+						data_receiver(&buf[0], loc);
+						loc = 0;
 					}
 				}
-				_k = -1;	//get out of decoder loop
 			}
 		}
 
-		if (_loc != 0) {
-			info.buffer = &_buf[0];
-			info.size = _loc;
-			info.offset = _file_offset;
-			_file_offset += info.size;
-			_loc = 0;
-			_k = -1;
+		if (loc != 0) {
+			data_receiver(&buf[0], loc);
 		}
-		return info;
+		data_receiver(nullptr, 0);
 	}
 
 	BYTE c_len[NC], pt_len[NPT];
@@ -347,13 +309,11 @@ void CLzhDecoder2::initDecoder(lzh_method mhd, FILE* infile, DWORD insize, DWORD
 	}
 }
 
-LF_BUFFER_INFO CLzhDecoder2::decode()
+void CLzhDecoder2::decode(std::function<void(const void* buffer, size_t/*data size*/ size)> data_receiver)
 {
 	if (_decoder) {
-		return _decoder->decode();
+		_decoder->decode(data_receiver);
 	} else {
-		LF_BUFFER_INFO info;
-		info.make_eof();
-		return info;
+		data_receiver(nullptr, 0);
 	}
 }
