@@ -5,23 +5,23 @@ VisualStudioVersion = 16.0.31205.134
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LhaForge", "LhaForge\LhaForge.vcxproj", "{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbz2", "dependency\libarchive\bzip2\libbz2.vcxproj", "{B21147C0-D52F-406C-8C55-22868335ADA3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbz2", "dependency\backends\bzip2\libbz2.vcxproj", "{B21147C0-D52F-406C-8C55-22868335ADA3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{EF455336-F1F0-45EA-8D27-622A00D2D828}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "archive_static", "dependency\libarchive\libarchive\archive_static.vcxproj", "{131B9EEF-9725-30A9-842F-7C244500C1EC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "archive_static", "dependency\backends\libarchive\archive_static.vcxproj", "{131B9EEF-9725-30A9-842F-7C244500C1EC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcharset", "dependency\libarchive\libcharset\libcharset.vcxproj", "{FDDFF1F1-5DC5-4879-8BEE-CF8A6B2EB855}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcharset", "dependency\backends\libcharset\libcharset.vcxproj", "{FDDFF1F1-5DC5-4879-8BEE-CF8A6B2EB855}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblz4", "dependency\libarchive\lz4\liblz4.vcxproj", "{9092C5CC-3E71-41B3-BF68-4A7BDD8A5476}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblz4", "dependency\backends\lz4\liblz4.vcxproj", "{9092C5CC-3E71-41B3-BF68-4A7BDD8A5476}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win-iconv", "dependency\libarchive\win-iconv\win-iconv.vcxproj", "{31C02A3C-757F-4DCC-8F69-280C43DF14D6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win-iconv", "dependency\backends\win-iconv\win-iconv.vcxproj", "{31C02A3C-757F-4DCC-8F69-280C43DF14D6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlibstatic", "dependency\libarchive\zlib-ng\zlibstatic.vcxproj", "{2C895043-853B-3BBA-B2D7-DEDD58611D69}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlibstatic", "dependency\backends\zlib-ng\zlibstatic.vcxproj", "{2C895043-853B-3BBA-B2D7-DEDD58611D69}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzstd", "dependency\libarchive\zstd\libzstd.vcxproj", "{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libzstd", "dependency\backends\zstd\libzstd.vcxproj", "{8BFD8150-94D5-4BF9-8A50-7BD9929A0850}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblzma", "dependency\libarchive\xzutils\liblzma.vcxproj", "{12728250-16EC-4DC6-94D7-E21DD88947F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblzma", "dependency\backends\xzutils\liblzma.vcxproj", "{12728250-16EC-4DC6-94D7-E21DD88947F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

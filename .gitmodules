@@ -5,3 +5,7 @@
 [submodule "dependency/simpleini"]
 	path = dependency/simpleini
 	url = git@github.com:brofield/simpleini.git
+[submodule "dependency/backends"]
+	path = dependency/backends
+	url = git@github.com:Claybird/lhaforge_dependencies.git
+	branch = master

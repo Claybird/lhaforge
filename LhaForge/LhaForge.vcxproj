@@ -19,6 +19,7 @@
     <ClCompile Include="ArchiverCode\archive_arj.cpp" />
     <ClCompile Include="ArchiverCode\archive_bga.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_zip.cpp" />
     <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
@@ -74,6 +75,7 @@
     <ClInclude Include="ArchiverCode\archive_bga.h" />
     <ClInclude Include="ArchiverCode\archive_libarchive.h" />
     <ClInclude Include="ArchiverCode\archive.h" />
+    <ClInclude Include="ArchiverCode\archive_zip.h" />
     <ClInclude Include="ArchiverCode\mini_lzh_decoder.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />
@@ -154,25 +156,25 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\dependency\libarchive\bzip2\libbz2.vcxproj">
+    <ProjectReference Include="..\dependency\backends\bzip2\libbz2.vcxproj">
       <Project>{b21147c0-d52f-406c-8c55-22868335ada3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\libarchive\archive_static.vcxproj">
+    <ProjectReference Include="..\dependency\backends\libarchive\archive_static.vcxproj">
       <Project>{131b9eef-9725-30a9-842f-7c244500c1ec}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\libcharset\libcharset.vcxproj">
+    <ProjectReference Include="..\dependency\backends\libcharset\libcharset.vcxproj">
       <Project>{fddff1f1-5dc5-4879-8bee-cf8a6b2eb855}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\lz4\liblz4.vcxproj">
+    <ProjectReference Include="..\dependency\backends\lz4\liblz4.vcxproj">
       <Project>{9092c5cc-3e71-41b3-bf68-4a7bdd8a5476}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\win-iconv\win-iconv.vcxproj">
+    <ProjectReference Include="..\dependency\backends\win-iconv\win-iconv.vcxproj">
       <Project>{31c02a3c-757f-4dcc-8f69-280c43df14d6}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\zlib-ng\zlibstatic.vcxproj">
+    <ProjectReference Include="..\dependency\backends\zlib-ng\zlibstatic.vcxproj">
       <Project>{2c895043-853b-3bba-b2d7-dedd58611d69}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\dependency\libarchive\zstd\libzstd.vcxproj">
+    <ProjectReference Include="..\dependency\backends\zstd\libzstd.vcxproj">
       <Project>{8bfd8150-94d5-4bf9-8a50-7bd9929a0850}</Project>
     </ProjectReference>
   </ItemGroup>
@@ -265,7 +267,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>true</EnablePREfast>
@@ -313,7 +315,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -328,7 +330,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
-      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\libarchive\libarchive\x86\Release;$(SolutionDir)\dependency\libarchive\bzip2\x86\Release;$(SolutionDir)\dependency\libarchive\libiconv\x86\Release\lib;$(SolutionDir)\dependency\libarchive\libcharset\x86\Release;$(SolutionDir)\dependency\libarchive\lz4\x86\Release\lib;$(SolutionDir)\dependency\libarchive\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\libarchive\zstd\x86\Release\lib;$(SolutionDir)\dependency\libarchive\liblzma\x86\Release\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x86\Release;$(SolutionDir)\dependency\backends\bzip2\x86\Release;$(SolutionDir)\dependency\backends\libiconv\x86\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x86\Release;$(SolutionDir)\dependency\backends\lz4\x86\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\backends\zstd\x86\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x86\Release\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
@@ -359,7 +361,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\libarchive\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\libarchive\zlib-ng\source;$(SolutionDir)\dependency\libarchive\zlib-ng\;$(SolutionDir)\dependency\libarchive\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
