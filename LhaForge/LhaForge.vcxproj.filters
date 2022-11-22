@@ -127,6 +127,9 @@
     <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp">
       <Filter>ArchiverCode</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiverCode\archive_zip.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -351,6 +354,9 @@
       <Filter>ArchiverCode</Filter>
     </ClInclude>
     <ClInclude Include="ArchiverCode\mini_lzh_decoder.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_zip.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>

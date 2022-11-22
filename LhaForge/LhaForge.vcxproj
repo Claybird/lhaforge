@@ -168,8 +168,14 @@
     <ProjectReference Include="..\dependency\backends\lz4\liblz4.vcxproj">
       <Project>{9092c5cc-3e71-41b3-bf68-4a7bdd8a5476}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\minizip-ng\minizip.vcxproj">
+      <Project>{0a9f72f0-8880-3523-9b09-d8c39a76ed8c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\dependency\backends\win-iconv\win-iconv.vcxproj">
       <Project>{31c02a3c-757f-4dcc-8f69-280c43df14d6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\xzutils\liblzma.vcxproj">
+      <Project>{12728250-16ec-4dc6-94d7-e21dd88947f8}</Project>
     </ProjectReference>
     <ProjectReference Include="..\dependency\backends\zlib-ng\zlibstatic.vcxproj">
       <Project>{2c895043-853b-3bba-b2d7-dedd58611d69}</Project>
@@ -267,7 +273,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>true</EnablePREfast>
@@ -315,7 +321,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -361,7 +367,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
