@@ -40,12 +40,12 @@ static std::wstring mzError2Text(int code)
 static std::wstring mzMethodName(int method)
 {
 	switch (method) {
-	case MZ_COMPRESS_METHOD_STORE: return L"No compression";
-	case MZ_COMPRESS_METHOD_DEFLATE: return L"Deflate compression";
-	case MZ_COMPRESS_METHOD_BZIP2: return L"Bzip2 compression";
-	case MZ_COMPRESS_METHOD_LZMA: return L"LZMA1 compression";
-	case MZ_COMPRESS_METHOD_ZSTD: return L"ZSTD compression";
-	case MZ_COMPRESS_METHOD_XZ: return L"XZ compression";
+	case MZ_COMPRESS_METHOD_STORE: return L"Store";
+	case MZ_COMPRESS_METHOD_DEFLATE: return L"Deflate";
+	case MZ_COMPRESS_METHOD_BZIP2: return L"Bzip2";
+	case MZ_COMPRESS_METHOD_LZMA: return L"LZMA1";
+	case MZ_COMPRESS_METHOD_ZSTD: return L"ZSTD";
+	case MZ_COMPRESS_METHOD_XZ: return L"XZ";
 	default:return L"Unknown";
 	}
 }
@@ -94,12 +94,13 @@ struct CLFArchiveZIP::INTERNAL {
 	}
 };
 
-CLFArchiveZIP::CLFArchiveZIP()
+CLFArchiveZIP::CLFArchiveZIP():_internal(nullptr)
 {
 }
 
 CLFArchiveZIP::~CLFArchiveZIP()
 {
+	close();
 }
 
 void CLFArchiveZIP::read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)
@@ -118,8 +119,11 @@ void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FOR
 
 void CLFArchiveZIP::close()
 {
-	_internal->close();
-	delete _internal;
+	if (_internal) {
+		_internal->close();
+		delete _internal;
+		_internal = nullptr;
+	}
 }
 
 bool CLFArchiveZIP::is_modify_supported()const
@@ -172,7 +176,14 @@ LF_ENTRY_STAT* CLFArchiveZIP::read_entry_attrib()
 
 			_entry.compressed_size = mzEntry->compressed_size;
 
-			_entry.path = UtilUTF8toUNICODE(mzEntry->filename);	//stored-as
+			if (mzEntry->flag & MZ_ZIP_FLAG_UTF8) {
+				_entry.path = UtilUTF8toUNICODE(mzEntry->filename, mzEntry->filename_size);	//stored-as
+			} else {
+				//[Documentation bug] mz_zip_file::filename is NOT utf-8!
+				//_entry.path = UtilCP932toUNICODE(mzEntry->filename, mzEntry->filename_size);	//stored-as
+				auto cp = UtilGuessCodepage(mzEntry->filename, mzEntry->filename_size);
+				_entry.path = UtilToUNICODE(mzEntry->filename, mzEntry->filename_size, cp);
+			}
 			_entry.method_name = mzMethodName(mzEntry->compression_method);
 			_entry.is_encrypted = mzEntry->flag & MZ_ZIP_FLAG_ENCRYPTED;
 
@@ -421,3 +432,120 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 		return false;
 	}
 }
+
+#ifdef UNIT_TEST
+
+TEST(CLFArchiveZIP, read_enum)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_TRUE(a.is_bypass_io_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(),L"dirA/dirB/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/file1.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"‚ ‚¢‚¤‚¦‚¨.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(0, entry->stat.st_size);
+	EXPECT_EQ(0, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"‚©‚«‚­‚¯‚±/file3.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}
+
+TEST(CLFArchiveZIP, read_enum_broken1)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", CLFPassphraseNULL());
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_TRUE(a.is_bypass_io_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/file1.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"‚ ‚¢‚¤‚¦‚¨.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(0, entry->stat.st_size);
+	EXPECT_EQ(0, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"‚©‚«‚­‚¯‚±/file3.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}
+
+TEST(CLFArchiveZIP, read_enum_broken2)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", CLFPassphraseNULL());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+
+	LF_ENTRY_STAT* entry = nullptr;
+	EXPECT_THROW(entry = a.read_entry_begin(), LF_EXCEPTION);
+}
+
+#endif
