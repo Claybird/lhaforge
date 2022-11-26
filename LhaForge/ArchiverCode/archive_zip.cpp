@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "archive_zip.h"
 #include "zip.h"
 #include "mz_zip.h"
@@ -290,7 +290,8 @@ void CLFArchiveZIP::read_file_entry_block(std::function<void(const void*, size_t
 	if (!_internal->isOpened()) {
 		RAISE_EXCEPTION(L"File is not opened");
 	}
-	std::array<unsigned char, 1 * 1024 * 1024> buffer;
+	std::vector<unsigned char> buffer;
+	buffer.resize(1024 * 1024);
 	int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], buffer.size());
 	if (bytes_read < 0) {
 		//error
@@ -461,26 +462,95 @@ TEST(CLFArchiveZIP, read_enum)
 	EXPECT_EQ(5, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
 
+	std::vector<char> data;
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_EQ(std::string(data.begin(), data.end()), std::string("12345"));
+
 	entry = a.read_entry_next();
 	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
 	EXPECT_FALSE(entry->is_directory());
 	EXPECT_EQ(5, entry->stat.st_size);
 	EXPECT_EQ(5, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_EQ(std::string(data.begin(), data.end()), std::string("aaaaa"));
 
 	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"‚ ‚¢‚¤‚¦‚¨.txt");
+	EXPECT_EQ(entry->path.wstring(), L"ã‚ã„ã†ãˆãŠ.txt");
 	EXPECT_FALSE(entry->is_directory());
 	EXPECT_EQ(0, entry->stat.st_size);
 	EXPECT_EQ(0, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 0);
 
 	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"‚©‚«‚­‚¯‚±/file3.txt");
+	EXPECT_EQ(entry->path.wstring(), L"ã‹ããã‘ã“/file3.txt");
 	EXPECT_FALSE(entry->is_directory());
 	EXPECT_EQ(5, entry->stat.st_size);
 	EXPECT_EQ(5, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_EQ(std::string(data.begin(), data.end()), std::string("bbbbb"));
 
 	entry = a.read_entry_next();
 	EXPECT_EQ(nullptr, entry);
@@ -511,6 +581,24 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 	EXPECT_EQ(5, entry->stat.st_size);
 	EXPECT_EQ(5, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
+	std::vector<char> data;
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_NE(std::string(data.begin(), data.end()), std::string("12345"));	//broken
 
 	entry = a.read_entry_next();
 	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
@@ -518,16 +606,33 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 	EXPECT_EQ(5, entry->stat.st_size);
 	EXPECT_EQ(5, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_EQ(std::string(data.begin(), data.end()), std::string("aaaaa"));
 
 	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"‚ ‚¢‚¤‚¦‚¨.txt");
+	EXPECT_EQ(entry->path.wstring(), L"ã‚ã„ã†ãˆãŠ.txt");
 	EXPECT_FALSE(entry->is_directory());
 	EXPECT_EQ(0, entry->stat.st_size);
 	EXPECT_EQ(0, entry->compressed_size);
 	EXPECT_EQ(L"Store", entry->method_name);
 
 	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"‚©‚«‚­‚¯‚±/file3.txt");
+	EXPECT_EQ(entry->path.wstring(), L"ã‹ããã‘ã“/file3.txt");
 	EXPECT_FALSE(entry->is_directory());
 	EXPECT_EQ(5, entry->stat.st_size);
 	EXPECT_EQ(5, entry->compressed_size);
@@ -547,5 +652,158 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 	LF_ENTRY_STAT* entry = nullptr;
 	EXPECT_THROW(entry = a.read_entry_begin(), LF_EXCEPTION);
 }
+
+
+TEST(CLFArchiveZIP, read_enum_unicode)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", CLFPassphraseNULL());
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_TRUE(a.is_bypass_io_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"test_unicode_control/rlo_test_\u202Eabc.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"test_unicode_control/standard.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}
+
+TEST(CLFArchiveZIP, read_enum_sfx)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat", CLFPassphraseNULL());
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_TRUE(a.is_bypass_io_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/file1.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+	std::vector<char> data;
+	data.clear();
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), 5);
+	EXPECT_EQ(std::string(data.begin(), data.end()), std::string("12345"));
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"ã‚ã„ã†ãˆãŠ.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(0, entry->stat.st_size);
+	EXPECT_EQ(0, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"ã‹ããã‘ã“/file3.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}
+/*
+TEST(CLFArchiveZIP, read_password)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	EXPECT_THROW(
+		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFPassphraseNULL()),
+		LF_EXCEPTION);
+	a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFPassphraseConst(L"abcde"));
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_TRUE(a.is_bypass_io_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/");
+	EXPECT_TRUE(entry->is_directory());
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/file1.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"ã‚ã„ã†ãˆãŠ.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(0, entry->stat.st_size);
+	EXPECT_EQ(0, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(entry->path.wstring(), L"ã‹ããã‘ã“/file3.txt");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(5, entry->stat.st_size);
+	EXPECT_EQ(5, entry->compressed_size);
+	EXPECT_EQ(L"Store", entry->method_name);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}*/
+
+/*zipx ?
+not exist
+is known format// unsupported format detection
+create
+create with password*/
 
 #endif
