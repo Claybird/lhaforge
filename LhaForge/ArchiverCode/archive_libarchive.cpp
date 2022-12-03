@@ -433,7 +433,8 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test_extract.zip";
 		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
 		EXPECT_EQ(la_format, ARCHIVE_FORMAT_ZIP);
@@ -444,7 +445,8 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test_gzip.gz";
 		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
 		EXPECT_EQ(la_format, ARCHIVE_FORMAT_RAW);
@@ -456,7 +458,8 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test.tar.gz";
 		LA_FILE_TO_READ src;
-		src.open(fileToRead, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
 		EXPECT_TRUE(la_format & ARCHIVE_FORMAT_TAR);
@@ -674,7 +677,8 @@ TEST(CLFArchiveLA, is_modify_supported)
 	const auto dir = LF_PROJECT_DIR();
 	auto check=[](const std::filesystem::path &p)->bool {
 		CLFArchiveLA a;
-		a.read_open(p, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(p, pp);
 		return a.is_modify_supported();
 	};
 	EXPECT_FALSE(check(dir / L"ArchiverCode/test/empty.gz"));
@@ -727,12 +731,13 @@ TEST(CLFArchiveLA, get_format_name)
 	auto temp = UtilGetTemporaryFileName();
 	{
 		CLFArchiveLA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
 
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
 	}
 	UtilDeletePath(temp);
@@ -792,7 +797,8 @@ TEST(CLFArchiveLA, read_entry)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveLA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dirA/dirB/", entry->path);
@@ -823,7 +829,8 @@ TEST(CLFArchiveLA, read_entry)
 
 	{
 		CLFArchiveLA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dirA/", entry->path);
@@ -916,7 +923,8 @@ TEST(CLFArchiveLA, add_entry)
 		CLFArchiveLA a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 		LF_ENTRY_STAT e;
 		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
 		a.add_directory_entry(e);
@@ -931,7 +939,8 @@ TEST(CLFArchiveLA, add_entry)
 	}
 	{
 		CLFArchiveLA a;
-		a.read_open(temp, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(temp, pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"test/", entry->path);
@@ -1006,13 +1015,14 @@ TEST(CLFArchiveLA, make_copy_archive)
 		auto temp = UtilGetTemporaryFileName();
 		{
 			CLFArchiveLA a;
-			a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+			CLFPassphraseNULL pp;
+			a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 			{
 				LF_COMPRESS_ARGS args;
 				args.load(CConfigFile());
 				auto out = a.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 			}
-			a.read_open(temp, CLFPassphraseNULL());
+			a.read_open(temp, pp);
 
 			auto entry = a.read_entry_begin();
 			EXPECT_NE(nullptr, entry);
@@ -1081,7 +1091,8 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 		the following test is goes too deep into file. checking header should be enough
 		LA_FILE_TO_READ arc;
 		try {
-			arc.open(arcname, CLFPassphraseNULL());
+			CLFPassphraseNULL pp;
+			arc.open(arcname, pp);
 			for (auto* entry = arc.begin(); entry; entry = arc.next()) {
 				continue;
 			}

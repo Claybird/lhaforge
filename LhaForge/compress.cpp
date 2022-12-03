@@ -709,10 +709,11 @@ TEST(compress, compressOneArchive)
 
 		if (p.options & LF_WOPT_DATA_ENCRYPTION) {
 			//expect user cancel
+			CLFPassphraseNULL pp;
 			EXPECT_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
 				(cap.contains_multiple_files ? sources : single_source), arcLog,
 				CLFProgressHandlerNULL(),
-				CLFPassphraseNULL()),
+				pp),
 				LF_USER_CANCEL_EXCEPTION);
 
 			UtilDeletePath(archive);
@@ -1147,7 +1148,8 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 	CLFArchive src;
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.load(CConfigFile());
-	src.read_open(src_filename, CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	src.read_open(src_filename, pp);
 	auto dest = src.make_copy_archive(tempFile, fake_args, [](const LF_ENTRY_STAT& entry) {
 		if (entry.path.wstring().find(L"dirC") == std::wstring::npos) {
 			return true;
@@ -1170,7 +1172,7 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 	ARCLOG arcLog;
 	CLFArchive arc;
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::abort);
-	EXPECT_NO_THROW(arc.read_open(tempFile, CLFPassphraseNULL()));
+	EXPECT_NO_THROW(arc.read_open(tempFile, pp));
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,

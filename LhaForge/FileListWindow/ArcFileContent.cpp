@@ -625,7 +625,7 @@ TEST(ArcFileContent, addEntries)
 		EXPECT_FALSE(std::filesystem::exists(src));
 
 		CLFArchive a;
-		a.read_open(temp, CLFPassphraseNULL());
+		a.read_open(temp, passphrase);
 		auto e = a.read_entry_begin();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"dirA/dirB/", e->path);
@@ -719,7 +719,7 @@ TEST(ArcFileContent, deleteEntries)
 			CLFProgressHandlerNULL(), arcLog);
 
 		CLFArchive a;
-		a.read_open(temp, CLFPassphraseNULL());
+		a.read_open(temp, passphrase);
 		auto e = a.read_entry_begin();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"dirA/dirB/", e->path);

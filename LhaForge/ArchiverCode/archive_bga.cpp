@@ -413,7 +413,8 @@ TEST(CLFArchiveBGA, scan_bza)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveBGA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.bza", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.bza", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dir\\empty\\", entry->path.wstring());
@@ -440,7 +441,8 @@ TEST(CLFArchiveBGA, read_bza)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveBGA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.bza", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.bza", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dir\\empty\\", entry->path.wstring());
@@ -506,7 +508,8 @@ TEST(CLFArchiveBGA, read_gza)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveBGA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.gza", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.gza", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dir\\empty\\", entry->path.wstring());
@@ -571,7 +574,8 @@ TEST(CLFArchiveBGA, read_bza_sfx)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveBGA a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_bza_exe.dat", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_bza_exe.dat", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"dir\\empty\\", entry->path.wstring());

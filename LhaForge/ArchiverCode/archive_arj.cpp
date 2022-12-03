@@ -425,7 +425,8 @@ TEST(CLFArchiveARJ, read_open_many)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", pp);
 		EXPECT_FALSE(a.is_modify_supported());
 		EXPECT_FALSE(a.is_bypass_io_supported());
 		EXPECT_EQ(L"ARJ", a.get_format_name());
@@ -465,7 +466,8 @@ TEST(CLFArchiveARJ, read_open_non_existing)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	EXPECT_THROW(a.read_open(LF_PROJECT_DIR() / L"test/non_existing.arj", CLFPassphraseNULL()), LF_EXCEPTION);
+	CLFPassphraseNULL pp;
+	EXPECT_THROW(a.read_open(LF_PROJECT_DIR() / L"test/non_existing.arj", pp), LF_EXCEPTION);
 }
 
 TEST(CLFArchiveARJ, enum_archive)
@@ -473,7 +475,8 @@ TEST(CLFArchiveARJ, enum_archive)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", pp);
 
 		auto entry = a.read_entry_begin();
 		int count = 0;
@@ -490,7 +493,8 @@ TEST(CLFArchiveARJ, read_open_method0)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	a.read_open(LF_PROJECT_DIR() / L"test/image_method0.arj", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/image_method0.arj", pp);
 	auto entry = a.read_entry_begin();
 
 	EXPECT_NE(nullptr, entry);
@@ -519,7 +523,8 @@ TEST(CLFArchiveARJ, read_open_method1)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	a.read_open(LF_PROJECT_DIR() / L"test/image_method1.arj", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/image_method1.arj", pp);
 	auto entry = a.read_entry_begin();
 
 	EXPECT_NE(nullptr, entry);
@@ -548,7 +553,8 @@ TEST(CLFArchiveARJ, read_open_method2)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	a.read_open(LF_PROJECT_DIR() / L"test/image_method2.arj", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/image_method2.arj", pp);
 	auto entry = a.read_entry_begin();
 
 	EXPECT_NE(nullptr, entry);
@@ -577,7 +583,8 @@ TEST(CLFArchiveARJ, read_open_method3)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	a.read_open(LF_PROJECT_DIR() / L"test/image_method3.arj", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/image_method3.arj", pp);
 	auto entry = a.read_entry_begin();
 
 	EXPECT_NE(nullptr, entry);
@@ -606,7 +613,8 @@ TEST(CLFArchiveARJ, read_open_method4)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	a.read_open(LF_PROJECT_DIR() / L"test/image_method4.arj", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/image_method4.arj", pp);
 	auto entry = a.read_entry_begin();
 
 	EXPECT_NE(nullptr, entry);
@@ -636,7 +644,8 @@ TEST(CLFArchiveARJ, broken_file)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method0.arj", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method0.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
 			for (bool bEOF = false; !bEOF;) {
@@ -651,7 +660,8 @@ TEST(CLFArchiveARJ, broken_file)
 	}
 	{
 		CLFArchiveARJ a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method1.arj", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method1.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
 			for (bool bEOF = false; !bEOF;) {
@@ -666,7 +676,8 @@ TEST(CLFArchiveARJ, broken_file)
 	}
 	{
 		CLFArchiveARJ a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method4.arj", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method4.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
 			for (bool bEOF = false; !bEOF;) {

@@ -199,31 +199,36 @@ TEST(extract, preExtractCheck) {
 	}
 	{
 		CLFArchive a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		auto [result, baseDirName] = preExtractCheck(a);
 		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
 		CLFArchive a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
 		auto [result, baseDirName] = preExtractCheck(a);
 		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
 		CLFArchive a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", pp);
 		auto [result, baseDirName] = preExtractCheck(a);
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
 	}
 	{
 		CLFArchive a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
 		auto [result, baseDirName] = preExtractCheck(a);
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
 	}
 	{
 		CLFArchive a;
-		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
 		auto [result, baseDirName] = preExtractCheck(a);
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleDir, result);
 		EXPECT_EQ(L"test", baseDirName);
@@ -285,11 +290,12 @@ TEST(extract, determineExtractDir) {
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Never;
 		fakeArg.extract.RemoveSymbolAndNumber = false;
 		CLFArchiveNULL arc;
-		arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(L"path_to_archive/archive.ext", pp);
 		EXPECT_EQ(L"path_to_output",
 			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
 
-		arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+		arc.read_open(L"path_to_archive/archive  .ext", pp);
 		EXPECT_EQ(L"path_to_output",
 			determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
 	}
@@ -297,10 +303,11 @@ TEST(extract, determineExtractDir) {
 	{
 		CLFArchiveNULL arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Always;
-		arc.read_open(L"path_to_archive/archive.ext", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(L"path_to_archive/archive.ext", pp);
 		EXPECT_EQ(L"path_to_output/archive",
 			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
-		arc.read_open(L"path_to_archive/archive  .ext", CLFPassphraseNULL());
+		arc.read_open(L"path_to_archive/archive  .ext", pp);
 		EXPECT_EQ(L"path_to_output/archive",
 			determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
 	}
@@ -309,14 +316,16 @@ TEST(extract, determineExtractDir) {
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
 		EXPECT_EQ(L"path_to_output",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
 		EXPECT_EQ(L"path_to_output",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
 	}
@@ -324,14 +333,16 @@ TEST(extract, determineExtractDir) {
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
 		EXPECT_EQ(L"path_to_output",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
 		EXPECT_EQ(L"path_to_output/test",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
 	}
@@ -339,14 +350,16 @@ TEST(extract, determineExtractDir) {
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"path_to_output/test_extract",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
 		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
-		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"path_to_output/test_extract",
 			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
 	}
@@ -530,7 +543,8 @@ TEST(extract, extractCurrentEntry) {
 	ARCLOG arcLog;
 	CLFArchive arc;
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
-	EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
+	CLFPassphraseNULL pp;
+	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
@@ -567,7 +581,8 @@ TEST(extract, extractCurrentEntry_broken_files) {
 		ARCLOG arcLog;
 		CLFArchive arc;
 		CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
-		EXPECT_NO_THROW(arc.read_open(archiveFile, CLFPassphraseNULL()));
+		CLFPassphraseNULL pp;
+		EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 		EXPECT_THROW(
 			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
 				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
