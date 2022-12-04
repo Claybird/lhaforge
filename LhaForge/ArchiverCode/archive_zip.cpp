@@ -128,6 +128,7 @@ void CLFArchiveZIP::close()
 
 bool CLFArchiveZIP::is_modify_supported()const
 {
+	//TODO
 	return true;
 }
 
@@ -196,87 +197,35 @@ LF_ENTRY_STAT* CLFArchiveZIP::read_entry_attrib()
 	}
 }
 
-//entry seek; returns null if it reached EOF
-LF_ENTRY_STAT* CLFArchiveZIP::read_entry_begin()
+LF_ENTRY_STAT* CLFArchiveZIP::read_entry_internal(std::function<int32_t(void*)> seeker)
 {
-	if (!_internal->isOpened()) {
+	if (!_internal || !_internal->isOpened()) {
 		RAISE_EXCEPTION(L"File is not opened");
 	}
-	auto result = mz_zip_goto_first_entry(_internal->zip);
+	if (MZ_OK == mz_zip_entry_is_open(_internal->zip)) {
+		mz_zip_entry_close(_internal->zip);
+	}
+	auto result = seeker(_internal->zip);
 	if (result == MZ_OK) {
 		auto attrib = read_entry_attrib();
-		if (result == MZ_OK) {
-			if (attrib->is_encrypted) {
-				if (!_internal->passphrase.get()) {
-					_internal->update_passphrase();
-				}
-				while (true) {
-					//need passphrase
-					result = mz_zip_entry_read_open(_internal->zip, 0, _internal->passphrase.get()->c_str());
-					if (result == MZ_OK)break;
-					_internal->update_passphrase();
-					if (!_internal->passphrase.get()) {
-						//cancelled
-						CANCEL_EXCEPTION();
-					}
-				}
-			} else {
-				result = mz_zip_entry_read_open(_internal->zip, 0, nullptr);
-			}
-			if (result == MZ_OK) {
-				return attrib;
-			} else {
-				RAISE_EXCEPTION(mzError2Text(result));
-			}
-		} else {
-			RAISE_EXCEPTION(mzError2Text(result));
-		}
-	} else {
-		RAISE_EXCEPTION(mzError2Text(result));
-	}
-}
-
-LF_ENTRY_STAT* CLFArchiveZIP::read_entry_next()
-{
-	if (!_internal->isOpened()) {
-		RAISE_EXCEPTION(L"File is not opened");
-	}
-	mz_zip_entry_close(_internal->zip);
-	auto result = mz_zip_goto_next_entry(_internal->zip);
-	if (result == MZ_OK) {
-		auto attrib = read_entry_attrib();
-		if (result == MZ_OK) {
-			if (attrib->is_encrypted) {
-				if (!_internal->passphrase.get()) {
-					_internal->update_passphrase();
-				}
-				while (true) {
-					//need passphrase
-					result = mz_zip_entry_read_open(_internal->zip, 0, _internal->passphrase.get()->c_str());
-					if (result == MZ_OK)break;
-					_internal->update_passphrase();
-					if (!_internal->passphrase.get()) {
-						//cancelled
-						CANCEL_EXCEPTION();
-					}
-				}
-			} else {
-				result = mz_zip_entry_read_open(_internal->zip, 0, nullptr);
-			}
-			if (result == MZ_OK) {
-				return attrib;
-			} else {
-				RAISE_EXCEPTION(mzError2Text(result));
-			}
-		} else {
-			RAISE_EXCEPTION(mzError2Text(result));
-		}
-	}else if(MZ_END_OF_LIST==result){
+		return attrib;
+	} else if (MZ_END_OF_LIST == result) {
 		//EOF
 		return nullptr;
 	} else {
 		RAISE_EXCEPTION(mzError2Text(result));
 	}
+}
+
+//entry seek; returns null if it reached EOF
+LF_ENTRY_STAT* CLFArchiveZIP::read_entry_begin()
+{
+	return read_entry_internal(mz_zip_goto_first_entry);
+}
+
+LF_ENTRY_STAT* CLFArchiveZIP::read_entry_next()
+{
+	return read_entry_internal(mz_zip_goto_next_entry);
 }
 
 void CLFArchiveZIP::read_entry_end()
@@ -287,9 +236,33 @@ void CLFArchiveZIP::read_entry_end()
 //read entry
 void CLFArchiveZIP::read_file_entry_block(std::function<void(const void*, size_t, const offset_info*)> data_receiver)
 {
-	if (!_internal->isOpened()) {
+	if (!_internal || !_internal->isOpened()) {
 		RAISE_EXCEPTION(L"File is not opened");
 	}
+	if (MZ_OK != mz_zip_entry_is_open(_internal->zip)) {
+		auto attrib = read_entry_attrib();
+		if (attrib->is_encrypted) {
+			if (!_internal->passphrase.get()) {
+				_internal->update_passphrase();
+			}
+			while (true) {
+				//need passphrase
+				if (!_internal->passphrase.get()) {
+					//cancelled
+					CANCEL_EXCEPTION();
+				}
+				auto result = mz_zip_entry_read_open(_internal->zip, 0, _internal->passphrase.get()->c_str());
+				if (result == MZ_OK)break;
+				_internal->update_passphrase();
+			}
+		} else {
+			auto result = mz_zip_entry_read_open(_internal->zip, 0, nullptr);
+			if (result != MZ_OK) {
+				RAISE_EXCEPTION(mzError2Text(result));
+			}
+		}
+	}
+
 	std::vector<unsigned char> buffer;
 	buffer.resize(1024 * 1024);
 	int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], buffer.size());
@@ -426,7 +399,8 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 {
 	try {
 		CLFArchiveZIP zip;
-		zip.read_open(arcname, CLFPassphraseNULL());
+		CLFPassphraseNULL pp;
+		zip.read_open(arcname, pp);
 		zip.read_entry_begin();
 		return true;
 	} catch (...) {
@@ -440,7 +414,8 @@ TEST(CLFArchiveZIP, read_enum)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
@@ -560,7 +535,8 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
@@ -646,7 +622,8 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", pp);
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 
 	LF_ENTRY_STAT* entry = nullptr;
@@ -658,7 +635,8 @@ TEST(CLFArchiveZIP, read_enum_unicode)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
@@ -681,7 +659,8 @@ TEST(CLFArchiveZIP, read_enum_sfx)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	a.read_open(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat", CLFPassphraseNULL());
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
@@ -745,60 +724,62 @@ TEST(CLFArchiveZIP, read_enum_sfx)
 	entry = a.read_entry_next();
 	EXPECT_EQ(nullptr, entry);
 }
-/*
-TEST(CLFArchiveZIP, read_password)
+
+TEST(CLFArchiveZIP, read_passphrase)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	EXPECT_THROW(
-		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFPassphraseNULL()),
-		LF_EXCEPTION);
-	a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFPassphraseConst(L"abcde"));
-	EXPECT_TRUE(a.is_modify_supported());
-	EXPECT_TRUE(a.is_bypass_io_supported());
-	EXPECT_EQ(L"ZIP", a.get_format_name());
-	auto entry = a.read_entry_begin();
-	EXPECT_NE(nullptr, entry);
-	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/");
-	EXPECT_TRUE(entry->is_directory());
-	EXPECT_EQ(L"Store", entry->method_name);
+	{
+		//---content listing does not require passphrase
+		CLFPassphraseNULL pp;
+		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
+		a.read_entry_begin();
+		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
+			//do nothing
+			EXPECT_TRUE(item->is_encrypted);
+		}
+	}
+	{
+		//---content listing does not require passphrase
+		CLFPassphraseConst pp(L"abcde");
+		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
+		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
+			//do nothing
+			EXPECT_TRUE(item->is_encrypted);
+		}
+		EXPECT_EQ(L"ZIP", a.get_format_name());
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(entry->path.wstring(), L"test.txt");
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"Store", entry->method_name);
+	}
 
-	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/");
-	EXPECT_TRUE(entry->is_directory());
-	EXPECT_EQ(L"Store", entry->method_name);
-
-	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/dirC/file1.txt");
-	EXPECT_FALSE(entry->is_directory());
-	EXPECT_EQ(5, entry->stat.st_size);
-	EXPECT_EQ(5, entry->compressed_size);
-	EXPECT_EQ(L"Store", entry->method_name);
-
-	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
-	EXPECT_FALSE(entry->is_directory());
-	EXPECT_EQ(5, entry->stat.st_size);
-	EXPECT_EQ(5, entry->compressed_size);
-	EXPECT_EQ(L"Store", entry->method_name);
-
-	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"あいうえお.txt");
-	EXPECT_FALSE(entry->is_directory());
-	EXPECT_EQ(0, entry->stat.st_size);
-	EXPECT_EQ(0, entry->compressed_size);
-	EXPECT_EQ(L"Store", entry->method_name);
-
-	entry = a.read_entry_next();
-	EXPECT_EQ(entry->path.wstring(), L"かきくけこ/file3.txt");
-	EXPECT_FALSE(entry->is_directory());
-	EXPECT_EQ(5, entry->stat.st_size);
-	EXPECT_EQ(5, entry->compressed_size);
-	EXPECT_EQ(L"Store", entry->method_name);
-
-	entry = a.read_entry_next();
-	EXPECT_EQ(nullptr, entry);
-}*/
+	{
+		//---content listing does not require passphrase
+		CLFPassphraseConst pp(L"abcde");
+		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
+		std::vector<char> data;
+		data.clear();
+		auto entry = a.read_entry_begin();
+		for (;;) {
+			bool bEOF = false;
+			a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+				} else {
+					bEOF = true;
+				}
+			});
+			if (bEOF) {
+				break;
+			}
+		}
+		EXPECT_EQ(data.size(), 7);
+		EXPECT_EQ(std::string(data.begin(), data.end()), std::string("abcde\r\n"));
+	}
+}
 
 /*zipx ?
 not exist

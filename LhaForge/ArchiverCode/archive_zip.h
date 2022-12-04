@@ -9,7 +9,7 @@ protected:
 	INTERNAL* _internal;
 	LF_ENTRY_STAT _entry;
 	LF_ENTRY_STAT* read_entry_attrib();
-	ILFPassphrase* _passphrase;
+	LF_ENTRY_STAT* read_entry_internal(std::function<int32_t(void*)>);
 public:
 	CLFArchiveZIP();
 	virtual ~CLFArchiveZIP();
