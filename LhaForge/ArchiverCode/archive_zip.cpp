@@ -781,7 +781,48 @@ TEST(CLFArchiveZIP, read_passphrase)
 	}
 }
 
-/*zipx ?
+TEST(CLFArchiveZIP, zipx)
+{
+	CLFArchiveZIP a;
+	CLFPassphraseNULL pp;
+	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"dirA/", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"dirA/dirB/", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"dirA/dirB/dirC/", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"dirA/dirB/file2.txt", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"あいうえお.txt", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"かきくけこ/", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(L"かきくけこ/file3.txt", entry->path);
+
+	entry = a.read_entry_next();
+	EXPECT_EQ(nullptr, entry);
+}
+
+/*
 not exist
 is known format// unsupported format detection
 create
