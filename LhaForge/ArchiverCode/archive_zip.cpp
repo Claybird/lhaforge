@@ -401,7 +401,7 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 		CLFArchiveZIP zip;
 		CLFPassphraseNULL pp;
 		zip.read_open(arcname, pp);
-		zip.read_entry_begin();
+		//zip.read_entry_begin();
 		return true;
 	} catch (...) {
 		return false;
@@ -829,6 +829,37 @@ TEST(CLFArchiveZIP, zipx)
 
 	entry = a.read_entry_next();
 	EXPECT_EQ(nullptr, entry);
+}
+
+TEST(CLFArchiveZIP, is_known_format)
+{
+	{
+		const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"empty.gz"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"empty.bz2"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"empty.xz"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"empty.lzma"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"empty.zst"));
+
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"abcde.gz"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"abcde.bz2"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"abcde.xz"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"abcde.lzma"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"abcde.zst"));
+
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(__FILEW__));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(L"some_non_existing_file"));
+	}
+	{
+		const auto dir = LF_PROJECT_DIR() / L"test";
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_file.zip"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_crc.zip"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zip"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_password_abcde.zip"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));
+	}
 }
 
 /*
