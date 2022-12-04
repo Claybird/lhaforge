@@ -987,9 +987,9 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 						while (UtilDoMessageLoop())continue;	//TODO
 						//TODO progress handler
 						LF_BUFFER_INFO bi;
-						_arc_read->read_block([&](const void* buf, size_t size, const offset_info* offset) {
+						_arc_read->read_block([&](const void* buf, int64_t size, const offset_info* offset) {
 							bi.buffer = buf;
-							bi.size = size;
+							bi.size = (size_t)size;
 							bi.offset = offset;
 						});
 						return bi;

@@ -500,7 +500,7 @@ std::filesystem::path extractCurrentEntry(
 						if (offset && _ftelli64(fp) != offset->offset) {
 							_fseeki64(fp, offset->offset, SEEK_SET);
 						}
-						auto written = fwrite(buf, 1, data_size, fp);
+						auto written = fwrite(buf, 1, (size_t)data_size, fp);
 						if (written != data_size) {
 							RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
 						}
@@ -829,7 +829,7 @@ void testOneArchive(
 				arcLog(originalPath, L"directory");
 			} else {
 				//go
-				size_t global_offset = 0;
+				int64_t global_offset = 0;
 				for (bool bEOF = false; !bEOF;) {
 					arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
 						if (!buf || data_size == 0) {
