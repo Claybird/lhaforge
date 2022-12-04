@@ -630,6 +630,15 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 	EXPECT_THROW(entry = a.read_entry_begin(), LF_EXCEPTION);
 }
 
+TEST(CLFArchiveZIP, read_enum_non_existing)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	CLFArchiveZIP a;
+	CLFPassphraseNULL pp;
+	EXPECT_THROW(
+		a.read_open(LF_PROJECT_DIR() / L"test/some_file_that_does_not_exist.zip", pp),
+		LF_EXCEPTION);
+}
 
 TEST(CLFArchiveZIP, read_enum_unicode)
 {
@@ -823,7 +832,6 @@ TEST(CLFArchiveZIP, zipx)
 }
 
 /*
-not exist
 is known format// unsupported format detection
 create
 create with password*/
