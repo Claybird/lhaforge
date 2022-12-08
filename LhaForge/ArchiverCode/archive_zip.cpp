@@ -52,11 +52,12 @@ static std::wstring mzMethodName(int method)
 }
 
 struct CLFArchiveZIP::INTERNAL {
-	INTERNAL(ILFPassphrase& pcb):zip(nullptr), stream(nullptr),passphrase_callback(pcb) {}
+	INTERNAL(ILFPassphrase& pcb):zip(nullptr), stream(nullptr),passphrase_callback(pcb), flag(0){}
 	virtual ~INTERNAL() { close(); }
 
 	void* zip;		//mz_zip
 	void* stream;	//mz_stream
+	int flag;
 	std::shared_ptr<std::string> passphrase;	//UTF-8
 	ILFPassphrase& passphrase_callback;
 	void close() {
@@ -70,6 +71,7 @@ struct CLFArchiveZIP::INTERNAL {
 			mz_stream_os_delete(&stream);
 			stream = nullptr;
 		}
+		flag = 0;
 	}
 	void open(std::filesystem::path path, int32_t mode) {
 		close();
@@ -116,6 +118,9 @@ void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FOR
 	close();
 	_internal = new INTERNAL(passphrase);
 	_internal->open(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE);
+	if (options & LF_WOPT_DATA_ENCRYPTION) {
+		_internal->flag = MZ_ZIP_FLAG_ENCRYPTED;
+	}
 }
 
 void CLFArchiveZIP::close()
@@ -320,12 +325,12 @@ struct LF_zip_file:mz_zip_file {
 	std::string path_utf8;
 };
 
-static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat)
+static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int optionalFlag)
 {
 	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
 	file_info.version_madeby = MZ_VERSION_MADEBY;
-	file_info.flag = MZ_ZIP_FLAG_UTF8;	//TODO: MZ_ZIP_FLAG_ENCRYPTED if encrypted
+	file_info.flag = MZ_ZIP_FLAG_UTF8 | optionalFlag;
 	//TODO: MZ_ZIP_FLAG_DEFLATE_MAX/MZ_ZIP_FLAG_DEFLATE_NORMAL/MZ_ZIP_FLAG_DEFLATE_FAST/MZ_ZIP_FLAG_DEFLATE_SUPER_FAST
 
 	file_info.compression_method = MZ_COMPRESS_METHOD_STORE;	//TODO
@@ -359,9 +364,20 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat)
 void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_BUFFER_INFO()> dataProvider)
 {
 	LF_zip_file file_info;
-	build_file_info(file_info, stat);
+	build_file_info(file_info, stat, _internal->flag);
 
-	auto passphrase = nullptr;	//TODO
+	const char* passphrase = nullptr;
+	if (_internal->flag & MZ_ZIP_FLAG_ENCRYPTED) {
+		if (!_internal->passphrase.get()) {
+			_internal->update_passphrase();
+		}
+		//need passphrase
+		if (!_internal->passphrase.get()) {
+			//cancelled
+			CANCEL_EXCEPTION();
+		}
+		passphrase = _internal->passphrase.get()->c_str();
+	}
 	auto err = mz_zip_entry_write_open(_internal->zip, &file_info, 9/*TODO*/, false, passphrase);
 	if (err == MZ_OK) {
 		for (;;) {
@@ -755,7 +771,6 @@ TEST(CLFArchiveZIP, read_passphrase)
 		//---content listing does not require passphrase
 		CLFPassphraseNULL pp;
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
-		a.read_entry_begin();
 		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
 			//do nothing
 			EXPECT_TRUE(item->is_encrypted);
@@ -946,8 +961,89 @@ TEST(CLFArchiveZIP, add_directory_entry)
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
 
+TEST(CLFArchiveZIP, add_file_entry_with_password)
+{
+	auto temp = UtilGetTemporaryFileName();
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		for (int i = 0; i < 100; i++) {
+			fputs("abcde12345", f);
+		}
+	}
+	{
+		CLFArchiveZIP a;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		CLFPassphraseConst pp(L"password");
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
+		LF_ENTRY_STAT e;
+
+		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
+		a.add_directory_entry(e);
+
+		RAW_FILE_READER provider;
+		provider.open(src);
+		e.read_stat(src, L"test/file.txt");
+		a.add_file_entry(e, [&]() {
+			auto data = provider();
+			return data;
+		});
+		a.close();
+	}
+	{
+		//---content listing does not require passphrase
+		CLFPassphraseNULL pp;
+		CLFArchiveZIP a;
+		a.read_open(temp, pp);
+		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
+			//do nothing
+			EXPECT_TRUE(item->is_encrypted);
+		}
+	}
+	{
+		CLFArchiveZIP a;
+		CLFPassphraseConst pp(L"password");
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/", entry->path.wstring());
+
+		entry = a.read_entry_next();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/file.txt", entry->path.wstring());
+		EXPECT_EQ(1000, entry->stat.st_size);
+
+		std::vector<char> data;
+		data.clear();
+		for (;;) {
+			bool bEOF = false;
+			a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+				} else {
+					bEOF = true;
+				}
+			});
+			if (bEOF) {
+				break;
+			}
+		}
+		EXPECT_EQ(data.size(), entry->stat.st_size);
+		for (int i = 0; i < 100; i++) {
+			EXPECT_EQ(std::string(&data[10 * i], &data[10 * i] + 10), std::string("abcde12345"));
+		}
+
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
+
 /*
-create with password
 add to existing
 remove from existing
 bypass
