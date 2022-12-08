@@ -4,6 +4,7 @@
 #include "mz_zip.h"
 #include "mz_strm_os.h"
 #include "mz_os.h"
+//#include "mz_crypt.h"
 
 static std::wstring mzError2Text(int code)
 {
@@ -114,7 +115,7 @@ void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FOR
 {
 	close();
 	_internal = new INTERNAL(passphrase);
-	_internal->open(file, MZ_OPEN_MODE_CREATE);
+	_internal->open(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE);
 }
 
 void CLFArchiveZIP::close()
@@ -319,9 +320,9 @@ struct LF_zip_file:mz_zip_file {
 	std::string path_utf8;
 };
 
-static LF_zip_file build_file_info(const LF_ENTRY_STAT& stat)
+static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat)
 {
-	LF_zip_file file_info = { 0 };
+	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
 	file_info.version_madeby = MZ_VERSION_MADEBY;
 	file_info.flag = MZ_ZIP_FLAG_UTF8;	//TODO: MZ_ZIP_FLAG_ENCRYPTED if encrypted
@@ -352,14 +353,13 @@ static LF_zip_file build_file_info(const LF_ENTRY_STAT& stat)
 		//TODO:MZ_AES_ENCRYPTION_MODE_128 or MZ_AES_ENCRYPTION_MODE_192
 	}
 	//file_info.pk_verify                 /* pkware encryption verifier */
-
-	return file_info;
 }
 
 //write entry
 void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_BUFFER_INFO()> dataProvider)
 {
-	auto file_info = build_file_info(stat);
+	LF_zip_file file_info;
+	build_file_info(file_info, stat);
 
 	auto passphrase = nullptr;	//TODO
 	auto err = mz_zip_entry_write_open(_internal->zip, &file_info, 9/*TODO*/, false, passphrase);
@@ -367,9 +367,16 @@ void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_B
 		for (;;) {
 			auto data = dataProvider();
 			if (data.buffer) {
-				err = mz_zip_entry_write(_internal->zip, data.buffer, data.size);
-				if (err != MZ_OK) {
-					RAISE_EXCEPTION(L"Failed to add entry %s: %s", stat.path.c_str(), mzError2Text(err).c_str());
+				int totalWritten = 0;
+				int toWrite = data.size;
+				for (; toWrite > 0;) {
+					auto written = mz_zip_entry_write(_internal->zip, (const char*)data.buffer + totalWritten, toWrite);
+					if (written < 0) {
+						RAISE_EXCEPTION(L"Failed to add entry %s: %s", stat.path.c_str(), mzError2Text(err).c_str());
+					} else {
+						totalWritten += written;
+						toWrite -= written;
+					}
 				}
 			} else {
 				break;
@@ -378,7 +385,13 @@ void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_B
 	} else {
 		RAISE_EXCEPTION(L"Failed to open a new entry %s: %s", stat.path.c_str(), mzError2Text(err).c_str());
 	}
-	err = mz_zip_entry_close(_internal->zip);
+	if (stat.is_directory()) {
+		err = mz_zip_entry_write_close(_internal->zip, 0, 0, 0);
+		//err = mz_zip_entry_close(_internal->zip);
+	} else {
+		err = mz_zip_entry_write_close(_internal->zip, -1, -1, stat.stat.st_size);
+	}
+	//err = mz_zip_entry_close(_internal->zip);
 	if (err != MZ_OK) {
 		RAISE_EXCEPTION(L"Failed to close a new entry %s: %s", stat.path.c_str(), mzError2Text(err).c_str());
 	}
@@ -862,9 +875,82 @@ TEST(CLFArchiveZIP, is_known_format)
 	}
 }
 
+#include "Utilities/FileOperation.h"
+#include "compress.h"
+TEST(CLFArchiveZIP, add_file_entry)
+{
+	auto temp = UtilGetTemporaryFileName();
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		for (int i = 0; i < 100; i++) {
+			fputs("abcde12345", f);
+		}
+	}
+	{
+		CLFArchiveZIP a;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		CLFPassphraseNULL pp;
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
+		LF_ENTRY_STAT e;
+
+		RAW_FILE_READER provider;
+		provider.open(src);
+		e.read_stat(src, L"test/file.txt");
+		a.add_file_entry(e, [&]() {
+			auto data = provider();
+			return data;
+		});
+		a.close();
+	}
+	{
+		CLFArchiveZIP a;
+		CLFPassphraseNULL pp;
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/file.txt", entry->path.wstring());
+		EXPECT_EQ(1000, entry->stat.st_size);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
+
+TEST(CLFArchiveZIP, add_directory_entry)
+{
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP a;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		CLFPassphraseNULL pp;
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
+		LF_ENTRY_STAT e;
+		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
+		a.add_directory_entry(e);
+		a.close();
+	}
+	{
+		CLFArchiveZIP a;
+		CLFPassphraseNULL pp;
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/", entry->path.wstring());
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
 /*
-is known format// unsupported format detection
-create
-create with password*/
+create with password
+add to existing
+remove from existing
+bypass
+*/
 
 #endif
