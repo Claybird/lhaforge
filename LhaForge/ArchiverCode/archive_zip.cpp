@@ -4,6 +4,7 @@
 #include "mz_zip.h"
 #include "mz_strm_os.h"
 #include "mz_os.h"
+#include "compress.h"
 //#include "mz_crypt.h"
 
 static std::wstring mzError2Text(int code)
@@ -58,6 +59,8 @@ struct CLFArchiveZIP::INTERNAL {
 	void* zip;		//mz_zip
 	void* stream;	//mz_stream
 	int flag;
+	int method;
+	int level;
 	std::shared_ptr<std::string> passphrase;	//UTF-8
 	ILFPassphrase& passphrase_callback;
 	void close() {
@@ -73,7 +76,7 @@ struct CLFArchiveZIP::INTERNAL {
 		}
 		flag = 0;
 	}
-	void open(std::filesystem::path path, int32_t mode) {
+	void open(std::filesystem::path path, int32_t mode, std::map<std::string, std::string> param) {
 		close();
 		mz_stream_os_create(&stream);
 		mz_stream_os_open(stream, path.u8string().c_str(), mode);
@@ -82,6 +85,33 @@ struct CLFArchiveZIP::INTERNAL {
 		auto err = mz_zip_open(zip, stream, mode);
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(mzError2Text(err));
+		}
+		auto methodStr = toLower(param["method"]);
+		if (methodStr.empty()) {
+			methodStr = "deflate";
+		}
+		std::map<std::string, int> methodMap = {
+			{"store", MZ_COMPRESS_METHOD_STORE},
+			{"deflate", MZ_COMPRESS_METHOD_DEFLATE},
+			{"bzip2", MZ_COMPRESS_METHOD_BZIP2},
+			{"lzma", MZ_COMPRESS_METHOD_LZMA},
+			{"zstd", MZ_COMPRESS_METHOD_ZSTD},
+			{"xz", MZ_COMPRESS_METHOD_XZ},
+		};
+		{
+			auto iter = methodMap.find(methodStr);
+			if (methodMap.end()==iter) {
+				RAISE_EXCEPTION(L"Invalid method name: %s", UtilUTF8toUNICODE(methodStr).c_str());
+			} else {
+				method = (*iter).second;
+			}
+		}
+		if (param["level"].empty()) {
+			param["level"] = "6";	//default
+		}
+		level = atoi(param["level"].c_str());
+		if (level < 0 || level>9) {
+			RAISE_EXCEPTION(L"Invalid compression level: %s", UtilUTF8toUNICODE(param["level"]).c_str());
 		}
 	}
 	bool isOpened()const {
@@ -110,16 +140,18 @@ void CLFArchiveZIP::read_open(const std::filesystem::path& file, ILFPassphrase& 
 {
 	close();
 	_internal = new INTERNAL(passphrase);
-	_internal->open(file, MZ_OPEN_MODE_READ | MZ_OPEN_MODE_EXISTING);
+	LF_COMPRESS_ARGS fake_args;
+	fake_args.load(CConfigFile());
+	_internal->open(file, MZ_OPEN_MODE_READ | MZ_OPEN_MODE_EXISTING, fake_args.formats.zip.params);
 }
 
 void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)
 {
 	close();
 	_internal = new INTERNAL(passphrase);
-	_internal->open(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE);
+	_internal->open(file, MZ_OPEN_MODE_CREATE | MZ_OPEN_MODE_WRITE, args.formats.zip.params);
 	if (options & LF_WOPT_DATA_ENCRYPTION) {
-		_internal->flag = MZ_ZIP_FLAG_ENCRYPTED;
+		_internal->flag |= MZ_ZIP_FLAG_ENCRYPTED;
 	}
 }
 
@@ -325,15 +357,14 @@ struct LF_zip_file:mz_zip_file {
 	std::string path_utf8;
 };
 
-static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int optionalFlag)
+static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int method, int optionalFlag)
 {
 	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
 	file_info.version_madeby = MZ_VERSION_MADEBY;
 	file_info.flag = MZ_ZIP_FLAG_UTF8 | optionalFlag;
-	//TODO: MZ_ZIP_FLAG_DEFLATE_MAX/MZ_ZIP_FLAG_DEFLATE_NORMAL/MZ_ZIP_FLAG_DEFLATE_FAST/MZ_ZIP_FLAG_DEFLATE_SUPER_FAST
 
-	file_info.compression_method = MZ_COMPRESS_METHOD_STORE;	//TODO
+	file_info.compression_method = method;
 	file_info.modified_date = stat.stat.st_mtime;
 	file_info.accessed_date = stat.stat.st_atime;
 	file_info.creation_date = stat.stat.st_ctime;
@@ -364,7 +395,7 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_BUFFER_INFO()> dataProvider)
 {
 	LF_zip_file file_info;
-	build_file_info(file_info, stat, _internal->flag);
+	build_file_info(file_info, stat, _internal->method, _internal->flag);
 
 	const char* passphrase = nullptr;
 	if (_internal->flag & MZ_ZIP_FLAG_ENCRYPTED) {
@@ -378,7 +409,7 @@ void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_B
 		}
 		passphrase = _internal->passphrase.get()->c_str();
 	}
-	auto err = mz_zip_entry_write_open(_internal->zip, &file_info, 9/*TODO*/, false, passphrase);
+	auto err = mz_zip_entry_write_open(_internal->zip, &file_info, _internal->level, false, passphrase);
 	if (err == MZ_OK) {
 		for (;;) {
 			auto data = dataProvider();
@@ -891,7 +922,6 @@ TEST(CLFArchiveZIP, is_known_format)
 }
 
 #include "Utilities/FileOperation.h"
-#include "compress.h"
 TEST(CLFArchiveZIP, add_file_entry)
 {
 	auto temp = UtilGetTemporaryFileName();
@@ -1043,10 +1073,71 @@ TEST(CLFArchiveZIP, add_file_entry_with_password)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
+TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
+{
+	auto temp = UtilGetTemporaryFileName();
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		for (int i = 0; i < 100; i++) {
+			fputs("abcde12345", f);
+		}
+	}
+	for (int level = 1; level <= 9; level++) {
+		std::map<std::string, std::wstring> methods = {
+			{"store", L"Store"},
+			{"deflate", L"Deflate"},
+			{"bzip2", L"Bzip2"},
+			{"lzma", L"LZMA1"},
+			{"zstd", L"ZSTD"},
+			{"xz", L"XZ"},
+		};
+		for (const auto& method : methods) {
+			{
+				CLFArchiveZIP a;
+				LF_COMPRESS_ARGS args;
+				args.load(CConfigFile());
+				args.formats.zip.params["method"] = method.first;
+				CLFPassphraseNULL pp;
+				a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
+				LF_ENTRY_STAT e;
+
+				RAW_FILE_READER provider;
+				provider.open(src);
+				e.read_stat(src, L"test/file.txt");
+				a.add_file_entry(e, [&]() {
+					auto data = provider();
+					return data;
+				});
+				a.close();
+			}
+			{
+				CLFArchiveZIP a;
+				CLFPassphraseNULL pp;
+				a.read_open(temp, pp);
+				auto entry = a.read_entry_begin();
+				EXPECT_NE(nullptr, entry);
+				EXPECT_EQ(L"test/file.txt", entry->path.wstring());
+				EXPECT_EQ(1000, entry->stat.st_size);
+				EXPECT_LE(entry->compressed_size, 1000);
+				EXPECT_EQ(method.second, entry->method_name);
+				//EXPECT_EQ(level, ); no way to get compression level; checking creation errors only
+			}
+			UtilDeletePath(temp);
+			EXPECT_FALSE(std::filesystem::exists(temp));
+		}
+	}
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
+
+
 /*
 add to existing
 remove from existing
 bypass
+remove zip from libarchive
 */
 
 #endif
