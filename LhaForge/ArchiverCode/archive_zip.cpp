@@ -61,6 +61,7 @@ struct CLFArchiveZIP::INTERNAL {
 	int flag;
 	int method;
 	int level;
+	int aesFlag;
 	std::shared_ptr<std::string> passphrase;	//UTF-8
 	ILFPassphrase& passphrase_callback;
 	void close() {
@@ -86,32 +87,51 @@ struct CLFArchiveZIP::INTERNAL {
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(mzError2Text(err));
 		}
-		auto methodStr = toLower(param["method"]);
-		if (methodStr.empty()) {
-			methodStr = "deflate";
-		}
-		std::map<std::string, int> methodMap = {
-			{"store", MZ_COMPRESS_METHOD_STORE},
-			{"deflate", MZ_COMPRESS_METHOD_DEFLATE},
-			{"bzip2", MZ_COMPRESS_METHOD_BZIP2},
-			{"lzma", MZ_COMPRESS_METHOD_LZMA},
-			{"zstd", MZ_COMPRESS_METHOD_ZSTD},
-			{"xz", MZ_COMPRESS_METHOD_XZ},
-		};
 		{
+			auto methodStr = toLower(param["method"]);
+			if (methodStr.empty()) {
+				methodStr = "deflate";
+			}
+			std::map<std::string, int> methodMap = {
+				{"store", MZ_COMPRESS_METHOD_STORE},
+				{"deflate", MZ_COMPRESS_METHOD_DEFLATE},
+				{"bzip2", MZ_COMPRESS_METHOD_BZIP2},
+				{"lzma", MZ_COMPRESS_METHOD_LZMA},
+				{"zstd", MZ_COMPRESS_METHOD_ZSTD},
+				{"xz", MZ_COMPRESS_METHOD_XZ},
+			};
 			auto iter = methodMap.find(methodStr);
-			if (methodMap.end()==iter) {
+			if (methodMap.end() == iter) {
 				RAISE_EXCEPTION(L"Invalid method name: %s", UtilUTF8toUNICODE(methodStr).c_str());
 			} else {
 				method = (*iter).second;
 			}
 		}
-		if (param["level"].empty()) {
-			param["level"] = "6";	//default
+		{
+			if (param["level"].empty()) {
+				param["level"] = "6";	//default
+			}
+			level = atoi(param["level"].c_str());
+			if (level < 0 || level>9) {
+				RAISE_EXCEPTION(L"Invalid compression level: %s", UtilUTF8toUNICODE(param["level"]).c_str());
+			}
 		}
-		level = atoi(param["level"].c_str());
-		if (level < 0 || level>9) {
-			RAISE_EXCEPTION(L"Invalid compression level: %s", UtilUTF8toUNICODE(param["level"]).c_str());
+		{
+			std::map<std::string, int> cryptoMap = {
+			{"aes256", MZ_AES_ENCRYPTION_MODE_256},
+			{"aes192", MZ_AES_ENCRYPTION_MODE_192},
+			{"aes128", MZ_AES_ENCRYPTION_MODE_128},
+		};
+			auto cryptoStr = toLower(param["crypto"]);
+			if (cryptoStr.empty()) {
+				cryptoStr = "aes256";
+			}
+			auto iter = cryptoMap.find(cryptoStr);
+			if (cryptoMap.end() == iter) {
+				RAISE_EXCEPTION(L"Invalid crypto name: %s", UtilUTF8toUNICODE(cryptoStr).c_str());
+			} else {
+				aesFlag = (*iter).second;
+			}
 		}
 	}
 	bool isOpened()const {
@@ -357,7 +377,7 @@ struct LF_zip_file:mz_zip_file {
 	std::string path_utf8;
 };
 
-static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int method, int optionalFlag)
+static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int method, int optionalFlag, int aesFlag)
 {
 	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
@@ -385,8 +405,7 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 	//file_info.zip64                     /* zip64 extension mode */
 	if (file_info.flag & MZ_ZIP_FLAG_ENCRYPTED) {
 		file_info.aes_version = MZ_AES_VERSION;/* winzip aes extension if not 0 */
-		file_info.aes_encryption_mode = MZ_AES_ENCRYPTION_MODE_256;	/* winzip aes encryption mode */
-		//TODO:MZ_AES_ENCRYPTION_MODE_128 or MZ_AES_ENCRYPTION_MODE_192
+		file_info.aes_encryption_mode = aesFlag;
 	}
 	//file_info.pk_verify                 /* pkware encryption verifier */
 }
@@ -395,7 +414,7 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_BUFFER_INFO()> dataProvider)
 {
 	LF_zip_file file_info;
-	build_file_info(file_info, stat, _internal->method, _internal->flag);
+	build_file_info(file_info, stat, _internal->method, _internal->flag, _internal->aesFlag);
 
 	const char* passphrase = nullptr;
 	if (_internal->flag & MZ_ZIP_FLAG_ENCRYPTED) {
@@ -1133,6 +1152,53 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
+TEST(CLFArchiveZIP, add_file_entry_crypto_level)
+{
+	auto temp = UtilGetTemporaryFileName();
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		for (int i = 0; i < 100; i++) {
+			fputs("abcde12345", f);
+		}
+	}
+	std::vector<std::string> codes = {
+		"aes256", "aes192", "aes128"
+	};
+	for (const auto& code : codes) {
+		CLFPassphraseConst pp(L"password");
+		{
+			CLFArchiveZIP a;
+			LF_COMPRESS_ARGS args;
+			args.load(CConfigFile());
+			args.formats.zip.params["crypto"] = code;
+			a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
+			LF_ENTRY_STAT e;
+
+			RAW_FILE_READER provider;
+			provider.open(src);
+			e.read_stat(src, L"test/file.txt");
+			a.add_file_entry(e, [&]() {
+				auto data = provider();
+				return data;
+			});
+			a.close();
+		}
+		{
+			CLFArchiveZIP a;
+			a.read_open(temp, pp);
+			auto entry = a.read_entry_begin();
+			EXPECT_NE(nullptr, entry);
+			EXPECT_EQ(L"test/file.txt", entry->path.wstring());
+			EXPECT_TRUE(entry->is_encrypted);
+		}
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+	}
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
 
 /*
 add to existing
