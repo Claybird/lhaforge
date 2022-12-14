@@ -539,19 +539,31 @@ TEST(StringUtil, replace) {
 }
 
 TEST(StringUtil, toLower) {
+	_wsetlocale(LC_ALL, L"");	//default locale
 	EXPECT_EQ(L"", toLower(L""));
 	EXPECT_EQ(L"abcde", toLower(L"abcde"));
 	EXPECT_EQ(L"abcde", toLower(L"aBcDe"));
 	EXPECT_EQ(L"あいうcde", toLower(L"あいうCdE"));
 	EXPECT_EQ(L"👪", toLower(L"👪"));	//emoji
+
+	EXPECT_EQ("", toLower(""));
+	EXPECT_EQ("abcde", toLower("abcde"));
+	EXPECT_EQ("abcde", toLower("aBcDe"));
+	EXPECT_EQ("あいうcde", toLower("あいうCdE"));
 }
 
 TEST(StringUtil, toUpper) {
+	_wsetlocale(LC_ALL, L"");	//default locale
 	EXPECT_EQ(L"", toUpper(L""));
 	EXPECT_EQ(L"ABCDE", toUpper(L"abcde"));
 	EXPECT_EQ(L"ABCDE", toUpper(L"aBcDe"));
 	EXPECT_EQ(L"あいうCDE", toUpper(L"あいうCdE"));
 	EXPECT_EQ(L"👪", toUpper(L"👪"));	//emoji
+
+	EXPECT_EQ("", toUpper(""));
+	EXPECT_EQ("ABCDE", toUpper("abcde"));
+	EXPECT_EQ("ABCDE", toUpper("aBcDe"));
+	EXPECT_EQ("あいうCDE", toUpper("あいうCdE"));
 }
 
 TEST(StringUtil, join) {
