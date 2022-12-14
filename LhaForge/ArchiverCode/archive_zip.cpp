@@ -1099,6 +1099,7 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 				LF_COMPRESS_ARGS args;
 				args.load(CConfigFile());
 				args.formats.zip.params["method"] = method.first;
+				args.formats.zip.params["level"] = UtilToUTF8(Format(L"%d", level));
 				CLFPassphraseNULL pp;
 				a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 				LF_ENTRY_STAT e;
