@@ -22,7 +22,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip);
+		std::function<bool(const LF_ENTRY_STAT&)> skip_if_false);
 
 	//archive property
 	std::wstring get_format_name()override { return L"ZIP"; }
@@ -44,4 +44,6 @@ public:
 	void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override;
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 	static bool is_known_format(const std::filesystem::path& arcname);
+
+	bool contains_encryted_entry();
 };
