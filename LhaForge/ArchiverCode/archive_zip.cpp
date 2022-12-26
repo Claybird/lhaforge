@@ -120,10 +120,11 @@ struct CLFArchiveZIP::INTERNAL {
 		}
 		{
 			std::map<std::string, int> cryptoMap = {
-			{"aes256", MZ_AES_ENCRYPTION_MODE_256},
-			{"aes192", MZ_AES_ENCRYPTION_MODE_192},
-			{"aes128", MZ_AES_ENCRYPTION_MODE_128},
-		};
+				{"aes256", MZ_AES_ENCRYPTION_MODE_256},
+				{"aes192", MZ_AES_ENCRYPTION_MODE_192},
+				{"aes128", MZ_AES_ENCRYPTION_MODE_128},
+				{"zipcrypto", 0},
+			};
 			auto cryptoStr = toLower(param["crypto"]);
 			if (cryptoStr.empty()) {
 				cryptoStr = "aes256";
@@ -481,8 +482,13 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 	//file_info.linkname;           /* sym-link filename utf8 null-terminated string */
 	//file_info.zip64                     /* zip64 extension mode */
 	if (file_info.flag & MZ_ZIP_FLAG_ENCRYPTED) {
-		file_info.aes_version = MZ_AES_VERSION;/* winzip aes extension if not 0 */
-		file_info.aes_encryption_mode = aesFlag;
+		if (aesFlag == 0) {
+			file_info.aes_version = 0;/* winzip aes extension if not 0 */
+			file_info.aes_encryption_mode = aesFlag;
+		} else {
+			file_info.aes_version = MZ_AES_VERSION;/* winzip aes extension if not 0 */
+			file_info.aes_encryption_mode = aesFlag;
+		}
 	}
 	//file_info.pk_verify                 /* pkware encryption verifier */
 }
@@ -1257,7 +1263,7 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 		}
 	}
 	std::vector<std::string> codes = {
-		"aes256", "aes192", "aes128"
+		"aes256", "aes192", "aes128", "zipcrypto"
 	};
 	for (const auto& code : codes) {
 		CLFPassphraseConst pp(L"password");
@@ -1318,7 +1324,7 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 			CLFArchiveZIP r;
 			LF_COMPRESS_ARGS args;
 			args.load(CConfigFile());
-			CLFPassphraseConst pp(L"abcde");
+			CLFPassphraseConst pp(L"password");
 			r.read_open(zip_file, pp);
 			auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 
