@@ -211,7 +211,7 @@ bool CLFArchiveZIP::contains_encryted_entry()
 std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 	const std::filesystem::path& dest_path,
 	const LF_COMPRESS_ARGS& args,
-	std::function<bool(const LF_ENTRY_STAT&)> skip_if_false)
+	std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)
 {
 	if (_internal->isReadMode()) {
 		std::unique_ptr<CLFArchiveZIP> dest = std::make_unique<CLFArchiveZIP>();
@@ -227,7 +227,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 		}
 
 		for (auto* entry = read_entry_begin(); entry; entry = read_entry_next()) {
-			if (skip_if_false(*entry)) {
+			if (false_to_skip(*entry)) {
 				mz_zip_file* mzEntry;
 				auto result = mz_zip_entry_get_info(_internal->zip, &mzEntry);
 				if (result != MZ_OK)RAISE_EXCEPTION(mzError2Text(result));
@@ -1373,9 +1373,55 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
+TEST(CLFArchiveZIP, remove_file_from_existing_zip)
+{
+	const auto src = LF_PROJECT_DIR() / L"test" / L"test_extract.zip";
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		CLFPassphraseNULL pp;
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			if (entry.path.filename() == L"file3.txt")return false;
+			return true;
+		});
+		a->close();
+	}
+	{
+		CLFArchiveZIP modified;
+		CLFArchiveZIP original;
+		CLFPassphraseNULL pp;
+		modified.read_open(temp, pp);
+		original.read_open(src, pp);
+
+		EXPECT_EQ(modified.contains_encryted_entry(), original.contains_encryted_entry());
+
+		auto entry_mod = modified.read_entry_begin();
+		auto entry_org = original.read_entry_begin();
+		for (; entry_mod;) {
+			ASSERT_NE(nullptr, entry_org);
+			ASSERT_NE(nullptr, entry_mod);
+			EXPECT_EQ(entry_org->path.wstring(), entry_mod->path.wstring());
+			EXPECT_EQ(entry_org->stat.st_size, entry_mod->stat.st_size);
+			EXPECT_EQ(entry_org->stat.st_mtime, entry_mod->stat.st_mtime);
+
+			entry_org = original.read_entry_next();
+			entry_mod = modified.read_entry_next();
+		}
+		EXPECT_NE(nullptr, entry_org);
+		EXPECT_EQ(L"かきくけこ/file3.txt", entry_org->path.wstring());
+		EXPECT_EQ(5, entry_org->stat.st_size);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
 /*
-remove from existing
 remove zip from libarchive
+ILFPassphrase should be shared_ptr
 */
 
 #endif
