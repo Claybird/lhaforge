@@ -74,8 +74,8 @@ struct CLFArchiveBGA::DecoderGZ :public CLFArchiveBGA::Decoder
 	int fd;
 	gzFile gz;
 
-	const size_t total_size;
-	size_t offset;
+	const int64_t total_size;
+	int64_t offset;
 	DecoderGZ(const std::shared_ptr<BgaHeader> header, FILE* fp) :total_size(header->original_size), offset(0) {
 		fd = _dup(_fileno(fp));
 		_lseek(fd, ftell(fp), SEEK_SET);
@@ -90,12 +90,12 @@ struct CLFArchiveBGA::DecoderGZ :public CLFArchiveBGA::Decoder
 	virtual ~DecoderGZ() {
 		gzclose(gz);
 	}
-	void decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)override {
+	void decode(std::function<void(const void*, size_t/*data size*/)> data_receiver)override {
 		if (total_size <= offset) {
 			data_receiver(nullptr, 0);
 		} else {
-			auto toRead = std::min(total_size - offset, outbuf.size());
-			auto read = gzread(gz, &outbuf[0], toRead);
+			auto toRead = std::min(total_size - offset, (int64_t)outbuf.size());
+			auto read = gzread(gz, &outbuf[0], (unsigned int)toRead);
 
 			if (read == -1) {
 				RAISE_EXCEPTION(L"Unexpected error");
@@ -130,7 +130,7 @@ struct CLFArchiveBGA::DecoderBZ2 :public CLFArchiveBGA::Decoder
 		int status;
 		BZ2_bzReadClose(&status, bz);
 	}
-	void decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)override {
+	void decode(std::function<void(const void*, size_t/*data size*/)> data_receiver)override {
 		if (total_size <= offset) {
 			data_receiver(nullptr, 0);
 		} else {
@@ -155,18 +155,18 @@ struct CLFArchiveBGA::DecoderRaw :public CLFArchiveBGA::Decoder
 {
 	std::array<char, 4 * 1024 * 1024> outbuf;
 
-	const size_t total_size;
-	size_t offset;
+	const int64_t total_size;
+	int64_t offset;
 
 	FILE* _fp;
 	DecoderRaw(const std::shared_ptr<BgaHeader> header, FILE* fp) : _fp(fp), total_size(header->original_size), offset(0) {}
 	virtual ~DecoderRaw() {}
-	void decode(std::function<void(const void*, int64_t/*data size*/) > data_receiver)override {
+	void decode(std::function<void(const void*, size_t/*data size*/) > data_receiver)override {
 		if (total_size <= offset) {
 			data_receiver(nullptr, 0);
 		} else {
-			auto toRead = std::min(total_size - offset, outbuf.size());
-			auto read = fread(&outbuf[0], 1, toRead, _fp);
+			auto toRead = std::min(total_size - offset, (int64_t)outbuf.size());
+			auto read = fread(&outbuf[0], 1, (unsigned int)toRead, _fp);
 
 			if (read != toRead) {
 				RAISE_EXCEPTION(L"Unexpected EOF");
@@ -181,7 +181,7 @@ struct CLFArchiveBGA::DecoderRaw :public CLFArchiveBGA::Decoder
 void CLFArchiveBGA::read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info* offset)> data_receiver)
 {
 	if (_decoder) {
-		_decoder->decode([&](const void* buffer, int64_t bufsize)->void {
+		_decoder->decode([&](const void* buffer, size_t bufsize)->void {
 			data_receiver(buffer, bufsize, nullptr);
 			if (!buffer || bufsize == 0) {
 				_decoder.reset();

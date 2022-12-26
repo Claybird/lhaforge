@@ -219,7 +219,7 @@ public:
 	virtual std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip) = 0;
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip) = 0;
 
 	//archive property
 	virtual std::wstring get_format_name() = 0;	//works if file is opened
@@ -326,8 +326,8 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
-		_LFA_SAFE_CALL(make_copy_archive(dest_path, args, false_if_skip));
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)override {
+		_LFA_SAFE_CALL(make_copy_archive(dest_path, args, false_to_skip));
 	}
 
 	//archive property
@@ -384,7 +384,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)override {
 		return std::make_unique<CLFArchiveNULL>();
 	}
 

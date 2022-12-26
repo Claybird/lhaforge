@@ -962,7 +962,7 @@ TEST(CLFArchiveLA, add_entry)
 std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 	const std::filesystem::path& dest_path,
 	const LF_COMPRESS_ARGS& args,
-	std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)
+	std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)
 {
 	if (_arc_read) {
 		ASSERT(_arc_read->_rewind.passphrase);
@@ -979,7 +979,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 		//there seems no way to get raw data
 		_arc_read->rewind();
 		for (LF_LA_ENTRY* entry = _arc_read->begin(); entry; entry = _arc_read->next()) {
-			if (false_if_skip(entry->_lf_stat)) {
+			if (false_to_skip(entry->_lf_stat)) {
 				if (entry->_lf_stat.is_directory()) {
 					dest_archive->_arc_write->add_directory(*entry);
 				} else {

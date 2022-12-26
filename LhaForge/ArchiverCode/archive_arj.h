@@ -135,7 +135,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip) {
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip) {
 		throw ARCHIVE_EXCEPTION(ENOSYS);
 	}
 

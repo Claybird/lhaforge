@@ -22,7 +22,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> skip_if_false);
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip);
 
 	//archive property
 	std::wstring get_format_name()override { return L"ZIP"; }
