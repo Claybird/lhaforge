@@ -418,11 +418,6 @@ void CLFArchiveZIP::read_file_entry_block(std::function<void(const void*, size_t
 	}
 }
 
-void CLFArchiveZIP::read_file_entry_bypass(std::function<void(const void*, size_t, const offset_info*)> data_receiver)
-{
-	//TODO: remove
-}
-
 struct callback_data_struct {
 	callback_data_struct() {}
 	std::function<LF_BUFFER_INFO()> dataProvider;
@@ -554,11 +549,6 @@ void CLFArchiveZIP::add_directory_entry(const LF_ENTRY_STAT& stat)
 	add_file_entry(stat, []() {LF_BUFFER_INFO bi = { 0 }; return bi; });
 }
 
-void CLFArchiveZIP::add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)
-{
-	//TODO
-}
-
 #include "CommonUtil.h"
 bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 {
@@ -582,7 +572,6 @@ TEST(CLFArchiveZIP, read_enum)
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
-	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
@@ -703,7 +692,6 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
-	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
@@ -812,7 +800,6 @@ TEST(CLFArchiveZIP, read_enum_unicode)
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
-	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
@@ -836,7 +823,6 @@ TEST(CLFArchiveZIP, read_enum_sfx)
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat", pp);
 	EXPECT_TRUE(a.is_modify_supported());
-	EXPECT_TRUE(a.is_bypass_io_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);

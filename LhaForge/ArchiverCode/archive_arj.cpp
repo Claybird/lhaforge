@@ -428,7 +428,6 @@ TEST(CLFArchiveARJ, read_open_many)
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", pp);
 		EXPECT_FALSE(a.is_modify_supported());
-		EXPECT_FALSE(a.is_bypass_io_supported());
 		EXPECT_EQ(L"ARJ", a.get_format_name());
 		auto entry = a.read_entry_begin();
 

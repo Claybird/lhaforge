@@ -33,15 +33,11 @@ public:
 	LF_ENTRY_STAT* read_entry_next()override;
 	void read_entry_end()override;
 
-	bool is_bypass_io_supported()const override { return true; }
-
 	//read entry
 	void read_file_entry_block(std::function<void(const void*, size_t, const offset_info*)> data_receiver)override;
-	void read_file_entry_bypass(std::function<void(const void*, size_t, const offset_info*)> data_receiver)override;
 
 	//write entry
 	void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override;
-	void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override;
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 	static bool is_known_format(const std::filesystem::path& arcname);
 

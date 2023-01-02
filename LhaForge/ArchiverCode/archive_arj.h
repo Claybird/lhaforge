@@ -151,19 +151,11 @@ public:
 	LF_ENTRY_STAT* read_entry_next()override;
 	void read_entry_end()override;
 
-	bool is_bypass_io_supported()const override { return false; }
-
 	//read entry
 	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override;
-	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
-		throw ARCHIVE_EXCEPTION(ENOSYS);
-	}
 
 	//write entry
 	void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override {
-		throw ARCHIVE_EXCEPTION(ENOSYS);
-	}
-	void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override {
 		throw ARCHIVE_EXCEPTION(ENOSYS);
 	}
 	void add_directory_entry(const LF_ENTRY_STAT&)override {
