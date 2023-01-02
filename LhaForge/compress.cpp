@@ -1065,6 +1065,7 @@ TEST(compress, RAW_FILE_READER)
 	std::string expected_hash = "dc2545110ea53ef9ce169fd676cf9f24a966e6571be630d221eae8b8bb7717a5";
 
 	RAW_FILE_READER reader;
+	EXPECT_THROW(reader.open(L"some_non_existing_file"), LF_EXCEPTION);
 	reader.open(fileToRead);
 	std::vector<char> buf;
 	for (;;) {
