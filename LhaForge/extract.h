@@ -104,7 +104,7 @@ void testOneArchive(
 	const std::filesystem::path& archive_path,
 	ARCLOG &arcLog,
 	ILFProgressHandler &progressHandler,
-	ILFPassphrase &passphrase_callback
+	std::shared_ptr<ILFPassphrase> passphrase_callback
 );
 bool GUI_test_multiple_files(
 	const std::vector<std::filesystem::path> &archive_files,

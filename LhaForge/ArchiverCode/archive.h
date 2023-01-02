@@ -210,8 +210,8 @@ class ILFArchiveFile
 public:
 	ILFArchiveFile() {}
 	virtual ~ILFArchiveFile() {}
-	virtual void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase) = 0;
-	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase) = 0;
+	virtual void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase) = 0;
+	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase) = 0;
 	virtual void close() = 0;
 
 	virtual bool is_modify_supported() const = 0;
@@ -311,8 +311,8 @@ class CLFArchive : public ILFArchiveFile
 public:
 	CLFArchive() :m_numEntries(-1) {}
 	virtual ~CLFArchive() {}
-	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
+	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override;
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void close()override {
 		if (m_ptr) {
 			m_ptr->close();
@@ -375,8 +375,8 @@ class CLFArchiveNULL : public ILFArchiveFile
 public:
 	CLFArchiveNULL() {}
 	virtual ~CLFArchiveNULL() {}
-	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override {}
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override {}
+	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override {}
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override {}
 	void close()override {}
 
 	bool is_modify_supported()const override { return false; }

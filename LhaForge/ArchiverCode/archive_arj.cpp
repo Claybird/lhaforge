@@ -247,7 +247,7 @@ CLFArchiveARJ::~CLFArchiveARJ()
 	close();
 }
 
-void CLFArchiveARJ::read_open(const std::filesystem::path& file, ILFPassphrase&)
+void CLFArchiveARJ::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase>)
 {
 	close();
 
@@ -425,7 +425,7 @@ TEST(CLFArchiveARJ, read_open_many)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", pp);
 		EXPECT_FALSE(a.is_modify_supported());
 		EXPECT_FALSE(a.is_bypass_io_supported());
@@ -466,7 +466,7 @@ TEST(CLFArchiveARJ, read_open_non_existing)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	EXPECT_THROW(a.read_open(LF_PROJECT_DIR() / L"test/non_existing.arj", pp), LF_EXCEPTION);
 }
 
@@ -475,7 +475,7 @@ TEST(CLFArchiveARJ, enum_archive)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test.arj", pp);
 
 		auto entry = a.read_entry_begin();
@@ -493,7 +493,7 @@ TEST(CLFArchiveARJ, read_open_method0)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/image_method0.arj", pp);
 	auto entry = a.read_entry_begin();
 
@@ -523,7 +523,7 @@ TEST(CLFArchiveARJ, read_open_method1)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/image_method1.arj", pp);
 	auto entry = a.read_entry_begin();
 
@@ -553,7 +553,7 @@ TEST(CLFArchiveARJ, read_open_method2)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/image_method2.arj", pp);
 	auto entry = a.read_entry_begin();
 
@@ -583,7 +583,7 @@ TEST(CLFArchiveARJ, read_open_method3)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/image_method3.arj", pp);
 	auto entry = a.read_entry_begin();
 
@@ -613,7 +613,7 @@ TEST(CLFArchiveARJ, read_open_method4)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveARJ a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/image_method4.arj", pp);
 	auto entry = a.read_entry_begin();
 
@@ -644,7 +644,7 @@ TEST(CLFArchiveARJ, broken_file)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveARJ a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method0.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
@@ -660,7 +660,7 @@ TEST(CLFArchiveARJ, broken_file)
 	}
 	{
 		CLFArchiveARJ a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method1.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({
@@ -676,7 +676,7 @@ TEST(CLFArchiveARJ, broken_file)
 	}
 	{
 		CLFArchiveARJ a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_method4.arj", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_THROW({

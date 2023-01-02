@@ -49,7 +49,7 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.gza");
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a->read_open(dir / L"test.gza", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
@@ -57,7 +57,7 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.bza"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.bza");
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a->read_open(dir / L"test.bza", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
@@ -65,7 +65,7 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.arj"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.arj");
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a->read_open(dir / L"test.arj", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"ARJ", a->get_format_name());
@@ -114,7 +114,7 @@ TEST(archive, guessSuitableArchiver2)
 }
 #endif
 
-void CLFArchive::read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)
+void CLFArchive::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	m_ptr = guessSuitableArchiver(file);
@@ -127,7 +127,7 @@ TEST(CLFArchive, read_open)
 {
 	CLFArchive a;
 	const auto dir = LF_PROJECT_DIR() / L"test";
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zip", pp));
 	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zipx", pp));
 	EXPECT_NO_THROW(a.read_open(dir / L"test_broken_crc.zip", pp));
@@ -140,7 +140,7 @@ void CLFArchive::write_open(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	const LF_COMPRESS_ARGS &args,
-	ILFPassphrase& passphrase)
+	std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	m_ptr = guessSuitableArchiver(format);
@@ -159,7 +159,7 @@ TEST(CLFArchive, write_open)
 	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
 	{
 		CLFArchive a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
 	}
 	UtilDeleteDir(temp / L"test_write_open", true);
@@ -231,7 +231,7 @@ TEST(CLFArchive, get_num_entries)
 	const auto dir = LF_PROJECT_DIR() / L"test";
 
 	CLFArchive arc;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	arc.read_open(dir / L"test_extract.zip", pp);
 	EXPECT_EQ(6, arc.get_num_entries());
 	arc.read_open(dir / L"test_broken_crc.zip", pp);

@@ -165,23 +165,23 @@ struct LA_FILE_TO_READ
 	struct REWIND {
 		bool need_rewind;
 		std::filesystem::path arcpath;
-		ILFPassphrase* passphrase;
+		std::shared_ptr<ILFPassphrase> passphrase;
 	}_rewind;
 
 	LA_FILE_TO_READ() :_arc(nullptr) {}
 	virtual ~LA_FILE_TO_READ() {
 		close();
 	}
-	void open(const std::filesystem::path& arcpath, ILFPassphrase& passphrase) {
+	void open(const std::filesystem::path& arcpath, std::shared_ptr<ILFPassphrase> passphrase) {
 		close();
 		_rewind.arcpath = arcpath;
 		_rewind.need_rewind = false;
-		_rewind.passphrase = &passphrase;
+		_rewind.passphrase = passphrase;
 		_arc = archive_read_new();
 		archive_read_support_filter_all(_arc);
 		archive_read_support_format_all(_arc);
 
-		int r = archive_read_set_passphrase_callback(_arc, &passphrase, LF_LA_passphrase);
+		int r = archive_read_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 		if (r < ARCHIVE_OK) {
 			throw LA_EXCEPTION(_arc);
 		}
@@ -191,7 +191,7 @@ struct LA_FILE_TO_READ
 			close();
 			if (is_known_format(arcpath)) {
 				_arc = archive_read_new();
-				r = archive_read_set_passphrase_callback(_arc, &passphrase, LF_LA_passphrase);
+				r = archive_read_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 				if (r < ARCHIVE_OK) {
 					throw LA_EXCEPTION(_arc);
 				}
@@ -216,7 +216,7 @@ struct LA_FILE_TO_READ
 	void rewind() {
 		if (_arc){
 			if (_rewind.need_rewind) {
-				open(_rewind.arcpath, *_rewind.passphrase);
+				open(_rewind.arcpath, _rewind.passphrase);
 			}
 		} else {
 			throw ARCHIVE_EXCEPTION(EFAULT);
@@ -323,7 +323,7 @@ struct LA_FILE_TO_WRITE
 	void open(const std::filesystem::path& arcname,
 		LF_ARCHIVE_FORMAT fmt,
 		const std::map<std::string, std::string> &archive_options,
-		ILFPassphrase& passphrase) {
+		std::shared_ptr<ILFPassphrase> passphrase) {
 		const auto& cap = la_get_compression_capability(fmt);
 
 		int la_filter = cap.mapped_libarchive_format & ~ARCHIVE_FORMAT_BASE_MASK;
@@ -335,7 +335,7 @@ struct LA_FILE_TO_WRITE
 		int la_fmt,
 		const std::vector<int> &filters,
 		const std::map<std::string, std::string> &archive_options,
-		ILFPassphrase &passphrase) {
+		std::shared_ptr<ILFPassphrase> passphrase) {
 		close();
 		_arc = archive_write_new();
 
@@ -351,7 +351,7 @@ struct LA_FILE_TO_WRITE
 			throw LA_EXCEPTION(_arc);
 		}
 
-		r = archive_write_set_passphrase_callback(_arc, &passphrase, LF_LA_passphrase);
+		r = archive_write_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 		if (r < ARCHIVE_OK) {
 			throw LA_EXCEPTION(_arc);
 		}
@@ -433,7 +433,7 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test_extract.zip";
 		LA_FILE_TO_READ src;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
@@ -445,7 +445,7 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test_gzip.gz";
 		LA_FILE_TO_READ src;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
@@ -458,7 +458,7 @@ TEST(CLFArchiveLA, mimic_archive_property)
 	{
 		auto fileToRead = LF_PROJECT_DIR() / L"test/test.tar.gz";
 		LA_FILE_TO_READ src;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		src.open(fileToRead, pp);
 		src.begin();	//need to scan
 		auto[la_format, filters, is_encrypted] = LA_FILE_TO_WRITE::mimic_archive_property(src);
@@ -617,7 +617,7 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 CLFArchiveLA::CLFArchiveLA() {}
 CLFArchiveLA::~CLFArchiveLA() {}
 
-void CLFArchiveLA::read_open(const std::filesystem::path& file, ILFPassphrase& passhprase)
+void CLFArchiveLA::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passhprase)
 {
 	close();
 	_arc_read = std::make_unique<LA_FILE_TO_READ>();
@@ -629,7 +629,7 @@ void CLFArchiveLA::write_open(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	const LF_COMPRESS_ARGS& args,
-	ILFPassphrase& passphrase)
+	std::shared_ptr<ILFPassphrase> passphrase)
 {
 	_arc_write = std::make_unique<LA_FILE_TO_WRITE>();
 
@@ -677,7 +677,7 @@ TEST(CLFArchiveLA, is_modify_supported)
 	const auto dir = LF_PROJECT_DIR();
 	auto check=[](const std::filesystem::path &p)->bool {
 		CLFArchiveLA a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(p, pp);
 		return a.is_modify_supported();
 	};
@@ -731,7 +731,7 @@ TEST(CLFArchiveLA, get_format_name)
 	auto temp = UtilGetTemporaryFileName();
 	{
 		CLFArchiveLA a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"ZIP 1.0 (uncompressed)", a.get_format_name());
 
@@ -797,7 +797,7 @@ TEST(CLFArchiveLA, read_entry)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	{
 		CLFArchiveLA a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -829,7 +829,7 @@ TEST(CLFArchiveLA, read_entry)
 
 	{
 		CLFArchiveLA a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -923,7 +923,7 @@ TEST(CLFArchiveLA, add_entry)
 		CLFArchiveLA a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 		LF_ENTRY_STAT e;
 		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
@@ -939,7 +939,7 @@ TEST(CLFArchiveLA, add_entry)
 	}
 	{
 		CLFArchiveLA a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(temp, pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -972,7 +972,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveLA::make_copy_archive(
 
 		//- open an output archive in most similar option
 		auto options = getLAOptionsFromConfig(la_format, filters, is_encrypted, args);
-		dest_archive->_arc_write->write_open_la(dest_path, la_format, filters, options, *_arc_read->_rewind.passphrase);
+		dest_archive->_arc_write->write_open_la(dest_path, la_format, filters, options, _arc_read->_rewind.passphrase);
 
 		//- then, copy entries if filter returns true
 		//this would need overhead of extract on read and compress on write
@@ -1015,7 +1015,7 @@ TEST(CLFArchiveLA, make_copy_archive)
 		auto temp = UtilGetTemporaryFileName();
 		{
 			CLFArchiveLA a;
-			CLFPassphraseNULL pp;
+			auto pp = std::make_shared<CLFPassphraseNULL>();
 			a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 			{
 				LF_COMPRESS_ARGS args;
@@ -1058,7 +1058,7 @@ TEST(CLFArchiveLA, make_copy_archive)
 		auto temp = UtilGetTemporaryFileName();
 		{
 			CLFArchiveLA a;
-			auto passphrase = CLFPassphraseConst(L"abcde");
+			auto passphrase = std::make_shared<CLFPassphraseConst>(L"abcde");
 			a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", passphrase);
 			{
 				LF_COMPRESS_ARGS args;
@@ -1091,7 +1091,7 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 		the following test is goes too deep into file. checking header should be enough
 		LA_FILE_TO_READ arc;
 		try {
-			CLFPassphraseNULL pp;
+			auto pp = std::make_shared<CLFPassphraseNULL>();
 			arc.open(arcname, pp);
 			for (auto* entry = arc.begin(); entry; entry = arc.next()) {
 				continue;

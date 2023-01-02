@@ -53,7 +53,7 @@ static std::wstring mzMethodName(int method)
 }
 
 struct CLFArchiveZIP::INTERNAL {
-	INTERNAL(ILFPassphrase& pcb):zip(nullptr), stream(nullptr),passphrase_callback(pcb), flag(0){}
+	INTERNAL(std::shared_ptr<ILFPassphrase> pcb):zip(nullptr), stream(nullptr),passphrase_callback(pcb), flag(0){}
 	virtual ~INTERNAL() { close(); }
 
 	void* zip;		//mz_zip
@@ -64,7 +64,7 @@ struct CLFArchiveZIP::INTERNAL {
 	int level;
 	int aesFlag;
 	std::shared_ptr<std::string> passphrase;	//UTF-8
-	ILFPassphrase& passphrase_callback;
+	std::shared_ptr<ILFPassphrase> passphrase_callback;
 	void close() {
 		if (zip) {
 			mz_zip_close(zip);
@@ -144,11 +144,14 @@ struct CLFArchiveZIP::INTERNAL {
 		return isOpened() && (open_mode & MZ_OPEN_MODE_READ);
 	}
 	void update_passphrase() {
-		const char* p = passphrase_callback();
-		if (p) {
-			passphrase = std::make_shared<std::string>(p);
-		} else {
-			passphrase.reset();
+		auto callback = passphrase_callback.get();
+		if (callback) {
+			const char* p = (*callback)();
+			if (p) {
+				passphrase = std::make_shared<std::string>(p);
+			} else {
+				passphrase.reset();
+			}
 		}
 	}
 };
@@ -162,7 +165,7 @@ CLFArchiveZIP::~CLFArchiveZIP()
 	close();
 }
 
-void CLFArchiveZIP::read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)
+void CLFArchiveZIP::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	_internal = new INTERNAL(passphrase);
@@ -171,7 +174,7 @@ void CLFArchiveZIP::read_open(const std::filesystem::path& file, ILFPassphrase& 
 	_internal->open(file, MZ_OPEN_MODE_READ | MZ_OPEN_MODE_EXISTING, fake_args.formats.zip.params);
 }
 
-void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)
+void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	_internal = new INTERNAL(passphrase);
@@ -561,7 +564,7 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 {
 	try {
 		CLFArchiveZIP zip;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		zip.read_open(arcname, pp);
 		//zip.read_entry_begin();
 		return true;
@@ -576,7 +579,7 @@ TEST(CLFArchiveZIP, read_enum)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
@@ -697,7 +700,7 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
@@ -784,7 +787,7 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", pp);
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 
@@ -796,7 +799,7 @@ TEST(CLFArchiveZIP, read_enum_non_existing)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	EXPECT_THROW(
 		a.read_open(LF_PROJECT_DIR() / L"test/some_file_that_does_not_exist.zip", pp),
 		LF_EXCEPTION);
@@ -806,7 +809,7 @@ TEST(CLFArchiveZIP, read_enum_unicode)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
@@ -830,7 +833,7 @@ TEST(CLFArchiveZIP, read_enum_sfx)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_TRUE(a.is_bypass_io_supported());
@@ -902,7 +905,7 @@ TEST(CLFArchiveZIP, read_passphrase)
 	CLFArchiveZIP a;
 	{
 		//---content listing does not require passphrase
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
 			//do nothing
@@ -911,7 +914,7 @@ TEST(CLFArchiveZIP, read_passphrase)
 	}
 	{
 		//---content listing does not require passphrase
-		CLFPassphraseConst pp(L"abcde");
+		auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
 			//do nothing
@@ -927,7 +930,7 @@ TEST(CLFArchiveZIP, read_passphrase)
 
 	{
 		//---content listing does not require passphrase
-		CLFPassphraseConst pp(L"abcde");
+		auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		std::vector<char> data;
 		data.clear();
@@ -954,7 +957,7 @@ TEST(CLFArchiveZIP, read_passphrase)
 TEST(CLFArchiveZIP, zipx)
 {
 	CLFArchiveZIP a;
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
@@ -1026,7 +1029,7 @@ TEST(CLFArchiveZIP, is_known_format)
 TEST(CLFArchiveZIP, check_if_encrypted)
 {
 	const auto dir = LF_PROJECT_DIR() / L"test";
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	{
 		CLFArchiveZIP a;
 		a.read_open(dir / L"test_extract.zip", pp);
@@ -1055,7 +1058,7 @@ TEST(CLFArchiveZIP, add_file_entry)
 		CLFArchiveZIP a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 		LF_ENTRY_STAT e;
 
@@ -1070,7 +1073,7 @@ TEST(CLFArchiveZIP, add_file_entry)
 	}
 	{
 		CLFArchiveZIP a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(temp, pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -1090,7 +1093,7 @@ TEST(CLFArchiveZIP, add_directory_entry)
 		CLFArchiveZIP a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 		LF_ENTRY_STAT e;
 		e.read_stat(LF_PROJECT_DIR(), L"test/");	//LF_PROJECT_DIR() as a directory template
@@ -1099,7 +1102,7 @@ TEST(CLFArchiveZIP, add_directory_entry)
 	}
 	{
 		CLFArchiveZIP a;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(temp, pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -1124,7 +1127,7 @@ TEST(CLFArchiveZIP, add_file_entry_with_password)
 		CLFArchiveZIP a;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		CLFPassphraseConst pp(L"password");
+		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
 		LF_ENTRY_STAT e;
 
@@ -1142,7 +1145,7 @@ TEST(CLFArchiveZIP, add_file_entry_with_password)
 	}
 	{
 		//---content listing does not require passphrase
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		CLFArchiveZIP a;
 		a.read_open(temp, pp);
 		for (auto item = a.read_entry_begin(); item; item = a.read_entry_next()) {
@@ -1152,7 +1155,7 @@ TEST(CLFArchiveZIP, add_file_entry_with_password)
 	}
 	{
 		CLFArchiveZIP a;
-		CLFPassphraseConst pp(L"password");
+		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		a.read_open(temp, pp);
 		auto entry = a.read_entry_begin();
 		EXPECT_NE(nullptr, entry);
@@ -1218,7 +1221,7 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 				args.load(CConfigFile());
 				args.formats.zip.params["method"] = method.first;
 				args.formats.zip.params["level"] = UtilToUTF8(Format(L"%d", level));
-				CLFPassphraseNULL pp;
+				auto pp = std::make_shared<CLFPassphraseNULL>();
 				a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 				LF_ENTRY_STAT e;
 
@@ -1233,7 +1236,7 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 			}
 			{
 				CLFArchiveZIP a;
-				CLFPassphraseNULL pp;
+				auto pp = std::make_shared<CLFPassphraseNULL>();
 				a.read_open(temp, pp);
 				auto entry = a.read_entry_begin();
 				EXPECT_NE(nullptr, entry);
@@ -1266,7 +1269,7 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 		"aes256", "aes192", "aes128", "zipcrypto"
 	};
 	for (const auto& code : codes) {
-		CLFPassphraseConst pp(L"password");
+		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		{
 			CLFArchiveZIP a;
 			LF_COMPRESS_ARGS args;
@@ -1324,7 +1327,7 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 			CLFArchiveZIP r;
 			LF_COMPRESS_ARGS args;
 			args.load(CConfigFile());
-			CLFPassphraseConst pp(L"password");
+			auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 			r.read_open(zip_file, pp);
 			auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 
@@ -1341,7 +1344,7 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 		{
 			CLFArchiveZIP modified;
 			CLFArchiveZIP original;
-			CLFPassphraseNULL pp;
+			auto pp = std::make_shared<CLFPassphraseNULL>();
 			modified.read_open(temp, pp);
 			original.read_open(zip_file, pp);
 
@@ -1382,7 +1385,7 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip)
 		CLFArchiveZIP r;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		r.read_open(src, pp);
 		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
 			if (entry.path.filename() == L"file3.txt")return false;
@@ -1393,7 +1396,7 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip)
 	{
 		CLFArchiveZIP modified;
 		CLFArchiveZIP original;
-		CLFPassphraseNULL pp;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
 		modified.read_open(temp, pp);
 		original.read_open(src, pp);
 
@@ -1418,10 +1421,5 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip)
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
-
-/*
-remove zip from libarchive
-ILFPassphrase should be shared_ptr
-*/
 
 #endif

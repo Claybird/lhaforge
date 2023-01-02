@@ -217,7 +217,7 @@ struct ARCHIVE_FIND_CONDITION {
 class CArchiveFileContent{
 protected:
 	std::shared_ptr<ARCHIVE_ENTRY_INFO> m_pRoot;
-	ILFPassphrase &m_passphrase;
+	std::shared_ptr<ILFPassphrase> m_passphrase;
 
 	std::filesystem::path m_pathArchive;
 	int64_t m_numFiles;
@@ -234,8 +234,8 @@ protected:
 		ILFProgressHandler& progressHandler,
 		ARCLOG &arcLog);
 public:
-	CArchiveFileContent(ILFPassphrase &pf) :
-		m_passphrase(pf),
+	CArchiveFileContent(std::shared_ptr<ILFPassphrase> pp) :
+		m_passphrase(pp),
 		m_bModifySupported(false),
 		m_bEncrypted(false)
 	{

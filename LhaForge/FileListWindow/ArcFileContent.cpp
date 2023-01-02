@@ -223,8 +223,8 @@ void CArchiveFileContent::postScanArchive(ARCHIVE_ENTRY_INFO* pNode)
 TEST(ArcFileContent, scanArchiveStruct)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
 	auto arcpath = std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip";
 	content.scanArchiveStruct(arcpath, CLFScanProgressHandlerNULL());
@@ -275,8 +275,8 @@ std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findItem(
 TEST(ArcFileContent, findItem)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
 	ARCHIVE_FIND_CONDITION afc;
 
@@ -404,8 +404,8 @@ TEST(ArcFileContent, extractEntries)
 	auto tempDir = UtilGetTempPath() / L"arcfilecontent_extractEntries";
 	tempDir.make_preferred();
 	{
-		CLFPassphraseNULL no_passphrase;
-		CArchiveFileContent content(no_passphrase);
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
 		ARCLOG arcLog;
 		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
 
@@ -451,8 +451,8 @@ TEST(ArcFileContent, extractEntries)
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 
 	{
-		CLFPassphraseConst passphrase(L"abcde");
-		CArchiveFileContent content(passphrase);
+		auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+		CArchiveFileContent content(pp);
 		ARCLOG arcLog;
 		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
 
@@ -609,8 +609,8 @@ TEST(ArcFileContent, addEntries)
 		}
 	}
 	{
-		CLFPassphraseNULL passphrase;
-		CArchiveFileContent content(passphrase);
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
 		ARCLOG arcLog;
 		auto src = UtilGetTemporaryFileName();
 		{
@@ -625,7 +625,7 @@ TEST(ArcFileContent, addEntries)
 		EXPECT_FALSE(std::filesystem::exists(src));
 
 		CLFArchive a;
-		a.read_open(temp, passphrase);
+		a.read_open(temp, pp);
 		auto e = a.read_entry_begin();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"dirA/dirB/", e->path);
@@ -709,8 +709,8 @@ TEST(ArcFileContent, deleteEntries)
 		}
 	}
 	{
-		CLFPassphraseNULL passphrase;
-		CArchiveFileContent content(passphrase);
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
 		ARCLOG arcLog;
 
 		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
@@ -719,7 +719,7 @@ TEST(ArcFileContent, deleteEntries)
 			CLFProgressHandlerNULL(), arcLog);
 
 		CLFArchive a;
-		a.read_open(temp, passphrase);
+		a.read_open(temp, pp);
 		auto e = a.read_entry_begin();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"dirA/dirB/", e->path);
@@ -798,8 +798,8 @@ TEST(ArcFileContent, makeSureItemsExtracted)
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 
 	{
-		CLFPassphraseNULL no_passphrase;
-		CArchiveFileContent content(no_passphrase);
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
 		ARCLOG arcLog;
 		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
 
@@ -908,8 +908,8 @@ TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 
 TEST(ArcFileContent, isArchiveEncrypted)
 {
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
 	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
 	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
@@ -921,8 +921,8 @@ TEST(ArcFileContent, isArchiveEncrypted)
 
 TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 {
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
 	EXPECT_FALSE(content.checkArchiveExists());
 
@@ -949,8 +949,8 @@ TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 
 TEST(ArcFileContent, safe_unicode_path)
 {
-	CLFPassphraseNULL no_passphrase;
-	CArchiveFileContent content(no_passphrase);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
 	EXPECT_FALSE(content.checkArchiveExists());
 

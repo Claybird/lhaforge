@@ -589,7 +589,7 @@ void compressOneArchive(
 	const COMPRESS_SOURCES &source_files,
 	ARCLOG arcLog,
 	ILFProgressHandler &progressHandler,
-	ILFPassphrase& passphrase_callback
+	std::shared_ptr<ILFPassphrase> passphrase_callback
 ) {
 	CLFArchive archive;
 	archive.write_open(output_archive, format, options, args, passphrase_callback);
@@ -709,7 +709,7 @@ TEST(compress, compressOneArchive)
 
 		if (p.options & LF_WOPT_DATA_ENCRYPTION) {
 			//expect user cancel
-			CLFPassphraseNULL pp;
+			auto pp = std::make_shared<CLFPassphraseNULL>();
 			EXPECT_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
 				(cap.contains_multiple_files ? sources : single_source), arcLog,
 				CLFProgressHandlerNULL(),
@@ -723,7 +723,7 @@ TEST(compress, compressOneArchive)
 		EXPECT_NO_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
 			(cap.contains_multiple_files ? sources : single_source), arcLog,
 			CLFProgressHandlerNULL(),
-			CLFPassphraseConst(L"password")));
+			std::make_shared<CLFPassphraseConst>(L"password")));
 
 		//expect readable archive
 		{
@@ -731,7 +731,7 @@ TEST(compress, compressOneArchive)
 			EXPECT_NO_THROW(
 				testOneArchive(archive, arcLog,
 					CLFProgressHandlerNULL(),
-					CLFPassphraseConst(L"password")));
+					std::make_shared<CLFPassphraseConst>(L"password")));
 		}
 
 		UtilDeletePath(archive);
@@ -750,7 +750,7 @@ void compress_helper(
 	ARCLOG &arcLog,
 	LF_COMPRESS_ARGS &args,
 	ILFProgressHandler &progressHandler,
-	ILFPassphrase& passphraseHandler
+	std::shared_ptr<ILFPassphrase> passphraseHandler
 	)
 {
 	// get common path for base path
@@ -928,7 +928,7 @@ bool GUI_compress_multiple_files(
 					logs.back(),
 					args,
 					progressHandler,
-					CLFPassphraseGUI()
+					std::make_shared<CLFPassphraseGUI>()
 				);
 			} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 				ARCLOG &arcLog = logs.back();
@@ -952,7 +952,7 @@ bool GUI_compress_multiple_files(
 				logs.back(),
 				args,
 				progressHandler,
-				CLFPassphraseGUI()
+				std::make_shared<CLFPassphraseGUI>()
 			);
 		} catch (const LF_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
@@ -1149,7 +1149,7 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 	CLFArchive src;
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.load(CConfigFile());
-	CLFPassphraseNULL pp;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
 	src.read_open(src_filename, pp);
 	auto dest = src.make_copy_archive(tempFile, fake_args, [](const LF_ENTRY_STAT& entry) {
 		if (entry.path.wstring().find(L"dirC") == std::wstring::npos) {
