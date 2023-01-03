@@ -3,6 +3,7 @@
 #include "archive_libarchive.h"
 #include "archive_bga.h"
 #include "archive_arj.h"
+#include "archive_zip.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -29,6 +30,7 @@ TEST(archive, exceptions)
 
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
+	if (CLFArchiveZIP::is_known_format(path))return std::make_unique<CLFArchiveZIP>();
 	if (CLFArchiveBGA::is_known_format(path))return std::make_unique<CLFArchiveBGA>();
 	if (CLFArchiveARJ::is_known_format(path))return std::make_unique<CLFArchiveARJ>();
 
@@ -78,6 +80,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 {
 	switch (format) {
 	case LF_ARCHIVE_FORMAT::ZIP:
+		return std::make_unique<CLFArchiveZIP>();
 	case LF_ARCHIVE_FORMAT::_7Z:
 	case LF_ARCHIVE_FORMAT::GZ:
 	case LF_ARCHIVE_FORMAT::BZ2:

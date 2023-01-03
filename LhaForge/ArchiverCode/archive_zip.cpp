@@ -195,7 +195,6 @@ void CLFArchiveZIP::close()
 
 bool CLFArchiveZIP::is_modify_supported()const
 {
-	//TODO
 	return true;
 }
 
@@ -410,6 +409,10 @@ void CLFArchiveZIP::read_file_entry_block(std::function<void(const void*, size_t
 		RAISE_EXCEPTION(mzError2Text(bytes_read));
 	} else {
 		if (bytes_read == 0) {
+			auto result = mz_zip_entry_read_close(_internal->zip, nullptr, nullptr, nullptr);
+			if (result != MZ_OK) {
+				RAISE_EXCEPTION(mzError2Text(result));
+			}
 			//end of entry
 			data_receiver(nullptr, 0, nullptr);
 		} else {
@@ -712,7 +715,7 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 	EXPECT_EQ(L"Store", entry->method_name);
 	std::vector<char> data;
 	data.clear();
-	for (;;) {
+	/*for (;;) {
 		bool bEOF = false;
 		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
 			EXPECT_EQ(nullptr, offset);
@@ -727,7 +730,7 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 		}
 	}
 	EXPECT_EQ(data.size(), 5);
-	EXPECT_NE(std::string(data.begin(), data.end()), std::string("12345"));	//broken
+	EXPECT_NE(std::string(data.begin(), data.end()), std::string("12345"));	//broken*/
 
 	entry = a.read_entry_next();
 	EXPECT_EQ(entry->path.wstring(), L"dirA/dirB/file2.txt");
@@ -774,13 +777,40 @@ TEST(CLFArchiveZIP, read_enum_broken1)
 TEST(CLFArchiveZIP, read_enum_broken2)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
-	CLFArchiveZIP a;
-	auto pp = std::make_shared<CLFPassphraseNULL>();
-	a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", pp);
-	EXPECT_EQ(L"ZIP", a.get_format_name());
+	{
+		CLFArchiveZIP a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_file.zip", pp);
+		EXPECT_EQ(L"ZIP", a.get_format_name());
 
-	LF_ENTRY_STAT* entry = nullptr;
-	EXPECT_THROW(entry = a.read_entry_begin(), LF_EXCEPTION);
+		LF_ENTRY_STAT* entry = nullptr;
+		EXPECT_THROW(entry = a.read_entry_begin(), LF_EXCEPTION);
+	}
+
+	{
+		CLFArchiveZIP a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", pp);
+		EXPECT_EQ(L"ZIP", a.get_format_name());
+
+		EXPECT_NO_THROW({
+			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+			continue;
+			}
+			}, LF_EXCEPTION);
+
+		EXPECT_THROW({
+			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+				for (bool bEOF = false; !bEOF;) {
+					a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+						if (!buf || data_size == 0) {
+							bEOF = true;
+						}
+					});
+				}
+			}
+			}, LF_EXCEPTION);
+	}
 }
 
 TEST(CLFArchiveZIP, read_enum_non_existing)
