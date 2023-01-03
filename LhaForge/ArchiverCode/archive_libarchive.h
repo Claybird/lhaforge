@@ -36,8 +36,8 @@ protected:
 public:
 	CLFArchiveLA();
 	virtual ~CLFArchiveLA();
-	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
+	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override;
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void close()override;
 
 	bool is_modify_supported()const override;
@@ -45,7 +45,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip);
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip);
 
 	//archive property
 	std::wstring get_format_name()override;
@@ -56,19 +56,11 @@ public:
 	LF_ENTRY_STAT* read_entry_next()override;
 	void read_entry_end()override;
 
-	bool is_bypass_io_supported()const override{ return false; }
-
 	//read entry
 	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override;
-	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
-		throw ARCHIVE_EXCEPTION(ENOSYS);
-	}
 
 	//write entry
 	void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override;
-	void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override {
-		throw ARCHIVE_EXCEPTION(ENOSYS);
-	}
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 
 	static bool is_known_format(const std::filesystem::path &arcname);

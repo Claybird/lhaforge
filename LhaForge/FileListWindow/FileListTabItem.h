@@ -66,7 +66,7 @@ protected:
 	};
 	static COMMON _common;
 //---
-	CLFPassphraseGUI _passphrase;
+	std::shared_ptr<CLFPassphraseGUI> _passphrase;
 	const CConfigFileListWindow &_confFLW;
 
 	HWND			m_hFrameWnd;
@@ -132,6 +132,7 @@ protected:
 public:
 	CFileListTabItem(const CConfigFileListWindow &confFLW, const LF_COMPRESS_ARGS& compressArgs):
 		_confFLW(confFLW),
+		_passphrase(std::make_shared<CLFPassphraseGUI>()),
 		Model(compressArgs, _passphrase),
 		ListView(Model, confFLW),
 		TreeView(Model, confFLW)

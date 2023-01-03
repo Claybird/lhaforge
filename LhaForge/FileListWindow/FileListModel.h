@@ -62,7 +62,7 @@ protected:
 	//---internal functions
 	void SortCurrentEntries();
 public:
-	CFileListModel(const LF_COMPRESS_ARGS& compressArgs, ILFPassphrase& passphrase) :
+	CFileListModel(const LF_COMPRESS_ARGS& compressArgs, std::shared_ptr<ILFPassphrase> passphrase) :
 		m_lpCurrentDir(nullptr),
 		m_bSortAtoZ(true),
 		m_nSortKeyType((int)FILEINFO_TYPE::INVALID),

@@ -3,6 +3,7 @@
 #include "archive_libarchive.h"
 #include "archive_bga.h"
 #include "archive_arj.h"
+#include "archive_zip.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -29,6 +30,7 @@ TEST(archive, exceptions)
 
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
+	if (CLFArchiveZIP::is_known_format(path))return std::make_unique<CLFArchiveZIP>();
 	if (CLFArchiveBGA::is_known_format(path))return std::make_unique<CLFArchiveBGA>();
 	if (CLFArchiveARJ::is_known_format(path))return std::make_unique<CLFArchiveARJ>();
 
@@ -49,21 +51,24 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.gza");
-		a->read_open(dir / L"test.gza", CLFPassphraseNULL());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a->read_open(dir / L"test.gza", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
 	}
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.bza"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.bza");
-		a->read_open(dir / L"test.bza", CLFPassphraseNULL());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a->read_open(dir / L"test.bza", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"BZA/GZA", a->get_format_name());
 	}
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.arj"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.arj");
-		a->read_open(dir / L"test.arj", CLFPassphraseNULL());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a->read_open(dir / L"test.arj", pp);
 		a->read_entry_begin();
 		EXPECT_EQ(L"ARJ", a->get_format_name());
 	}
@@ -75,6 +80,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 {
 	switch (format) {
 	case LF_ARCHIVE_FORMAT::ZIP:
+		return std::make_unique<CLFArchiveZIP>();
 	case LF_ARCHIVE_FORMAT::_7Z:
 	case LF_ARCHIVE_FORMAT::GZ:
 	case LF_ARCHIVE_FORMAT::BZ2:
@@ -111,7 +117,7 @@ TEST(archive, guessSuitableArchiver2)
 }
 #endif
 
-void CLFArchive::read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)
+void CLFArchive::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	m_ptr = guessSuitableArchiver(file);
@@ -124,10 +130,11 @@ TEST(CLFArchive, read_open)
 {
 	CLFArchive a;
 	const auto dir = LF_PROJECT_DIR() / L"test";
-	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zip", CLFPassphraseNULL()));
-	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zipx", CLFPassphraseNULL()));
-	EXPECT_NO_THROW(a.read_open(dir / L"test_broken_crc.zip", CLFPassphraseNULL()));
-	EXPECT_NO_THROW(a.read_open(dir / L"test.lzh", CLFPassphraseNULL()));
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zip", pp));
+	EXPECT_NO_THROW(a.read_open(dir / L"test_extract.zipx", pp));
+	EXPECT_NO_THROW(a.read_open(dir / L"test_broken_crc.zip", pp));
+	EXPECT_NO_THROW(a.read_open(dir / L"test.lzh", pp));
 }
 #endif
 
@@ -136,7 +143,7 @@ void CLFArchive::write_open(
 	LF_ARCHIVE_FORMAT format,
 	LF_WRITE_OPTIONS options,
 	const LF_COMPRESS_ARGS &args,
-	ILFPassphrase& passphrase)
+	std::shared_ptr<ILFPassphrase> passphrase)
 {
 	close();
 	m_ptr = guessSuitableArchiver(format);
@@ -155,7 +162,8 @@ TEST(CLFArchive, write_open)
 	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
 	{
 		CLFArchive a;
-		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, CLFPassphraseNULL()));
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
 	}
 	UtilDeleteDir(temp / L"test_write_open", true);
 	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
@@ -226,9 +234,10 @@ TEST(CLFArchive, get_num_entries)
 	const auto dir = LF_PROJECT_DIR() / L"test";
 
 	CLFArchive arc;
-	arc.read_open(dir / L"test_extract.zip", CLFPassphraseNULL());
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	arc.read_open(dir / L"test_extract.zip", pp);
 	EXPECT_EQ(6, arc.get_num_entries());
-	arc.read_open(dir / L"test_broken_crc.zip", CLFPassphraseNULL());
+	arc.read_open(dir / L"test_broken_crc.zip", pp);
 	EXPECT_EQ(6, arc.get_num_entries());
 }
 #endif

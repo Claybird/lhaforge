@@ -210,8 +210,8 @@ class ILFArchiveFile
 public:
 	ILFArchiveFile() {}
 	virtual ~ILFArchiveFile() {}
-	virtual void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase) = 0;
-	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase) = 0;
+	virtual void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase) = 0;
+	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase) = 0;
 	virtual void close() = 0;
 
 	virtual bool is_modify_supported() const = 0;
@@ -219,7 +219,7 @@ public:
 	virtual std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip) = 0;
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip) = 0;
 
 	//archive property
 	virtual std::wstring get_format_name() = 0;	//works if file is opened
@@ -230,17 +230,11 @@ public:
 	virtual LF_ENTRY_STAT* read_entry_next() = 0;
 	virtual void read_entry_end() = 0;
 
-	virtual bool is_bypass_io_supported() const = 0;
-
 	//read entry block; should be called until returned buffer becomes eof
 	virtual void read_file_entry_block(std::function<void(const void*, size_t, const offset_info*)> data_receiver) = 0;
-	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	virtual void read_file_entry_bypass(std::function<void(const void*, size_t, const offset_info*)> data_receiver) = 0;
 
 	//write entry
 	virtual void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider) = 0;
-	//write entry - bypasses encoder; can copy an entry with minimum IO cost
-	virtual void add_file_entry_bypass(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider) = 0;
 	virtual void add_directory_entry(const LF_ENTRY_STAT&) = 0;
 };
 
@@ -311,8 +305,8 @@ class CLFArchive : public ILFArchiveFile
 public:
 	CLFArchive() :m_numEntries(-1) {}
 	virtual ~CLFArchive() {}
-	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override;
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override;
+	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override;
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void close()override {
 		if (m_ptr) {
 			m_ptr->close();
@@ -326,8 +320,8 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
-		_LFA_SAFE_CALL(make_copy_archive(dest_path, args, false_if_skip));
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)override {
+		_LFA_SAFE_CALL(make_copy_archive(dest_path, args, false_to_skip));
 	}
 
 	//archive property
@@ -340,24 +334,15 @@ public:
 	LF_ENTRY_STAT* read_entry_begin()override { _LFA_SAFE_CALL(read_entry_begin()); }//rewinds to start of file
 	LF_ENTRY_STAT* read_entry_next()override { _LFA_SAFE_CALL(read_entry_next()); }
 	void read_entry_end()override { _LFA_SAFE_CALL(read_entry_end()); }
-	bool is_bypass_io_supported() const override { _LFA_SAFE_CALL(is_bypass_io_supported()); }
 
 	//read entry block; should be called until returned buffer becomes eof
 	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
 		_LFA_SAFE_CALL(read_file_entry_block(data_receiver));
 	}
-	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
-		_LFA_SAFE_CALL(read_file_entry_bypass(data_receiver));
-	}
 
 	//write entry
 	void add_file_entry(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {
 		_LFA_SAFE_CALL_VOID(add_file_entry(entry, dataProvider));
-	}
-	//write entry - bypasses encoder; can copy an entry with minimum IO cost
-	void add_file_entry_bypass(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {
-		_LFA_SAFE_CALL_VOID(add_file_entry_bypass(entry, dataProvider));
 	}
 	void add_directory_entry(const LF_ENTRY_STAT& entry)override {
 		_LFA_SAFE_CALL_VOID(add_directory_entry(entry));
@@ -375,8 +360,8 @@ class CLFArchiveNULL : public ILFArchiveFile
 public:
 	CLFArchiveNULL() {}
 	virtual ~CLFArchiveNULL() {}
-	void read_open(const std::filesystem::path& file, ILFPassphrase& passphrase)override {}
-	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, ILFPassphrase& passphrase)override {}
+	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override {}
+	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override {}
 	void close()override {}
 
 	bool is_modify_supported()const override { return false; }
@@ -384,7 +369,7 @@ public:
 	std::unique_ptr<ILFArchiveFile> make_copy_archive(
 		const std::filesystem::path& dest_path,
 		const LF_COMPRESS_ARGS& args,
-		std::function<bool(const LF_ENTRY_STAT&)> false_if_skip)override {
+		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip)override {
 		return std::make_unique<CLFArchiveNULL>();
 	}
 
@@ -397,19 +382,13 @@ public:
 	LF_ENTRY_STAT* read_entry_begin()override { return nullptr; }//rewinds to start of file
 	LF_ENTRY_STAT* read_entry_next()override { return nullptr; }
 	void read_entry_end()override {}
-	bool is_bypass_io_supported() const override { return false; }
+
 	//read entry block; should be called until returned buffer becomes eof
 	void read_file_entry_block(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
-		data_receiver(nullptr, 0, 0);
-	}
-	//read entry - bypasses decoder; can copy an entry with minimum IO cost
-	void read_file_entry_bypass(std::function<void(const void*, size_t/*data size*/, const offset_info*)> data_receiver)override {
 		data_receiver(nullptr, 0, 0);
 	}
 
 	//write entry
 	void add_file_entry(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {}
-	//write entry - bypasses encoder; can copy an entry with minimum IO cost
-	void add_file_entry_bypass(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {}
 	void add_directory_entry(const LF_ENTRY_STAT& entry)override {}
 };
