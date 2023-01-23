@@ -1214,12 +1214,10 @@ BEGIN
     IDS_COMPRESS_CHARSET_ACP "ANSI/Shift_JIS(非推奨)"
     IDS_ENCRYPTION_METHOD   "暗号化方式"
     IDS_FORMAT_NAME_GZ      "GZip"
-    IDS_ENCRYPTION_ZIPCRYPT "ZipCrypt"
+    IDS_ENCRYPTION_ZIPCRYPT "ZipCrypto"
     IDS_ENCRYPTION_AES128   "AES128"
     IDS_ENCRYPTION_AES256   "AES256"
-    IDS_COMPRESSION_FORCE_ZIP64 "ZIP64の強制"
-    IDS_COMPRESSION_FORCE_ZIP64_ON "有効"
-    IDS_COMPRESSION_FORCE_ZIP64_OFF "無効(互換性重視)"
+    IDS_ENCRYPTION_AES192   "AES192"
     IDS_TREE_SEARCH_FOLDER  "検索フォルダ"
     IDS_SEARCH_BY_FILEPATH  "ファイルパス: %s"
     IDS_SEARCH_BY_ORIGINAL_SIZE "圧縮前サイズ: %s"
@@ -1391,7 +1389,6 @@ BEGIN
                             "全てのアーカイブを解凍後、タブを閉じます\n全て解凍して閉じる"
     ID_MENUITEM_EXTRACT_ARCHIVE_ALL "全てのアーカイブを解凍します\n全てのアーカイブを解凍"
 END
-
 
 #endif    // 日本語 (日本) resources
 /////////////////////////////////////////////////////////////////////////////

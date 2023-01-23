@@ -71,17 +71,11 @@ class CConfigCompressFormatZIP :public CConfigCompressFormatBase {
 public:
 	CConfigCompressFormatZIP() :CConfigCompressFormatBase(L"format_zip", {
 		{L"compression",{
-			L"deflate",L"store"}},
+			L"deflate",L"bzip2",L"lzma",L"zstd",L"xz",L"store"}},
 		{L"compression-level",{
 			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
 		{L"encryption",{
-			L"ZipCrypt",L"aes128",L"aes256"}},
-		//"experimental"	don't use this
-		//"fakecrc32"	don't use this
-		{L"hdrcharset",{
-			L"UTF-8",L"CP_ACP"}},
-		{L"zip64",{
-				L""/*empty is to avoid zip64*/,L"enabled"/*any non-empty string*/}},
+			L"zipcrypto",L"aes256",L"aes192",L"aes128"}},
 	}) {}
 	virtual ~CConfigCompressFormatZIP() {}
 };
