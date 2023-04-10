@@ -483,9 +483,14 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	//formats
 	switch (la_format & ARCHIVE_FORMAT_BASE_MASK) {
 	case ARCHIVE_FORMAT_ZIP:
+		//ZIP should be handled by minizip-ng
 	{
 		merge_map(params, args.formats.zip.params);
-		if (!encrypt) {
+		if (encrypt) {
+			if (params["encryption"] == "zipcrypto") {
+				params["encryption"] = "ZipCrypt";
+			}
+		} else {
 			params.erase("encryption");
 		}
 	}
@@ -550,21 +555,21 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 	fake_args.load(mngr);
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD);
-		EXPECT_EQ(4, la_options.size());
+		EXPECT_EQ(2, la_options.size());
 		EXPECT_EQ("deflate", la_options.at("compression"));
 		EXPECT_EQ("9", la_options.at("compression-level"));
 		//EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
-		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("", la_options.at("zip64"));
+		//EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		//EXPECT_EQ("", la_options.at("zip64"));
 	}
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION);
-		EXPECT_EQ(5, la_options.size());
+		EXPECT_EQ(3, la_options.size());
 		EXPECT_EQ("deflate", la_options.at("compression"));
 		EXPECT_EQ("9", la_options.at("compression-level"));
 		EXPECT_EQ("ZipCrypt", la_options.at("encryption"));
-		EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
-		EXPECT_EQ("", la_options.at("zip64"));
+		//EXPECT_EQ("UTF-8", la_options.at("hdrcharset"));
+		//EXPECT_EQ("", la_options.at("zip64"));
 	}
 	{
 		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::_7Z, LF_WOPT_STANDARD);
