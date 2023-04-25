@@ -32,7 +32,11 @@ struct LA_EXCEPTION : public ARCHIVE_EXCEPTION
 	LA_EXCEPTION(archive* arc) :ARCHIVE_EXCEPTION(L"") {
 		_errno = archive_errno(arc);
 		auto msg = archive_error_string(arc);
-		_msg = UtilUTF8toUNICODE(msg, strlen(msg));
+		if (msg) {
+			_msg = UtilUTF8toUNICODE(msg, strlen(msg));
+		} else {
+			_msg = L"";
+		}
 	}
 };
 

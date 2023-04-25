@@ -70,6 +70,7 @@ TEST(StringUtil, UtilMakeFilterString) {
 
 std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcCodePage)
 {
+	if (!lpSrc)return L"";
 	const unsigned char* pByte = (const unsigned char*)lpSrc;
 	switch (uSrcCodePage) {
 	case UTIL_CODEPAGE::UTF8:
