@@ -26,17 +26,38 @@ void convert_stat(T& dest, const S& src)
 	dest.st_ctime = src.st_ctime;
 }
 
-
+//#include <libarchive/archive_platform.h>
 struct LA_EXCEPTION : public ARCHIVE_EXCEPTION
 {
-	LA_EXCEPTION(archive* arc) :ARCHIVE_EXCEPTION(L"") {
-		_errno = archive_errno(arc);
-		auto msg = archive_error_string(arc);
-		if (msg) {
-			_msg = UtilUTF8toUNICODE(msg, strlen(msg));
-		} else {
-			_msg = L"";
+protected:
+	std::wstring error_string(int la_errno)const {
+		switch (la_errno) {
+		case ARCHIVE_EOF:
+			return L"End of archive";
+		case ARCHIVE_OK:
+			return L"Operation was successful";
+		case ARCHIVE_RETRY:
+			return L"Retry might succeed";
+		case ARCHIVE_WARN:
+			return L"Warning: Partial success";
+		case ARCHIVE_FAILED:
+			return L"Failed: Current operation cannot complete";
+		case ARCHIVE_FATAL:
+			return L"Fatal Error: No more operations are possible";
+		case EILSEQ/*ARCHIVE_ERRNO_FILE_FORMAT*/:	//<libarchive/archive_platform.h>
+			return L"Unrecognized or invalid file format";
+		case EINVAL/*ARCHIVE_ERRNO_PROGRAMMER*/:	//<libarchive/archive_platform.h>
+			return L"Illegal usage of the library";
+		case -1/*ARCHIVE_ERRNO_MISC*/:	//<libarchive/archive_platform.h>
+			return L"Unknown or unclassified error";
+		default:
+			return L"Unknown error";
 		}
+	}
+public:
+	LA_EXCEPTION(int la_errno) :ARCHIVE_EXCEPTION(L"") {
+		_errno = la_errno;
+		auto msg = error_string(la_errno);
 	}
 };
 
@@ -147,7 +168,7 @@ struct LF_LA_ENTRY {
 		} else if (ARCHIVE_EOF == r) {
 			return false;
 		} else {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 	}
 
@@ -187,7 +208,7 @@ struct LA_FILE_TO_READ
 
 		int r = archive_read_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 		r = archive_read_open_filename_w(_arc, arcpath.c_str(), 10240);
 		if (r < ARCHIVE_OK) {
@@ -197,13 +218,13 @@ struct LA_FILE_TO_READ
 				_arc = archive_read_new();
 				r = archive_read_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 				if (r < ARCHIVE_OK) {
-					throw LA_EXCEPTION(_arc);
+					throw LA_EXCEPTION(r);
 				}
 				archive_read_support_filter_all(_arc);
 				archive_read_support_format_raw(_arc);
 				r = archive_read_open_filename_w(_arc, arcpath.c_str(), 10240);
 				if (r < ARCHIVE_OK) {
-					throw LA_EXCEPTION(_arc);
+					throw LA_EXCEPTION(r);
 				}
 			} else {
 				throw ARCHIVE_EXCEPTION(L"Invalid format");
@@ -242,7 +263,7 @@ struct LA_FILE_TO_READ
 
 	operator struct archive*() { return _arc; }
 
-	void read_block(std::function<void(const void*, int64_t/*data size*/, const offset_info*/*offset*/)> data_receiver) {
+	void read_block(std::function<void(const void*, size_t/*data size*/, const offset_info*/*offset*/)> data_receiver) {
 		const void* buf;
 		size_t size;
 		la_int64_t offset;
@@ -250,7 +271,7 @@ struct LA_FILE_TO_READ
 		if (ARCHIVE_EOF == r) {
 			data_receiver(nullptr, 0, 0);
 		} else if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		} else {
 			offset_info oi = { (uint64_t)offset };
 			data_receiver(buf, size, &oi);
@@ -346,28 +367,28 @@ struct LA_FILE_TO_WRITE
 		for (auto f : filters) {
 			int r = archive_write_add_filter(_arc, f);
 			if (r < ARCHIVE_OK) {
-				throw LA_EXCEPTION(_arc);
+				throw LA_EXCEPTION(r);
 			}
 		}
 
 		int r = archive_write_set_format(_arc, la_fmt);
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 
 		r = archive_write_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 		for (auto &ite : archive_options) {
 			int r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
 			if (r < ARCHIVE_OK) {
-				throw LA_EXCEPTION(_arc);
+				throw LA_EXCEPTION(r);
 			}
 		}
 		r = archive_write_open_filename_w(_arc, arcname.c_str());
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 	}
 	void close() {
@@ -382,7 +403,7 @@ struct LA_FILE_TO_WRITE
 	void add_entry(LF_LA_ENTRY& entry, T& dataProvider) {
 		int r = archive_write_header(_arc, entry.la_entry());
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 
 		while (true) {
@@ -397,7 +418,7 @@ struct LA_FILE_TO_WRITE
 	void add_directory(LF_LA_ENTRY& entry) {
 		int r = archive_write_header(_arc, entry.la_entry());
 		if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(_arc);
+			throw LA_EXCEPTION(r);
 		}
 	}
 	operator struct archive*() { return _arc; }
