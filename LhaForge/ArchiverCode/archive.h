@@ -282,7 +282,6 @@ struct ARCLOG {
 };
 
 
-//open with automatic backend selection
 #define _LFA_SAFE_CALL(call)	\
 if (m_ptr) {				\
 	return m_ptr->call;		\
@@ -297,6 +296,7 @@ if (m_ptr) {				\
 	RAISE_EXCEPTION(L"Archive is not opened");\
 }
 
+//open with automatic backend selection
 class CLFArchive : public ILFArchiveFile
 {
 	DISALLOW_COPY_AND_ASSIGN(CLFArchive);

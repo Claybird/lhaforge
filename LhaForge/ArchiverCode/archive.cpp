@@ -48,6 +48,8 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_extract.zipx"));
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_broken_crc.zip"));
 
+	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"smile.zip.001"));
+
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
 	{
 		auto a = guessSuitableArchiver(dir / L"test.gza");
@@ -263,6 +265,44 @@ TEST(CLFArchive, is_known_format)
 	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"test_broken_crc.zip"));
 	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"test_broken_file.zip"));
 	EXPECT_FALSE(CLFArchive::is_known_format(L"some_non_existing_file"));
+
+	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"smile.zip.001"));
 }
+
+TEST(CLFArchive, extract_multipart)
+{
+	CLFArchive a;
+	EXPECT_TRUE(a.is_known_format(LF_PROJECT_DIR() / L"test" / L"smile.zip.001"));
+
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	//a.read_open(LF_PROJECT_DIR() / L"test" / L"smile.zip.001", pp);
+	a.read_open(LF_PROJECT_DIR() / L"test" / L"smile_merged.zip", pp);
+	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_EQ(L"ZIP", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"smile.bmp");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(L"Deflate", entry->method_name);
+	EXPECT_EQ(6110262, entry->stat.st_size);
+	EXPECT_EQ(14563, entry->compressed_size);
+	std::vector<char> data;
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			EXPECT_EQ(nullptr, offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(data.size(), entry->stat.st_size);
+}
+
 #endif
 

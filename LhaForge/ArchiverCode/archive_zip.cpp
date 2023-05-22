@@ -82,7 +82,8 @@ struct CLFArchiveZIP::INTERNAL {
 		close();
 		open_mode = mode;
 		mz_stream_os_create(&stream);
-		mz_stream_os_open(stream, path.u8string().c_str(), mode);
+		auto pathu8 = path.u8string();
+		mz_stream_os_open(stream, pathu8.c_str(), mode);
 
 		mz_zip_create(&zip);
 		auto err = mz_zip_open(zip, stream, mode);
@@ -797,7 +798,7 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
 			continue;
 			}
-			}, LF_EXCEPTION);
+			});
 
 		EXPECT_THROW({
 			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
@@ -1039,6 +1040,9 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_password_abcde.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));
+
+		//disk splitted zip by 7-zip seems to be unsupported by minizip-ng
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"smile.zip.001"));
 	}
 }
 
