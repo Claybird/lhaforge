@@ -2,6 +2,7 @@
 #include "archive_zip.h"
 #include "zip.h"
 #include "mz_zip.h"
+#include "mz_strm.h"
 #include "mz_strm_os.h"
 #include "mz_os.h"
 #include "compress.h"
@@ -52,6 +53,165 @@ static std::wstring mzMethodName(int method)
 	}
 }
 
+int32_t mz_stream_LF_is_open(void* stream);
+int32_t mz_stream_LF_open(void* stream, const char* path, int32_t mode);
+int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size);
+int64_t mz_stream_LF_tell(void* stream);
+int32_t mz_stream_LF_seek(void* stream, int64_t offset, int32_t origin);
+int32_t mz_stream_LF_close(void* stream);
+int32_t mz_stream_LF_error(void* stream);
+void* mz_stream_LF_create(void** stream);
+void mz_stream_LF_delete(void** stream);
+
+typedef struct mz_stream_LF_s {
+	mz_stream       stream;
+	CContinuousFile handle;
+} mz_stream_LF;
+
+static mz_stream_vtbl mz_stream_LF_vtbl = {
+	mz_stream_LF_open,
+	mz_stream_LF_is_open,
+	mz_stream_LF_read,
+	NULL,
+	mz_stream_LF_tell,
+	mz_stream_LF_seek,
+	mz_stream_LF_close,
+	mz_stream_LF_error,
+	mz_stream_LF_create,
+	mz_stream_LF_delete,
+	NULL,
+	NULL
+};
+
+int32_t mz_stream_LF_is_open(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+	if (!lff->handle.is_opened())
+		return MZ_OPEN_ERROR;
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_open(void* stream, const char* path_utf8, int32_t mode) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (!path_utf8)return MZ_PARAM_ERROR;
+
+	if ((mode & MZ_OPEN_MODE_READWRITE) != MZ_OPEN_MODE_READ) {
+		return MZ_PARAM_ERROR;
+	}
+
+	std::filesystem::path path;
+	{
+		wchar_t* path_wide = mz_os_unicode_string_create(path_utf8, MZ_ENCODING_UTF8);
+		if (!path_wide)return MZ_PARAM_ERROR;
+		path = path_wide;
+		mz_os_unicode_string_delete(&path_wide);
+	}
+
+	std::vector<std::filesystem::path> files;
+	std::wregex re_splittedA(L"\\.[zZ]\\d\\d");
+	std::wregex re_splittedB(L"\\.\\d\\d\\d");
+	if (std::regex_search(path.extension().wstring(), re_splittedA)) {
+		//.zXX
+		for (int i = 0; i < 99; i++) {
+			auto p = path;
+			p.replace_extension(Format(L".z%02d", i));
+			if (std::filesystem::exists(p)) {
+				files.push_back(p);
+			} else {
+				if (i != 0)break;
+			}
+		}
+	} else if (std::regex_search(path.extension().wstring(), re_splittedB)) {
+		//.XXX
+		for (int i = 0; i < 99; i++) {
+			auto p = path;
+			p.replace_extension(Format(L".%03d", i));
+			if (std::filesystem::exists(p)) {
+				files.push_back(p);
+			} else {
+				if (i != 0)break;
+			}
+		}
+	} else {
+		files.push_back(path);
+	}
+
+	lff->handle.openFiles(files);
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK) {
+		return MZ_OPEN_ERROR;
+	}
+
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+	uint32_t read = 0;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+
+	try {
+		size_t read = lff->handle.read(buf, size);
+		return read;
+	} catch (const LF_EXCEPTION&) {
+		return MZ_READ_ERROR;
+	}
+}
+
+int64_t mz_stream_LF_tell(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+	return lff->handle.tell();
+}
+
+int32_t mz_stream_LF_seek(void* stream, int64_t offset, int32_t origin) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+
+	switch (origin) {
+	case MZ_SEEK_CUR:
+		if (lff->handle.seek(offset, SEEK_CUR))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	case MZ_SEEK_END:
+		if (lff->handle.seek(offset, SEEK_END))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	case MZ_SEEK_SET:
+		if (lff->handle.seek(offset, SEEK_SET))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	default:
+		return MZ_SEEK_ERROR;
+	}
+}
+
+int32_t mz_stream_LF_close(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+	lff->handle.close();
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_error(void* stream) {
+	return MZ_OK;
+}
+
+void* mz_stream_LF_create(void** stream) {
+	mz_stream_LF* lff = new mz_stream_LF;
+	lff->stream.vtbl = &mz_stream_LF_vtbl;
+
+	if (stream != NULL) *stream = lff;
+	return lff;
+}
+
+void mz_stream_LF_delete(void** stream) {
+	if (stream) {
+		mz_stream_LF* lff = (mz_stream_LF*)*stream;
+		if (lff)delete lff;
+	}
+	*stream = NULL;
+}
+
 struct CLFArchiveZIP::INTERNAL {
 	INTERNAL(std::shared_ptr<ILFPassphrase> pcb):zip(nullptr), stream(nullptr),passphrase_callback(pcb), flag(0){}
 	virtual ~INTERNAL() { close(); }
@@ -72,8 +232,13 @@ struct CLFArchiveZIP::INTERNAL {
 			zip = nullptr;
 		}
 		if (stream) {
-			mz_stream_os_close(stream);
-			mz_stream_os_delete(&stream);
+			if (open_mode & MZ_OPEN_MODE_READ) {
+				mz_stream_LF_close(stream);
+				mz_stream_LF_delete(&stream);
+			} else {
+				mz_stream_os_close(stream);
+				mz_stream_os_delete(&stream);
+			}
 			stream = nullptr;
 		}
 		flag = 0;
@@ -81,9 +246,14 @@ struct CLFArchiveZIP::INTERNAL {
 	void open(std::filesystem::path path, int32_t mode, std::map<std::string, std::string> param) {
 		close();
 		open_mode = mode;
-		mz_stream_os_create(&stream);
 		auto pathu8 = path.u8string();
-		mz_stream_os_open(stream, pathu8.c_str(), mode);
+		if (mode & MZ_OPEN_MODE_READ) {
+			mz_stream_LF_create(&stream);
+			mz_stream_LF_open(stream, pathu8.c_str(), mode);
+		} else {
+			mz_stream_os_create(&stream);
+			mz_stream_os_open(stream, pathu8.c_str(), mode);
+		}
 
 		mz_zip_create(&zip);
 		auto err = mz_zip_open(zip, stream, mode);
@@ -1041,8 +1211,7 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));
 
-		//disk splitted zip by 7-zip seems to be unsupported by minizip-ng
-		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"smile.zip.001"));
+		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"smile.zip.001"));
 	}
 }
 

@@ -275,8 +275,7 @@ TEST(CLFArchive, extract_multipart)
 	EXPECT_TRUE(a.is_known_format(LF_PROJECT_DIR() / L"test" / L"smile.zip.001"));
 
 	auto pp = std::make_shared<CLFPassphraseNULL>();
-	//a.read_open(LF_PROJECT_DIR() / L"test" / L"smile.zip.001", pp);
-	a.read_open(LF_PROJECT_DIR() / L"test" / L"smile_merged.zip", pp);
+	a.read_open(LF_PROJECT_DIR() / L"test" / L"smile.zip.001", pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
