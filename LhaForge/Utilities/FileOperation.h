@@ -145,7 +145,7 @@ protected:
 	int64_t _curPos;
 protected:
 	bool nextFile() {
-		_fp.close();
+		//_fp.close();
 		_currentFile++;
 		//reached end of file list
 		if (_currentFile >= _files.size()) return false;
@@ -155,8 +155,8 @@ protected:
 		return true;
 	}
 	bool seek_forward(int64_t offset) {
-		if (_files.empty())return false;
-		if(!_fp.is_opened())return false;
+		if (_files.empty()) return false;
+		if(!_fp.is_opened()) return false;
 		for (;;) {
 			int64_t remain = std::filesystem::file_size(_files[_currentFile]) - _ftelli64(_fp);
 			if (offset < remain) {
@@ -228,7 +228,7 @@ public:
 	bool seek(int64_t offset, int32_t origin) {
 		switch (origin) {
 		case SEEK_CUR:
-			if (offset > 0)return seek_forward(offset);
+			if (offset >= 0)return seek_forward(offset);
 			else return seek_backward(offset);
 			break;
 		case SEEK_END:
