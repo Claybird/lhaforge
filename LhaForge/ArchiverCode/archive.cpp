@@ -276,7 +276,7 @@ TEST(CLFArchive, extract_multipart)
 
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	a.read_open(LF_PROJECT_DIR() / L"test" / L"smile.zip.001", pp);
-	EXPECT_TRUE(a.is_modify_supported());
+	EXPECT_FALSE(a.is_modify_supported());
 	EXPECT_EQ(L"ZIP", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);

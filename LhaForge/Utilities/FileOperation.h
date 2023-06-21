@@ -224,6 +224,7 @@ public:
 		_curPos = 0;
 	}
 	bool is_opened()const { return _fp.is_opened(); }
+	size_t getNumFiles()const { return _files.size(); }
 	int64_t tell()const { return _curPos; }
 	bool seek(int64_t offset, int32_t origin) {
 		switch (origin) {

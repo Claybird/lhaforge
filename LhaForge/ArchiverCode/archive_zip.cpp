@@ -225,6 +225,14 @@ struct CLFArchiveZIP::INTERNAL {
 	int aesFlag;
 	std::shared_ptr<std::string> passphrase;	//UTF-8
 	std::shared_ptr<ILFPassphrase> passphrase_callback;
+	bool isMultipartFile() const{
+		if (open_mode & MZ_OPEN_MODE_READ) {
+			mz_stream_LF* lff = (mz_stream_LF*)stream;
+			return lff->handle.getNumFiles() > 1;
+		} else {
+			return false;
+		}
+	}
 	void close() {
 		if (zip) {
 			mz_zip_close(zip);
@@ -366,7 +374,10 @@ void CLFArchiveZIP::close()
 
 bool CLFArchiveZIP::is_modify_supported()const
 {
-	return true;
+	if (_internal) {
+		return !_internal->isMultipartFile();
+	}
+	return false;
 }
 
 bool CLFArchiveZIP::contains_encryted_entry()
