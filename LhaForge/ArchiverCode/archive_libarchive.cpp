@@ -266,7 +266,7 @@ struct LA_FILE_TO_READ
 	void read_block(std::function<void(const void*, size_t/*data size*/, const offset_info*/*offset*/)> data_receiver) {
 		const void* buf;
 		size_t size;
-		la_int64_t offset;
+		la_int64_t offset = 0;
 		int r = archive_read_data_block(_arc, &buf, &size, &offset);
 		if (ARCHIVE_EOF == r) {
 			data_receiver(nullptr, 0, 0);
