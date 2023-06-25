@@ -19,6 +19,7 @@
     <ClCompile Include="ArchiverCode\archive_arj.cpp" />
     <ClCompile Include="ArchiverCode\archive_bga.cpp" />
     <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_rar.cpp" />
     <ClCompile Include="ArchiverCode\archive_zip.cpp" />
     <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp" />
     <ClCompile Include="Association.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="ArchiverCode\archive_bga.h" />
     <ClInclude Include="ArchiverCode\archive_libarchive.h" />
     <ClInclude Include="ArchiverCode\archive.h" />
+    <ClInclude Include="ArchiverCode\archive_rar.h" />
     <ClInclude Include="ArchiverCode\archive_zip.h" />
     <ClInclude Include="ArchiverCode\mini_lzh_decoder.h" />
     <ClInclude Include="Association.h" />
@@ -170,6 +172,9 @@
     </ProjectReference>
     <ProjectReference Include="..\dependency\backends\minizip-ng\minizip.vcxproj">
       <Project>{0a9f72f0-8880-3523-9b09-d8c39a76ed8c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\unrar\UnRARLib.vcxproj">
+      <Project>{e815c46c-36c4-499f-bbc2-e772c6b17971}</Project>
     </ProjectReference>
     <ProjectReference Include="..\dependency\backends\win-iconv\win-iconv.vcxproj">
       <Project>{31c02a3c-757f-4dcc-8f69-280c43df14d6}</Project>
@@ -273,7 +278,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnablePREfast>true</EnablePREfast>
@@ -321,7 +326,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -367,7 +372,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>

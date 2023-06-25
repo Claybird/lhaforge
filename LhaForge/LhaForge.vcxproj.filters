@@ -130,6 +130,9 @@
     <ClCompile Include="ArchiverCode\archive_zip.cpp">
       <Filter>ArchiverCode</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiverCode\archive_rar.cpp">
+      <Filter>ArchiverCode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -357,6 +360,9 @@
       <Filter>ArchiverCode</Filter>
     </ClInclude>
     <ClInclude Include="ArchiverCode\archive_zip.h">
+      <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_rar.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>

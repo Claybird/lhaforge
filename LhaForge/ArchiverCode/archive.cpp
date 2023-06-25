@@ -4,6 +4,7 @@
 #include "archive_bga.h"
 #include "archive_arj.h"
 #include "archive_zip.h"
+#include "archive_rar.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -33,6 +34,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::pat
 	if (CLFArchiveZIP::is_known_format(path))return std::make_unique<CLFArchiveZIP>();
 	if (CLFArchiveBGA::is_known_format(path))return std::make_unique<CLFArchiveBGA>();
 	if (CLFArchiveARJ::is_known_format(path))return std::make_unique<CLFArchiveARJ>();
+	if (CLFArchiveRAR::is_known_format(path))return std::make_unique<CLFArchiveRAR>();
 
 	//check for libarchive is weak, in the current implementation
 	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();
@@ -311,12 +313,12 @@ void sub_rar_test(std::filesystem::path file)
 	auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 	a.read_open(file, pp);
 	EXPECT_FALSE(a.is_modify_supported());
-	EXPECT_EQ(L"RAR5", a.get_format_name());
+	EXPECT_EQ(L"RAR", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
 	EXPECT_EQ(entry->path.wstring(), L"smile.bmp");
 	EXPECT_FALSE(entry->is_directory());
-	EXPECT_EQ(L"---", entry->method_name);
+	EXPECT_EQ(L"normal", entry->method_name);
 	EXPECT_EQ(6110262, entry->stat.st_size);
 	std::vector<char> data;
 	for (;;) {
