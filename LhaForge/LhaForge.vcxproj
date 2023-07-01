@@ -341,7 +341,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
-      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x86\Release;$(SolutionDir)\dependency\backends\bzip2\x86\Release;$(SolutionDir)\dependency\backends\libiconv\x86\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x86\Release;$(SolutionDir)\dependency\backends\lz4\x86\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\backends\zstd\x86\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x86\Release\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x86\Release;$(SolutionDir)\dependency\backends\bzip2\x86\Release;$(SolutionDir)\dependency\backends\libiconv\x86\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x86\Release;$(SolutionDir)\dependency\backends\lz4\x86\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\backends\zstd\x86\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x86\Release\lib;$(SolutionDir)\dependency\backends\unrar\build\Win32\Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
