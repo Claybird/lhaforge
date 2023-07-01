@@ -301,12 +301,22 @@ void CLFArchiveRAR::read_file_entry_block(std::function<void(const void*, size_t
 #include "CommonUtil.h"
 bool CLFArchiveRAR::is_known_format(const std::filesystem::path& arcname)
 {
+	//passphrase callback shoud be called if RAR header is encrypted.
+	struct CLFPassphraseRunCheck :public ILFPassphrase {
+		bool called;
+		CLFPassphraseRunCheck() :called(false) {}
+		virtual ~CLFPassphraseRunCheck() {}
+		const char* operator()()override { called = true; return nullptr; }
+	};
+
+	auto passphrase = std::make_shared<CLFPassphraseRunCheck>();
 	try {
 		CLFArchiveRAR a;
-		a.read_open(arcname, std::make_shared<CLFPassphraseNULL>());
+
+		a.read_open(arcname, passphrase);
 		return true;
 	} catch (...) {
-		return false;
+		return passphrase.get()->called;
 	}
 }
 
@@ -343,7 +353,7 @@ TEST(CLFArchiveRAR, is_known_format)
 		EXPECT_FALSE(CLFArchiveRAR::is_known_format(dir / L"test_zip_sfx.dat"));
 
 		EXPECT_TRUE(CLFArchiveRAR::is_known_format(dir / L"smile_encrypted.rar"));
-		EXPECT_FALSE(CLFArchiveRAR::is_known_format(dir / L"smile_header_encrypted.rar"));	//need password while checking
+		EXPECT_TRUE(CLFArchiveRAR::is_known_format(dir / L"smile_header_encrypted.rar"));
 		EXPECT_TRUE(CLFArchiveRAR::is_known_format(dir / L"smile_locked.rar"));
 		EXPECT_TRUE(CLFArchiveRAR::is_known_format(dir / L"smile_solid.rar"));
 		EXPECT_TRUE(CLFArchiveRAR::is_known_format(dir / L"smile.part0001.rar"));
@@ -477,9 +487,7 @@ TEST(CLFArchiveRAR, extract_rar_encrypted)
 
 TEST(CLFArchiveRAR, extract_rar_header_encrypted)
 {
-	auto file = LF_PROJECT_DIR() / L"test/smile_header_encrypted.rar";
-	CLFArchiveRAR a;
-	EXPECT_FALSE(a.is_known_format(file));
+	sub_rar_test(LF_PROJECT_DIR() / L"test/smile_header_encrypted.rar");
 }
 
 TEST(CLFArchiveRAR, extract_rar_multipart)
