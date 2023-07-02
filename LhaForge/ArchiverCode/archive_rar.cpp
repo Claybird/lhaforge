@@ -70,7 +70,7 @@ std::wstring rarErrMsg(int code)
 	}
 }
 
-std::wstring rarMethod(int method)
+static std::wstring rarMethod(int method)
 {
 	switch (method) {
 	case 0x30:
@@ -88,6 +88,21 @@ std::wstring rarMethod(int method)
 	default:
 		return L"unknown";
 	}
+}
+
+static std::filesystem::path rar_first_file(const std::filesystem::path& file)
+{
+	std::wregex multipart(L"\\.part\\d+\\.rar$", std::wregex::icase);
+	std::wcmatch results;
+	auto s = file.wstring();
+	if (std::regex_search(s.c_str(), results, multipart)) {
+		int digits = results.length() - 9;	//partX/partXX/partXXX etc.
+		auto part = Format(Format(L".part%%0%dd.rar", digits), 1);
+		auto f = std::regex_replace(s.c_str(), multipart, part);
+		return std::filesystem::path(f);
+	}
+	//fallback
+	return file;
 }
 
 struct CLFArchiveRAR::INTERNAL
@@ -155,7 +170,7 @@ struct CLFArchiveRAR::INTERNAL
 	}
 	void open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase) {
 		passphrase_callback = passphrase;
-		path = file;
+		path = rar_first_file(file);
 		rewind();
 	}
 	LF_ENTRY_STAT* scanNext() {
@@ -244,7 +259,6 @@ struct CLFArchiveRAR::INTERNAL
 	}
 };
 
-
 CLFArchiveRAR::CLFArchiveRAR()
 {
 	_internal = new INTERNAL;
@@ -323,6 +337,27 @@ bool CLFArchiveRAR::is_known_format(const std::filesystem::path& arcname)
 
 
 #ifdef UNIT_TEST
+
+TEST(CLFArchiveRAR, rar_first_file)
+{
+	rar_first_file(L"test.part0001.rar");
+	EXPECT_EQ(std::filesystem::path(L"test.part0001.rar"), rar_first_file(L"test.part0001.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part0001.rar"), rar_first_file(L"test.part0002.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part0001.rar"), rar_first_file(L"test.part0101.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part0001.rar"), rar_first_file(L"test.part0101.RaR"));
+	EXPECT_EQ(std::filesystem::path(L"test.part0001.rar"), rar_first_file(L"test.part0001.RaR"));
+	EXPECT_EQ(std::filesystem::path(L"test.part001.rar"), rar_first_file(L"test.part005.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part01.rar"), rar_first_file(L"test.part05.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part1.rar"), rar_first_file(L"test.part5.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part.rar"), rar_first_file(L"test.part.rar"));
+
+	EXPECT_EQ(std::filesystem::path(L"test.part000a.rar"), rar_first_file(L"test.part000a.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.rar"), rar_first_file(L"test.rar"));
+	EXPECT_EQ(std::filesystem::path(L"test.part0005.zip"), rar_first_file(L"test.part0005.zip"));
+
+	EXPECT_EQ(std::filesystem::path(L"test.part0005.rar.zip"), rar_first_file(L"test.part0005.rar.zip"));
+}
+
 TEST(CLFArchiveRAR, is_known_format)
 {
 	{
@@ -493,6 +528,12 @@ TEST(CLFArchiveRAR, extract_rar_header_encrypted)
 TEST(CLFArchiveRAR, extract_rar_multipart)
 {
 	sub_rar_test(LF_PROJECT_DIR() / L"test/smile.part0001.rar");
+}
+
+TEST(CLFArchiveRAR, rar_multipart_not_from_0001)
+{
+	sub_rar_test(LF_PROJECT_DIR() / L"test/smile.part0002.rar");
+	sub_rar_test(LF_PROJECT_DIR() / L"test/smile.part0003.rar");
 }
 
 #endif
