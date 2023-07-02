@@ -269,6 +269,7 @@ TEST(CLFArchive, is_known_format)
 	EXPECT_FALSE(CLFArchive::is_known_format(L"some_non_existing_file"));
 
 	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"smile.zip.001"));
+	EXPECT_TRUE(CLFArchive::is_known_format(dir / L"smile.part0002.rar"));
 }
 
 TEST(CLFArchive, extract_multipart)
@@ -303,6 +304,38 @@ TEST(CLFArchive, extract_multipart)
 		}
 	}
 	EXPECT_EQ(data.size(), entry->stat.st_size);
+}
+
+TEST(CLFArchive, extract_multistream_bz2)
+{
+	CLFArchive a;
+	const auto file = std::filesystem::path(__FILEW__).parent_path() / L"test/multistream.txt.bz2";
+	EXPECT_TRUE(a.is_known_format(file));
+
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	EXPECT_FALSE(a.is_modify_supported());
+	EXPECT_EQ(L"raw", a.get_format_name());
+	auto entry = a.read_entry_begin();
+	EXPECT_NE(nullptr, entry);
+	EXPECT_EQ(entry->path.wstring(), L"data");
+	EXPECT_FALSE(entry->is_directory());
+	std::vector<char> data;
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			if (offset)data.resize(offset->offset);
+			if (buf) {
+				data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+			} else {
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(std::string(data.begin(),data.end()), "helloworld");
 }
 
 #endif
