@@ -1160,4 +1160,57 @@ TEST(CLFArchiveLA, is_known_format)
 	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(L"some_non_existing_file"));
 }
 
+TEST(CLFArchiveLA, read_enum_2099_zstd)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto file = std::filesystem::path(__FILEW__).parent_path() / L"test/test_2099.tar.zst";
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	EXPECT_TRUE(a.is_modify_supported());
+	ASSERT_EQ(L"POSIX ustar format", a.get_format_name());
+
+
+	int count = 0;
+	int numDir = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		if (entry->is_directory()) {
+			numDir++;
+		} else {
+			if (entry->path.wstring().find(L"ccd.txt") != -1) {
+				EXPECT_EQ(entry->stat.st_size, 44);
+				EXPECT_EQ(entry->method_name, L"---");
+				EXPECT_EQ(entry->compressed_size, -1);
+				std::vector<char> data;
+				for (;;) {
+					bool bEOF = false;
+					a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+						//EXPECT_EQ(nullptr, offset);
+						if (buf) {
+							data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+						} else {
+							bEOF = true;
+						}
+					});
+					if (bEOF) {
+						break;
+					}
+				}
+				EXPECT_EQ(data.size(), entry->stat.st_size);
+				EXPECT_EQ(std::string(data.begin(), data.end()), ";kljd;lfj;lsdahg;has:hn:h :ahsd:fh:asdhg:ioh");
+			} else {
+				EXPECT_EQ(entry->stat.st_size, 48);
+				EXPECT_EQ(entry->method_name, L"---");
+				EXPECT_EQ(entry->compressed_size, -1);
+			}
+		}
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(count, 2099 + 1);
+	EXPECT_EQ(numDir, 1);
+}
+
+
 #endif
