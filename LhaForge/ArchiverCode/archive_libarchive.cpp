@@ -255,6 +255,10 @@ struct LA_FILE_TO_READ
 	LF_LA_ENTRY* next() {
 		_rewind.need_rewind = true;
 		if (_entry.read_next()) {
+			if (L"data" == _entry._lf_stat.path && archive_format(_arc) == ARCHIVE_FORMAT_RAW) {
+				_entry._lf_stat.path = _rewind.arcpath.stem();
+			}
+
 			return &_entry;
 		} else {
 			return nullptr;
@@ -1212,5 +1216,119 @@ TEST(CLFArchiveLA, read_enum_2099_zstd)
 	EXPECT_EQ(numDir, 1);
 }
 
+TEST(CLFArchiveLA, name_in_zstd)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"abcde.zst";
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
+
+TEST(CLFArchiveLA, name_in_gzip)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"abcde.gz";
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
+
+TEST(CLFArchiveLA, name_in_xz)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"abcde.xz";
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
+
+TEST(CLFArchiveLA, name_in_lzma)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"abcde.lzma";
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
+
+TEST(CLFArchiveLA, name_in_bz2)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"abcde.bz2";
+	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
 
 #endif
