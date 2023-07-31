@@ -318,7 +318,7 @@ TEST(CLFArchive, extract_multistream_bz2)
 	EXPECT_EQ(L"raw", a.get_format_name());
 	auto entry = a.read_entry_begin();
 	EXPECT_NE(nullptr, entry);
-	EXPECT_EQ(entry->path.wstring(), L"data");
+	EXPECT_EQ(entry->path.wstring(), L"multistream.txt");
 	EXPECT_FALSE(entry->is_directory());
 	std::vector<char> data;
 	for (;;) {
