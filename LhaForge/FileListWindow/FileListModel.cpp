@@ -148,7 +148,7 @@ struct FILELIST_SORT_COMPARATOR{
 				}else if(y->is_directory()){
 					return false;
 				}
-				int result = _wcsicmp(x->_entryName.c_str(), y->_entryName.c_str());
+				int result = StrCmpLogicalW(x->_entryName.c_str(), y->_entryName.c_str());
 				if(result == 0){
 					return defaultOrder(x, y);
 				}else{
@@ -156,7 +156,7 @@ struct FILELIST_SORT_COMPARATOR{
 				}
 			}
 		case FILEINFO_TYPE::FULLPATH:
-			return (_wcsicmp(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
+			return (StrCmpLogicalW(x->_entry.path.c_str(), y->_entry.path.c_str())<0);
 		case FILEINFO_TYPE::ORIGINALSIZE:
 			if(x->_originalSize == y->_originalSize){
 				return defaultOrder(x, y);
@@ -190,7 +190,7 @@ struct FILELIST_SORT_COMPARATOR{
 			if (x->_entry.method_name == y->_entry.method_name) {
 				return defaultOrder(x, y);
 			} else {
-				return (_wcsicmp(x->_entry.method_name.c_str(), y->_entry.method_name.c_str()) < 0);
+				return (StrCmpLogicalW(x->_entry.method_name.c_str(), y->_entry.method_name.c_str()) < 0);
 			}
 		case FILEINFO_TYPE::RATIO:
 			if (x->compress_ratio() == y->compress_ratio()) {
@@ -204,6 +204,29 @@ struct FILELIST_SORT_COMPARATOR{
 	}
 };
 
+#ifdef UNIT_TEST
+TEST(FileListWindow, sort_by_name)
+{
+	ARCHIVE_ENTRY_INFO root;
+	root.addEntry({ L"file100.txt" });
+	root.addEntry({ L"file01.txt" });
+	root.addEntry({ L"file101.txt" });
+	root.addEntry({ L"file00.txt" });
+	root.addEntry({ L"file2.txt" });
+	FILELIST_SORT_COMPARATOR comp;
+	comp.Type = FILEINFO_TYPE::FILENAME;
+	comp.bReversed = false;
+	std::sort(root._children.begin(), root._children.end(), comp);
+
+	EXPECT_EQ(5, root._children.size());
+	EXPECT_EQ(L"file00.txt", root._children[0].get()->_entryName);
+	EXPECT_EQ(L"file01.txt", root._children[1].get()->_entryName);
+	EXPECT_EQ(L"file2.txt", root._children[2].get()->_entryName);
+	EXPECT_EQ(L"file100.txt", root._children[3].get()->_entryName);
+	EXPECT_EQ(L"file101.txt", root._children[4].get()->_entryName);
+}
+
+#endif
 
 void CFileListModel::SortCurrentEntries()
 {
