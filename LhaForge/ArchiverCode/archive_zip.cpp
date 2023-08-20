@@ -60,7 +60,7 @@ int64_t mz_stream_LF_tell(void* stream);
 int32_t mz_stream_LF_seek(void* stream, int64_t offset, int32_t origin);
 int32_t mz_stream_LF_close(void* stream);
 int32_t mz_stream_LF_error(void* stream);
-void* mz_stream_LF_create(void** stream);
+void* mz_stream_LF_create(void);
 void mz_stream_LF_delete(void** stream);
 
 typedef struct mz_stream_LF_s {
@@ -196,11 +196,10 @@ int32_t mz_stream_LF_error(void* stream) {
 	return MZ_OK;
 }
 
-void* mz_stream_LF_create(void** stream) {
+void* mz_stream_LF_create() {
 	mz_stream_LF* lff = new mz_stream_LF;
 	lff->stream.vtbl = &mz_stream_LF_vtbl;
 
-	if (stream != NULL) *stream = lff;
 	return lff;
 }
 
@@ -256,14 +255,14 @@ struct CLFArchiveZIP::INTERNAL {
 		open_mode = mode;
 		auto pathu8 = path.u8string();
 		if (mode & MZ_OPEN_MODE_READ) {
-			mz_stream_LF_create(&stream);
+			stream = mz_stream_LF_create();
 			mz_stream_LF_open(stream, pathu8.c_str(), mode);
 		} else {
-			mz_stream_os_create(&stream);
+			stream = mz_stream_os_create();
 			mz_stream_os_open(stream, pathu8.c_str(), mode);
 		}
 
-		mz_zip_create(&zip);
+		zip = mz_zip_create();
 		auto err = mz_zip_open(zip, stream, mode);
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(mzError2Text(err));
@@ -299,9 +298,9 @@ struct CLFArchiveZIP::INTERNAL {
 		}
 		{
 			std::map<std::string, int> cryptoMap = {
-				{"aes256", MZ_AES_ENCRYPTION_MODE_256},
-				{"aes192", MZ_AES_ENCRYPTION_MODE_192},
-				{"aes128", MZ_AES_ENCRYPTION_MODE_128},
+				{"aes256", MZ_AES_STRENGTH_256},
+				{"aes192", MZ_AES_STRENGTH_192},
+				{"aes128", MZ_AES_STRENGTH_128},
 				{"zipcrypto", 0},
 			};
 			auto cryptoStr = toLower(param["crypto"]);
@@ -667,10 +666,10 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 	if (file_info.flag & MZ_ZIP_FLAG_ENCRYPTED) {
 		if (aesFlag == 0) {
 			file_info.aes_version = 0;/* winzip aes extension if not 0 */
-			file_info.aes_encryption_mode = aesFlag;
+			file_info.aes_strength = aesFlag;
 		} else {
 			file_info.aes_version = MZ_AES_VERSION;/* winzip aes extension if not 0 */
-			file_info.aes_encryption_mode = aesFlag;
+			file_info.aes_strength = aesFlag;
 		}
 	}
 	//file_info.pk_verify                 /* pkware encryption verifier */

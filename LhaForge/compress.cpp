@@ -678,39 +678,19 @@ TEST(compress, compressOneArchive)
 	auto sources = buildCompressSources(fake_args, givenFiles);
 	auto single_source = buildCompressSources(fake_args, { source_dir / L"a/test.txt" });
 
-	struct PATTERN {
-		std::wstring archive_name;
-		LF_ARCHIVE_FORMAT format;
-		LF_WRITE_OPTIONS options;
-	};
-	const std::vector<PATTERN> patterns = {
-		{L"output.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD},	//zip
-		{L"enc.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION},	//zip, encrypted
-		{L"output.7z",	LF_ARCHIVE_FORMAT::_7Z,	LF_WOPT_STANDARD},
-		{L"output.tar",	LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD},
-		{L"output.tar.gz",	LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD},
-		{L"output.tar.bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD},
-		{L"output.tar.lzma",	LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD},
-		{L"output.tar.xz",	LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD},
-		{L"output.tar.zstd",	LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD},
-
-		//not an archive, single file only
-		{L"output.gz",	LF_ARCHIVE_FORMAT::GZ,	LF_WOPT_STANDARD},
-		{L"output.bz2",	LF_ARCHIVE_FORMAT::BZ2,	LF_WOPT_STANDARD},
-		{L"output.lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD },
-		{L"output.xz",	LF_ARCHIVE_FORMAT::XZ,	LF_WOPT_STANDARD},
-		{L"output.zst",	LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD},
-	};
-	for (const auto &p : patterns) {
-		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / p.archive_name;
+	auto test_helper = [&](std::wstring archive_name,
+		LF_ARCHIVE_FORMAT format,
+		LF_WRITE_OPTIONS options
+		) {
+		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / archive_name;
 		ARCLOG arcLog;
 
-		const auto& cap = CLFArchive::get_compression_capability(p.format);
+		const auto& cap = CLFArchive::get_compression_capability(format);
 
-		if (p.options & LF_WOPT_DATA_ENCRYPTION) {
+		if (options & LF_WOPT_DATA_ENCRYPTION) {
 			//expect user cancel
 			auto pp = std::make_shared<CLFPassphraseNULL>();
-			EXPECT_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
+			EXPECT_THROW(compressOneArchive(format, options, fake_args, archive,
 				(cap.contains_multiple_files ? sources : single_source), arcLog,
 				CLFProgressHandlerNULL(),
 				pp),
@@ -720,22 +700,38 @@ TEST(compress, compressOneArchive)
 		}
 
 		//expect successful compression
-		EXPECT_NO_THROW(compressOneArchive(p.format, p.options, fake_args, archive,
+		compressOneArchive(format, options, fake_args, archive,
 			(cap.contains_multiple_files ? sources : single_source), arcLog,
 			CLFProgressHandlerNULL(),
-			std::make_shared<CLFPassphraseConst>(L"password")));
+			std::make_shared<CLFPassphraseConst>(L"password"));
 
 		//expect readable archive
 		{
 			ASSERT_TRUE(std::filesystem::exists(archive));
-			EXPECT_NO_THROW(
-				testOneArchive(archive, arcLog,
-					CLFProgressHandlerNULL(),
-					std::make_shared<CLFPassphraseConst>(L"password")));
+			testOneArchive(archive, arcLog,
+				CLFProgressHandlerNULL(),
+				std::make_shared<CLFPassphraseConst>(L"password"));
 		}
 
 		UtilDeletePath(archive);
-	}
+	};
+
+	EXPECT_NO_THROW(test_helper(L"output.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD));	//zip
+	EXPECT_NO_THROW(test_helper(L"enc.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION));	//zip, encrypted
+	EXPECT_NO_THROW(test_helper(L"output.7z",	LF_ARCHIVE_FORMAT::_7Z,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar",	LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.gz",	LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.lzma",	LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.xz",	LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.zst",	LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD));
+
+	//not an archive, single file only
+	EXPECT_NO_THROW(test_helper(L"output.gz",	LF_ARCHIVE_FORMAT::GZ,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.bz2",	LF_ARCHIVE_FORMAT::BZ2,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.xz",	LF_ARCHIVE_FORMAT::XZ,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.zst",	LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD));
 
 	UtilDeletePath(source_dir);
 }
