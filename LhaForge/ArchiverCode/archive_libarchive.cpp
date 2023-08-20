@@ -282,9 +282,8 @@ struct LA_FILE_TO_READ
 		}
 	}
 	static bool is_known_format(const std::filesystem::path &arcname) {
-		const size_t readSize = 10;
 		try {
-			if (std::filesystem::file_size(arcname) < readSize)return false;
+			if (std::filesystem::file_size(arcname) == 0)return false;
 		} catch (...) {
 			return false;
 		}
@@ -292,22 +291,26 @@ struct LA_FILE_TO_READ
 		CAutoFile fp;
 		fp.open(arcname);
 		if (!fp.is_opened())return false;
-		std::vector<unsigned char> header(readSize);
-		if (readSize != fread(&header[0], 1, readSize, fp)) {
+		const size_t bufSize = 10;
+		std::vector<unsigned char> header(bufSize);
+		size_t read = fread(&header[0], 1, bufSize, fp);
+		if (read < 1) {
 			return false;
 		}
 
 		//check header for known format
 		//gzip: RFC 1952
-		if (header[0] == 0x1f && header[1] == 0x8b) {
+		if (read > 2 && 
+			header[0] == 0x1f && header[1] == 0x8b) {
 			return true;
 		}
 		//bz2: https://github.com/dsnet/compress/blob/master/doc/bzip2-format.pdf
-		if (header[0] == 'B' && header[1] == 'Z' && header[2] == 'h' &&
+		if (read > 10 && 
+			header[0] == 'B' && header[1] == 'Z' && header[2] == 'h' &&
 			'0' <= header[3] && header[3] <= '9' &&
 			(
 				//compressed_magic
-			(header[4] == 0x31 && header[5] == 0x41 && header[6] == 0x59 &&
+				(header[4] == 0x31 && header[5] == 0x41 && header[6] == 0x59 &&
 				header[7] == 0x26 && header[8] == 0x53 && header[9] == 0x59) ||
 				//eos_magic
 				(header[4] == 0x17 && header[5] == 0x72 && header[6] == 0x45 &&
@@ -324,13 +327,15 @@ struct LA_FILE_TO_READ
 			}
 		}
 		//xz: xz-file-format.txt in XZ Utils[https://tukaani.org/xz/]
-		if (header[0] == 0xFD && header[1] == '7' && header[2] == 'z' &&
+		if (read > 6 && 
+			header[0] == 0xFD && header[1] == '7' && header[2] == 'z' &&
 			header[3] == 'X' && header[4] == 'Z' && header[5] == 0x00) {
 			return true;
 		}
 
 		//zstd: https://tools.ietf.org/id/draft-kucherawy-dispatch-zstd-00.html
-		if (header[0] == 0xFD && header[1] == 0x2F && header[2] == 0xB5 && header[3] == 0x28) {
+		if (read > 4 && 
+			header[0] == 0xFD && header[1] == 0x2F && header[2] == 0xB5 && header[3] == 0x28) {
 			return true;
 		}
 

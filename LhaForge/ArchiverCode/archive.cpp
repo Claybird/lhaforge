@@ -338,5 +338,104 @@ TEST(CLFArchive, extract_multistream_bz2)
 	EXPECT_EQ(std::string(data.begin(),data.end()), "helloworld");
 }
 
+TEST(CLFArchive, make_empty_archive)
+{
+	//What happens when all files are removed from an archive...?
+
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto make_empty = [&](const std::filesystem::path& in) {
+		auto temp = UtilGetTemporaryFileName();
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(in, pp);
+		{
+			LF_COMPRESS_ARGS args;
+			args.load(CConfigFile());
+			//skip all
+			auto out = a.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return false; });
+		}
+		return temp;
+	};
+
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"test/test_extract.zip");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"test/test.tar.gz");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.bz2");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.gz");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.lzma");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.xz");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+	EXPECT_NO_THROW({
+		auto temp = make_empty(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.zst");
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_EQ(nullptr, entry);
+		a.close();
+		UtilDeletePath(temp);
+		EXPECT_FALSE(std::filesystem::exists(temp));
+		});
+}
+
 #endif
 
