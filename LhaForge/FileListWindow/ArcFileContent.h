@@ -227,11 +227,12 @@ protected:
 	//---internal functions
 	void postScanArchive(ARCHIVE_ENTRY_INFO*);
 
-	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
+	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>, std::vector<std::wstring>>
 	subDeleteEntries(
 		const LF_COMPRESS_ARGS& args,
-		const std::unordered_set<std::wstring> &items_to_delete,
+		const std::map<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/> &items_to_delete,
 		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
 		ARCLOG &arcLog);
 public:
 	CArchiveFileContent(std::shared_ptr<ILFPassphrase> pp) :
@@ -275,6 +276,7 @@ public:
 		const std::vector<std::filesystem::path> &files,
 		const ARCHIVE_ENTRY_INFO* lpParent,
 		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
 		ARCLOG &arcLog);
 	void deleteEntries(
 		const LF_COMPRESS_ARGS& args,

@@ -491,29 +491,49 @@ TEST(ArcFileContent, extractEntries)
 }
 #endif
 
-std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
+std::tuple<std::filesystem::path,	//output file name
+	std::unique_ptr<ILFArchiveFile>,	//output file handle
+	std::vector<std::wstring>>	//files not removed
 CArchiveFileContent::subDeleteEntries(
 	const LF_COMPRESS_ARGS& args,
-	const std::unordered_set<std::wstring> &items_to_delete,
+	const std::map<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/> &items_to_delete,
 	ILFProgressHandler& progressHandler,
+	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
 {
 	CLFArchive src;
 	src.read_open(m_pathArchive, m_passphrase);
+
+	std::vector<std::wstring> not_removed;
 
 	auto tempFile = UtilGetTemporaryFileName();
 	auto dest = src.make_copy_archive(tempFile, args,
 		[&](const LF_ENTRY_STAT& entry) {
 		progressHandler.onNextEntry(entry.path, entry.stat.st_size);
 		progressHandler.onEntryIO(0);	//TODO
-		if (isIn(items_to_delete, std::filesystem::path(toLower(entry.path)))) {
-			arcLog(entry.path, L"Removed");
+		auto subject = std::filesystem::path(toLower(entry.path));
+		auto ite = items_to_delete.find(subject);
+		if (items_to_delete.end() != ite) {
+			auto decision = confirmHandler((*ite).second, entry);
+			switch (decision) {
+			case overwrite_options::overwrite:
+				arcLog(entry.path, L"Removed");
+				return false;
+			case overwrite_options::skip:
+				not_removed.push_back(subject);
+				arcLog(entry.path, L"Keep");
+				return true;
+			case overwrite_options::abort:
+			default:
+				arcLog(entry.path, L"Cancel");
+				CANCEL_EXCEPTION();
+			}
 			return false;
 		} else {
 			return true;
 		}
 	});
-	return { tempFile, std::move(dest) };
+	return { tempFile, std::move(dest), not_removed};
 }
 
 void CArchiveFileContent::addEntries(
@@ -521,24 +541,35 @@ void CArchiveFileContent::addEntries(
 	const std::vector<std::filesystem::path> &files,
 	const ARCHIVE_ENTRY_INFO* lpParent,
 	ILFProgressHandler& progressHandler,
+	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
 {
+	//---
+	// check for existing file
+	// ask user to remove or keep existing files
+	// then add new files
+	//---
 	std::filesystem::path destDir;
 	if(lpParent)destDir = lpParent->calcFullpath();
-	std::unordered_set<std::wstring> items_to_delete;
+
+	std::map<std::filesystem::path, std::filesystem::path> items_to_delete;
 	for (const auto &file : files) {
 		auto entryPath = destDir / file.filename();
-		items_to_delete.insert(toLower(entryPath));
+		items_to_delete.insert({ toLower(entryPath), file });
 	}
+
 	arcLog.setArchivePath(m_pathArchive);
 	progressHandler.setArchive(m_pathArchive);
 	progressHandler.setNumEntries(files.size() + m_numFiles);
 
 	//read from source
-	auto [tempFile,dest] = subDeleteEntries(args, items_to_delete, progressHandler, arcLog);
+	auto [tempFile,dest,not_removed] = subDeleteEntries(args, items_to_delete, progressHandler, confirmHandler, arcLog);
 
 	//add
 	for (const auto &file : files) {
+		//keep existing files if user wants to
+		if(isIn(not_removed, toLower(file)))continue;
+
 		try {
 			LF_ENTRY_STAT entry;
 			auto entryPath = destDir / std::filesystem::path(file).filename();
@@ -620,7 +651,13 @@ TEST(ArcFileContent, addEntries)
 		}
 
 		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
-		content.addEntries(args, { src }, content.getRootNode()->getChild(L"dirA"), CLFProgressHandlerNULL(), arcLog);
+		content.addEntries(
+			args,
+			{ src },
+			content.getRootNode()->getChild(L"dirA"),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+			arcLog);
 		UtilDeletePath(src);
 		EXPECT_FALSE(std::filesystem::exists(src));
 
@@ -669,18 +706,28 @@ void CArchiveFileContent::deleteEntries(
 	ILFProgressHandler& progressHandler,
 	ARCLOG &arcLog)
 {
-	std::unordered_set<std::wstring> items_to_delete;
+	/*
+	* To delete items from archive,
+	* skip items while making a copy of existing archive
+	*/
+	std::map<std::filesystem::path, std::filesystem::path> items_to_delete;
 	for (const auto &item : items) {
-		items_to_delete.insert(
-			toLower(std::filesystem::path(item->calcFullpath()).lexically_normal())
-		);
+		items_to_delete.insert({
+			toLower(std::filesystem::path(item->calcFullpath()).lexically_normal()),
+			L""
+		});
 	}
 	arcLog.setArchivePath(m_pathArchive);
 	progressHandler.setArchive(m_pathArchive);
 	progressHandler.setNumEntries(m_numFiles);
 
 	//read from source
-	auto[tempFile, dest] = subDeleteEntries(args, items_to_delete, progressHandler, arcLog);
+	auto[tempFile, dest, not_removed] = subDeleteEntries(
+		args,
+		items_to_delete,
+		progressHandler,
+		CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+		arcLog);
 	dest->close();
 	UtilDeletePath(m_pathArchive);
 	std::filesystem::rename(tempFile, m_pathArchive);
