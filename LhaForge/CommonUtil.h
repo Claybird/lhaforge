@@ -134,3 +134,60 @@ struct CLFScanProgressHandlerGUI :public ILFScanProgressHandler
 	void onNextEntry(const std::filesystem::path& entry_path)override;
 };
 
+
+
+enum class overwrite_options {
+	not_defined,
+	overwrite,
+	skip,
+	abort,
+};
+
+struct ILFOverwriteConfirm {
+	virtual ~ILFOverwriteConfirm() {}
+	virtual overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry) = 0;
+};
+
+//confirm overwrite files on disk
+struct CLFOverwriteConfirmGUI : public ILFOverwriteConfirm {
+	overwrite_options defaultDecision;
+	CLFOverwriteConfirmGUI() :defaultDecision(overwrite_options::not_defined) {}
+	virtual ~CLFOverwriteConfirmGUI() {}
+	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override;
+};
+
+struct CLFOverwriteConfirmFORCED : public ILFOverwriteConfirm {
+	overwrite_options decision;
+	CLFOverwriteConfirmFORCED(overwrite_options forceDecision) :decision(forceDecision) {}
+	virtual ~CLFOverwriteConfirmFORCED() {}
+	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override {
+		if (std::filesystem::exists(pathToWrite)
+			&& std::filesystem::is_regular_file(pathToWrite)) {
+			return decision;
+		} else {
+			return overwrite_options::overwrite;
+		}
+	}
+};
+
+struct ILFOverwriteInArchiveConfirm {
+	virtual ~ILFOverwriteInArchiveConfirm() {}
+	virtual overwrite_options operator()(const std::filesystem::path& new_entry_path, const LF_ENTRY_STAT& existing_entry) = 0;
+};
+
+//confirm overwrite files in archive
+struct CLFOverwriteInArchiveConfirmGUI : public ILFOverwriteInArchiveConfirm {
+	overwrite_options defaultDecision;
+	CLFOverwriteInArchiveConfirmGUI() :defaultDecision(overwrite_options::not_defined) {}
+	virtual ~CLFOverwriteInArchiveConfirmGUI() {}
+	overwrite_options operator()(const std::filesystem::path& new_entry_path, const LF_ENTRY_STAT& existing_entry)override;
+};
+
+struct CLFOverwriteInArchiveConfirmFORCED : public ILFOverwriteInArchiveConfirm {
+	overwrite_options decision;
+	CLFOverwriteInArchiveConfirmFORCED(overwrite_options forceDecision) :decision(forceDecision) {}
+	virtual ~CLFOverwriteInArchiveConfirmFORCED() {}
+	overwrite_options operator()(const std::filesystem::path& new_entry_path, const LF_ENTRY_STAT& existing_entry)override {
+		return decision;
+	}
+};

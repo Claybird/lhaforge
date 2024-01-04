@@ -52,38 +52,6 @@ struct LF_EXTRACT_ARGS {
 	}
 };
 
-enum class overwrite_options {
-	not_defined,
-	overwrite,
-	skip,
-	abort,
-};
-
-struct ILFOverwriteConfirm {
-	virtual ~ILFOverwriteConfirm() {}
-	virtual overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry) = 0;
-};
-
-struct CLFOverwriteConfirmGUI: public ILFOverwriteConfirm {
-	overwrite_options defaultDecision;
-	CLFOverwriteConfirmGUI():defaultDecision(overwrite_options::not_defined){}
-	virtual ~CLFOverwriteConfirmGUI() {}
-	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override;
-};
-
-struct CLFOverwriteConfirmFORCED : public ILFOverwriteConfirm {
-	overwrite_options decision;
-	CLFOverwriteConfirmFORCED(overwrite_options forceDecision) :decision(forceDecision) {}
-	virtual ~CLFOverwriteConfirmFORCED() {}
-	overwrite_options operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)override {
-		if (std::filesystem::exists(pathToWrite)
-			&& std::filesystem::is_regular_file(pathToWrite)) {
-			return decision;
-		} else {
-			return overwrite_options::overwrite;
-		}
-	}
-};
 
 struct CMDLINEINFO;
 std::filesystem::path extractCurrentEntry(
