@@ -25,6 +25,7 @@ public:
 		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip);
 
 	//archive property
+	LF_ARCHIVE_FORMAT get_format()override { return LF_ARCHIVE_FORMAT::ZIP; }
 	std::wstring get_format_name()override { return L"ZIP"; }
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
 

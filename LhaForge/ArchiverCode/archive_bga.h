@@ -46,6 +46,7 @@ public:
 	}
 
 	//archive property
+	LF_ARCHIVE_FORMAT get_format()override { return LF_ARCHIVE_FORMAT::READONLY; }
 	std::wstring get_format_name()override { return L"BZA/GZA"; }
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override {
 		//read only
