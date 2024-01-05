@@ -501,6 +501,11 @@ CArchiveFileContent::subDeleteEntries(
 	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
 {
+	//check for single-file-compressor
+	if (!isMultipleContentAllowed()) {
+		throw LF_EXCEPTION(L"This format cannot contain more than one file");
+	}
+
 	CLFArchive src;
 	src.read_open(m_pathArchive, m_passphrase);
 
@@ -536,6 +541,18 @@ CArchiveFileContent::subDeleteEntries(
 	return { tempFile, std::move(dest), not_removed};
 }
 
+bool CArchiveFileContent::isMultipleContentAllowed()const
+{
+	//check for single-file-compressor
+	CLFArchive arc;
+	arc.read_open(m_pathArchive, std::make_shared<CLFPassphraseNULL>());
+	auto caps = CLFArchive::get_compression_capability(arc.get_format());
+	if (caps.contains_multiple_files) {
+		return true;
+	}
+	return false;
+}
+
 void CArchiveFileContent::addEntries(
 	const LF_COMPRESS_ARGS& args,
 	const std::vector<std::filesystem::path> &files,
@@ -544,6 +561,11 @@ void CArchiveFileContent::addEntries(
 	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
 {
+	//check for single-file-compressor
+	if (!isMultipleContentAllowed()) {
+		throw LF_EXCEPTION(L"This format cannot contain more than one file");
+	}
+
 	//---
 	// check for existing file
 	// ask user to remove or keep existing files
@@ -856,6 +878,55 @@ TEST(ArcFileContent, addEntries_replace)
 	EXPECT_FALSE(std::filesystem::exists(src));
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
+
+TEST(ArcFileContent, addEntries_replace_gz)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_gzip.gz", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src = UtilGetTempPath() / "file3.txt";
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+
+	{
+		//overwrite
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		EXPECT_THROW(
+			content.addEntries(
+			args,
+			{ src },
+			content.getRootNode(),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+			arcLog), LF_EXCEPTION);
+	}
+	UtilDeletePath(temp);
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
 #endif
 
 void CArchiveFileContent::deleteEntries(
@@ -952,6 +1023,39 @@ TEST(ArcFileContent, deleteEntries)
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
 
+TEST(ArcFileContent, deleteEntries_gz)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_gzip.gz", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		EXPECT_THROW(content.deleteEntries(args,
+			{ content.getRootNode()->getChild(0) },
+			CLFProgressHandlerNULL(), arcLog), LF_EXCEPTION);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
 #endif
 
 std::vector<std::filesystem::path>
@@ -1124,7 +1228,7 @@ TEST(ArcFileContent, isArchiveEncrypted)
 	EXPECT_FALSE(content.isArchiveEncrypted());
 }
 
-TEST(ArcFileContent, isModifySupported_checkArchiveExists)
+TEST(ArcFileContent, isModifySupported_checkArchiveExists_isMultipleContentAllowed)
 {
 	auto pp = std::make_shared<CLFPassphraseNULL>();
 	CArchiveFileContent content(pp);
@@ -1135,21 +1239,25 @@ TEST(ArcFileContent, isModifySupported_checkArchiveExists)
 	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
 	EXPECT_TRUE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
 
 	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
 	EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
 	EXPECT_TRUE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
 
 	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFScanProgressHandlerNULL());
 	EXPECT_EQ(2, content.getRootNode()->enumChildren().size());
 	EXPECT_TRUE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
 
 	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFScanProgressHandlerNULL());
 	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
 	EXPECT_FALSE(content.isModifySupported());
 	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_FALSE(content.isMultipleContentAllowed());
 }
 
 TEST(ArcFileContent, safe_unicode_path)

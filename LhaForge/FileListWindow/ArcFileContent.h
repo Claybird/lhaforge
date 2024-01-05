@@ -253,6 +253,7 @@ public:
 	std::filesystem::path getArchivePath()const { return m_pathArchive; }
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
 	bool isModifySupported()const { return m_bModifySupported; }
+	bool isMultipleContentAllowed()const;
 	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
 	bool isOK()const { return m_pRoot.get() != nullptr; }
 
