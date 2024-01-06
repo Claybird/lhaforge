@@ -104,6 +104,7 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
     <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
+    <ClInclude Include="Dialogs\ConfirmOverwriteInArchiveDlg.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
     <ClInclude Include="Dialogs\ProgressDlg.h" />
     <ClInclude Include="Dialogs\FindDlg.h" />

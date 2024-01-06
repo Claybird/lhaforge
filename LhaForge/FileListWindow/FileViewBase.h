@@ -390,7 +390,12 @@ public:
 		//::EnableWindow(m_hFrameWnd,FALSE);	TODO: is this necessary? modal dialog will disable the frame automatically
 		ARCLOG arcLog;
 		try {
-			mr_Model.AddItem(files, target, CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
+			mr_Model.AddItem(
+				files,
+				target,
+				CLFProgressHandlerGUI(m_hFrameWnd),
+				CLFOverwriteInArchiveConfirmGUI(),
+				arcLog);
 		} catch (...) {
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs = { arcLog };

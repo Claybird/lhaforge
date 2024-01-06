@@ -279,12 +279,6 @@ void CLFArchiveRAR::close()
 	_internal->close();
 }
 
-//archive property
-std::wstring CLFArchiveRAR::get_format_name()
-{
-	return L"RAR";
-}
-
 //entry seek; returns null if it reached EOF
 LF_ENTRY_STAT* CLFArchiveRAR::read_entry_begin()
 {

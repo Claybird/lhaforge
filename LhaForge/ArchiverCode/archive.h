@@ -91,6 +91,9 @@ enum class LF_ARCHIVE_FORMAT :int {
 	TAR_XZ,
 	TAR_ZSTD,
 
+	//---read only format
+	READONLY,
+
 	ENUM_COUNT_AND_LASTITEM
 };
 
@@ -222,6 +225,7 @@ public:
 		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip) = 0;
 
 	//archive property
+	virtual LF_ARCHIVE_FORMAT get_format() = 0;	//works if file is opened
 	virtual std::wstring get_format_name() = 0;	//works if file is opened
 	virtual std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const = 0;
 
@@ -325,6 +329,7 @@ public:
 	}
 
 	//archive property
+	LF_ARCHIVE_FORMAT get_format()override { _LFA_SAFE_CALL(get_format()); }
 	std::wstring get_format_name()override { _LFA_SAFE_CALL(get_format_name()); }
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
 	static LF_COMPRESS_CAPABILITY get_compression_capability(LF_ARCHIVE_FORMAT format);
@@ -374,6 +379,7 @@ public:
 	}
 
 	//archive property
+	LF_ARCHIVE_FORMAT get_format()override { return LF_ARCHIVE_FORMAT::INVALID; }
 	std::wstring get_format_name()override { return L"dummy"; }
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override { return {}; }
 

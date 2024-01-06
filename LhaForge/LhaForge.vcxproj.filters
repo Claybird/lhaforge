@@ -365,6 +365,9 @@
     <ClInclude Include="ArchiverCode\archive_rar.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
+    <ClInclude Include="Dialogs\ConfirmOverwriteInArchiveDlg.h">
+      <Filter>Dialogs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc">

@@ -576,3 +576,81 @@ void CLFScanProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_p
 		}
 	}
 }
+
+
+#include "Dialogs/ConfirmOverwriteDlg.h"
+overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)
+{
+	if (std::filesystem::exists(pathToWrite)
+		&& std::filesystem::is_regular_file(pathToWrite)) {
+		if (defaultDecision == overwrite_options::not_defined) {
+			//file exists. overwrite?
+
+			//existing file
+			LF_ENTRY_STAT existing;
+			existing.read_stat(pathToWrite, pathToWrite);
+			CConfirmOverwriteDialog dlg;
+			dlg.SetFileInfo(
+				entry->path, entry->stat.st_size, entry->stat.st_mtime,
+				existing.path, existing.stat.st_size, existing.stat.st_mtime
+			);
+			auto ret = dlg.DoModal();
+			switch (ret) {
+			case IDC_BUTTON_EXTRACT_OVERWRITE:
+				return overwrite_options::overwrite;
+			case IDC_BUTTON_EXTRACT_OVERWRITE_ALL:
+				defaultDecision = overwrite_options::overwrite;
+				return overwrite_options::overwrite;
+			case IDC_BUTTON_EXTRACT_SKIP:
+				return overwrite_options::skip;
+			case IDC_BUTTON_EXTRACT_SKIP_ALL:
+				defaultDecision = overwrite_options::skip;
+				return overwrite_options::skip;
+			case IDC_BUTTON_EXTRACT_ABORT:
+			default:
+				return overwrite_options::abort;
+			}
+		} else {
+			return defaultDecision;
+		}
+	} else {
+		return overwrite_options::overwrite;
+	}
+}
+
+
+#include "Dialogs/ConfirmOverwriteInArchiveDlg.h"
+overwrite_options CLFOverwriteInArchiveConfirmGUI::operator()(
+	const std::filesystem::path& new_entry_path,
+	const LF_ENTRY_STAT& existing_entry)
+{
+	if (defaultDecision == overwrite_options::not_defined) {
+		CConfirmOverwriteInArchiveDialog dlg;
+
+		LF_ENTRY_STAT new_entry;
+		new_entry.read_stat(new_entry_path, new_entry_path);
+
+		dlg.SetFileInfo(
+			new_entry_path, new_entry.stat.st_size, new_entry.stat.st_mtime,
+			existing_entry.path, existing_entry.stat.st_size, existing_entry.stat.st_mtime
+		);
+		auto ret = dlg.DoModal();
+		switch (ret) {
+		case IDC_BUTTON_EXTRACT_OVERWRITE:
+			return overwrite_options::overwrite;
+		case IDC_BUTTON_EXTRACT_OVERWRITE_ALL:
+			defaultDecision = overwrite_options::overwrite;
+			return overwrite_options::overwrite;
+		case IDC_BUTTON_EXTRACT_SKIP:
+			return overwrite_options::skip;
+		case IDC_BUTTON_EXTRACT_SKIP_ALL:
+			defaultDecision = overwrite_options::skip;
+			return overwrite_options::skip;
+		case IDC_BUTTON_EXTRACT_ABORT:
+		default:
+			return overwrite_options::abort;
+		}
+	} else {
+		return defaultDecision;
+	}
+}

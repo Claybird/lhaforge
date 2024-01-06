@@ -132,12 +132,14 @@ public:
 		const std::vector<std::filesystem::path> &files,
 		const ARCHIVE_ENTRY_INFO* parent,
 		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& overwriteConfirmHandler,
 		ARCLOG &arcLog) {
 		m_Content.addEntries(
 			mr_compressArgs,
 			files,
 			parent,
 			progressHandler,
+			overwriteConfirmHandler,
 			arcLog);
 	}
 	void DeleteItems(

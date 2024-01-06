@@ -214,7 +214,7 @@ struct LA_FILE_TO_READ
 		if (r < ARCHIVE_OK) {
 			//retry enabling archive_read_support_format_raw
 			close();
-			if (is_known_format(arcpath)) {
+			if (check_format(arcpath) != LF_ARCHIVE_FORMAT::INVALID) {
 				_arc = archive_read_new();
 				r = archive_read_set_passphrase_callback(_arc, passphrase.get(), LF_LA_passphrase);
 				if (r < ARCHIVE_OK) {
@@ -281,31 +281,31 @@ struct LA_FILE_TO_READ
 			data_receiver(buf, size, &oi);
 		}
 	}
-	static bool is_known_format(const std::filesystem::path &arcname) {
+	static LF_ARCHIVE_FORMAT check_format(const std::filesystem::path &arcname) {
 		try {
-			if (std::filesystem::file_size(arcname) == 0)return false;
+			if (std::filesystem::file_size(arcname) == 0)return LF_ARCHIVE_FORMAT::INVALID;
 		} catch (...) {
-			return false;
+			return LF_ARCHIVE_FORMAT::INVALID;
 		}
 
 		CAutoFile fp;
 		fp.open(arcname);
-		if (!fp.is_opened())return false;
+		if (!fp.is_opened())return LF_ARCHIVE_FORMAT::INVALID;
 		const size_t bufSize = 10;
 		std::vector<unsigned char> header(bufSize);
 		size_t read = fread(&header[0], 1, bufSize, fp);
 		if (read < 1) {
-			return false;
+			return LF_ARCHIVE_FORMAT::INVALID;
 		}
 
-		//check header for known format
+		//check header for known format; does not care if its tar or not
 		//gzip: RFC 1952
 		if (read > 2 && 
 			header[0] == 0x1f && header[1] == 0x8b) {
-			return true;
+			return LF_ARCHIVE_FORMAT::GZ;
 		}
 		//bz2: https://github.com/dsnet/compress/blob/master/doc/bzip2-format.pdf
-		if (read > 10 && 
+		if (read >= 10 && 
 			header[0] == 'B' && header[1] == 'Z' && header[2] == 'h' &&
 			'0' <= header[3] && header[3] <= '9' &&
 			(
@@ -317,29 +317,30 @@ struct LA_FILE_TO_READ
 					header[7] == 0x38 && header[8] == 0x50 && header[9] == 0x90)
 				)
 			) {
-			return true;
+			return LF_ARCHIVE_FORMAT::BZ2;
+		}
+		//zstd: https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md
+		if (read > 4 &&
+			header[0] == 0x28 && header[1] == 0xB5 && header[2] == 0x2F && header[3] == 0xFD) {
+			return LF_ARCHIVE_FORMAT::ZSTD;
+		}
+
+		//xz: xz-file-format.txt in XZ Utils[https://tukaani.org/xz/]
+		if (read > 6 && 
+			header[0] == 0xFD && header[1] == '7' && header[2] == 'z' &&
+			header[3] == 'X' && header[4] == 'Z' && header[5] == 0x00) {
+			return LF_ARCHIVE_FORMAT::XZ;
 		}
 		//lzma: lzma-file-format.txt in XZ Utils[https://tukaani.org/xz/]
 		{
 			uint8_t prop = header[0];
 			if (prop <= (4 * 5 + 4) * 9 + 8) {
-				return true;
+				return LF_ARCHIVE_FORMAT::LZMA;
 			}
 		}
-		//xz: xz-file-format.txt in XZ Utils[https://tukaani.org/xz/]
-		if (read > 6 && 
-			header[0] == 0xFD && header[1] == '7' && header[2] == 'z' &&
-			header[3] == 'X' && header[4] == 'Z' && header[5] == 0x00) {
-			return true;
-		}
 
-		//zstd: https://tools.ietf.org/id/draft-kucherawy-dispatch-zstd-00.html
-		if (read > 4 && 
-			header[0] == 0xFD && header[1] == 0x2F && header[2] == 0xB5 && header[3] == 0x28) {
-			return true;
-		}
 
-		return false;
+		return LF_ARCHIVE_FORMAT::INVALID;
 	}
 };
 
@@ -743,13 +744,126 @@ TEST(CLFArchiveLA, is_modify_supported)
 
 #endif
 
+LF_ARCHIVE_FORMAT CLFArchiveLA::get_format()
+{
+	if (_arc_read) {
+		//scan for file content; to know archive information
+		for (auto entry = read_entry_begin(); entry; entry = read_entry_next()) {
+			continue;
+		}
+		int format = archive_format(*_arc_read);
+		switch (format & ARCHIVE_FORMAT_BASE_MASK) {
+		case ARCHIVE_FORMAT_ZIP:
+			return LF_ARCHIVE_FORMAT::ZIP;
+		case ARCHIVE_FORMAT_7ZIP:
+			return LF_ARCHIVE_FORMAT::_7Z;
+		case ARCHIVE_FORMAT_RAW:
+			return LA_FILE_TO_READ::check_format(_arc_read.get()->_rewind.arcpath);
+		case ARCHIVE_FORMAT_TAR:
+			switch (LA_FILE_TO_READ::check_format(_arc_read.get()->_rewind.arcpath)) {
+			case LF_ARCHIVE_FORMAT::GZ:
+				return LF_ARCHIVE_FORMAT::TAR_GZ;
+			case LF_ARCHIVE_FORMAT::BZ2:
+				return LF_ARCHIVE_FORMAT::TAR_BZ2;
+			case LF_ARCHIVE_FORMAT::LZMA:
+				return LF_ARCHIVE_FORMAT::TAR_LZMA;
+			case LF_ARCHIVE_FORMAT::XZ:
+				return LF_ARCHIVE_FORMAT::TAR_XZ;
+			case LF_ARCHIVE_FORMAT::ZSTD:
+				return LF_ARCHIVE_FORMAT::TAR_ZSTD;
+			case LF_ARCHIVE_FORMAT::INVALID:
+				return LF_ARCHIVE_FORMAT::INVALID;
+			default:
+				return LF_ARCHIVE_FORMAT::TAR;
+			}
+			break;
+		}
+	}else if (_arc_write) {
+		int format = archive_format(*_arc_write);
+		switch (format & ARCHIVE_FORMAT_BASE_MASK) {
+		case ARCHIVE_FORMAT_ZIP:
+			return LF_ARCHIVE_FORMAT::ZIP;
+		case ARCHIVE_FORMAT_7ZIP:
+			return LF_ARCHIVE_FORMAT::_7Z;
+		case ARCHIVE_FORMAT_RAW:
+			switch (format & ~ARCHIVE_FORMAT_BASE_MASK) {
+			case ARCHIVE_FILTER_NONE:
+			case ARCHIVE_FILTER_GZIP:
+				return LF_ARCHIVE_FORMAT::GZ;
+			case ARCHIVE_FILTER_BZIP2:
+				return LF_ARCHIVE_FORMAT::BZ2;
+			case ARCHIVE_FILTER_LZMA:
+				return LF_ARCHIVE_FORMAT::LZMA;
+			case ARCHIVE_FILTER_XZ:
+				return LF_ARCHIVE_FORMAT::XZ;
+			case ARCHIVE_FILTER_ZSTD:
+				return LF_ARCHIVE_FORMAT::ZSTD;
+			}
+			break;
+		case ARCHIVE_FORMAT_TAR:
+			switch (format & ~ARCHIVE_FORMAT_BASE_MASK) {
+			case ARCHIVE_FILTER_GZIP:
+				return LF_ARCHIVE_FORMAT::TAR_GZ;
+			case ARCHIVE_FILTER_BZIP2:
+				return LF_ARCHIVE_FORMAT::TAR_BZ2;
+			case ARCHIVE_FILTER_LZMA:
+				return LF_ARCHIVE_FORMAT::TAR_LZMA;
+			case ARCHIVE_FILTER_XZ:
+				return LF_ARCHIVE_FORMAT::TAR_XZ;
+			case ARCHIVE_FILTER_ZSTD:
+				return LF_ARCHIVE_FORMAT::TAR_ZSTD;
+			case ARCHIVE_FILTER_NONE:
+			default:
+				return LF_ARCHIVE_FORMAT::TAR;
+			}
+			break;
+		}
+	}
+	//fallback
+	return LF_ARCHIVE_FORMAT::READONLY;
+}
+
+#ifdef UNIT_TEST
+TEST(CLFArchiveLA, get_format)
+{
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CLFArchiveLA a;
+
+	a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::ZIP, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::READONLY, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::GZ, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::TAR_GZ, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/multistream.txt.bz2", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::BZ2, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.lzma", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::LZMA, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.xz", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::XZ, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.zst", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::ZSTD, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/test_2099.tar.zst", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::TAR_ZSTD, a.get_format());
+}
+
+#endif
 
 //archive property
 std::wstring CLFArchiveLA::get_format_name()
 {
 	if (_arc_read) {
 		//scan for file content; to know archive information
-		bool is_src_encrypted = false;
 		for (auto entry = read_entry_begin(); entry; entry = read_entry_next()) {
 			continue;
 		}
@@ -1124,27 +1238,7 @@ TEST(CLFArchiveLA, make_copy_archive)
 
 bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 {
-	if (LA_FILE_TO_READ::is_known_format(arcname)) {
-		return true;
-		/*
-		the following test is goes too deep into file. checking header should be enough
-		LA_FILE_TO_READ arc;
-		try {
-			auto pp = std::make_shared<CLFPassphraseNULL>();
-			arc.open(arcname, pp);
-			for (auto* entry = arc.begin(); entry; entry = arc.next()) {
-				continue;
-			}
-			return true;
-		} catch (const LF_USER_CANCEL_EXCEPTION&) {
-			//encrypted, but passphrase is not provided
-			return true;
-		} catch (const ARCHIVE_EXCEPTION&) {
-			return false;
-		}*/
-	} else {
-		return false;
-	}
+	return LA_FILE_TO_READ::check_format(arcname) != LF_ARCHIVE_FORMAT::INVALID;
 }
 
 
@@ -1153,20 +1247,20 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 TEST(CLFArchiveLA, is_known_format)
 {
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.gz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.bz2"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.xz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.lzma"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"empty.zst"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"empty.gz"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"empty.bz2"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"empty.xz"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"empty.lzma"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"empty.zst"));
 
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.gz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.bz2"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.xz"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.lzma"));
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(dir / L"abcde.zst"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.gz"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.bz2"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.xz"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.lzma"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.zst"));
 
-	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(__FILEW__));
-	EXPECT_FALSE(LA_FILE_TO_READ::is_known_format(L"some_non_existing_file"));
+	EXPECT_FALSE(CLFArchiveLA::is_known_format(__FILEW__));
+	EXPECT_FALSE(CLFArchiveLA::is_known_format(L"some_non_existing_file"));
 }
 
 TEST(CLFArchiveLA, read_enum_2099_zstd)
@@ -1226,7 +1320,7 @@ TEST(CLFArchiveLA, name_in_zstd)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	auto file = dir / L"abcde.zst";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
 
 	CLFArchiveLA a;
 	auto pp = std::make_shared<CLFPassphraseNULL>();
@@ -1249,7 +1343,7 @@ TEST(CLFArchiveLA, name_in_gzip)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	auto file = dir / L"abcde.gz";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
 
 	CLFArchiveLA a;
 	auto pp = std::make_shared<CLFPassphraseNULL>();
@@ -1272,7 +1366,7 @@ TEST(CLFArchiveLA, name_in_xz)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	auto file = dir / L"abcde.xz";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
 
 	CLFArchiveLA a;
 	auto pp = std::make_shared<CLFPassphraseNULL>();
@@ -1295,7 +1389,7 @@ TEST(CLFArchiveLA, name_in_lzma)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	auto file = dir / L"abcde.lzma";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
 
 	CLFArchiveLA a;
 	auto pp = std::make_shared<CLFPassphraseNULL>();
@@ -1318,7 +1412,7 @@ TEST(CLFArchiveLA, name_in_bz2)
 	_wsetlocale(LC_ALL, L"");	//default locale
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
 	auto file = dir / L"abcde.bz2";
-	EXPECT_TRUE(LA_FILE_TO_READ::is_known_format(file));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
 
 	CLFArchiveLA a;
 	auto pp = std::make_shared<CLFPassphraseNULL>();

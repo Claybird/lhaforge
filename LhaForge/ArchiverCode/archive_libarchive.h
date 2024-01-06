@@ -48,6 +48,7 @@ public:
 		std::function<bool(const LF_ENTRY_STAT&)> false_to_skip);
 
 	//archive property
+	LF_ARCHIVE_FORMAT get_format()override;
 	std::wstring get_format_name()override;
 	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
 

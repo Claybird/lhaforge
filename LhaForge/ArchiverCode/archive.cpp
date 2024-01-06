@@ -179,6 +179,19 @@ std::vector<LF_COMPRESS_CAPABILITY> CLFArchive::get_compression_capability()cons
 	std::vector<LF_COMPRESS_CAPABILITY> caps;
 	auto capsLA = CLFArchiveLA().get_compression_capability();
 	caps.insert(caps.end(), capsLA.begin(), capsLA.end());
+
+	auto capsZIP = CLFArchiveZIP().get_compression_capability();
+	caps.insert(caps.end(), capsZIP.begin(), capsZIP.end());
+
+	auto capsBGA = CLFArchiveBGA().get_compression_capability();
+	caps.insert(caps.end(), capsBGA.begin(), capsBGA.end());
+
+	auto capsARJ = CLFArchiveARJ().get_compression_capability();
+	caps.insert(caps.end(), capsARJ.begin(), capsARJ.end());
+
+	auto capsRAR = CLFArchiveRAR().get_compression_capability();
+	caps.insert(caps.end(), capsRAR.begin(), capsRAR.end());
+
 	return caps;
 }
 

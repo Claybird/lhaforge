@@ -26,7 +26,6 @@
 #include "extract.h"
 #include "resource.h"
 #include "Dialogs/LogListDialog.h"
-#include "Dialogs/ConfirmOverwriteDlg.h"
 #include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
@@ -389,45 +388,6 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEI
 	}
 }
 
-#include "Dialogs/ConfirmOverwriteDlg.h"
-overwrite_options CLFOverwriteConfirmGUI::operator()(const std::filesystem::path& pathToWrite, const LF_ENTRY_STAT* entry)
-{
-	if (std::filesystem::exists(pathToWrite)
-		&& std::filesystem::is_regular_file(pathToWrite)) {
-		if (defaultDecision == overwrite_options::not_defined) {
-			//file exists. overwrite?
-
-			//existing file
-			LF_ENTRY_STAT existing;
-			existing.read_stat(pathToWrite, pathToWrite);
-			CConfirmOverwriteDialog dlg;
-			dlg.SetFileInfo(
-				entry->path,entry->stat.st_size,entry->stat.st_mtime,
-				existing.path,existing.stat.st_size,existing.stat.st_mtime
-			);
-			auto ret = dlg.DoModal();
-			switch (ret) {
-			case IDC_BUTTON_EXTRACT_OVERWRITE:
-				return overwrite_options::overwrite;
-			case IDC_BUTTON_EXTRACT_OVERWRITE_ALL:
-				defaultDecision = overwrite_options::overwrite;
-				return overwrite_options::overwrite;
-			case IDC_BUTTON_EXTRACT_SKIP:
-				return overwrite_options::skip;
-			case IDC_BUTTON_EXTRACT_SKIP_ALL:
-				defaultDecision = overwrite_options::skip;
-				return overwrite_options::skip;
-			case IDC_BUTTON_EXTRACT_ABORT:
-			default:
-				return overwrite_options::abort;
-			}
-		} else {
-			return defaultDecision;
-		}
-	} else {
-		return overwrite_options::overwrite;
-	}
-}
 
 std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,

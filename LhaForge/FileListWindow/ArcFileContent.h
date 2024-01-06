@@ -227,11 +227,12 @@ protected:
 	//---internal functions
 	void postScanArchive(ARCHIVE_ENTRY_INFO*);
 
-	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>>
+	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>, std::vector<std::filesystem::path>>
 	subDeleteEntries(
 		const LF_COMPRESS_ARGS& args,
-		const std::unordered_set<std::wstring> &items_to_delete,
+		const std::map<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/> &items_to_delete,
 		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
 		ARCLOG &arcLog);
 public:
 	CArchiveFileContent(std::shared_ptr<ILFPassphrase> pp) :
@@ -252,6 +253,7 @@ public:
 	std::filesystem::path getArchivePath()const { return m_pathArchive; }
 	bool isArchiveEncrypted()const { return m_bEncrypted; }
 	bool isModifySupported()const { return m_bModifySupported; }
+	bool isMultipleContentAllowed()const;
 	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
 	bool isOK()const { return m_pRoot.get() != nullptr; }
 
@@ -275,6 +277,7 @@ public:
 		const std::vector<std::filesystem::path> &files,
 		const ARCHIVE_ENTRY_INFO* lpParent,
 		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
 		ARCLOG &arcLog);
 	void deleteEntries(
 		const LF_COMPRESS_ARGS& args,
