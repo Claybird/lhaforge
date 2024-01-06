@@ -625,7 +625,7 @@ overwrite_options CLFOverwriteInArchiveConfirmGUI::operator()(
 	const LF_ENTRY_STAT& existing_entry)
 {
 	if (defaultDecision == overwrite_options::not_defined) {
-		CConfirmOverwriteDialog dlg;
+		CConfirmOverwriteInArchiveDialog dlg;
 
 		LF_ENTRY_STAT new_entry;
 		new_entry.read_stat(new_entry_path, new_entry_path);
