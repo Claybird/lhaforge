@@ -95,6 +95,18 @@ TEST(CommonUtil, LF_get_output_dir) {
 	output_dir_callback.setArchivePath(L"C:/path_to/test_archive.ext");
 	auto outputDir = LF_get_output_dir(OUTPUT_TO::SameDir, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
 	EXPECT_EQ(L"C:/path_to", outputDir);
+
+	outputDir = LF_get_output_dir(OUTPUT_TO::AlwaysAsk, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
+	EXPECT_EQ(L"C:/path_to", outputDir);
+
+	outputDir = LF_get_output_dir(OUTPUT_TO::Desktop, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
+	EXPECT_EQ(UtilGetDesktopPath(), outputDir);
+
+	outputDir = LF_get_output_dir(OUTPUT_TO::SpecificDir, L"C:/path_to/test_archive.ext", L"Z:/path", output_dir_callback);
+	EXPECT_EQ(L"Z:/path", outputDir);
+
+	outputDir = LF_get_output_dir(OUTPUT_TO::SpecificDir, L"C:/path_to/test_archive.ext", L"", output_dir_callback);
+	EXPECT_EQ(UtilGetDesktopPath(), outputDir);
 }
 #endif
 
