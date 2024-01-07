@@ -304,6 +304,8 @@ TEST(commandLineInfo, ParseCommandLine)
 
 	//specific config file
 	{
+		//%temp%/lhaforge.ini does not exist
+		EXPECT_FALSE(std::filesystem::exists(std::filesystem::temp_directory_path() / L"lhaforge.ini"));
 		auto[mode, cli] = ParseCommandLine(L"LhaForge.exe /cfg:%temp%\\lhaforge.ini", errorHandler);
 		EXPECT_EQ(PROCESS_MODE::CONFIGURE, mode);
 		EXPECT_EQ(std::filesystem::temp_directory_path() / L"lhaforge.ini", std::filesystem::path(cli.ConfigPath).lexically_normal());
@@ -438,6 +440,48 @@ TEST(commandLineInfo, ParseCommandLine)
 		EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
 		EXPECT_EQ(OUTPUT_TO::AlwaysAsk, cli.OutputToOverride);
 		EXPECT_TRUE(cli.OutputDir.empty());
+	}
+	//specific config file+output directory
+	{
+		auto ini = dir / L"lhaforge.ini";
+		EXPECT_FALSE(std::filesystem::exists(ini));
+		CAutoFile fp;
+		fp.open(ini, L"w");
+		fwprintf(fp, L"[Extract]\n");	//C:/temp does not need to exist
+		fwprintf(fp, L"OutputDir=C:\\some_dummy_dir\n");
+		fwprintf(fp, L"OutputDirType=2\n");	//C:/temp does not need to exist
+		fp.close();
+
+		// "/cfg" first
+		{
+			auto [mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /cfg:%s /e /od %s", ini.c_str(), dir.c_str()), errorHandler);
+			EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+			EXPECT_EQ(OUTPUT_TO::Desktop, cli.OutputToOverride);
+			EXPECT_TRUE(cli.OutputDir.empty());
+			EXPECT_EQ(ini, std::filesystem::path(cli.ConfigPath).lexically_normal());
+		}
+		{
+			auto [mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /cfg:%s /e /o:%s %s", ini.c_str(), UtilGetTempPath().c_str(), dir.c_str()), errorHandler);
+			EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+			EXPECT_EQ(OUTPUT_TO::SpecificDir, cli.OutputToOverride);
+			EXPECT_EQ(UtilGetTempPath(), cli.OutputDir);
+		}
+		// "/cfg" last
+		{
+			auto [mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /e /od %s /cfg:%s", dir.c_str(), ini.c_str()), errorHandler);
+			EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+			EXPECT_EQ(OUTPUT_TO::Desktop, cli.OutputToOverride);
+			EXPECT_TRUE(cli.OutputDir.empty());
+			EXPECT_EQ(ini, std::filesystem::path(cli.ConfigPath).lexically_normal());
+		}
+		{
+			auto [mode, cli] = ParseCommandLine(Format(L"LhaForge.exe /e /o:%s %s /cfg:%s", UtilGetTempPath().c_str(), dir.c_str(), ini.c_str()), errorHandler);
+			EXPECT_EQ(PROCESS_MODE::EXTRACT, mode);
+			EXPECT_EQ(OUTPUT_TO::SpecificDir, cli.OutputToOverride);
+			EXPECT_EQ(UtilGetTempPath(), cli.OutputDir);
+		}
+		UtilDeletePath(ini);
+		EXPECT_FALSE(std::filesystem::exists(ini));
 	}
 
 	//directory control
