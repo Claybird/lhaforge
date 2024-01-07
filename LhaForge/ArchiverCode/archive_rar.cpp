@@ -219,7 +219,7 @@ struct CLFArchiveRAR::INTERNAL
 		}
 		data_receiver = receiver;
 		bEntryRead = true;
-		return RARProcessFileW(arc, RAR_EXTRACT, nullptr, nullptr);
+		return RARProcessFileW(arc, RAR_TEST, nullptr, nullptr);	//RAR_EXTRACT will generate actual file
 	}
 
 	static int CALLBACK rar_event_handler(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2) {
