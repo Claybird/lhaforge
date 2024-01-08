@@ -529,7 +529,7 @@ void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path,
 			archivePath,
 			idxEntry,
 			numEntries,
-			entry_path,
+			entry_path.lexically_normal(),
 			entry_size);
 		while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
