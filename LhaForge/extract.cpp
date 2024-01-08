@@ -374,6 +374,7 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEI
 	if (lpCmdLineInfo) {
 		if (OUTPUT_TO::NoOverride != lpCmdLineInfo->OutputToOverride) {
 			args.extract.OutputDirType = (int)lpCmdLineInfo->OutputToOverride;
+			args.extract.OutputDirUserSpecified = lpCmdLineInfo->OutputDir;
 		}
 		if (EXTRACT_CREATE_DIR::NoOverride != lpCmdLineInfo->CreateDirOverride) {
 			args.extract.CreateDir = (int)lpCmdLineInfo->CreateDirOverride;
@@ -388,6 +389,43 @@ void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEI
 	}
 }
 
+#ifdef UNIT_TEST
+TEST(extract, parseExtractOption) {
+	{
+		LF_EXTRACT_ARGS args;
+		parseExtractOption(args, CConfigFile(), nullptr);
+		EXPECT_EQ((int)OUTPUT_TO::Desktop, args.extract.OutputDirType);
+		EXPECT_EQ(L"", args.extract.OutputDirUserSpecified);
+	}
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::NoOverride;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::Desktop, args.extract.OutputDirType);
+		EXPECT_EQ(L"", args.extract.OutputDirUserSpecified);
+	}
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::SameDir;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::SameDir, args.extract.OutputDirType);
+		EXPECT_EQ(L"some_dir", args.extract.OutputDirUserSpecified);
+	}
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::SpecificDir;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::SpecificDir, args.extract.OutputDirType);
+		EXPECT_EQ(L"some_dir", args.extract.OutputDirUserSpecified);
+	}
+}
+#endif
 
 std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
