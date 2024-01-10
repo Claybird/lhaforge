@@ -118,7 +118,7 @@ protected:
 		//NOTE: sort column/key settings are not shared; these should be configured independently on each tab
 	}
 	void ApplySplitterState() {
-		Splitter.SetSplitterPos(_common.splitter.treeWidth);
+		Splitter.SetSplitterPos(std::max(100, _common.splitter.treeWidth));
 		Splitter.UpdateSplitterLayout();
 	}
 	void CopyCurrentViewState() {
