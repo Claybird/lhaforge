@@ -425,6 +425,7 @@
 #define IDC_LIST_ASSOC                  1308
 #define IDC_EXISTING_FILENAME           1309
 #define IDC_CHECK_SHOW                  1309
+#define IDC_BUTTON_ABORT2               1309
 #define IDC_EXISTING_FILESIZE           1310
 #define IDC_RADIO_IGNORE_TOP_DIRECTORY  1310
 #define IDC_EXISTING_FILETIME           1311
@@ -441,6 +442,7 @@
 #define IDC_BY_MTIME_EQUAL              1320
 #define IDC_BY_MTIME_EQUAL_OR_GREATER   1321
 #define IDC_CONDITION_DATE              1322
+#define IDC_BUTTON_PAUSE                1324
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -533,7 +535,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        199
 #define _APS_NEXT_COMMAND_VALUE         40161
-#define _APS_NEXT_CONTROL_VALUE         1324
+#define _APS_NEXT_CONTROL_VALUE         1325
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

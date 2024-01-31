@@ -30,7 +30,7 @@ class CProgressDialog:public CDialogImpl<CProgressDialog>
 protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
-	bool m_bAbort;
+	bool m_bAbort, m_bPaused;
 	int64_t m_entrySize;
 	std::wstring m_entryPath;
 public:
@@ -41,6 +41,7 @@ public:
 		COMMAND_ID_HANDLER_EX(IDOK, __noop)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnAbortBtn)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_PAUSE, OnPauseBtn)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
@@ -53,6 +54,7 @@ public:
 		m_entryProgress.SetRange32(0, 100);
 		m_entryProgress.SetPos(0);
 		m_bAbort = false;
+		m_bPaused = false;
 
 		CenterWindow();
 		return TRUE;
@@ -101,8 +103,15 @@ public:
 		DestroyWindow();
 		return 0;
 	}
+	LRESULT OnPauseBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		m_bPaused = !m_bPaused;
+		return 0;
+	}
 
 	bool isAborted()const {
 		return m_bAbort;
+	}
+	bool isPaused()const {
+		return m_bPaused;
 	}
 };

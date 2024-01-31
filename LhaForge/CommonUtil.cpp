@@ -535,6 +535,10 @@ void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path,
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}
+		while (dlg->isPaused()) {
+			UtilDoMessageLoop();
+			Sleep(100);
+		}
 	}
 }
 
@@ -545,6 +549,13 @@ void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
 		while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
+		}
+		while (dlg->isPaused()) {
+			UtilDoMessageLoop();
+			if (dlg->isAborted()) {
+				CANCEL_EXCEPTION();
+			}
+			Sleep(100);
 		}
 	}
 }
