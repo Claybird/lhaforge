@@ -92,6 +92,8 @@ struct CLFProgressHandlerNULL :public ILFProgressHandler {
 	void end()override {}
 	void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)override {}
 	void onEntryIO(int64_t current_size)override {}
+	void setSpecialMessage(const std::wstring& msg)override {}
+	void poll()override {}
 };
 
 class CProgressDialog;
@@ -108,8 +110,11 @@ struct CLFProgressHandlerGUI :public ILFProgressHandler {
 		idxEntry = 0;
 	}
 	void end()override;
+	void setArchive(const std::filesystem::path& path)override;
 	void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)override;
 	void onEntryIO(int64_t current_size)override;
+	void setSpecialMessage(const std::wstring& msg)override;
+	void poll()override;
 };
 
 struct CLFScanProgressHandlerNULL : public ILFScanProgressHandler

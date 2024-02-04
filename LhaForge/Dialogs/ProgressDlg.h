@@ -30,7 +30,7 @@ class CProgressDialog:public CDialogImpl<CProgressDialog>
 protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
 	CStatic m_fileInfo, m_entryInfo;
-	bool m_bAbort;
+	bool m_bAbort, m_bPaused;
 	int64_t m_entrySize;
 	std::wstring m_entryPath;
 public:
@@ -41,6 +41,7 @@ public:
 		COMMAND_ID_HANDLER_EX(IDOK, __noop)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnAbortBtn)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_PAUSE, OnPauseBtn)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
@@ -53,6 +54,7 @@ public:
 		m_entryProgress.SetRange32(0, 100);
 		m_entryProgress.SetPos(0);
 		m_bAbort = false;
+		m_bPaused = false;
 
 		CenterWindow();
 		return TRUE;
@@ -70,7 +72,7 @@ public:
 			numEntries
 		);
 		m_fileInfo.SetWindowTextW(str.c_str());
-		m_fileProgress.SetPos(int(entryIndex * 100ull / numEntries));
+		m_fileProgress.SetPos(int(entryIndex * 100ull / std::max(1ll, numEntries)));
 
 		str = Format(L"%s\n%s / %s",
 			entryPath.c_str(),
@@ -79,8 +81,7 @@ public:
 		);
 		m_entrySize = entrySize;
 		m_entryPath = entryPath;
-		m_entryInfo.SetWindowTextW(
-			str.c_str());
+		m_entryInfo.SetWindowTextW(str.c_str());
 		m_entryProgress.SetPos(0);
 	}
 	void SetEntryProgress(int64_t currentSize) {
@@ -96,13 +97,28 @@ public:
 			m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
 		}
 	}
+	void SetSpecialMessage(const std::wstring& msg) {
+		if (m_entryInfo.IsWindow()) {
+			m_entryInfo.SetWindowTextW(msg.c_str());
+		}
+	}
 	LRESULT OnAbortBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		m_bAbort = true;
 		DestroyWindow();
 		return 0;
 	}
+	LRESULT OnPauseBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		m_bPaused = !m_bPaused;
+		if (m_entryProgress.IsWindow()) {
+			m_entryProgress.SetState(m_bPaused ? PBST_PAUSED : PBST_NORMAL);
+		}
+		return 0;
+	}
 
 	bool isAborted()const {
 		return m_bAbort;
+	}
+	bool isPaused()const {
+		return m_bPaused;
 	}
 };

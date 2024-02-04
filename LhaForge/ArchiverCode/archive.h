@@ -160,6 +160,8 @@ struct ILFProgressHandler {
 	virtual void setNumEntries(int64_t num) { numEntries = num; }
 	virtual void onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size) = 0;
 	virtual void onEntryIO(int64_t current_size) = 0;
+	virtual void setSpecialMessage(const std::wstring& msg) = 0;
+	virtual void poll() = 0;	//detect cancel
 };
 
 struct ILFScanProgressHandler {

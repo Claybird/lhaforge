@@ -33,14 +33,17 @@ public:
 	virtual ~CSemaphoreLocker(){
 		Release();
 	}
-	virtual bool Lock(const std::wstring& name, LONG MaxCount){
+	virtual bool Create(const std::wstring& name, LONG MaxCount) {
 		Release();
 		hSemaphore = CreateSemaphoreW(NULL, MaxCount, MaxCount, name.c_str());
-		if(ERROR_INVALID_HANDLE==GetLastError()){	//failed to get
-			hSemaphore=NULL;
+		if (ERROR_INVALID_HANDLE == GetLastError()) {	//failed to get
+			hSemaphore = NULL;
 			return false;
 		}
-		return WAIT_OBJECT_0==WaitForSingleObject(hSemaphore,INFINITE);
+		return true;
+	}
+	virtual bool Lock(DWORD timeoutMilliseconds){
+		return WAIT_OBJECT_0==WaitForSingleObject(hSemaphore, timeoutMilliseconds);
 	}
 	virtual void Release(){
 		if(hSemaphore){

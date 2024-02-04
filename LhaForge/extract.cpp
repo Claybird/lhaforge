@@ -713,17 +713,28 @@ bool GUI_extract_multiple_files(
 				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR).c_str(), output_dir.c_str());
 			}
 
+
+			logs.resize(logs.size() + 1);
+			ARCLOG& arcLog = logs.back();
+			// record archive filename
+			arcLog.setArchivePath(archive_path);
+			progressHandler.setArchive(archive_path);
+
 			// limit concurrent extractions
 			CSemaphoreLocker SemaphoreLock;
 			if (args.extract.LimitExtractFileCount) {
 				const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
-				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Create(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Lock(INFINITE);
+				//Wait for semaphore lock
+				//progress dialog shows waiting message
+				progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+				for (; !SemaphoreLock.Lock(20);) {
+					while (UtilDoMessageLoop())continue;
+					progressHandler.poll();	//needed to detect cancel
+					Sleep(20);
+				}
 			}
-
-			logs.resize(logs.size() + 1);
-			ARCLOG &arcLog = logs.back();
-			// record archive filename
-			arcLog.setArchivePath(archive_path);
 
 			CLFOverwriteConfirmGUI preExtractHandler;
 			// loop for each entry
@@ -914,20 +925,30 @@ bool GUI_test_multiple_files(
 	}
 
 	UINT64 totalFiles = archive_files.size();
-	//TODO: queue
 	std::vector<ARCLOG> logs;
 	for (const auto &archive_path : archive_files) {
 		try {
+			logs.resize(logs.size() + 1);
+			ARCLOG& arcLog = logs.back();
+			// record archive filename
+			arcLog.setArchivePath(archive_path);
+			progressHandler.setArchive(archive_path);
+
 			const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
 			// limit concurrent extractions
 			CSemaphoreLocker SemaphoreLock;
 			if (args.extract.LimitExtractFileCount) {
-				SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Create(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Lock(INFINITE);
+				//Wait for semaphore lock
+				//progress dialog shows waiting message
+				progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+				for (; !SemaphoreLock.Lock(20);) {
+					while (UtilDoMessageLoop())continue;
+					progressHandler.poll();	//needed to detect cancel
+					Sleep(20);
+				}
 			}
-			logs.resize(logs.size() + 1);
-			ARCLOG &arcLog = logs.back();
-			// record archive filename
-			arcLog.setArchivePath(archive_path);
 			testOneArchive(archive_path, arcLog, progressHandler, std::make_shared<CLFPassphraseGUI>());
 		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
 			ARCLOG &arcLog = logs.back();
