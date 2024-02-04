@@ -43,7 +43,7 @@ struct UTIL_SHORTCUTINFO {
 HRESULT UtilGetShortcutInfo(const std::filesystem::path& path, UTIL_SHORTCUTINFO& info);
 
 //Open a folder with explorer
-void UtilNavigateDirectory(const std::filesystem::path& dir);
+void UtilNavigateDirectory(const std::filesystem::path& path);
 
 //retrieve environment variables as key=value pair
 std::map<std::wstring, std::wstring> UtilGetEnvInfo();

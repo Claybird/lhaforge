@@ -874,15 +874,15 @@ void compress_helper(
 
 	//open output directory
 	if (args.compress.OpenDir) {
-		auto pathOpenDir = std::filesystem::path(archivePath).parent_path();
 		if (args.general.Filer.UseFiler) {
+			auto pathOpenDir = std::filesystem::path(archivePath).parent_path();
 			auto envInfo = LF_make_expand_information(pathOpenDir.c_str(), archivePath.c_str());
 
 			auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
 			auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
 			ShellExecuteW(nullptr, L"open", strCmd.c_str(), strParam.c_str(), nullptr, SW_SHOWNORMAL);
 		} else {
-			UtilNavigateDirectory(pathOpenDir);
+			UtilNavigateDirectory(archivePath);
 		}
 	}
 

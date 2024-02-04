@@ -163,11 +163,19 @@ TEST(OSUtil, UtilCreateShortcut_UtilGetShortcutInfo) {
 }
 #endif
 
-void UtilNavigateDirectory(const std::filesystem::path& dir)
+void UtilNavigateDirectory(const std::filesystem::path& path)
 {
 	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs.
 	//This value should be set to MAX_PATH.
-	ShellExecuteW(nullptr, L"open", dir.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	if (std::filesystem::is_directory(path)) {
+		ShellExecuteW(nullptr, L"open", path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	} else {
+		wchar_t buf[MAX_PATH] = {};
+		GetWindowsDirectory(buf, MAX_PATH);
+		auto explorer = std::filesystem::path(buf) / L"explorer.exe";
+		ShellExecuteW(nullptr, L"open", explorer.make_preferred().c_str(),
+			(L"/select,"+path.wstring()).c_str(), nullptr, SW_SHOWNORMAL);
+	}
 }
 
 //retrieve environment variables as key=value pair
