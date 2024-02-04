@@ -97,6 +97,7 @@
 #define IDS_ENCRYPTION_AES128           87
 #define IDS_ENCRYPTION_AES256           88
 #define IDS_ENCRYPTION_AES192           89
+#define IDS_WAITING_FOR_SEMAPHORE       90
 #define IDS_TREE_SEARCH_FOLDER          92
 #define IDS_SEARCH_BY_FILEPATH          93
 #define IDS_SEARCH_BY_ORIGINAL_SIZE     94

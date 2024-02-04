@@ -840,15 +840,25 @@ void compress_helper(
 		}
 	}
 
+	progressHandler.setArchive(archivePath);
+	arcLog.setArchivePath(archivePath);
+
 	//limit concurrent compressions
 	CSemaphoreLocker SemaphoreLock;
 	if (args.compress.LimitCompressFileCount) {
 		const wchar_t* LHAFORGE_COMPRESS_SEMAPHORE_NAME = L"LhaForgeCompressLimitSemaphore";
-		SemaphoreLock.Lock(LHAFORGE_COMPRESS_SEMAPHORE_NAME, args.compress.MaxCompressFileCount);
+		SemaphoreLock.Create(LHAFORGE_COMPRESS_SEMAPHORE_NAME, args.compress.MaxCompressFileCount);
+		//Wait for semaphore lock
+		//progress dialog shows waiting message
+		progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+		for (; !SemaphoreLock.Lock(20);) {
+			while (UtilDoMessageLoop())continue;
+			progressHandler.poll();	//needed to detect cancel
+			Sleep(20);
+		}
 	}
 
 	//do compression
-	arcLog.setArchivePath(archivePath);
 	compressOneArchive(
 		format,
 		options,
