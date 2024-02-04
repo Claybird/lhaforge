@@ -521,6 +521,20 @@ void CLFProgressHandlerGUI::end()
 	}
 }
 
+void CLFProgressHandlerGUI::setArchive(const std::filesystem::path& path)
+{
+	__super::setArchive(path);
+	if (dlg) {
+		dlg->SetEntry(
+			archivePath,
+			0,
+			0,
+			L"",
+			0);
+		while (UtilDoMessageLoop())continue;
+	}
+}
+
 void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path, int64_t entry_size)
 {
 	idxEntry++;
@@ -557,6 +571,20 @@ void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
 			}
 			Sleep(100);
 		}
+	}
+}
+
+void CLFProgressHandlerGUI::setSpecialMessage(const std::wstring& msg)
+{
+	if (dlg) {
+		dlg->SetSpecialMessage(msg);
+	}
+}
+
+void CLFProgressHandlerGUI::poll()
+{
+	if (dlg && dlg->isAborted()) {
+		CANCEL_EXCEPTION();
 	}
 }
 

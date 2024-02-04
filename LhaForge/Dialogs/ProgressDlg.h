@@ -72,7 +72,7 @@ public:
 			numEntries
 		);
 		m_fileInfo.SetWindowTextW(str.c_str());
-		m_fileProgress.SetPos(int(entryIndex * 100ull / numEntries));
+		m_fileProgress.SetPos(int(entryIndex * 100ull / std::max(1ll, numEntries)));
 
 		str = Format(L"%s\n%s / %s",
 			entryPath.c_str(),
@@ -81,8 +81,7 @@ public:
 		);
 		m_entrySize = entrySize;
 		m_entryPath = entryPath;
-		m_entryInfo.SetWindowTextW(
-			str.c_str());
+		m_entryInfo.SetWindowTextW(str.c_str());
 		m_entryProgress.SetPos(0);
 	}
 	void SetEntryProgress(int64_t currentSize) {
@@ -98,6 +97,11 @@ public:
 			m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
 		}
 	}
+	void SetSpecialMessage(const std::wstring& msg) {
+		if (m_entryInfo.IsWindow()) {
+			m_entryInfo.SetWindowTextW(msg.c_str());
+		}
+	}
 	LRESULT OnAbortBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		m_bAbort = true;
 		DestroyWindow();
@@ -105,6 +109,9 @@ public:
 	}
 	LRESULT OnPauseBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
 		m_bPaused = !m_bPaused;
+		if (m_entryProgress.IsWindow()) {
+			m_entryProgress.SetState(m_bPaused ? PBST_PAUSED : PBST_NORMAL);
+		}
 		return 0;
 	}
 
