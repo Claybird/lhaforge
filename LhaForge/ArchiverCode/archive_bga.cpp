@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "archive_bga.h"
 #include "Utilities/Utility.h"
 
@@ -429,7 +429,7 @@ TEST(CLFArchiveBGA, scan_bza)
 
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);
-		EXPECT_EQ(L"dir\\ƒeƒXƒg.txt", entry->path.wstring());
+		EXPECT_EQ(L"dir\\ãƒ†ã‚¹ãƒˆ.txt", entry->path.wstring());
 		EXPECT_EQ(17, entry->compressed_size);
 		EXPECT_EQ(17, entry->stat.st_size);
 		EXPECT_EQ(L"Raw", entry->method_name);
@@ -477,7 +477,7 @@ TEST(CLFArchiveBGA, read_bza)
 
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);
-		EXPECT_EQ(L"dir\\ƒeƒXƒg.txt", entry->path.wstring());
+		EXPECT_EQ(L"dir\\ãƒ†ã‚¹ãƒˆ.txt", entry->path.wstring());
 		EXPECT_EQ(17, entry->compressed_size);
 		EXPECT_EQ(17, entry->stat.st_size);
 		EXPECT_EQ(L"Raw", entry->method_name);
@@ -543,7 +543,7 @@ TEST(CLFArchiveBGA, read_gza)
 
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);
-		EXPECT_EQ(L"dir\\ƒeƒXƒg.txt", entry->path.wstring());
+		EXPECT_EQ(L"dir\\ãƒ†ã‚¹ãƒˆ.txt", entry->path.wstring());
 		EXPECT_EQ(17, entry->compressed_size);
 		EXPECT_EQ(17, entry->stat.st_size);
 		EXPECT_EQ(L"Raw", entry->method_name);
@@ -605,7 +605,7 @@ TEST(CLFArchiveBGA, read_bza_sfx)
 
 		entry = a.read_entry_next();
 		EXPECT_NE(nullptr, entry);
-		EXPECT_EQ(L"dir\\ƒeƒXƒg.txt", entry->path.wstring());
+		EXPECT_EQ(L"dir\\ãƒ†ã‚¹ãƒˆ.txt", entry->path.wstring());
 		EXPECT_EQ(17, entry->compressed_size);
 		EXPECT_EQ(17, entry->stat.st_size);
 		EXPECT_EQ(L"Raw", entry->method_name);
