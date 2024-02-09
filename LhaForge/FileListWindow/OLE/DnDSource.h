@@ -53,6 +53,7 @@ protected:
 
 		// copy file names after header (fileA\0fileB\0fileC\0\0\0)
 		LPDROPFILES lpDropFile = (LPDROPFILES)::GlobalLock(hDrop);
+		if (!lpDropFile)return nullptr;
 		lpDropFile->pFiles = sizeof(DROPFILES);
 		lpDropFile->pt.x = 0;
 		lpDropFile->pt.y = 0;

@@ -454,7 +454,7 @@ std::filesystem::path extractCurrentEntry(
 				arcLog(outputPath, L"directory created");
 			} catch (std::filesystem::filesystem_error&) {
 				arcLog(outputPath, L"failed to create directory");
-				RAISE_EXCEPTION(Format(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR), outputPath.c_str()));
+				RAISE_EXCEPTION(Format(UtilLoadString(IDS_ERROR_MKDIR), outputPath.c_str()));
 			}
 		} else {
 			//overwrite?
@@ -486,7 +486,7 @@ std::filesystem::path extractCurrentEntry(
 			fp.open(outputPath, L"wb");
 			if (!fp.is_opened()) {
 				arcLog(originalPath, L"failed to open for write");
-				RAISE_EXCEPTION(L"Failed to open file %s", outputPath.c_str());
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), outputPath.c_str());
 			}
 			created = true;
 			for (bool bEOF = false;!bEOF;) {
@@ -500,7 +500,7 @@ std::filesystem::path extractCurrentEntry(
 						}
 						auto written = fwrite(buf, 1, (size_t)data_size, fp);
 						if (written != data_size) {
-							RAISE_EXCEPTION(L"Failed to write file %s", outputPath.c_str());
+							RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_WRITE_FILE), outputPath.c_str());
 						}
 						progressHandler.onEntryIO(_ftelli64(fp));
 					}
@@ -710,7 +710,7 @@ bool GUI_extract_multiple_files(
 			try {
 				std::filesystem::create_directories(output_dir);
 			} catch (std::filesystem::filesystem_error&) {
-				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR).c_str(), output_dir.c_str());
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR).c_str(), output_dir.c_str());
 			}
 
 

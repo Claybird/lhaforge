@@ -26,6 +26,7 @@
 #include "OSUtil.h"
 #include "Utility.h"
 #include "FileOperation.h"
+#include "resource.h"
 
 //convert icon into bitmap with alpha information
 void makeDIBFromIcon(CBitmap &bitmap, HICON icon)
@@ -335,7 +336,29 @@ TEST(OSUtil, UtilPathParseIconLocation)
 		EXPECT_EQ(path_and_index.second, 0);
 	}
 }
+#endif
 
+
+CCurrentDirManager::CCurrentDirManager(const std::filesystem::path& chdirTo)
+{
+	_prevDir = std::filesystem::current_path();
+	try {
+		std::filesystem::current_path(chdirTo);
+	} catch (std::filesystem::filesystem_error) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CHDIR), chdirTo.c_str());
+	}
+}
+
+CCurrentDirManager::~CCurrentDirManager() noexcept(false)
+{
+	try {
+		std::filesystem::current_path(_prevDir);
+	} catch (std::filesystem::filesystem_error) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CHDIR), _prevDir.c_str());
+	}
+}
+
+#ifdef UNIT_TEST
 
 TEST(OSUtil, CurrentDirManager) {
 	auto prevPath = std::filesystem::current_path();

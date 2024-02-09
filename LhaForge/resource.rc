@@ -1113,8 +1113,9 @@ BEGIN
                             "このショートカットを利用して圧縮を行う場合、\n・圧縮のたびに形式を選ぶ\nもしくは\n・ここであらかじめ圧縮形式を決めておく\nを選ぶことが出来ます。\nこのショートカットによる圧縮の形式をいま設定しておきますか？"
     IDS_COMPRESS_METHOD_STORE "無圧縮"
     IDS_COMPRESS_METHOD_BZIP2 "BZIP2"
+    IDS_ERROR_PATH_EMPTY    "ファイルパスが空です"
     IDS_ERROR_CANNOT_EXECUTE "プログラム '%s' を実行できません。\n詳細情報:%s"
-    IDS_ERROR_CANNOT_MAKE_DIR "出力先フォルダ '%s' を作成できませんでした。"
+    IDS_ERROR_GET_FULLPATH  "フルパスの取得に失敗しました"
     IDS_DENYEXT_DEFAULT     ".docx;.dotx;.xlsx;.xltx;.pptx;.potx;.ppsx;.sldx;.thmx;.odt;.ods;.odp;.odb;.odg;.odf;"
     IDS_NUM_EXTRA_FILES     "他%d個のファイル"
     IDS_ERROR_CREATE_SHORTCUT "ショートカットを作成できませんでした。"
@@ -1154,11 +1155,16 @@ END
 STRINGTABLE
 BEGIN
     IDS_MESSAGE_CAPTION     "LhaForge"
+    IDS_ERROR_UNKNOWN_FORMAT "不明/未対応のファイル形式"
     IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
+    IDS_ARCHIVE_IS_NOT_OPENED "アーカイブが開かれていません"
     IDS_ICON_FILE_NAME_DEFAULT "icons\\archive.ico"
     IDS_ENTER_PASSPRASE     "パスワードを入力してください"
+    IDS_ERROR_OPEN_FILE     "ファイル '%s'を開けません"
     IDS_LHAFORGE_VERSION_STRING "Beta"
     IDS_CONFIG_FORMAT_KEY   "項目"
+    IDS_ERROR_WRITE_FILE    "ファイル '%s' に書き込めません"
+    IDS_ERROR_UNEXPECTED    "予期せぬエラー: %s"
     IDS_CONFIG_FORMAT_VALUE "値"
     IDS_SEARCH_BY_FILENAME  "ファイル名: %s"
     IDS_COMPRESS_METHOD     "圧縮メソッド"
@@ -1312,7 +1318,6 @@ BEGIN
     IDS_FILELIST_COLUMN_COMPRESSEDSIZE "圧縮後サイズ"
     IDS_FILELIST_COLUMN_RATIO "圧縮率"
     IDS_FILELIST_COLUMN_METHOD "メソッド"
-    IDS_ERROR_READ_RESPONSEFILE "レスポンスファイルからの読み込みに失敗しました。"
     IDS_CAPTION_CONFIG_USERCOMMON "LhaForge 設定[全ユーザー共通]"
 END
 
@@ -1381,6 +1386,15 @@ BEGIN
     ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE_ALL 
                             "全てのアーカイブを解凍後、タブを閉じます\n全て解凍して閉じる"
     ID_MENUITEM_EXTRACT_ARCHIVE_ALL "全てのアーカイブを解凍します\n全てのアーカイブを解凍"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_ERROR_READ_FILE     "ファイル '%s' を読めません"
+    IDS_ERROR_GET_STAT      "ファイル '%s' の属性を取得できません"
+    IDS_ERROR_MKDIR         "フォルダ '%s' を作成できません"
+    IDS_ERROR_UNEXPECTED_EOF "ファイルが途中で終わっています"
+    IDS_ERROR_CHDIR         "フォルダ '%s' に移動できません"
 END
 
 #endif    // 日本語 (日本) resources

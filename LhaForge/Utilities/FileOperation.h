@@ -44,23 +44,7 @@ class CTemporaryDirectoryManager
 protected:
 	std::filesystem::path m_path;
 public:
-	CTemporaryDirectoryManager(){
-		//%TEMP%/tmp%05d/filename...
-		std::filesystem::path base = UtilGetTempPath();
-		for (int count = 0; count < NUM_DIR_LIMIT; count++) {
-			auto name = Format(L"tmp%05d", count);
-			if(!std::filesystem::exists(base / name)){
-				try {
-					std::filesystem::create_directories(base / name);
-					m_path = base / name;
-					return;
-				} catch (std::filesystem::filesystem_error) {
-					RAISE_EXCEPTION(L"Failed to create directory");
-				}
-			}
-		}
-		RAISE_EXCEPTION(L"Failed to create directory");
-	}
+	CTemporaryDirectoryManager();
 	virtual ~CTemporaryDirectoryManager() {
 		UtilDeleteDir(m_path, true);
 	}
@@ -252,35 +236,7 @@ public:
 			return false;
 		}
 	}
-	size_t read(void* buffer, size_t toRead) {
-		if (_currentFile >= _files.size()) {
-			RAISE_EXCEPTION(L"Reached EOF");
-		}
-		if (!_fp.is_opened()) {
-			RAISE_EXCEPTION(L"Failed to open file %s", _files[_currentFile].c_str());
-		}
-		size_t actualRead = 0;
-		for (;;) {
-			actualRead += fread(((unsigned char*)buffer) + actualRead, 1, toRead - actualRead, _fp);
-			if (actualRead >= toRead) {
-				_curPos += actualRead;
-				return actualRead;
-			} else if (feof(_fp)) {
-				if (!nextFile()) {
-					if (_currentFile >= _files.size()) {
-						//reached end of file list
-						_curPos += actualRead;
-						return actualRead;
-					}else if (!_fp.is_opened()) {
-						RAISE_EXCEPTION(L"Failed to open file %s", _files[_currentFile].c_str());
-					}
-				}
-				continue;
-			} else if (ferror(_fp)) {
-				RAISE_EXCEPTION(L"Failed to read file %s", _files[_currentFile].c_str());
-			}
-		}
-	}
+	size_t read(void* buffer, size_t toRead);
 	bool openFiles(const std::vector<std::filesystem::path>& files) {
 		close();
 		_files = files;

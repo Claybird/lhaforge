@@ -186,7 +186,7 @@ void LF_ask_and_make_sure_output_dir_exists(const std::filesystem::path& outputD
 			try {
 				std::filesystem::create_directories(outputDir);
 			} catch (const std::filesystem::filesystem_error) {
-				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CANNOT_MAKE_DIR), outputDir.c_str());
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR), outputDir.c_str());
 			}
 			break;
 		default://treat as error

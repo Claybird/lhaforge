@@ -62,20 +62,7 @@ class CCurrentDirManager
 protected:
 	std::filesystem::path _prevDir;
 public:
-	CCurrentDirManager(const std::filesystem::path& chdirTo) {
-		_prevDir = std::filesystem::current_path();
-		try {
-			std::filesystem::current_path(chdirTo);
-		} catch (std::filesystem::filesystem_error) {
-			RAISE_EXCEPTION(L"Failed to chdir to %s", chdirTo);
-		}
-	}
-	virtual ~CCurrentDirManager() noexcept(false) {
-		try {
-			std::filesystem::current_path(_prevDir);
-		} catch (std::filesystem::filesystem_error) {
-			RAISE_EXCEPTION(L"Failed to chdir to %s", _prevDir.c_str());
-		}
-	}
+	CCurrentDirManager(const std::filesystem::path& chdirTo);
+	virtual ~CCurrentDirManager() noexcept(false);
 };
 

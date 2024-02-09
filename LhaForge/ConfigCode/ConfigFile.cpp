@@ -90,8 +90,7 @@ void CConfigFile::load()
 	if (std::filesystem::is_regular_file(m_iniPath)) {
 		auto rc = m_Config.LoadFile(m_iniPath.c_str());
 		if (rc < 0) {
-			//TODO: resource
-			RAISE_EXCEPTION(L"Failed to load config file %s", m_iniPath.c_str());
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), m_iniPath.c_str());
 		}
 	} else {
 		m_Config.Reset();
@@ -106,8 +105,7 @@ void CConfigFile::save()
 	//save
 	auto rc = m_Config.SaveFile(m_iniPath.c_str(), false);
 	if (rc < 0) {
-		//TODO: resource
-		RAISE_EXCEPTION(L"Failed to save config file %s", m_iniPath.c_str());
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_WRITE_FILE), m_iniPath.c_str());
 	}
 }
 

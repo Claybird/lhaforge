@@ -39,7 +39,7 @@ std::filesystem::path UtilGetDesktopPath()
 		return path;
 	} else {
 		//possibly, no desktops
-		RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
 	}
 }
 #ifdef UNIT_TEST
@@ -57,8 +57,8 @@ std::filesystem::path UtilGetSendToPath()
 		ptr = nullptr;
 		return path;
 	} else {
-		//possibly, no desktops; //TODO: not a suitable error messasge
-		RAISE_EXCEPTION(L"Unexpected error: %s", UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+		//possibly, no sendto
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
 	}
 }
 #ifdef UNIT_TEST
@@ -448,7 +448,7 @@ TEST(FileOperation, UtilPathRemoveLastSeparator) {
 std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& filePath)
 {
 	if(filePath.empty()){
-		RAISE_EXCEPTION(L"empty pathname");
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_PATH_EMPTY));
 	}
 
 	std::filesystem::path abs_path = filePath;
@@ -456,7 +456,7 @@ std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& fileP
 		//when only drive letter is given, _wfullpath returns current directory on that drive
 		wchar_t* buf = _wfullpath(nullptr, filePath.c_str(), 0);
 		if (!buf) {
-			RAISE_EXCEPTION(L"failed to get fullpath");
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_FULLPATH));
 		}
 		abs_path = buf;
 		free(buf);
@@ -467,7 +467,8 @@ std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& fileP
 		std::wstring buf;
 		buf.resize(bufSize);
 		if (!GetLongPathNameW(abs_path.c_str(), &buf[0], bufSize)) {
-			RAISE_EXCEPTION(L"failed to get long filename");
+			//RAISE_EXCEPTION(L"failed to get long filename");
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_FULLPATH));
 		}
 		abs_path = buf.c_str();
 	}
@@ -529,11 +530,11 @@ TEST(FileOperation, UtilGetModulePath_UtilGetModuleDirectoryPath) {
 //read whole file
 std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize)
 {
-	if (filePath.empty())RAISE_EXCEPTION(L"Invalid Argument");
-	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(L"File not found");
+	if (filePath.empty())RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_PATH_EMPTY));
+	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), filePath.c_str());
 
 	struct _stat64 stat = {};
-	if (0 != _wstat64(filePath.c_str(), &stat))RAISE_EXCEPTION(L"Failed to get filesize");
+	if (0 != _wstat64(filePath.c_str(), &stat))RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_STAT));
 	auto file_size = (size_t)stat.st_size;
 	if (maxSize != 0) {
 		file_size = std::min(file_size, maxSize);
@@ -541,13 +542,13 @@ std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t max
 
 	CAutoFile fp;
 	fp.open(filePath, L"rb");
-	if (!fp.is_opened())RAISE_EXCEPTION(L"Failed to open for read");
+	if (!fp.is_opened())RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), filePath.c_str());
 
 	std::vector<BYTE> cReadBuffer;
 	cReadBuffer.resize(file_size);
 	auto ret = fread(&cReadBuffer[0], 1, cReadBuffer.size(), fp);
 	if (ret != cReadBuffer.size()) {
-		RAISE_EXCEPTION(L"Failed to read from file");
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_READ_FILE), filePath.c_str());
 	}
 
 	return cReadBuffer;
@@ -615,6 +616,26 @@ TEST(FileOperation, touchFile_CAutoFile)
 
 #endif
 
+CTemporaryDirectoryManager::CTemporaryDirectoryManager()
+{
+	//%TEMP%/tmp%05d/filename...
+	std::filesystem::path base = UtilGetTempPath();
+	for (int count = 0; count < NUM_DIR_LIMIT; count++) {
+		auto name = Format(L"tmp%05d", count);
+		if (!std::filesystem::exists(base / name)) {
+			try {
+				m_path = base / name;
+				std::filesystem::create_directories(base / name);
+				return;
+			} catch (std::filesystem::filesystem_error) {
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR), m_path.c_str());
+			}
+		}
+	}
+	RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR), m_path.c_str());
+}
+
+
 #ifdef UNIT_TEST
 TEST(FileOperation, CTemporaryDirectoryManager) {
 	std::filesystem::path path;
@@ -625,6 +646,45 @@ TEST(FileOperation, CTemporaryDirectoryManager) {
 	}
 	EXPECT_FALSE(std::filesystem::exists(path));
 }
+
+#endif
+
+size_t CContinuousFile::read(void* buffer, size_t toRead)
+{
+	if (_currentFile >= _files.size()) {
+		if (_files.empty()) {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF));
+		} else {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF) + L": " + _files.back().c_str());
+		}
+	}
+	if (!_fp.is_opened()) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
+	}
+	size_t actualRead = 0;
+	for (;;) {
+		actualRead += fread(((unsigned char*)buffer) + actualRead, 1, toRead - actualRead, _fp);
+		if (actualRead >= toRead) {
+			_curPos += actualRead;
+			return actualRead;
+		} else if (feof(_fp)) {
+			if (!nextFile()) {
+				if (_currentFile >= _files.size()) {
+					//reached end of file list
+					_curPos += actualRead;
+					return actualRead;
+				} else if (!_fp.is_opened()) {
+					RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
+				}
+			}
+			continue;
+		} else if (ferror(_fp)) {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_READ_FILE), _files[_currentFile].c_str());
+		}
+	}
+}
+
+#ifdef UNIT_TEST
 
 TEST(FileOperation, CContinuousFile) {
 	//create test files

@@ -5,6 +5,7 @@
 #include "archive_arj.h"
 #include "archive_zip.h"
 #include "archive_rar.h"
+#include "resource.h"
 
 #ifdef UNIT_TEST
 TEST(archive, exceptions)
@@ -38,7 +39,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::pat
 
 	//check for libarchive is weak, in the current implementation
 	if (CLFArchiveLA::is_known_format(path))return std::make_unique<CLFArchiveLA>();
-	RAISE_EXCEPTION(L"Unknown format");
+	RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNKNOWN_FORMAT));
 }
 
 #ifdef UNIT_TEST
@@ -99,7 +100,7 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 	case LF_ARCHIVE_FORMAT::TAR_ZSTD:
 		return std::make_unique<CLFArchiveLA>();
 	default:
-		RAISE_EXCEPTION(L"Unknown format");
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNKNOWN_FORMAT));
 	}
 }
 #ifdef UNIT_TEST
@@ -204,7 +205,7 @@ LF_COMPRESS_CAPABILITY CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT 
 			return cap;
 		}
 	}
-	RAISE_EXCEPTION(L"Unknown format");
+	RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNKNOWN_FORMAT));
 }
 
 #ifdef UNIT_TEST

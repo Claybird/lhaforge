@@ -1061,8 +1061,17 @@ TEST(compress, get_archive_format_args)
 
 //----
 
-#ifdef UNIT_TEST
+void RAW_FILE_READER::open(const std::filesystem::path& path)
+{
+	close();
+	fp.open(path, L"rb");
+	if (!fp.is_opened()) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), path.wstring().c_str());
+	}
+}
 
+
+#ifdef UNIT_TEST
 
 #pragma comment(lib,"Bcrypt.lib")
 TEST(compress, RAW_FILE_READER)

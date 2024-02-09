@@ -25,6 +25,7 @@
 //include this file to use all archive handlers
 
 #pragma once
+#include "resource.h"
 
 enum class LOGVIEW : int {
 	OnError,
@@ -67,7 +68,7 @@ struct ARCHIVE_EXCEPTION : public LF_EXCEPTION {
 	}
 	ARCHIVE_EXCEPTION(int errno_code) :LF_EXCEPTION(L"") {
 		const int max_msg_len = 94;
-		wchar_t work[max_msg_len];
+		wchar_t work[max_msg_len] = {};
 		_errno = errno_code;
 		_wcserror_s(work, _errno);
 		_msg = work;
@@ -292,14 +293,14 @@ struct ARCLOG {
 if (m_ptr) {				\
 	return m_ptr->call;		\
 } else {					\
-	RAISE_EXCEPTION(L"Archive is not opened");\
+	RAISE_EXCEPTION(UtilLoadString(IDS_ARCHIVE_IS_NOT_OPENED));\
 }
 
 #define _LFA_SAFE_CALL_VOID(call)	\
 if (m_ptr) {				\
 	m_ptr->call;			\
 } else {					\
-	RAISE_EXCEPTION(L"Archive is not opened");\
+	RAISE_EXCEPTION(UtilLoadString(IDS_ARCHIVE_IS_NOT_OPENED));\
 }
 
 //open with automatic backend selection

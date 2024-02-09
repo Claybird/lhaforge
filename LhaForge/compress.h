@@ -89,13 +89,7 @@ struct RAW_FILE_READER {
 			return buf;
 		}
 	}
-	void open(const std::filesystem::path& path) {
-		close();
-		fp.open(path, L"rb");
-		if (!fp.is_opened()) {
-			RAISE_EXCEPTION(L"Failed to open file %s", path.wstring().c_str());
-		}
-	}
+	void open(const std::filesystem::path& path);
 	void close() {
 		fp.close();
 	}

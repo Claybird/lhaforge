@@ -6,7 +6,8 @@ struct UnstoreInternal :CLzhDecoder2::INTERNAL {
 	UnstoreInternal(FILE* in, DWORD cmpsize) :INTERNAL(in), _cmpsize(cmpsize) {}
 	virtual ~UnstoreInternal() {}
 	virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)> data_receiver)override {
-		std::array<char, 32768> buf;
+		std::vector<char> buf;
+		buf.resize(32768);
 		if (_cmpsize == -1) {
 			int how_much;
 			while ((how_much = fread(&buf[0], 1, buf.size(), _in)) != 0) {
@@ -46,7 +47,8 @@ struct ArjDecodeInternal :CLzhDecoder2::INTERNAL {
 	virtual ~ArjDecodeInternal() {}
 	virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)> data_receiver)override {
 		const int dicsiz = 26624;
-		std::array<char, dicsiz> buf;
+		std::vector<char> buf;
+		buf.resize(dicsiz);
 
 		DWORD loc = 0;
 		DWORD count = 0;
@@ -135,12 +137,12 @@ struct ArjDecodeInternal :CLzhDecoder2::INTERNAL {
 	}
 
 	void read_pt_len(short nn, short nbit, short i_special){
-		short i, c, n = getbits((BYTE)nbit);
+		short j, c, n = getbits((BYTE)nbit);
 
 		if (n == 0) {
 			c = getbits((BYTE)nbit);
-			for (i = 0; i < nn; i++)	pt_len[i] = 0;
-			for (i = 0; i < 256; i++)	pt_table[i] = c;
+			for (j = 0; j < nn; j++)	pt_len[j] = 0;
+			for (j = 0; j < 256; j++)	pt_table[j] = c;
 		} else {
 			short i = 0;
 			while (i < n) {
@@ -167,12 +169,12 @@ struct ArjDecodeInternal :CLzhDecoder2::INTERNAL {
 	}
 
 	void read_c_len(){
-		short i, c, n = getbits(CBIT);
+		short j, c, n = getbits(CBIT);
 
 		if (n == 0) {
 			c = getbits(CBIT);
-			for (i = 0; i < NC; i++)	c_len[i] = 0;
-			for (i = 0; i < 4096; i++)	c_table[i] = c;
+			for (j = 0; j < NC; j++)	c_len[j] = 0;
+			for (j = 0; j < 4096; j++)	c_table[j] = c;
 		} else {
 			short i = 0;
 			while (i < n) {

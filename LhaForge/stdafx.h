@@ -29,6 +29,12 @@
 
 #define ATL_NO_LEAN_AND_MEAN
 
+#pragma warning(push)
+#pragma warning(disable:6001)
+#pragma warning(disable:6054)
+#pragma warning(disable:6387)
+#pragma warning(disable:6400)
+#pragma warning(disable:6401)
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
@@ -48,7 +54,7 @@ extern CAppModule _Module;
 #include <atlpath.h>
 #include <atlscrl.h>
 #include <atlsplit.h>
-
+#pragma warning(pop)
 #include <algorithm>
 #include <array>
 #include <cctype>

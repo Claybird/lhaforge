@@ -3,11 +3,16 @@
 // resource.rc で使用
 //
 #define IDS_MESSAGE_CAPTION             1
+#define IDS_ERROR_UNKNOWN_FORMAT        2
 #define IDS_FORMAT_NAME_TAR_ZSTD        3
+#define IDS_ARCHIVE_IS_NOT_OPENED       4
 #define IDS_ICON_FILE_NAME_DEFAULT      5
 #define IDS_ENTER_PASSPRASE             6
+#define IDS_ERROR_OPEN_FILE             7
 #define IDS_LHAFORGE_VERSION_STRING     8
 #define IDS_CONFIG_FORMAT_KEY           9
+#define IDS_ERROR_WRITE_FILE            10
+#define IDS_ERROR_UNEXPECTED            11
 #define IDS_CONFIG_FORMAT_VALUE         12
 #define IDS_SEARCH_BY_FILENAME          13
 #define IDS_COMPRESS_METHOD             14
@@ -21,8 +26,10 @@
 #define IDS_COMPRESS_METHOD_STORE       22
 #define IDS_ERROR_7Z_SFX_DONT_SUPPORT_BZIP2 23
 #define IDS_COMPRESS_METHOD_BZIP2       23
+#define IDS_ERROR_PATH_EMPTY            24
 #define IDS_ERROR_CANNOT_EXECUTE        25
 #define IDS_ERROR_CANNOT_MAKE_DIR       26
+#define IDS_ERROR_GET_FULLPATH          27
 #define IDS_DENYEXT_DEFAULT             29
 #define IDS_NUM_EXTRA_FILES             30
 #define IDS_ERROR_CREATE_SHORTCUT       31
@@ -161,6 +168,11 @@
 #define IDD_DIALOG_FIND                 195
 #define IDR_SEARCHITEM_POPUP            198
 #define IDR_SEARCH_FOLDER_POPUP         198
+#define IDS_ERROR_READ_FILE             199
+#define IDS_ERROR_GET_STAT              200
+#define IDS_ERROR_MKDIR                 201
+#define IDS_ERROR_UNEXPECTED_EOF        202
+#define IDS_ERROR_CHDIR                 203
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
@@ -495,7 +507,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        199
+#define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40161
 #define _APS_NEXT_CONTROL_VALUE         1325
 #define _APS_NEXT_SYMED_VALUE           102
