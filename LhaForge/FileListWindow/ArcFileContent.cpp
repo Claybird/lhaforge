@@ -522,15 +522,15 @@ CArchiveFileContent::subDeleteEntries(
 			auto decision = confirmHandler((*ite).second, entry);
 			switch (decision) {
 			case overwrite_options::overwrite:
-				arcLog(entry.path, L"Removed");
+				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_REMOVED));
 				return false;
 			case overwrite_options::skip:
 				not_removed.push_back(subject);
-				arcLog(entry.path, L"Keep");
+				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_KEEP));
 				return true;
 			case overwrite_options::abort:
 			default:
-				arcLog(entry.path, L"Cancel");
+				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_ABORT));
 				CANCEL_EXCEPTION();
 			}
 			return false;
@@ -622,7 +622,7 @@ void CArchiveFileContent::addEntries(
 				dest->add_directory_entry(entry);
 				progressHandler.onEntryIO(entry.stat.st_size);
 			}
-			arcLog(file, L"OK");
+			arcLog(file, UtilLoadString(IDS_ARCLOG_OK));
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
 			arcLog(file, e.what());
 			UtilDeletePath(m_pathArchive);

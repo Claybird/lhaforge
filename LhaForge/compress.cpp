@@ -623,7 +623,7 @@ void compressOneArchive(
 				progressHandler.onNextEntry(source.originalFullPath, 0);
 				archive.add_directory_entry(entry);
 			}
-			arcLog(output_archive, L"OK");
+			arcLog(output_archive, UtilLoadString(IDS_ARCLOG_OK));
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
 			arcLog(output_archive, e.what());
 			archive.close();

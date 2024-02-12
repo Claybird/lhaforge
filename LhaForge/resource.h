@@ -29,7 +29,9 @@
 #define IDS_ERROR_PATH_EMPTY            24
 #define IDS_ERROR_CANNOT_EXECUTE        25
 #define IDS_ERROR_CANNOT_MAKE_DIR       26
+#define IDS_ARCLOG_OK                   26
 #define IDS_ERROR_GET_FULLPATH          27
+#define IDS_ARCLOG_MKDIR                28
 #define IDS_DENYEXT_DEFAULT             29
 #define IDS_NUM_EXTRA_FILES             30
 #define IDS_ERROR_CREATE_SHORTCUT       31
@@ -43,14 +45,20 @@
 #define IDS_COMPRESS_LEVEL_DEFAULT      36
 #define IDS_ERROR_DND_FAILED            37
 #define IDS_ERROR_FAIL_GET_ABSPATH      38
+#define IDS_ARCLOG_MKDIR_FAIL           39
 #define IDS_ERROR_FILE_NOT_FOUND        40
 #define IDS_ERROR_FILE_NOT_SPECIFIED    41
 #define IDS_ERROR_FILE_REPLACE          42
 #define IDS_ERROR_FILELIST_DELETE_SELECTED_NOT_SUPPORTED 43
+#define IDS_ARCLOG_SKIP                 44
 #define IDS_ERROR_FILELIST_NOT_SELECTED 45
 #define IDS_ERROR_GET_DESKTOP           46
+#define IDS_ARCLOG_ERROR_WRITE          47
+#define IDS_ARCLOG_ENTRY_IS_DIR         48
 #define IDS_ERROR_ILLEGAL_FORMAT_TYPE   49
+#define IDS_ARCLOG_REMOVED              50
 #define IDS_ERROR_INVALID_PARAMETER     51
+#define IDS_ARCLOG_KEEP                 52
 #define IDS_ERROR_SAME_INPUT_AND_OUTPUT 55
 #define IDS_COMPRESS_LEVEL_FASTEST      56
 #define IDS_COMPRESS_LEVEL_HIGH         57
@@ -173,6 +181,7 @@
 #define IDS_ERROR_MKDIR                 201
 #define IDS_ERROR_UNEXPECTED_EOF        202
 #define IDS_ERROR_CHDIR                 203
+#define IDS_ARCLOG_ABORT                204
 #define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
@@ -507,7 +516,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        200
+#define _APS_NEXT_RESOURCE_VALUE        205
 #define _APS_NEXT_COMMAND_VALUE         40161
 #define _APS_NEXT_CONTROL_VALUE         1325
 #define _APS_NEXT_SYMED_VALUE           102

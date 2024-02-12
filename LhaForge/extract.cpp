@@ -451,9 +451,9 @@ std::filesystem::path extractCurrentEntry(
 		if (entry->is_directory()) {
 			try {
 				std::filesystem::create_directories(outputPath);
-				arcLog(outputPath, L"directory created");
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_MKDIR));
 			} catch (std::filesystem::filesystem_error&) {
-				arcLog(outputPath, L"failed to create directory");
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_MKDIR_FAIL));
 				RAISE_EXCEPTION(Format(UtilLoadString(IDS_ERROR_MKDIR), outputPath.c_str()));
 			}
 		} else {
@@ -464,7 +464,7 @@ std::filesystem::path extractCurrentEntry(
 				//do nothing, keep going
 				break;
 			case overwrite_options::skip:
-				arcLog(outputPath, L"skipped");
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_SKIP));
 				return {};
 			case overwrite_options::abort:
 				//abort
@@ -477,7 +477,7 @@ std::filesystem::path extractCurrentEntry(
 				if (!std::filesystem::exists(parent)) {
 					//in case directory entry is not in archive
 					std::filesystem::create_directories(parent);
-					arcLog(parent, L"directory created");
+					arcLog(parent, UtilLoadString(IDS_ARCLOG_MKDIR));
 				}
 			}
 
@@ -485,7 +485,7 @@ std::filesystem::path extractCurrentEntry(
 			CAutoFile fp;
 			fp.open(outputPath, L"wb");
 			if (!fp.is_opened()) {
-				arcLog(originalPath, L"failed to open for write");
+				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_ERROR_WRITE));
 				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), outputPath.c_str());
 			}
 			created = true;
@@ -506,7 +506,7 @@ std::filesystem::path extractCurrentEntry(
 					}
 				});
 			}
-			arcLog(outputPath, L"OK");
+			arcLog(outputPath, UtilLoadString(IDS_ARCLOG_OK));
 			fp.close();
 		}
 
@@ -835,7 +835,7 @@ void testOneArchive(
 
 		try {
 			if (entry->is_directory()) {
-				arcLog(originalPath, L"directory");
+				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_ENTRY_IS_DIR));
 			} else {
 				//go
 				int64_t global_offset = 0;
@@ -853,7 +853,7 @@ void testOneArchive(
 						}
 					});
 				}
-				arcLog(originalPath, L"OK");
+				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_OK));
 			}
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 			arcLog(originalPath, e.what());
