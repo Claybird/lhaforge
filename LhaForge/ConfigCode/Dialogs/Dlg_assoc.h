@@ -167,8 +167,7 @@ public:
 	CIconSelectDialog(ASSOCINFO &ai){
 		AssocInfo = &ai;
 		if (AssocInfo->IconFile.empty()) {
-			auto strResourcePath = UtilGetModuleDirectoryPath();
-			strResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+			auto strResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
 			IconPath = strResourcePath;
 		} else {
 			IconPath = AssocInfo->IconFile;
@@ -229,8 +228,7 @@ public:
 		}
 	}
 	void OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl) {
-		auto ResourcePath = UtilGetModuleDirectoryPath();
-		ResourcePath /= UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+		auto ResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
 		IconPath = ResourcePath.make_preferred().c_str();
 
 		DoDataExchange(FALSE);

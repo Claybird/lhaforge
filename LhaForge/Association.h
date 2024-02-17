@@ -44,3 +44,4 @@ public:
 
 bool AssocGetAssociation(const std::wstring &ext, ASSOCINFO&);
 
+const wchar_t* DEFAULT_ICON_FILENAME = L"icons\\archive.ico";

@@ -1166,7 +1166,6 @@ BEGIN
     IDS_ERROR_UNKNOWN_FORMAT "不明/未対応のファイル形式"
     IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
     IDS_ARCHIVE_IS_NOT_OPENED "アーカイブが開かれていません"
-    IDS_ICON_FILE_NAME_DEFAULT "icons\\archive.ico"
     IDS_ENTER_PASSPRASE     "パスワードを入力してください"
     IDS_ERROR_OPEN_FILE     "ファイル '%s'を開けません"
     IDS_LHAFORGE_VERSION_STRING "Beta"

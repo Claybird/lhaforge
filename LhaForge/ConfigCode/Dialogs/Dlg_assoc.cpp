@@ -314,7 +314,7 @@ LRESULT CConfigDlgAssociation::OnSetIcon(WORD wNotifyCode, WORD wID, HWND hWndCt
 		return 0;
 	}
 
-	std::filesystem::path ResourcePath = UtilGetModuleDirectoryPath() / UtilLoadString(IDS_ICON_FILE_NAME_DEFAULT);
+	std::filesystem::path ResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
 	int IconIndex = 0;
 	if (IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE == wID) {
 		//let user to choose icon
