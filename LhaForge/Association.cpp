@@ -27,6 +27,7 @@
 #include "Association.h"
 #include "Utilities/OSUtil.h"
 
+const wchar_t* DEFAULT_ICON_FILENAME = L"icons\\archive.ico";
 const wchar_t* ASSOC_PREFIX = L"LhaForgeArchive_";
 
 bool getDefaultRegKeyValue(const std::wstring& key, std::wstring& value)
