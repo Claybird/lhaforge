@@ -200,8 +200,8 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 						if (L"/$" == key) {	//file listed in file; delete after read
 							DeleteFileW(strFile.c_str());
 						}
-					} catch (LF_EXCEPTION) {
-						errorHandler(UtilLoadString(IDS_ERROR_READ_RESPONSEFILE));
+					} catch (const LF_EXCEPTION &e) {
+						errorHandler(e.what());
 						return std::make_pair(PROCESS_MODE::INVALID, cli);
 					}
 				}
