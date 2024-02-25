@@ -368,19 +368,21 @@ public:
 			ScreenToClient(&ptTemp);
 			HIGHLIGHT target;
 			target = HitTest(ptTemp, NULL);
-			if (!IsValidDropTarget(target))target.invalidate();
+			dwEffect = DROPEFFECT_COPY;
+			if (!IsValidDropTarget(target)) {
+				target.invalidate();
+				dwEffect = DROPEFFECT_NONE;
+			}
 
-			//---stop flicker
-			if (target != m_dropHighlight) {
+			if (target != m_dropHighlight) {		//to stop flicker, select only when target is on different target
 				if (m_dropHighlight.isValid()) {
 					SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
 				}
-				if (target.isValid()) {
+				if (target.isValid() ) {
 					SetItemState(target, LVIS_DROPHILITED, LVIS_DROPHILITED);
 				}
 				m_dropHighlight = target;
 			}
-			dwEffect = target.isValid() ? DROPEFFECT_COPY : DROPEFFECT_NONE;
 		}
 		return S_OK;
 	}

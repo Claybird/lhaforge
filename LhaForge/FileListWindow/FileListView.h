@@ -133,12 +133,12 @@ public:
 			auto lpNode = mr_Model.GetFileListItemByIndex(item);
 			if (lpNode) {		//Drop on target
 				//is target directory?
-				if (lpNode->is_directory()) {
-					return true;
+				if (!lpNode->is_directory()) {
+					return false;
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	//dropped

@@ -83,7 +83,7 @@ protected:
 		SHFILEINFO shfi = {};
 		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON);
 		m_ImageList.AddIcon(shfi.hIcon);
-		DestroyIcon(shfi.hIcon);
+		if (shfi.hIcon)DestroyIcon(shfi.hIcon);
 		//-open
 		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON | SHGFI_OPENICON);
 		m_ImageList.AddIcon(shfi.hIcon);
@@ -279,7 +279,7 @@ public:
 				return false;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	//dropped

@@ -728,19 +728,19 @@ void CFileListFrame::EnableDropTarget(bool bEnable)
 }
 
 // IDropCommunicator
-HRESULT CFileListFrame::DragOver(IDataObject *lpDataObject,POINTL &pt,DWORD &dwEffect)
+HRESULT CFileListFrame::DragOver(IDataObject* lpDataObject, POINTL& pt, DWORD& dwEffect)
 {
 	//drop on the frame window: open as an archive
-	if(!m_DropTarget.QueryFormat(CF_HDROP)){
+	if (!m_DropTarget.QueryFormat(CF_HDROP)) {
 		//not a file; reject
 		dwEffect = DROPEFFECT_NONE;
-	}else{
+	} else {
 		dwEffect = DROPEFFECT_COPY;// : DROPEFFECT_NONE;
-		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
-		//---if it contains directory, then reject
-		if(S_OK==hr){
-			for (const auto &file : files) {
-				if(std::filesystem::is_directory(file)){
+		auto [hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+		//---if it contains directory, then reject. it is not an archive
+		if (S_OK == hr) {
+			for (const auto& file : files) {
+				if (std::filesystem::is_directory(file)) {
 					dwEffect = DROPEFFECT_NONE;
 					break;
 				}
