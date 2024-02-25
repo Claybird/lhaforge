@@ -196,7 +196,8 @@ short CLFArchiveARJ::decode_f::decode_len()
 
 void CLFArchiveARJ::decode_f::decode(std::function<void(const void*, int64_t/*data size*/)> data_receiver)
 {
-	std::array<BYTE, ARJ_DICSIZE> buf;
+	std::vector<BYTE> buf;
+	buf.resize(ARJ_DICSIZE);
 	short r = 0, j = 0;
 	short i;
 	while (count < _header->h_Origsize) {
