@@ -147,7 +147,6 @@ int32_t mz_stream_LF_open(void* stream, const char* path_utf8, int32_t mode) {
 
 int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size) {
 	mz_stream_LF* lff = (mz_stream_LF*)stream;
-	uint32_t read = 0;
 
 	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
 

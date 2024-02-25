@@ -391,7 +391,7 @@ struct LA_FILE_TO_WRITE
 			throw LA_EXCEPTION(r);
 		}
 		for (auto &ite : archive_options) {
-			int r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
+			r = archive_write_set_option(_arc, nullptr, ite.first.c_str(), ite.second.c_str());
 			if (r < ARCHIVE_OK) {
 				throw LA_EXCEPTION(r);
 			}
