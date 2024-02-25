@@ -207,8 +207,8 @@ void mz_stream_LF_delete(void** stream) {
 	if (stream) {
 		mz_stream_LF* lff = (mz_stream_LF*)*stream;
 		if (lff)delete lff;
+		*stream = NULL;
 	}
-	*stream = NULL;
 }
 
 struct CLFArchiveZIP::INTERNAL {
