@@ -158,10 +158,11 @@ public:
 			LPTSTR lpstr = &buf[0];
 			if (lpstr != NULL) {
 				nRetLen = ::GetWindowText(hWndCtrl, lpstr, nLen + 1);
+				strText = lpstr;
 			}
-			strText = lpstr;
-			if (nRetLen < nLen)
+			if (nRetLen < nLen) {
 				bSuccess = FALSE;
+			}
 		} else {
 			bSuccess = pT->SetDlgItemText(nID, strText.c_str());
 		}
