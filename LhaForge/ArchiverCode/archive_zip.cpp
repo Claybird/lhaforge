@@ -268,7 +268,7 @@ struct CLFArchiveZIP::INTERNAL {
 			RAISE_EXCEPTION(mzError2Text(err));
 		}
 		{
-			auto methodStr = toLower(param["method"]);
+			auto methodStr = toLower(param["compression"]);
 			if (methodStr.empty()) {
 				methodStr = "deflate";
 			}
@@ -1418,7 +1418,7 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 				CLFArchiveZIP a;
 				LF_COMPRESS_ARGS args;
 				args.load(CConfigFile());
-				args.formats.zip.params["method"] = method.first;
+				args.formats.zip.params["compression"] = method.first;
 				args.formats.zip.params["level"] = UtilToUTF8(Format(L"%d", level));
 				auto pp = std::make_shared<CLFPassphraseNULL>();
 				a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
