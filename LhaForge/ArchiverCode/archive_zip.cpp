@@ -434,7 +434,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 							break;
 						} else {
 							int32_t offset = 0;
-							for (;;) {
+							for (; offset < bytes_read;) {
 								auto bytes_written = mz_zip_entry_write(dest->_internal->zip, &buffer[offset], bytes_read - offset);
 								if (bytes_written < 0) {
 									RAISE_EXCEPTION(mzError2Text(bytes_written));
