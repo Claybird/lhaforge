@@ -29,10 +29,11 @@ class CProgressDialog:public CDialogImpl<CProgressDialog>
 {
 protected:
 	CProgressBarCtrl m_fileProgress, m_entryProgress;
-	CStatic m_fileInfo, m_entryInfo;
+	CStatic m_fileInfo, m_entryInfo, m_entrySizeInfo;
 	bool m_bAbort, m_bPaused;
 	int64_t m_entrySize;
 	std::wstring m_entryPath;
+	std::wstring m_originalTitle;
 public:
 	enum{IDD=IDD_DIALOG_PROGRESS};
 
@@ -49,6 +50,7 @@ public:
 		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
 		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
 		m_entryInfo = GetDlgItem(IDC_STATIC_ENTRY);
+		m_entrySizeInfo = GetDlgItem(IDC_STATIC_ENTRY_SIZE);
 		m_fileProgress.SetRange32(0, 100);
 		m_fileProgress.SetPos(0);
 		m_entryProgress.SetRange32(0, 100);
@@ -57,6 +59,10 @@ public:
 		m_bPaused = false;
 
 		CenterWindow();
+		
+		CString tmp;
+		GetWindowText(tmp);
+		m_originalTitle = (LPCWSTR)tmp;
 		return TRUE;
 	}
 	void SetEntry(
@@ -66,32 +72,26 @@ public:
 		const std::wstring& entryPath,
 		int64_t entrySize
 	) {
-		auto str = Format(L"%s\n%I64d / %I64d",
-			archivePath.c_str(),
+		m_fileInfo.SetWindowText(archivePath.c_str());
+		auto str = m_originalTitle + Format(L"[%I64d / %I64d]",
 			entryIndex,
 			numEntries
 		);
-		m_fileInfo.SetWindowTextW(str.c_str());
+		SetWindowText(str.c_str());
 		m_fileProgress.SetPos(int(entryIndex * 100ull / std::max(1ll, numEntries)));
 
-		str = Format(L"%s\n%s / %s",
-			entryPath.c_str(),
-			UtilFormatSize(0).c_str(),
-			UtilFormatSize(entrySize).c_str()
-		);
 		m_entrySize = entrySize;
 		m_entryPath = entryPath;
-		m_entryInfo.SetWindowTextW(str.c_str());
+		m_entryInfo.SetWindowText(entryPath.c_str());
 		m_entryProgress.SetPos(0);
 	}
 	void SetEntryProgress(int64_t currentSize) {
-		auto str = Format(L"%s\n%s / %s",
-			m_entryPath.c_str(),
-			UtilFormatSize(currentSize).c_str(),
-			UtilFormatSize(m_entrySize).c_str()
-		);
-		if (m_entryInfo.IsWindow()) {
-			m_entryInfo.SetWindowTextW(str.c_str());
+		if (m_entrySizeInfo.IsWindow()) {
+			auto str = Format(L"%s / %s",
+				UtilFormatSize(currentSize).c_str(),
+				UtilFormatSize(m_entrySize).c_str()
+			);
+			m_entrySizeInfo.SetWindowText(str.c_str());
 		}
 		if (m_entryProgress.IsWindow()) {
 			m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
