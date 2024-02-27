@@ -587,7 +587,7 @@ void compressOneArchive(
 	const LF_COMPRESS_ARGS& args,
 	const std::filesystem::path& output_archive,
 	const COMPRESS_SOURCES &source_files,
-	ARCLOG arcLog,
+	ARCLOG &arcLog,
 	ILFProgressHandler &progressHandler,
 	std::shared_ptr<ILFPassphrase> passphrase_callback
 ) {
@@ -618,30 +618,32 @@ void compressOneArchive(
 				});
 
 				progressHandler.onEntryIO(entry.stat.st_size);
+				arcLog(source.originalFullPath, UtilLoadString(IDS_ARCLOG_OK));
 			} else {
 				//directory
 				progressHandler.onNextEntry(source.originalFullPath, 0);
 				archive.add_directory_entry(entry);
+				arcLog(source.originalFullPath, UtilLoadString(IDS_ARCLOG_OK));
 			}
-			arcLog(output_archive, UtilLoadString(IDS_ARCLOG_OK));
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
-			arcLog(output_archive, e.what());
+			arcLog.logException(e);
 			archive.close();
 			UtilDeletePath(output_archive);
 			throw;
 		} catch (const LF_EXCEPTION& e) {
-			arcLog(output_archive, e.what());
+			arcLog.logException(e);
 			archive.close();
 			UtilDeletePath(output_archive);
 			throw;
 		} catch (const std::filesystem::filesystem_error& e) {
 			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
-			arcLog(output_archive, msg);
+			arcLog.logException(LF_EXCEPTION(msg));
 			archive.close();
 			UtilDeletePath(output_archive);
 			throw LF_EXCEPTION(msg);
 		}
 	}
+	arcLog(output_archive, UtilLoadString(IDS_ARCLOG_OK));
 }
 
 #ifdef UNIT_TEST
@@ -936,13 +938,9 @@ bool GUI_compress_multiple_files(
 					progressHandler,
 					std::make_shared<CLFPassphraseGUI>()
 				);
-			} catch (const LF_USER_CANCEL_EXCEPTION& e) {
-				ARCLOG &arcLog = logs.back();
-				arcLog.logException(e);
+			} catch (const LF_USER_CANCEL_EXCEPTION&) {
 				break;
-			} catch (const LF_EXCEPTION& e) {
-				ARCLOG &arcLog = logs.back();
-				arcLog.logException(e);
+			} catch (const LF_EXCEPTION&) {
 				continue;
 			}
 		}
@@ -960,9 +958,7 @@ bool GUI_compress_multiple_files(
 				progressHandler,
 				std::make_shared<CLFPassphraseGUI>()
 			);
-		} catch (const LF_EXCEPTION &e) {
-			ARCLOG &arcLog = logs.back();
-			arcLog.logException(e);
+		} catch (const LF_EXCEPTION &) {
 		}
 	}
 	progressHandler.end();
