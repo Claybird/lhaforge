@@ -138,6 +138,7 @@
 #define IDS_LOGINFO_RESULT_OK           163
 #define IDS_LOGINFO_RESULT_NG           164
 #define IDR_LISTVIEW_HEADER_MENU        165
+#define IDS_LOGINFO_OPERATION_COMPRESS  165
 #define IDD_DIALOG_INPUT                166
 #define IDS_LOGINFO_RESULT_NOTIMPL      166
 #define IDS_LOGINFO_RESULT_NOTARCHIVE   167
@@ -167,7 +168,6 @@
 #define IDS_ERROR_UNEXPECTED_EOF        202
 #define IDS_ERROR_CHDIR                 203
 #define IDS_ARCLOG_ABORT                204
-#define IDD_DIALOG_LOG                  500
 #define IDD_DIALOG_CONFIG               501
 #define IDD_DIALOG_CONFIRM_OVERWRITE    502
 #define IDD_DIALOG_ICON_SELECT          503
@@ -185,7 +185,6 @@
 #define IDD_DIALOG_OPENACTION_SELECT    528
 #define IDD_PROPPAGE_CONFIG_SHELLEXT    529
 #define IDD_DIALOG_CONFIRM_OVERWRITE_IN_ARCHIVE 530
-#define IDC_EDIT_LOG                    1001
 #define IDC_URL                         1002
 #define IDC_GITHUB                      1003
 #define IDC_CHECK_SHELL_EXT             1004
@@ -329,7 +328,6 @@
 #define IDC_BUTTON_FILELIST_USERAPP_BROWSEDIR 1269
 #define IDC_LIST_LOGINFO_ITEMS          1270
 #define IDC_EDIT_CUSTOMTOOLBAR_IMAGE    1270
-#define IDC_STATIC_LOGINFO              1271
 #define IDC_BUTTON_BROWSE_CUSTOMTOOLBAR_IMAGE 1271
 #define IDC_EDIT_LOGINFO_FILE           1272
 #define IDC_EDIT_LOGINFO_MSG            1273
@@ -466,7 +464,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        205
+#define _APS_NEXT_RESOURCE_VALUE        206
 #define _APS_NEXT_COMMAND_VALUE         40161
 #define _APS_NEXT_CONTROL_VALUE         1327
 #define _APS_NEXT_SYMED_VALUE           102

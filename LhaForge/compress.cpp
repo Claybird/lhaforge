@@ -981,7 +981,7 @@ bool GUI_compress_multiple_files(
 	}
 
 	if (displayLog) {
-		CLogListDialog LogDlg(UtilLoadString(IDS_LOGINFO_OPERATION_EXTRACT).c_str());
+		CLogListDialog LogDlg(UtilLoadString(IDS_LOGINFO_OPERATION_COMPRESS).c_str());
 		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal(::GetDesktopWindow());
 	}
