@@ -1421,13 +1421,62 @@ TEST(CLFArchiveLA, name_in_bz2)
 	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
 		count++;
 		EXPECT_FALSE(entry->is_directory());
-		EXPECT_EQ(L"abcde", entry->path.wstring());	//this will be "data" in libarchive
+		EXPECT_EQ(L"abcde", entry->path.wstring());
 		EXPECT_EQ(entry->stat.st_size, 0);	//cannot get file size
 		EXPECT_EQ(entry->method_name, L"---");
 		EXPECT_EQ(entry->compressed_size, -1);
 		EXPECT_FALSE(entry->is_encrypted);
 	}
 	EXPECT_EQ(1, count);
+}
+
+TEST(CLFArchiveLA, capability_cab)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"smile.cab";
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
+
+	CLFArchiveLA a;
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	a.read_open(file, pp);
+	int count = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		EXPECT_FALSE(entry->is_directory());
+		EXPECT_EQ(L"smile.bmp", entry->path.wstring());
+		EXPECT_EQ(entry->stat.st_size, 6110262);
+		EXPECT_EQ(entry->method_name, L"---");
+		EXPECT_EQ(entry->compressed_size, -1);
+		EXPECT_FALSE(entry->is_encrypted);
+	}
+	EXPECT_EQ(1, count);
+}
+
+//this format is not supported now
+TEST(CLFArchiveLA, capability_cab2)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+	auto file = dir / L"smile2.cab";
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(file));
+
+	EXPECT_ANY_THROW({
+		CLFArchiveLA a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(file, pp);
+		int count = 0;
+		for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+			count++;
+			//EXPECT_FALSE(entry->is_directory());
+			//EXPECT_EQ(L"smile.bmp", entry->path.wstring());
+			//EXPECT_EQ(entry->stat.st_size, 6110262);
+			//EXPECT_EQ(entry->method_name, L"---");
+			//EXPECT_EQ(entry->compressed_size, -1);
+			//EXPECT_FALSE(entry->is_encrypted);
+		}
+		//EXPECT_EQ(1, count);
+	});
 }
 
 #endif
