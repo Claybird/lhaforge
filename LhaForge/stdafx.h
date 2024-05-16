@@ -174,7 +174,7 @@ public:
 			ATLASSERT(nLength > 0);
 			if ((int)strText.length() > nLength) {
 				_XData data = { ddxDataText };
-				data.textData.nLength = strText.length();
+				data.textData.nLength = (int)strText.length();
 				data.textData.nMaxLength = nLength;
 				pT->OnDataValidateError(nID, bSave, data);
 				bSuccess = FALSE;

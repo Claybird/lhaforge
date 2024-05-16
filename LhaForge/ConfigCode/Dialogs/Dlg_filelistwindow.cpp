@@ -40,7 +40,7 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 	List_Command.GetClientRect(rect);
 	List_Command.InsertColumn(0, L"", LVCFMT_LEFT, rect.Width());
 	List_Command.SetExtendedListViewStyle(List_Command.GetExtendedListViewStyle() | LVS_EX_FULLROWSELECT);
-	List_Command.SetItemCount(m_Config.view.MenuCommandArray.size());
+	List_Command.SetItemCount((int)m_Config.view.MenuCommandArray.size());
 
 	m_lpSearchItem = nullptr;
 
@@ -49,7 +49,7 @@ LRESULT CConfigDlgFileListWindow::OnInitDialog(HWND hWnd, LPARAM lParam)
 	List_Search.InsertColumn(0, UtilLoadString(IDS_SEARCH_FOLDER_NAME).c_str(), LVCFMT_LEFT, 180);
 	List_Search.InsertColumn(1, UtilLoadString(IDS_SEARCH_FOLDER_CONDITION).c_str(), LVCFMT_LEFT, rect.Width() - 180);
 	List_Search.SetExtendedListViewStyle(List_Search.GetExtendedListViewStyle() | LVS_EX_FULLROWSELECT);
-	List_Search.SetItemCount(m_Config.view.searchFolderItems.size());
+	List_Search.SetItemCount((int)m_Config.view.searchFolderItems.size());
 
 	BOOL tmp = {};
 	OnCheckChanged(0, 0, nullptr, tmp);
@@ -230,8 +230,8 @@ LRESULT CConfigDlgFileListWindow::OnUserAppNew(WORD, WORD, HWND, BOOL&)
 
 	setUserAppEdit();
 	auto& lv = List_Command;
-	lv.SetItemCount(mca.size());
-	int iItem = mca.size() - 1;
+	lv.SetItemCount((int)mca.size());
+	int iItem = (int)mca.size() - 1;
 	lv.EnsureVisible(iItem, FALSE);
 	lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
 	return 0;
@@ -251,8 +251,8 @@ LRESULT CConfigDlgFileListWindow::OnSearchItemNew(WORD, WORD, HWND, BOOL&)
 
 		setSearchItemName();
 		auto& lv = List_Search;
-		lv.SetItemCount(sfis.size());
-		int iItem = sfis.size() - 1;
+		lv.SetItemCount((int)sfis.size());
+		int iItem = (int)sfis.size() - 1;
 		lv.EnsureVisible(iItem, FALSE);
 		lv.SetItemState(iItem, LVIS_SELECTED, LVIS_SELECTED);
 	}
@@ -268,7 +268,7 @@ LRESULT CConfigDlgFileListWindow::OnUserAppDelete(WORD,WORD,HWND,BOOL&)
 
 	mca.erase(mca.begin() + iItem);
 
-	lv.SetItemCount(mca.size());
+	lv.SetItemCount((int)mca.size());
 	if(mca.empty()){
 		m_lpMenuCommandItem = nullptr;
 	} else {
@@ -291,7 +291,7 @@ LRESULT CConfigDlgFileListWindow::OnSearchItemDelete(WORD, WORD, HWND, BOOL&)
 
 	sfis.erase(sfis.begin() + iItem);
 
-	lv.SetItemCount(sfis.size());
+	lv.SetItemCount((int)sfis.size());
 	if (sfis.empty()) {
 		m_lpSearchItem = nullptr;
 	} else {

@@ -99,12 +99,12 @@ std::wstring UtilToUNICODE(const char* lpSrc, size_t length, UTIL_CODEPAGE uSrcC
 			return (const wchar_t*)lpSrc;
 		}
 	}
-	int bufSize = ::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, length, NULL, 0);
+	int bufSize = ::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, (int)length, NULL, 0);
 
 	std::wstring wstr;
 	wstr.resize(bufSize);
 
-	::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, length, &wstr[0], bufSize);
+	::MultiByteToWideChar((int)uSrcCodePage, 0, lpSrc, (int)length, &wstr[0], bufSize);
 	return wstr.c_str();
 }
 

@@ -28,7 +28,7 @@ struct CLFArchiveBGA::BgaHeader
 };
 
 //find header location
-static size_t find_header(const unsigned char* dat, unsigned long siz)
+static size_t find_header(const unsigned char* dat, size_t siz)
 {
 	if (siz < 28)return -1;
 	size_t limit = siz - 28;
@@ -45,7 +45,7 @@ static size_t find_header(const unsigned char* dat, unsigned long siz)
 		if (i + 28 + fnlen > siz)continue;
 
 		int sum = 0;
-		for (int j = i + 4; j != i + 28 + fnlen; j++) {
+		for (size_t j = i + 4; j != i + 28 + fnlen; j++) {
 			sum += (char)dat[j];
 		}
 		if (checksum == sum) {

@@ -178,21 +178,21 @@ public:
 		IconList.Destroy();
 
 		//number of icons
-		long IconCount = (long)ExtractIconW(GetModuleHandleW(nullptr), IconPath.c_str(), -1);
+		auto IconCount = (INT_PTR)ExtractIconW(GetModuleHandleW(nullptr), IconPath.c_str(), -1);
 		if (0 == IconCount) {
 			ListView.EnableWindow(false);
 			return false;
 		}
 		ListView.EnableWindow(true);
-		IconList.Create(32, 32, ILC_COLOR32 | ILC_MASK, IconCount, 1);
-		for (long i = 0; i < IconCount; i++) {
+		IconList.Create(32, 32, ILC_COLOR32 | ILC_MASK, (int)IconCount, 1);
+		for (INT_PTR i = 0; i < IconCount; i++) {
 			CIcon Icon;
-			Icon.ExtractIcon(IconPath.c_str(), i);
+			Icon.ExtractIcon(IconPath.c_str(), (int)i);
 			IconList.AddIcon(Icon);
 		}
 		ListView.SetImageList(IconList, LVSIL_NORMAL);
-		for (long i = 0; i < IconCount; i++) {
-			ListView.AddItem(i, 0, L"", i);
+		for (INT_PTR i = 0; i < IconCount; i++) {
+			ListView.AddItem((int)i, 0, L"", (int)i);
 		}
 		return true;
 	}

@@ -152,7 +152,7 @@ int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size) {
 
 	try {
 		size_t read = lff->handle.read(buf, size);
-		return read;
+		return (int32_t)read;
 	} catch (const LF_EXCEPTION&) {
 		return MZ_READ_ERROR;
 	}
@@ -424,7 +424,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 				if (!entry->is_directory()) {
 					std::vector<BYTE> buffer(1024 * 1024);	//1MB buffer
 					for (;;) {
-						int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], buffer.size());
+						int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], (int32_t)buffer.size());
 						if (bytes_read < 0) {
 							//error
 							RAISE_EXCEPTION(mzError2Text(bytes_read));
@@ -583,7 +583,7 @@ void CLFArchiveZIP::read_file_entry_block(std::function<void(const void*, size_t
 
 	std::vector<unsigned char> buffer;
 	buffer.resize(1024 * 1024);
-	int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], buffer.size());
+	int32_t bytes_read = mz_zip_entry_read(_internal->zip, &buffer[0], (int32_t)buffer.size());
 	if (bytes_read < 0) {
 		//error
 		RAISE_EXCEPTION(mzError2Text(bytes_read));
@@ -627,7 +627,7 @@ static int32_t read_file_callback(void* callback_data_ptr, void* dest, int32_t d
 			tmp.assign(&callback_data->buffer[data_size], &callback_data->buffer[0] + callback_data->buffer.size());
 			std::swap(callback_data->buffer, tmp);
 		}
-		return data_size;
+		return (int32_t)data_size;
 	}
 	return 0;
 }
@@ -698,7 +698,7 @@ void CLFArchiveZIP::add_file_entry(const LF_ENTRY_STAT& stat, std::function<LF_B
 			auto data = dataProvider();
 			if (data.buffer) {
 				int totalWritten = 0;
-				int toWrite = data.size;
+				int32_t toWrite = (int32_t)data.size;
 				for (; toWrite > 0;) {
 					auto written = mz_zip_entry_write(_internal->zip, (const char*)data.buffer + totalWritten, toWrite);
 					if (written < 0) {

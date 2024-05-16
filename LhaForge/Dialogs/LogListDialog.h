@@ -120,7 +120,7 @@ protected:
 		m_ItemListView.SetWindowLong(GWL_STYLE, Style | LVS_REPORT);
 
 		// set number of items
-		m_ItemListView.SetItemCount(m_LogArray.size());
+		m_ItemListView.SetItemCount((int)m_LogArray.size());
 		if (!m_LogArray.empty()) {
 			m_ItemListView.SetItemState(0, LVNI_SELECTED, LVNI_SELECTED);
 		}

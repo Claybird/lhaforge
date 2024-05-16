@@ -1111,7 +1111,7 @@ TEST(compress, RAW_FILE_READER)
 					BCRYPT_HASH_HANDLE hHash = nullptr;
 					if (NT_SUCCESS(BCryptCreateHash(hAlg, &hHash, &bHashObject[0], cbHashObject, nullptr, 0, 0))) {
 						//hash some data
-						if (NT_SUCCESS(BCryptHashData(hHash, (PBYTE)&buf[0], buf.size(), 0))) {
+						if (NT_SUCCESS(BCryptHashData(hHash, (PBYTE)&buf[0], (ULONG)buf.size(), 0))) {
 							//close the hash
 							if (NT_SUCCESS(BCryptFinishHash(hHash, &bHash[0], cbHash, 0))) {
 								for (auto c : bHash) {

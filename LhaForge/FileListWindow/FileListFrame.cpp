@@ -285,7 +285,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 
 		auto filePath=fname;
 		strParam += L"\"" + filePath.wstring() + L"\"";
-		int ret = (int)ShellExecuteW(nullptr, nullptr, UtilGetModulePath().c_str(), strParam.c_str(), nullptr, SW_RESTORE);
+		auto ret = (INT_PTR)ShellExecuteW(nullptr, nullptr, UtilGetModulePath().c_str(), strParam.c_str(), nullptr, SW_RESTORE);
 		if(ret<=32){
 			//If the function succeeds, it returns a value greater than 32
 			return E_FAIL;
@@ -367,7 +367,7 @@ HRESULT CFileListFrame::OpenArchiveFile(const std::filesystem::path& fname,bool 
 
 LRESULT CFileListFrame::OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	DWORD dwID=wParam;
+	auto dwID=wParam;
 	static std::wstring fileToOpen;
 	fileToOpen.clear();
 

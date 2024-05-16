@@ -36,13 +36,13 @@ protected:
 		}
 		virtual ~CRC() {}
 		void reset() { crc = CRC_MASK; }
-		void update(const BYTE* buf, int len) {
+		void update(const BYTE* buf, size_t len) {
 			while (len--)crc = crctable[((BYTE)(crc) ^ (*buf++)) & 0xff] ^ (crc >> 8);
 		}
 		DWORD get_crc()const { return crc ^ CRC_MASK; }
 		size_t fread_crc(void* p, size_t n, FILE* f) {
 			n = fread(p, 1, n, f);
-			h_Origsize += n;
+			h_Origsize += (DWORD)n;
 			update((BYTE*)p, n);
 			return n;
 		}

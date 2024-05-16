@@ -289,13 +289,13 @@ LRESULT CConfigDlgAssociation::OnSetAssoc(WORD wNotifyCode, WORD wID, HWND hWndC
 		case IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT:
 			if(-1==index_of(NO_DEFAULT_ASSOCS, COUNTOF(NO_DEFAULT_ASSOCS), (ASSOC_TYPE)aType)){
 				item.AssocInfo.isAssociated = true;
-				m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
+				m_assocList.SetCheckState((int)aType, item.AssocInfo.isAssociated);
 				item.bChanged = true;
 			}
 			break;
 		case IDC_BUTTON_ASSOC_UNCHECK_ALL:
 			item.AssocInfo.isAssociated = false;
-			m_assocList.SetCheckState(aType, item.AssocInfo.isAssociated);
+			m_assocList.SetCheckState((int)aType, item.AssocInfo.isAssociated);
 			item.SetIconFromAssoc();
 			item.bChanged = true;
 			break;

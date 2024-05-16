@@ -96,7 +96,7 @@ static std::filesystem::path rar_first_file(const std::filesystem::path& file)
 	std::wcmatch results;
 	auto s = file.wstring();
 	if (std::regex_search(s.c_str(), results, multipart)) {
-		int digits = results.length() - 9;	//partX/partXX/partXXX etc.
+		int64_t digits = results.length() - 9;	//partX/partXX/partXXX etc.
 		auto part = Format(Format(L".part%%0%dd.rar", digits), 1);
 		auto f = std::regex_replace(s.c_str(), multipart, part);
 		return std::filesystem::path(f);

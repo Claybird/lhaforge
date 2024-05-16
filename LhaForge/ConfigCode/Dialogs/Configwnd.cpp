@@ -89,7 +89,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 			strTitle = pTitle;
 		} else {
 			strTitle.resize(512);
-			::GetWindowText(hWndDlg, &strTitle[0], strTitle.size());
+			::GetWindowTextW(hWndDlg, &strTitle[0], (int)strTitle.size());
 		}
 		HTREEITEM hItem = SelectTreeView.InsertItem(strTitle.c_str(), _ROOTITEM, TVI_LAST);
 		SelectTreeView.SetItemData(hItem, (DWORD_PTR)hWndDlg);

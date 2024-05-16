@@ -2,14 +2,14 @@
 #include "mini_lzh_decoder.h"
 
 struct UnstoreInternal :CLzhDecoder2::INTERNAL {
-	DWORD _cmpsize;
+	size_t _cmpsize;
 	UnstoreInternal(FILE* in, DWORD cmpsize) :INTERNAL(in), _cmpsize(cmpsize) {}
 	virtual ~UnstoreInternal() {}
 	virtual void decode(std::function<void(const void* buffer, size_t/*data size*/)> data_receiver)override {
 		std::vector<char> buf;
 		buf.resize(32768);
 		if (_cmpsize == -1) {
-			int how_much;
+			size_t how_much;
 			while ((how_much = fread(&buf[0], 1, buf.size(), _in)) != 0) {
 				if (how_much == -1) {
 					break;
@@ -19,7 +19,7 @@ struct UnstoreInternal :CLzhDecoder2::INTERNAL {
 		}
 
 		while (_cmpsize > 0) {
-			int how_much = std::min(_cmpsize, (DWORD)buf.size());
+			size_t how_much = std::min(_cmpsize, buf.size());
 			if (0 >= (how_much = fread(&buf[0], 1, how_much, _in))) {
 				break;
 			}

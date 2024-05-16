@@ -279,7 +279,7 @@ void CFileListTabClient::SetActivePage(HANDLE hHandle)
 
 LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 {
-	int idx = pnmh->idFrom;
+	int idx = (int)pnmh->idFrom;
 	OnDeactivatingTab(GetActivePage());
 	SetActivePage(idx);
 	OnActivateTab(idx);
@@ -320,7 +320,7 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 
 LRESULT CFileListTabClient::OnTabCloseBtn(LPNMHDR pnmh)
 {
-	int idx = pnmh->idFrom;
+	int idx = (int)pnmh->idFrom;
 	if (idx < 0)return 0;
 	CFileListTabItem* pItem = (CFileListTabItem*)GetPageData(idx);
 

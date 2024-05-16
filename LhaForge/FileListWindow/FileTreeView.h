@@ -238,8 +238,8 @@ public:
 		SetItemData(hItem, (DWORD_PTR)p.get());
 
 		//process children
-		UINT numItems = lpNode->getNumChildren();
-		for (UINT i = 0; i < numItems; i++) {
+		size_t numItems = lpNode->getNumChildren();
+		for (size_t i = 0; i < numItems; i++) {
 			const auto* lpChild = lpNode->getChild(i);
 			if (lpChild->is_directory()) {
 				ConstructTree(hItem, lpChild);

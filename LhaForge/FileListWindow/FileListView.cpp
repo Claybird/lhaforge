@@ -180,7 +180,7 @@ LRESULT CFileListView::OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lPa
 		auto lpCurrent = mr_Model.getCurrentDir();
 		ASSERT(lpCurrent);
 		if (lpCurrent) {
-			SetItemCount(lpCurrent->getNumChildren());
+			SetItemCount((int)lpCurrent->getNumChildren());
 			SetItemState(0, LVIS_FOCUSED, LVIS_FOCUSED);
 		}
 	}
@@ -302,7 +302,7 @@ LRESULT CFileListView::OnFindAsYouType(LPNMHDR pnmh)
 	ASSERT(lpCurrent);
 	if (!lpCurrent)return -1;
 
-	int iCount = lpCurrent->getNumChildren();
+	int iCount = (int)lpCurrent->getNumChildren();
 	if (iCount <= 0)return -1;
 
 	LPNMLVFINDITEM lpFindInfo = (LPNMLVFINDITEM)pnmh;
@@ -396,7 +396,7 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 	if (lpnmcd->hdr.hwndFrom == m_hWnd) {
 		auto lpnmlv = (LPNMLVCUSTOMDRAW)lpnmcd;
 
-		auto lpNode = mr_Model.GetFileListItemByIndex(lpnmcd->dwItemSpec);
+		auto lpNode = mr_Model.GetFileListItemByIndex((int)lpnmcd->dwItemSpec);
 		if (lpNode) {
 			if (!UtilIsSafeUnicode(lpNode->_entry.path)) {
 				//not a safe entry

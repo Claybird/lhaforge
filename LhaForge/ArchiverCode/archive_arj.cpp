@@ -279,7 +279,7 @@ LF_ENTRY_STAT* CLFArchiveARJ::read_entry_begin()
 	if (read == 0) {
 		RAISE_EXCEPTION(L"Unexpected EOF");
 	}
-	auto offset = Header::find_header(&cReadBuffer[0], read);
+	auto offset = Header::find_header(&cReadBuffer[0], (unsigned long)read);
 	if (-1 == offset) {
 		RAISE_EXCEPTION(L"Broken header");
 	}
@@ -350,8 +350,8 @@ LF_ENTRY_STAT* CLFArchiveARJ::read_entry_next()
 
 	_entry_stat.method_name = Format(L"Method %d", _header->h_Method);
 
-	int end = strlen(_header->h_Filename);
-	end = std::min(MAX_PATH - 1, end);
+	size_t end = strlen(_header->h_Filename);
+	end = std::min((size_t)MAX_PATH - 1, end);
 	_entry_stat.path = UtilCP932toUNICODE(_header->h_Filename, end);
 
 	_crc.reset();
@@ -413,7 +413,7 @@ bool CLFArchiveARJ::is_known_format(const std::filesystem::path& arcname)
 	try {
 		auto buf = UtilReadFile(arcname, HEADER_SIZE_LIMIT);
 		if (buf.empty())return false;
-		return (-1 != Header::find_header(&buf[0], buf.size()));
+		return (-1 != Header::find_header(&buf[0], (unsigned long)buf.size()));
 	} catch (const LF_EXCEPTION&) {
 		return false;
 	}
