@@ -424,23 +424,28 @@ std::wstring UtilFormatSize(UINT64 size)
 
 	for (const auto &unit : units) {
 		if (size / unit.first < 1024) {
-			return Format(L"%llu %s", size / unit.first, unit.second.c_str());
+			if (unit.first == 1) {
+				return Format(L"%llu %s", size, unit.second.c_str());
+			} else {
+				return Format(L"%.2f %s", (double)(size) / unit.first, unit.second.c_str());
+			}
 		}
 	}
 
-	return Format(L"%llu %s", size / units.back().first, units.back().second.c_str());
+	return Format(L"%.2f %s", (double)(size) / units.back().first, units.back().second.c_str());
 }
 #ifdef UNIT_TEST
 TEST(StringUtil, UtilFormatSize) {
 	EXPECT_EQ(L"---", UtilFormatSize(-1));
 	EXPECT_EQ(L"1 Bytes", UtilFormatSize(1));
 	EXPECT_EQ(L"1000 Bytes", UtilFormatSize(1000));
-	EXPECT_EQ(L"1 KB", UtilFormatSize(1024));
-	EXPECT_EQ(L"1 MB", UtilFormatSize(1024 * 1024));
-	EXPECT_EQ(L"1 GB", UtilFormatSize(1024 * 1024 * 1024));
-	EXPECT_EQ(L"1 TB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull));
-	EXPECT_EQ(L"1 PB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull * 1024ull));
-	EXPECT_EQ(L"10 PB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull * 1024ull * 10));
+	EXPECT_EQ(L"1.00 KB", UtilFormatSize(1024));
+	EXPECT_EQ(L"1.05 KB", UtilFormatSize(1075));
+	EXPECT_EQ(L"1.00 MB", UtilFormatSize(1024 * 1024));
+	EXPECT_EQ(L"1.00 GB", UtilFormatSize(1024 * 1024 * 1024));
+	EXPECT_EQ(L"1.00 TB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull));
+	EXPECT_EQ(L"1.00 PB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull * 1024ull));
+	EXPECT_EQ(L"10.00 PB", UtilFormatSize(1024 * 1024 * 1024 * 1024ull * 1024ull * 10));
 }
 #endif
 
