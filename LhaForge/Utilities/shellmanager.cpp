@@ -69,9 +69,6 @@ bool IsShellExtensionRegistered(const GUID inGUID)
 	// check for registory
 	HKEY hChildKey;
 	int flag = KEY_READ;
-	BOOL iswow64 = FALSE;
-	IsWow64Process(GetCurrentProcess(), &iswow64);
-	if(iswow64)flag|=KEY_WOW64_64KEY;
 	if (ERROR_SUCCESS != ::RegOpenKeyExW(HKEY_CLASSES_ROOT, key.c_str(), 0, flag, &hChildKey)) {
 		return false;
 	}

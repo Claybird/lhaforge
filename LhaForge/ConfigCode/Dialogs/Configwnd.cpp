@@ -174,39 +174,28 @@ void CConfigDialog::OnOK(UINT uNotifyCode, int nID, HWND hWndCtl)
 
 	//Assistant requested to handle UAC
 	if(m_nAssistRequireCount>0){
-		BOOL isOn64bit = FALSE;
-		IsWow64Process(GetCurrentProcess(), &isOn64bit);
+		auto tempFile = UtilGetTemporaryFileName().wstring();
+		assistINI.setPath(tempFile);
+		assistINI.save();
 
-		struct {
-			std::wstring command;
-			bool is64bitOnly;
-		}targets[] = { {L"LFAssist64.exe",true }, {L"LFAssist.exe",false} };
-		for (const auto &target : targets) {
-			if (!target.is64bitOnly || isOn64bit) {
-				auto tempFile = UtilGetTemporaryFileName().wstring();
-				assistINI.setPath(tempFile);
-				assistINI.save();
+		auto strExePath = UtilGetModuleDirectoryPath() / L"LFAssist64.exe";
 
-				auto strExePath = UtilGetModuleDirectoryPath() / target.command;
+		std::wstring buf = (L'"' + strExePath.wstring() + L'"');
 
-				std::wstring buf = (L'"' + strExePath.wstring() + L'"');
-
-				SHELLEXECUTEINFOW shei = { 0 };
-				shei.fMask = SEE_MASK_FLAG_DDEWAIT;
-				shei.cbSize = sizeof(shei);
-				shei.lpFile = &buf[0];
-				shei.lpParameters = &tempFile[0];
-				shei.nShow = SW_SHOW;
-				if (!ShellExecuteExW(&shei)) {
-					//failed with error
-					auto strLastError = UtilGetLastErrorMessage();
-					auto msg = Format(
-						UtilLoadString(IDS_ERROR_CANNOT_EXECUTE),
-						strExePath.c_str(),
-						strLastError.c_str());
-					ErrorMessage(msg);
-				}
-			}
+		SHELLEXECUTEINFOW shei = { 0 };
+		shei.fMask = SEE_MASK_FLAG_DDEWAIT;
+		shei.cbSize = sizeof(shei);
+		shei.lpFile = &buf[0];
+		shei.lpParameters = &tempFile[0];
+		shei.nShow = SW_SHOW;
+		if (!ShellExecuteExW(&shei)) {
+			//failed with error
+			auto strLastError = UtilGetLastErrorMessage();
+			auto msg = Format(
+				UtilLoadString(IDS_ERROR_CANNOT_EXECUTE),
+				strExePath.c_str(),
+				strLastError.c_str());
+			ErrorMessage(msg);
 		}
 
 		//notify shell of association change
