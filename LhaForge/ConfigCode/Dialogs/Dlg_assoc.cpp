@@ -43,7 +43,6 @@ enum class ASSOC_TYPE : int {
 	ARJ,
 	BZA,
 	GZA,
-	JAK,
 
 	UUE,
 	ISH,
@@ -93,7 +92,6 @@ const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
 	{ASSOC_TYPE::ARJ,	L".arj",	L"ARJ archive"},
 	{ASSOC_TYPE::BZA,	L".bza",	L"BGA32.dll archive"},
 	{ASSOC_TYPE::GZA,	L".gza",	L"BGA32.dll archive"},
-	{ASSOC_TYPE::JAK,	L".jak",	L"JACK32.dll splitted file"},
 
 	{ASSOC_TYPE::UUE,	L".uue",	L"uuencode binary-to-text encoding"},
 	{ASSOC_TYPE::ISH,	L".ish",	L"ish binary-to-text encoding"},
@@ -366,7 +364,7 @@ LRESULT CConfigDlgAssociation::OnApply()
 				};
 			} else {
 				//unset association
-				_assocRequests[item.AssocInfo.Ext] = { {L"set", 0} };
+				_assocRequests[item.AssocInfo.Ext] = { {L"set", L"0"} };
 			}
 		}
 	}
