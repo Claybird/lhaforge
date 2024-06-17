@@ -361,7 +361,7 @@ LRESULT CConfigDlgAssociation::OnApply()
 				//set association
 				_assocRequests[item.AssocInfo.Ext] = {
 					{L"set", L"1"},
-					{L"iconfile", item.AssocInfo.IconFile.wstring()},
+					{L"iconfile", item.AssocInfo.IconFile.make_preferred().wstring()},
 					{L"iconindex", Format(L"%d",item.AssocInfo.IconIndex)},
 				};
 			} else {

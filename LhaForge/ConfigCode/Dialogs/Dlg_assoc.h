@@ -168,9 +168,9 @@ public:
 		AssocInfo = &ai;
 		if (AssocInfo->IconFile.empty()) {
 			auto strResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
-			IconPath = strResourcePath;
+			IconPath = strResourcePath.make_preferred();
 		} else {
-			IconPath = AssocInfo->IconFile;
+			IconPath = AssocInfo->IconFile.make_preferred();
 		}
 	}
 	bool UpdateIcon() {
