@@ -276,10 +276,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 			}
 
 			//remove last separator
-			UtilPathRemoveLastSeparator(path);
-
-			//update
-			item = path;
+			item = UtilPathRemoveLastSeparator(path);
 		}
 		cli.FileList = tmp;
 	}

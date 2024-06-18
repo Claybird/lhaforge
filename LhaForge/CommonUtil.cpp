@@ -62,7 +62,7 @@ std::filesystem::path LF_get_output_dir(
 	switch (outputDirType) {
 	case OUTPUT_TO::SameDir:
 		//directory is same as the original file path
-		return original_file_path.parent_path().generic_wstring();
+		return original_file_path.parent_path();
 	case OUTPUT_TO::AlwaysAsk:
 		return ask_callback();
 	case OUTPUT_TO::SpecificDir:	//use provided path
