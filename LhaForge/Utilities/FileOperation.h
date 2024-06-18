@@ -109,7 +109,7 @@ public:
 		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
 		if (err==0 && _fp) {
 			//set buffer size
-			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024);
+			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024 * 32);
 		}
 	}
 	const std::filesystem::path &get_path()const { return _path; }
