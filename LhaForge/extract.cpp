@@ -242,7 +242,7 @@ std::filesystem::path determineExtractDir(
 	const std::filesystem::path& output_base_dir,
 	const LF_EXTRACT_ARGS& args)
 {
-	bool needToCreateDir;
+	bool needToCreateDir = false;
 	switch ((EXTRACT_CREATE_DIR)args.extract.CreateDir) {
 	case EXTRACT_CREATE_DIR::Never:
 		needToCreateDir = false;
