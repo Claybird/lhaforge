@@ -435,14 +435,7 @@ std::filesystem::path extractCurrentEntry(
 	ILFOverwriteConfirm& preExtractHandler,
 	ILFProgressHandler& progressHandler
 ) {
-	//original file name
-	auto originalPath = entry->path;
-	//original attributes
-	int nAttribute = entry->stat.st_mode;
-	//filetime
-	auto cFileTime = entry->stat.st_mtime;
-
-	auto outputPath = output_dir / LF_sanitize_pathname(originalPath);
+	std::filesystem::path outputPath = output_dir / LF_sanitize_pathname(entry->path);
 
 	//original file size (before compression)
 	progressHandler.onNextEntry(outputPath, entry->stat.st_size);
@@ -485,7 +478,7 @@ std::filesystem::path extractCurrentEntry(
 			CAutoFile fp;
 			fp.open(outputPath, L"wb");
 			if (!fp.is_opened()) {
-				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_ERROR_WRITE));
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_ERROR_WRITE));
 				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), outputPath.c_str());
 			}
 			created = true;
@@ -515,13 +508,13 @@ std::filesystem::path extractCurrentEntry(
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 		arcLog(outputPath, e.what());
 		if (created) {
-			UtilDeletePath(originalPath);
+			UtilDeletePath(outputPath);
 		}
 		throw;
 	} catch (LF_EXCEPTION &e) {
 		arcLog(outputPath, e.what());
 		if (created) {
-			UtilDeletePath(originalPath);
+			UtilDeletePath(outputPath);
 		}
 		throw;
 	}
