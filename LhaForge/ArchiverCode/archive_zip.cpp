@@ -1620,4 +1620,45 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip)
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
 
+TEST(CLFArchiveZIP, remove_directory_from_existing_zip)
+{
+	const auto src = LF_PROJECT_DIR() / L"test" / L"test_extract.zip";
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			if (startsWith(entry.path.wstring(), L"かきくけこ/"))return false;
+			return true;
+		});
+		a->close();
+	}
+	{
+		CLFArchiveZIP modified;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		modified.read_open(temp, pp);
+
+		std::vector<std::wstring> contents = {
+			L"dirA/dirB/",
+			L"dirA/dirB/dirC/",
+			L"dirA/dirB/dirC/file1.txt",
+			L"dirA/dirB/file2.txt",
+			L"あいうえお.txt",
+			//L"かきくけこ/file3.txt", <- removed item
+		};
+		auto entry_mod = modified.read_entry_begin();
+		size_t i;
+		for (i = 0; entry_mod; i++) {
+			EXPECT_EQ(contents[i], entry_mod->path.wstring());
+			entry_mod = modified.read_entry_next();
+		}
+		EXPECT_EQ(i, contents.size());
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
 #endif
