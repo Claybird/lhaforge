@@ -578,5 +578,15 @@ TEST(StringUtil, join) {
 	EXPECT_EQ(L"abc, def", join(L", ", std::vector<std::wstring>({ L"abc", L"def" })));
 	EXPECT_EQ(L"abc, def", join(L", ", std::vector<std::wstring>({ L"abc", L"def",L"ghi" }), 2));
 }
+
+TEST(StringUtil, startsWith) {
+	EXPECT_TRUE(startsWith(L"abc", L"ab"));
+	EXPECT_TRUE(startsWith(L"abc", L"abc"));
+	EXPECT_FALSE(startsWith(L"abc", L"Ab"));
+	EXPECT_FALSE(startsWith(L"abc", L"abcd"));
+	EXPECT_TRUE(startsWith(L"abc", L""));
+	EXPECT_FALSE(startsWith(L"abc", L"cde"));
+}
+
 #endif
 

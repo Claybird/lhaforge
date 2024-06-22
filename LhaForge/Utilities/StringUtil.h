@@ -189,3 +189,12 @@ inline std::wstring join(const std::wstring& separator, const std::vector<std::w
 
 //loads string from resource
 std::wstring UtilLoadString(UINT uID);
+
+inline bool startsWith(const std::wstring& subject, const std::wstring& prefix)
+{
+	if (subject.size() >= prefix.size()) {
+		return std::equal(prefix.begin(), prefix.end(), subject.begin());
+	} else {
+		return false;
+	}
+}
