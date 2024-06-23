@@ -580,6 +580,26 @@ TEST(FileOperation, UtilReadFile) {
 
 #endif
 
+bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::filesystem::path& directory)
+{
+	return startsWith(
+		std::filesystem::path(subject).make_preferred(),
+		std::filesystem::path(UtilPathAddLastSeparator(directory)).make_preferred()
+	);
+}
+
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilPathIsInSubDirectory) {
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b\\"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"a/b/c", L"a"));
+	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a", L"/a/b/c"));
+	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a/b/cd", L"/a/b/c"));
+}
+#endif
+
 void touchFile(const std::filesystem::path& path)
 {
 	CAutoFile fp;

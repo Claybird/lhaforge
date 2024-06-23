@@ -83,6 +83,8 @@ std::filesystem::path UtilGetModuleDirectoryPath();
 //read whole file
 std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize = 0);
 
+bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::filesystem::path& directory);
+
 class CAutoFile {
 protected:
 	FILE *_fp;
