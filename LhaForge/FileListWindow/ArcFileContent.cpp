@@ -496,7 +496,7 @@ std::tuple<std::filesystem::path,	//output file name
 	std::vector<std::filesystem::path>>	//files not removed
 CArchiveFileContent::subDeleteEntries(
 	const LF_COMPRESS_ARGS& args,
-	const std::map<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/> &items_to_delete,
+	const std::vector<std::pair<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/>> &items_to_delete,
 	ILFProgressHandler& progressHandler,
 	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
@@ -511,33 +511,36 @@ CArchiveFileContent::subDeleteEntries(
 
 	std::vector<std::filesystem::path> not_removed;
 
-	auto tempFile = UtilGetTemporaryFileName();
-	auto dest = src.make_copy_archive(tempFile, args,
-		[&](const LF_ENTRY_STAT& entry) {
+	auto judger = [&](const LF_ENTRY_STAT& entry) {
 		progressHandler.onNextEntry(entry.path, entry.stat.st_size);
 		progressHandler.onEntryIO(0);	//TODO
-		auto subject = std::filesystem::path(toLower(entry.path));
-		auto ite = items_to_delete.find(subject);
-		if (items_to_delete.end() != ite) {
-			auto decision = confirmHandler((*ite).second, entry);
-			switch (decision) {
-			case overwrite_options::overwrite:
-				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_REMOVED));
+		auto subject = std::filesystem::path(entry.path);
+
+		for (const auto& item : items_to_delete) {
+			if (subject == item.first || UtilPathIsInSubDirectory(subject, item.first)) {
+				//check overwrite, or just delete. depends on confirmHandler
+				auto decision = confirmHandler(item.second, entry);
+				switch (decision) {
+				case overwrite_options::overwrite:
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_REMOVED));
+					return false;
+				case overwrite_options::skip:
+					not_removed.push_back(subject);
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_KEEP));
+					return true;
+				case overwrite_options::abort:
+				default:
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_ABORT));
+					CANCEL_EXCEPTION();
+				}
 				return false;
-			case overwrite_options::skip:
-				not_removed.push_back(subject);
-				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_KEEP));
-				return true;
-			case overwrite_options::abort:
-			default:
-				arcLog(entry.path, UtilLoadString(IDS_ARCLOG_ABORT));
-				CANCEL_EXCEPTION();
 			}
-			return false;
-		} else {
-			return true;
 		}
-	});
+		return true;
+	};
+
+	auto tempFile = UtilGetTemporaryFileName();
+	auto dest = src.make_copy_archive(tempFile, args, judger);
 	return { tempFile, std::move(dest), not_removed};
 }
 
@@ -578,10 +581,10 @@ void CArchiveFileContent::addEntries(
 		return destDir / file.filename();
 	};
 
-	std::map<std::filesystem::path, std::filesystem::path> items_to_delete;
+	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
 	for (const auto &file : files) {
 		auto entryPath = get_path_in_archive(file);
-		items_to_delete.insert({ toLower(entryPath), file });
+		items_to_delete.push_back({ entryPath, file });
 	}
 
 	arcLog.setArchivePath(m_pathArchive);
@@ -939,10 +942,10 @@ void CArchiveFileContent::deleteEntries(
 	* To delete items from archive,
 	* skip items while making a copy of existing archive
 	*/
-	std::map<std::filesystem::path, std::filesystem::path> items_to_delete;
+	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
 	for (const auto &item : items) {
-		items_to_delete.insert({
-			toLower(std::filesystem::path(item->calcFullpath()).lexically_normal()),
+		items_to_delete.push_back({
+			std::filesystem::path(item->calcFullpath()).lexically_normal(),
 			L""
 		});
 	}
@@ -964,7 +967,7 @@ void CArchiveFileContent::deleteEntries(
 
 #ifdef UNIT_TEST
 
-TEST(ArcFileContent, deleteEntries)
+TEST(ArcFileContent, deleteEntries_file)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
 	auto temp = UtilGetTemporaryFileName();
@@ -992,6 +995,65 @@ TEST(ArcFileContent, deleteEntries)
 		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
 		content.deleteEntries(args,
 			{ content.getRootNode()->getChild(L"かきくけこ")->getChild(L"file3.txt") },
+			CLFProgressHandlerNULL(), arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, deleteEntries_dir)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.deleteEntries(args,
+			{ content.getRootNode()->getChild(L"かきくけこ") },
 			CLFProgressHandlerNULL(), arcLog);
 
 		CLFArchive a;

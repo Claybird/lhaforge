@@ -230,7 +230,7 @@ protected:
 	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>, std::vector<std::filesystem::path>>
 	subDeleteEntries(
 		const LF_COMPRESS_ARGS& args,
-		const std::map<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/> &items_to_delete,
+		const std::vector<std::pair<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/>>& items_to_delete,
 		ILFProgressHandler& progressHandler,
 		ILFOverwriteInArchiveConfirm& confirmHandler,
 		ARCLOG &arcLog);
