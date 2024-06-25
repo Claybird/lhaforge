@@ -10,9 +10,12 @@ protected:
 	LF_ENTRY_STAT _entry;
 	LF_ENTRY_STAT* read_entry_attrib();
 	LF_ENTRY_STAT* read_entry_internal(std::function<int32_t(void*)>);
+
+	std::filesystem::path _path;
 public:
 	CLFArchiveZIP();
 	virtual ~CLFArchiveZIP();
+	std::filesystem::path get_archive_path()const override { return _path; }
 	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase>)override;
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void close()override;

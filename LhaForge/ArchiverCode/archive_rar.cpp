@@ -269,6 +269,11 @@ CLFArchiveRAR::~CLFArchiveRAR()
 	delete _internal;
 }
 
+std::filesystem::path CLFArchiveRAR::get_archive_path()const
+{
+	return _internal->path;
+}
+
 void CLFArchiveRAR::read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)
 {
 	_internal->open(file, passphrase);

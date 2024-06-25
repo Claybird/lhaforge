@@ -151,8 +151,10 @@ enum class PRE_EXTRACT_CHECK :int {
 };
 
 std::tuple<PRE_EXTRACT_CHECK, std::filesystem::path /*baseDirName*/>
-preExtractCheck(ILFArchiveFile &arc)
+preExtractCheck(ILFArchiveFile &arc, ILFScanProgressHandler& progressHandler)
 {
+	progressHandler.setArchive(arc.get_archive_path());
+
 	std::filesystem::path baseDirName;
 	auto result = PRE_EXTRACT_CHECK::unknown;
 	bool bFirst = true;
@@ -186,6 +188,8 @@ preExtractCheck(ILFArchiveFile &arc)
 				}
 			}
 		}
+		//notifier
+		progressHandler.onNextEntry(entry->path);
 	}
 	return { result,baseDirName };
 }
@@ -193,42 +197,42 @@ preExtractCheck(ILFArchiveFile &arc)
 #ifdef UNIT_TEST
 TEST(extract, preExtractCheck) {
 	{
-		auto [result, baseDirName] = preExtractCheck(CLFArchiveNULL());
+		auto [result, baseDirName] = preExtractCheck(CLFArchiveNULL(), CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::unknown, result);
 	}
 	{
 		CLFArchive a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
-		auto [result, baseDirName] = preExtractCheck(a);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
 		CLFArchive a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
-		auto [result, baseDirName] = preExtractCheck(a);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
 	}
 	{
 		CLFArchive a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", pp);
-		auto [result, baseDirName] = preExtractCheck(a);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
 	}
 	{
 		CLFArchive a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
-		auto [result, baseDirName] = preExtractCheck(a);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
 	}
 	{
 		CLFArchive a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
-		auto [result, baseDirName] = preExtractCheck(a);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
 		EXPECT_EQ(PRE_EXTRACT_CHECK::singleDir, result);
 		EXPECT_EQ(L"test", baseDirName);
 	}
@@ -238,6 +242,7 @@ TEST(extract, preExtractCheck) {
 
 std::filesystem::path determineExtractDir(
 	ILFArchiveFile& arc,
+	ILFScanProgressHandler& progress,
 	const std::filesystem::path& archive_path,
 	const std::filesystem::path& output_base_dir,
 	const LF_EXTRACT_ARGS& args)
@@ -249,7 +254,7 @@ std::filesystem::path determineExtractDir(
 		break;
 	case EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir:
 	{
-		auto [result, baseDirName] = preExtractCheck(arc);
+		auto [result, baseDirName] = preExtractCheck(arc, progress);
 		if (PRE_EXTRACT_CHECK::multipleEntries != result) {
 			needToCreateDir = false;
 		} else {
@@ -259,7 +264,7 @@ std::filesystem::path determineExtractDir(
 	}
 	case EXTRACT_CREATE_DIR::SkipIfSingleDirectory:
 	{
-		auto [result, baseDirName] = preExtractCheck(arc);
+		auto [result, baseDirName] = preExtractCheck(arc, progress);
 		if (PRE_EXTRACT_CHECK::singleDir == result) {
 			needToCreateDir = false;
 		} else {
@@ -292,11 +297,11 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(L"path_to_archive/archive.ext", pp);
 		EXPECT_EQ(L"path_to_output",
-			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
 
 		arc.read_open(L"path_to_archive/archive  .ext", pp);
 		EXPECT_EQ(L"path_to_output",
-			determineExtractDir(arc, L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
 	}
 
 	{
@@ -305,10 +310,10 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(L"path_to_archive/archive.ext", pp);
 		EXPECT_EQ(L"path_to_output/archive",
-			determineExtractDir(arc, L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
 		arc.read_open(L"path_to_archive/archive  .ext", pp);
 		EXPECT_EQ(L"path_to_output/archive",
-			determineExtractDir(arc, L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
 	}
 
 	//---
@@ -318,7 +323,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
 		EXPECT_EQ(L"path_to_output",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
@@ -326,7 +331,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
 		EXPECT_EQ(L"path_to_output",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
 	}
 	//---
 	{
@@ -335,7 +340,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
 		EXPECT_EQ(L"path_to_output",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
@@ -343,7 +348,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
 		EXPECT_EQ(L"path_to_output/test",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
 	}
 	//---
 	{
@@ -352,7 +357,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"path_to_output/test_extract",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
 	}
 	{
 		CLFArchive arc;
@@ -360,7 +365,7 @@ TEST(extract, determineExtractDir) {
 		auto pp = std::make_shared<CLFPassphraseNULL>();
 		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
 		EXPECT_EQ(L"path_to_output/test_extract",
-			determineExtractDir(arc, LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
 	}
 }
 #endif
@@ -697,7 +702,7 @@ bool GUI_extract_multiple_files(
 			progressHandler.setNumEntries(arc.get_num_entries());
 
 			//output destination directory [could be same as the output base directory]
-			output_dir = determineExtractDir(arc, archive_path, output_base_dir, args);
+			output_dir = determineExtractDir(arc, CLFScanProgressHandlerGUI(NULL), archive_path, output_base_dir, args);
 
 			//make sure output directory exists
 			try {

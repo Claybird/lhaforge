@@ -35,6 +35,7 @@ protected:
 public:
 	CLFArchiveRAR();
 	virtual ~CLFArchiveRAR();
+	std::filesystem::path get_archive_path()const override;
 	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override {
 		throw LF_EXCEPTION(L"Read only format");

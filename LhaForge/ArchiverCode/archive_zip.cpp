@@ -349,6 +349,7 @@ void CLFArchiveZIP::read_open(const std::filesystem::path& file, std::shared_ptr
 	LF_COMPRESS_ARGS fake_args;
 	fake_args.load(CConfigFile());
 	_internal->open(file, MZ_OPEN_MODE_READ | MZ_OPEN_MODE_EXISTING, fake_args.formats.zip.params);
+	_path = file;
 }
 
 void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)
@@ -359,6 +360,7 @@ void CLFArchiveZIP::write_open(const std::filesystem::path& file, LF_ARCHIVE_FOR
 	if (options & LF_WOPT_DATA_ENCRYPTION) {
 		_internal->flag |= MZ_ZIP_FLAG_ENCRYPTED;
 	}
+	_path = file;
 }
 
 void CLFArchiveZIP::close()
@@ -368,6 +370,7 @@ void CLFArchiveZIP::close()
 		delete _internal;
 		_internal = nullptr;
 	}
+	_path.clear();
 }
 
 bool CLFArchiveZIP::is_modify_supported()const

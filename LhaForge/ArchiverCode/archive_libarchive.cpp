@@ -662,6 +662,7 @@ void CLFArchiveLA::read_open(const std::filesystem::path& file, std::shared_ptr<
 	close();
 	_arc_read = std::make_unique<LA_FILE_TO_READ>();
 	_arc_read->open(file, passhprase);
+	_path = file;
 }
 
 void CLFArchiveLA::write_open(
@@ -675,6 +676,7 @@ void CLFArchiveLA::write_open(
 
 	auto flags = getLAOptionsFromConfig(args, format, options);
 	_arc_write->open(file, format, flags, passphrase);
+	_path = file;
 }
 
 void CLFArchiveLA::close()
@@ -687,6 +689,7 @@ void CLFArchiveLA::close()
 		_arc_write->close();
 		_arc_write.reset();
 	}
+	_path.clear();
 }
 
 bool CLFArchiveLA::is_modify_supported()const

@@ -219,6 +219,7 @@ public:
 	virtual void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase) = 0;
 	virtual void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase) = 0;
 	virtual void close() = 0;
+	virtual std::filesystem::path get_archive_path()const = 0;
 
 	virtual bool is_modify_supported() const = 0;
 	//make a copy, and returns in "write_open" state
@@ -312,6 +313,14 @@ class CLFArchive : public ILFArchiveFile
 public:
 	CLFArchive() :m_numEntries(-1) {}
 	virtual ~CLFArchive() {}
+
+	std::filesystem::path get_archive_path()const override {
+		if (m_ptr.get()) {
+			return m_ptr->get_archive_path();
+		} else {
+			return L"";
+		}
+	}
 	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override;
 	void close()override {
@@ -368,6 +377,7 @@ class CLFArchiveNULL : public ILFArchiveFile
 public:
 	CLFArchiveNULL() {}
 	virtual ~CLFArchiveNULL() {}
+	std::filesystem::path get_archive_path()const override { return L""; }
 	void read_open(const std::filesystem::path& file, std::shared_ptr<ILFPassphrase> passphrase)override {}
 	void write_open(const std::filesystem::path& file, LF_ARCHIVE_FORMAT format, LF_WRITE_OPTIONS options, const LF_COMPRESS_ARGS& args, std::shared_ptr<ILFPassphrase> passphrase)override {}
 	void close()override {}
