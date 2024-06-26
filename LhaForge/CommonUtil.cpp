@@ -593,6 +593,7 @@ CLFScanProgressHandlerGUI::CLFScanProgressHandlerGUI(HWND hWndParent)
 {
 	dlg = std::make_unique<CWaitDialog>();
 	dlg->Prepare(hWndParent, 5000);
+	dlg->ShowWindow(SW_SHOW);
 }
 
 CLFScanProgressHandlerGUI::~CLFScanProgressHandlerGUI()
