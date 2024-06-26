@@ -701,8 +701,11 @@ bool GUI_extract_multiple_files(
 			arc.read_open(archive_path, std::make_shared<CLFPassphraseGUI>());
 
 			//output destination directory [could be same as the output base directory]
-			output_dir = determineExtractDir(arc, CLFScanProgressHandlerGUI(NULL), archive_path, output_base_dir, args);
-			progressHandler.setNumEntries(arc.get_num_entries());
+			{
+				CLFScanProgressHandlerGUI progress(NULL);
+				output_dir = determineExtractDir(arc, progress, archive_path, output_base_dir, args);
+				progressHandler.setNumEntries(arc.get_num_entries());
+			}
 
 			//make sure output directory exists
 			try {
