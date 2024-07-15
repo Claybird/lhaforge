@@ -354,43 +354,7 @@ void CFileListTabClient::OnExtractArchive(UINT,int nID,HWND)
 
 		::EnableWindow(m_rFrameWnd,TRUE);
 		SetForegroundWindow(m_rFrameWnd);
-
-		if(bRet && nID==ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE){
-			CloseCurrentTab();
-		}
 	}
-}
-
-
-void CFileListTabClient::OnExtractAll(UINT,int nID,HWND)
-{
-	::EnableWindow(m_rFrameWnd,FALSE);
-
-	int tabIndex=0;
-
-	for(;tabIndex<GetPageCount();){
-		SetActivePage(tabIndex);
-		CFileListTabItem* pItem=GetCurrentTab();
-		if(pItem){
-			bool bRet=pItem->Model.ExtractArchive(CLFProgressHandlerGUI(m_hWnd));
-			if(!bRet){
-				break;
-			}
-
-			if(nID==ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE_ALL){
-				CloseCurrentTab();
-			}else{
-				tabIndex++;
-			}
-		}else{
-			break;
-		}
-	}
-	if(GetPageCount()>0){
-		SetActivePage(0);
-	}
-	::EnableWindow(m_rFrameWnd,TRUE);
-	SetForegroundWindow(m_rFrameWnd);
 }
 
 void CFileListTabClient::OnTestArchive(UINT,int,HWND)
