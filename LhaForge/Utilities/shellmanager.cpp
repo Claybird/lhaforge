@@ -31,27 +31,15 @@
 
 const int CLSID_STRING_SIZE=(39 + 1);
 
-//---IA32
-//Context menu
-// {713B479F-6F2B-48e9-B545-5591CCFE398F}
-static const GUID CLSID_ShellExtShellMenu32 = 
-{ 0x713b479f, 0x6f2b, 0x48e9, { 0xb5, 0x45, 0x55, 0x91, 0xcc, 0xfe, 0x39, 0x8f } };
+//right click context menu
+// {9127BC06-94AC-46F7-99DB-3D4423B8E813}
+const GUID CLSID_LFContextMenu =
+{ 0x9127bc06, 0x94ac, 0x46f7, { 0x99, 0xdb, 0x3d, 0x44, 0x23, 0xb8, 0xe8, 0x13 } };
 
-//Drag menu
-// {5E5B692B-D6ED-4103-A1FA-9A71A93DAC88}
-static const GUID CLSID_ShellExtDragMenu32 = 
-{ 0x5e5b692b, 0xd6ed, 0x4103, { 0xa1, 0xfa, 0x9a, 0x71, 0xa9, 0x3d, 0xac, 0x88 } };
-
-//---AMD64
-//Context menu
-// {B7584D74-DE0C-4db5-80DD-42EEEDF42665}
-static const GUID CLSID_ShellExtShellMenu64 = 
-{ 0xb7584d74, 0xde0c, 0x4db5, { 0x80, 0xdd, 0x42, 0xee, 0xed, 0xf4, 0x26, 0x65 } };
-
-//Drag menu
-// {00521ADB-148D-45c9-8021-7446EE35609D}
-static const GUID CLSID_ShellExtDragMenu64 = 
-{ 0x521adb, 0x148d, 0x45c9, { 0x80, 0x21, 0x74, 0x46, 0xee, 0x35, 0x60, 0x9d } };
+//right drag menu
+// {8CE5DDDA-DDAF-476F-86FD-505DA9B94967}
+const GUID CLSID_LFDragMenu =
+{ 0x8ce5ddda, 0xddaf, 0x476f, { 0x86, 0xfd, 0x50, 0x5d, 0xa9, 0xb9, 0x49, 0x67 } };
 
 std::wstring CLSIDtoSTRING(REFCLSID inClsid)
 {
@@ -104,8 +92,6 @@ bool IsShellExtensionRegistered(const GUID inGUID)
 
 bool ShellRegistCheck()
 {
-	return (
-		IsShellExtensionRegistered(CLSID_ShellExtShellMenu32) ||
-		IsShellExtensionRegistered(CLSID_ShellExtShellMenu64)
-		);
+	return IsShellExtensionRegistered(CLSID_LFContextMenu);
 }
+

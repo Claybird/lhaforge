@@ -29,11 +29,18 @@
 #include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "Utilities/CustomControl.h"
+#include "Utilities/shellmanager.h"
 
 class CConfigDlgGeneral : public LFConfigDialogBase<CConfigDlgGeneral>
 {
 protected:
 	CConfigGeneral m_Config;
+	CConfigDialog& mr_ConfigDlg;
+	CButton Check_ShellExt;
+	struct KVPAIR {
+		std::wstring key, value;
+	};
+	std::map<std::wstring, std::vector<KVPAIR>> _requests;
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
 		::EnableWindow(GetDlgItem(IDC_EDIT_FILER_PATH), m_Config.Filer.UseFiler);
@@ -41,6 +48,9 @@ protected:
 		::EnableWindow(GetDlgItem(IDC_BUTTON_BROWSE_FILER), m_Config.Filer.UseFiler);
 		//DDX
 		DoDataExchange(FALSE);
+
+		Check_ShellExt = GetDlgItem(IDC_CHECK_SHELL_EXT);
+		Check_ShellExt.SetCheck(ShellRegistCheck());
 		return TRUE;
 	}
 	LRESULT OnCheckFiler(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
@@ -84,6 +94,12 @@ protected:
 		}
 		return 0;
 	}
+	LRESULT OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
+		if (BN_CLICKED == wNotifyCode) {
+			mr_ConfigDlg.RequireAssistant();
+		}
+		return 0;
+	}
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_GENERAL };
 	BEGIN_DDX_MAP(CConfigDlgGeneral)
@@ -102,12 +118,24 @@ public:
 		COMMAND_ID_HANDLER(IDC_CHECK_USE_FILER,OnCheckFiler)
 		COMMAND_ID_HANDLER(IDC_BUTTON_BROWSE_FILER,OnBrowseFiler)
 		COMMAND_ID_HANDLER(IDC_BUTTON_BROWSE_TEMP,OnBrowseTempPath)
+		COMMAND_ID_HANDLER(IDC_CHECK_SHELL_EXT, OnShellExt)
 	END_MSG_MAP()
+
+	CConfigDlgGeneral(CConfigDialog& dlg) :mr_ConfigDlg(dlg) {}
+	virtual ~CConfigDlgGeneral() {}
 
 	LRESULT OnApply() {
 		// DDX
 		if (!DoDataExchange(TRUE)) {
 			return FALSE;
+		}
+
+		_requests.clear();
+		//request to enable/disable shell
+		if (Check_ShellExt.GetCheck()) {
+			_requests[L"Shell"] = { { L"set", L"1" } };
+		} else {
+			_requests[L"Shell"] = { { L"set", L"0" } };
 		}
 		return TRUE;
 	}
@@ -117,6 +145,11 @@ public:
 	}
 	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
+		for (const auto& item : _requests) {
+			for (const auto& value : item.second) {
+				assistant.setValue(item.first, value.key, value.value);
+			}
+		}
 	}
 };
 

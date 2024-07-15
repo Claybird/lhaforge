@@ -35,7 +35,6 @@
 #include "Dlg_shortcut.h"
 #include "Dlg_filelistwindow.h"
 #include "Dlg_openaction.h"
-#include "Dlg_shellext.h"
 #include "Dlg_format.h"
 
 
@@ -97,8 +96,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 	};
 
 	//add dialog pages
-	ADD_PAGE(new CConfigDlgGeneral, TVI_ROOT);
-	ADD_PAGE(new CConfigDlgShellExt(*this),TVI_ROOT);
+	ADD_PAGE(new CConfigDlgGeneral(*this), TVI_ROOT);
 	ADD_PAGE(new CConfigDlgShortcut,TVI_ROOT);
 	ADD_PAGE(new CConfigDlgFileListWindow,TVI_ROOT);
 	HTREEITEM hItemDetail = ADD_PAGE(new CConfigDlgCompressGeneral,TVI_ROOT);

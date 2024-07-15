@@ -38,7 +38,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
     <ClCompile Include="Dialogs\FindDlg.cpp" />
@@ -99,7 +98,6 @@
     <ClInclude Include="ConfigCode\Dialogs\Dlg_filelistwindow.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_general.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />

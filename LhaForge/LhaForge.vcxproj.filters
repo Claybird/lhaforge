@@ -13,9 +13,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp">
-      <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
@@ -192,9 +189,6 @@
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h">
-      <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h">
       <Filter>Configs\Dialogs</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h">
