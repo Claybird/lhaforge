@@ -30,4 +30,4 @@ std::tuple<LF_ARCHIVE_FORMAT,
 	LF_WRITE_OPTIONS,
 	bool /*singleCompression*/,
 	bool /*deleteAfterCompress*/>
-GUI_SelectCompressType();
+GUI_SelectCompressType(bool enableSingleCompression, bool enableDeletion);

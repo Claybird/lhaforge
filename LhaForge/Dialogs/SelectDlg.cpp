@@ -34,6 +34,8 @@ protected:
 	bool bPassword;
 	bool bSingleCompression;
 	bool bDeleteAfterCompress;
+	const bool bEnableSingleCompression;
+	const bool bEnableDeletion;
 
 	BEGIN_DDX_MAP(CSelectDialog)
 		DDX_CHECK(IDC_CHECK_COMPRESS_PASSWORD, bPassword)
@@ -53,6 +55,10 @@ protected:
 	}
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
 		DoDataExchange(FALSE);
+
+		::EnableWindow(GetDlgItem(IDC_CHECK_SINGLE_COMPRESSION), bEnableSingleCompression);
+		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS), bEnableDeletion);
+
 		CenterWindow();
 		return TRUE;
 	}
@@ -85,7 +91,12 @@ protected:
 
 public:
 	enum { IDD = IDD_DIALOG_SELECT_COMPRESS_TYPE };
-	CSelectDialog() :bPassword(false), bSingleCompression(false), bDeleteAfterCompress(false) {}
+	CSelectDialog(bool enableSingleCompression, bool enableDeletion) :
+		bPassword(false),
+		bSingleCompression(false),
+		bDeleteAfterCompress(false),
+		bEnableSingleCompression(enableSingleCompression),
+		bEnableDeletion(enableDeletion){}
 	virtual ~CSelectDialog() {}
 
 	LF_WRITE_OPTIONS GetOptions() {
@@ -105,9 +116,9 @@ std::tuple<LF_ARCHIVE_FORMAT,
 	LF_WRITE_OPTIONS,
 	bool /*singleCompression*/,
 	bool /*deleteAfterCompress*/>
-GUI_SelectCompressType()
+GUI_SelectCompressType(bool enableSingleCompression, bool enableDeletion)
 {
-	CSelectDialog SelDlg;
+	CSelectDialog SelDlg(enableSingleCompression, enableDeletion);
 	auto format = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
 	return { format, SelDlg.GetOptions(), SelDlg.IsSingleCompression(), SelDlg.GetDeleteAfterCompress() };
 }

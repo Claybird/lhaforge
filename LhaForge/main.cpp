@@ -137,7 +137,7 @@ bool DoCompress(CConfigFile &config, CMDLINEINFO &cli)
 			cli.CompressType = ConfCompress.DefaultType;
 			cli.Options = ConfCompress.DefaultOptions;
 		}else{	//not default parameter
-			auto [format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+			auto [format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType(true, true);
 			if(LF_ARCHIVE_FORMAT::INVALID ==format){	//cancel
 				return false;
 			}else{

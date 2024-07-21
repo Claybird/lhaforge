@@ -37,7 +37,7 @@ GetCompressShortcutInfo(HWND hWnd)
 		int Options = -1;
 
 		//choose format
-		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+		auto[format, options, singleCompression, _] = GUI_SelectCompressType(true, false);
 		if (format == LF_ARCHIVE_FORMAT::INVALID)CANCEL_EXCEPTION();
 
 		//find args
@@ -53,9 +53,9 @@ GetCompressShortcutInfo(HWND hWnd)
 			}
 			auto fname = Format(UtilLoadString(resID), UtilLoadString(args.FormatName).c_str());
 
-			if (deleteAfterCompress) {
+			/*if (deleteAfterCompress) {
 				//ignored intentionally
-			}
+			}*/
 			return { arg,fname };
 		} catch (const ARCHIVE_EXCEPTION&) {
 			//unsupported format

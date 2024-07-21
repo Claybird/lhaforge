@@ -117,7 +117,7 @@ LRESULT CConfigDlgCompressGeneral::OnCheckUseDefaultParameter(WORD wNotifyCode, 
 LRESULT CConfigDlgCompressGeneral::OnSelectDefaultParameter(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
 {
 	if(BN_CLICKED==wNotifyCode){
-		auto[format, options, singleCompression, deleteAfterCompress] = GUI_SelectCompressType();
+		auto[format, options, _, __] = GUI_SelectCompressType(false, false);
 		if(format == LF_ARCHIVE_FORMAT::INVALID)return 1;	//cancel
 
 		//find suitable options
