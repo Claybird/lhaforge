@@ -50,7 +50,6 @@ LRESULT CConfigDlgExtractGeneral::OnInitDialog(HWND hWnd, LPARAM lParam)
 	//delete archive after extract
 	::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN), m_Config.DeleteArchiveAfterExtract);
 	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM), m_Config.DeleteArchiveAfterExtract);
-	::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_MULTIVOLUME), m_Config.DeleteArchiveAfterExtract);
 
 	DoDataExchange(FALSE);
 	return TRUE;
@@ -122,7 +121,6 @@ LRESULT CConfigDlgExtractGeneral::OnCheckDeleteArchive(WORD wNotifyCode, WORD wI
 		BOOL State = CButton(GetDlgItem(IDC_CHECK_DELETE_ARCHIVE_AFTER_EXTRACT)).GetCheck();
 		::EnableWindow(GetDlgItem(IDC_CHECK_MOVETO_RECYCLE_BIN),State);
 		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_NOCONFIRM),State);
-		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_MULTIVOLUME),State);
 	}
 	return 0;
 }
