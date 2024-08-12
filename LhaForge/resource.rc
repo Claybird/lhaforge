@@ -751,72 +751,68 @@ BEGIN
         MENUITEM "E&xtract\tCtrl+S",            ID_MENUITEM_EXTRACT_ARCHIVE
         MENUITEM "&Extract selection\tCtrl+E",  ID_MENUITEM_EXTRACT_SELECTED
         MENUITEM "Extract into archi&ve folder", ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR
-        MENUITEM "選択を削除(&D)\tDelete",           ID_MENUITEM_DELETE_SELECTED
-        MENUITEM "関連付けで開く(&O)",                 ID_MENUITEM_OPEN_ASSOCIATION
-        MENUITEM "上書き解凍して開く(&W)",               ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE
-        MENUITEM "一時フォルダに解凍(&T)",               ID_MENUITEM_EXTRACT_TEMPORARY
-        POPUP "プログラムで開く(&P)"
+        MENUITEM "&Delete selected\tDelete",    ID_MENUITEM_DELETE_SELECTED
+        MENUITEM "Extract in temporary and &open app", ID_MENUITEM_OPEN_ASSOCIATION
+        MENUITEM "Over&write and open in temporary", ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE
+        MENUITEM "Extract in &temporary",       ID_MENUITEM_EXTRACT_TEMPORARY
+        POPUP "Open by a&pp"
         BEGIN
             MENUITEM "(なし)",                        ID_MENUITEM_DUMMY
         END
-        POPUP "送る(&N)"
+        POPUP "Se&nd to"
         BEGIN
             MENUITEM "(なし)",                        ID_MENUITEM_DUMMY
         END
         MENUITEM SEPARATOR
-        MENUITEM "ファイルの追加(&I)",                 ID_MENUITEM_ADD_FILE
-        MENUITEM "フォルダの追加(&L)",                 40095
+        MENUITEM "Add f&ile",                   ID_MENUITEM_ADD_FILE
+        MENUITEM "Add fo&lder",                 40095
         MENUITEM SEPARATOR
-        MENUITEM "検索(&F)\tF3",                  ID_MENUITEM_FINDITEM
-        MENUITEM "検索の終了(&X)",                   ID_MENUITEM_FINDITEM_END
-        POPUP "情報コピー(&G)"
+        MENUITEM "&Search\tF3",                 ID_MENUITEM_FINDITEM
+        MENUITEM "E&xit search",                ID_MENUITEM_FINDITEM_END
+        POPUP "Copy info(&G)"
         BEGIN
-            MENUITEM "ファイル名(&F)",                   ID_MENUITEM_COPY_FILENAME
-            MENUITEM "格納パス(&P)",                    ID_MENUITEM_COPY_PATH
-            MENUITEM "元サイズ(&S)",                    ID_MENUITEM_COPY_ORIGINAL_SIZE
-            MENUITEM "ファイル種別(&T)",                  ID_MENUITEM_COPY_FILETYPE
-            MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
-            MENUITEM "属性(&A)",                      ID_MENUITEM_COPY_ATTRIBUTE
-            MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
-            MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "&File name",                  ID_MENUITEM_COPY_FILENAME
+            MENUITEM "&Path in archive",            ID_MENUITEM_COPY_PATH
+            MENUITEM "Original &size",              ID_MENUITEM_COPY_ORIGINAL_SIZE
+            MENUITEM "File &type",                  ID_MENUITEM_COPY_FILETYPE
+            MENUITEM "Mo&dified date",              ID_MENUITEM_COPY_FILETIME
+            MENUITEM "&Attributes",                 ID_MENUITEM_COPY_ATTRIBUTE
+            MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
+            MENUITEM "&Method",                     ID_MENUITEM_COPY_METHOD
+            MENUITEM "&Compression ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
             MENUITEM SEPARATOR
-            MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
+            MENUITEM "&Everything",                 ID_MENUITEM_COPY_ALL
         END
     END
-    POPUP "表示(&V)"
+    POPUP "&View"
     BEGIN
-        MENUITEM "小さいアイコン(&S)",                 ID_MENUITEM_LISTVIEW_SMALLICON
-        MENUITEM "大きいアイコン(&L)",                 ID_MENUITEM_LISTVIEW_LARGEICON
-        MENUITEM "詳細表示(&R)",                    ID_MENUITEM_LISTVIEW_REPORT
-        MENUITEM "一覧表示(&I)",                    ID_MENUITEM_LISTVIEW_LIST
+        MENUITEM "&Small icon",                 ID_MENUITEM_LISTVIEW_SMALLICON
+        MENUITEM "&Large icon",                 ID_MENUITEM_LISTVIEW_LARGEICON
+        MENUITEM "&Report style",               ID_MENUITEM_LISTVIEW_REPORT
+        MENUITEM "L&ist",                       ID_MENUITEM_LISTVIEW_LIST
         MENUITEM SEPARATOR
-        MENUITEM "表示項目のカスタマイズ(&C)",             ID_MENUITEM_SHOW_COLUMNHEADER_MENU
+        MENUITEM "&Customize view",             ID_MENUITEM_SHOW_COLUMNHEADER_MENU
         MENUITEM SEPARATOR
-        MENUITEM "階層表示(&T)\tF6",                ID_MENUITEM_LISTMODE_TREE
-        MENUITEM "平坦表示(&F)\tF7",                ID_MENUITEM_LISTMODE_FLAT
-        MENUITEM "ファイルのみ表示(&E)\tF8",            ID_MENUITEM_LISTMODE_FLAT_FILESONLY
-        MENUITEM SEPARATOR
-        POPUP "並べ替え(&O)"
+        POPUP "&Order by"
         BEGIN
-            MENUITEM "ファイル名(&N)",                   ID_MENUITEM_SORT_FILENAME
-            MENUITEM "格納パス(&P)",                    ID_MENUITEM_SORT_FULLPATH
-            MENUITEM "元サイズ(&S)",                    ID_MENUITEM_SORT_ORIGINALSIZE
-            MENUITEM "ファイル種別(&T)",                  ID_MENUITEM_SORT_TYPENAME
-            MENUITEM "更新日時(&D)",                    ID_MENUITEM_SORT_FILETIME
-            MENUITEM "属性(&A)",                      ID_MENUITEM_SORT_ATTRIBUTE
-            MENUITEM "圧縮後サイズ(&O)",                  ID_MENUITEM_SORT_COMPRESSEDSIZE
-            MENUITEM "メソッド(&M)",                    ID_MENUITEM_SORT_METHOD
-            MENUITEM "圧縮率(I)",                      ID_MENUITEM_SORT_RATIO
+            MENUITEM "&File name",                  ID_MENUITEM_SORT_FILENAME
+            MENUITEM "&Path",                       ID_MENUITEM_SORT_FULLPATH
+            MENUITEM "Original &size",              ID_MENUITEM_SORT_ORIGINALSIZE
+            MENUITEM "File &type",                  ID_MENUITEM_SORT_TYPENAME
+            MENUITEM "Mo&dified date",              ID_MENUITEM_SORT_FILETIME
+            MENUITEM "&Attributes",                 ID_MENUITEM_SORT_ATTRIBUTE
+            MENUITEM "&Compressed size",            ID_MENUITEM_SORT_COMPRESSEDSIZE
+            MENUITEM "&Method",                     ID_MENUITEM_SORT_METHOD
+            MENUITEM "Compression rat&io",          ID_MENUITEM_SORT_RATIO
         END
-        MENUITEM "ツリービューの表示/非表示(&V)",           ID_MENUITEM_TOGGLE_TREEVIEW
+        MENUITEM "Show/hide tree &view",        ID_MENUITEM_TOGGLE_TREEVIEW
     END
-    POPUP "ツール(&T)"
+    POPUP "&Tool"
     BEGIN
-        MENUITEM "LhaForge設定(&C)",              ID_MENUITEM_CONFIGURE
+        MENUITEM "&Preferences",                ID_MENUITEM_CONFIGURE
         MENUITEM SEPARATOR
-        MENUITEM "次のタブ(&N)\tCtrl+Tab,Ctrl+WheelDown", ID_MENUITEM_NEXTTAB
-        MENUITEM "前のタブ(&P)\tCtrl+Shift+Tab,Ctrl+WheelUp", ID_MENUITEM_PREVTAB
+        MENUITEM "&Next tab\tCtrl+Tab,Ctrl+WheelDown", ID_MENUITEM_NEXTTAB
+        MENUITEM "&Previous tab\tCtrl+Shift+Tab,Ctrl+WheelUp", ID_MENUITEM_PREVTAB
     END
 END
 
@@ -1168,11 +1164,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_LISTMODE_TREE "Use folder structure\nUse folder structure"
-    ID_MENUITEM_LISTMODE_FLAT 
-                            "Ignore folder structure\nIgnore folder structure"
-    ID_MENUITEM_LISTMODE_FLAT_FILESONLY 
-                            "Ignore folder structure and show only files\nFiles only"
     ID_MENUITEM_DUMMY       "(None)"
     ID_MENUITEM_FINDITEM    "Search in folder\nSearch items"
     ID_MENUITEM_FINDITEM_END "End search\nEnd search"
@@ -1908,10 +1899,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "表示項目のカスタマイズ(&C)",             ID_MENUITEM_SHOW_COLUMNHEADER_MENU
         MENUITEM SEPARATOR
-        MENUITEM "階層表示(&T)\tF6",                ID_MENUITEM_LISTMODE_TREE
-        MENUITEM "平坦表示(&F)\tF7",                ID_MENUITEM_LISTMODE_FLAT
-        MENUITEM "ファイルのみ表示(&E)\tF8",            ID_MENUITEM_LISTMODE_FLAT_FILESONLY
-        MENUITEM SEPARATOR
         POPUP "並べ替え(&O)"
         BEGIN
             MENUITEM "ファイル名(&N)",                   ID_MENUITEM_SORT_FILENAME
@@ -2250,16 +2237,13 @@ BEGIN
     "S",            ID_MENUITEM_EXTRACT_ARCHIVE, VIRTKEY, CONTROL, NOINVERT
     "E",            ID_MENUITEM_EXTRACT_SELECTED, VIRTKEY, CONTROL, NOINVERT
     VK_F3,          ID_MENUITEM_FINDITEM,   VIRTKEY, NOINVERT
-    VK_F7,          ID_MENUITEM_LISTMODE_FLAT, VIRTKEY, NOINVERT
-    VK_F8,          ID_MENUITEM_LISTMODE_FLAT_FILESONLY, VIRTKEY, NOINVERT
-    VK_F6,          ID_MENUITEM_LISTMODE_TREE, VIRTKEY, NOINVERT
     "O",            ID_MENUITEM_OPENARCHIVE, VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_MENUITEM_REFRESH,    VIRTKEY, NOINVERT
     "A",            ID_MENUITEM_SELECT_ALL, VIRTKEY, CONTROL, NOINVERT
+    "T",            ID_MENUITEM_TEST_ARCHIVE, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         ID_MENUITEM_TOGGLE_FOCUS, VIRTKEY, NOINVERT
     VK_BACK,        ID_MENUITEM_UPDIR,      VIRTKEY, NOINVERT
     VK_UP,          ID_MENUITEM_UPDIR,      VIRTKEY, ALT, NOINVERT
-    "T",            ID_MENUITEM_TEST_ARCHIVE, VIRTKEY, CONTROL, NOINVERT
 END
 
 IDR_ACCEL_EX ACCELERATORS
@@ -2492,9 +2476,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_LISTMODE_TREE "フォルダとファイルを階層表示\n階層表示"
-    ID_MENUITEM_LISTMODE_FLAT "フォルダ階層を無視して平坦に表示\n階層無視"
-    ID_MENUITEM_LISTMODE_FLAT_FILESONLY "ファイルのみを表示\nファイルのみ表示"
     ID_MENUITEM_DUMMY       "(なし)"
     ID_MENUITEM_FINDITEM    "現在のフォルダ以下のファイルを検索します。\nファイルを検索"
     ID_MENUITEM_FINDITEM_END "検索を終了し通常の状態に戻します。\n検索を終了"
