@@ -581,7 +581,7 @@ LRESULT CFileListView::OnBeginDrag(LPNMHDR pnmh)
 
 	if(!mr_Model.ClearTempDir()){
 		//temporary directory clean-up failed
-		ErrorMessage(UtilLoadString(IDS_ERROR_CANT_CLEAR_TEMPDIR));
+		//ErrorMessage(UtilLoadString(IDS_ERROR_CANT_CLEAR_TEMPDIR));
 		return 0;
 	}
 
