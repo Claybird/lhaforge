@@ -942,144 +942,145 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_COMPRESS_LEVEL      "圧縮レベル"
-    IDS_ASK_CREATE_DIR      "出力先フォルダ '%s' は存在しません。作成しますか？"
-    IDS_ASK_FILELIST_DELETE_SELECTED "選択ファイルをアーカイブから削除しますか？"
-    IDS_ASK_ISOK_NETWORK    "この処理の出力先はネットワーク上にありますが、このまま出力先を変更せずに処理を続行しますか？"
-    IDS_ASK_ISOK_REMOVABLE  "この処理の出力先は取り外し可能なディスクですが、このまま出力先を変更せずに処理を続行しますか？"
+    IDS_COMPRESS_LEVEL      "Compression level"
+    IDS_ASK_CREATE_DIR      "Output folder '%s' does not exist. Do you want to create it?"
+    IDS_ASK_FILELIST_DELETE_SELECTED 
+                            "Are you sure to delete selected files from archive?"
+    IDS_ASK_ISOK_NETWORK    "Output destination is on network. Do you want to proceed?"
+    IDS_ASK_ISOK_REMOVABLE  "Output destination is removable. Do you want to proceed?"
     IDS_ASK_SHORTCUT_COMPRESS_TYPE_ALWAYS_ASK 
-                            "このショートカットを利用して圧縮を行う場合、\n・圧縮のたびに形式を選ぶ\nもしくは\n・ここであらかじめ圧縮形式を決めておく\nを選ぶことが出来ます。\nこのショートカットによる圧縮の形式をいま設定しておきますか？"
-    IDS_COMPRESS_METHOD_STORE "無圧縮"
+                            "Do you want to decide compression format here? Yes to decide here, No to decide later."
+    IDS_COMPRESS_METHOD_STORE "No compression"
     IDS_COMPRESS_METHOD_BZIP2 "BZIP2"
-    IDS_ERROR_PATH_EMPTY    "ファイルパスが空です"
-    IDS_ERROR_CANNOT_EXECUTE "プログラム '%s' を実行できません。\n詳細情報:%s"
+    IDS_ERROR_PATH_EMPTY    "File path is empty"
+    IDS_ERROR_CANNOT_EXECUTE "Failed to run '%s'.\n%s"
     IDS_ARCLOG_OK           "OK"
-    IDS_ERROR_GET_FULLPATH  "フルパスの取得に失敗しました"
-    IDS_ARCLOG_MKDIR        "フォルダ作成"
+    IDS_ERROR_GET_FULLPATH  "Failed to get full path"
+    IDS_ARCLOG_MKDIR        "Create folder"
     IDS_DENYEXT_DEFAULT     ".docx;.dotx;.xlsx;.xltx;.pptx;.potx;.ppsx;.sldx;.thmx;.odt;.ods;.odp;.odb;.odg;.odf;"
-    IDS_NUM_EXTRA_FILES     "他%d個のファイル"
-    IDS_ERROR_CREATE_SHORTCUT "ショートカットを作成できませんでした。"
+    IDS_NUM_EXTRA_FILES     "%d more files"
+    IDS_ERROR_CREATE_SHORTCUT "Failed to create shortcut"
 END
 
 STRINGTABLE
 BEGIN
     IDS_COMPRESS_METHOD_LZMA1 "LZMA1"
-    IDS_ERROR_DIR_NOTFOUND  "出力先フォルダ '%s' が見つかりませんでした。"
+    IDS_ERROR_DIR_NOTFOUND  "Output folder '%s' is not found"
     IDS_COMPRESS_METHOD_LZMA2 "LZMA2"
     IDS_COMPRESS_METHOD_PPMD "PPMd"
-    IDS_COMPRESS_LEVEL_DEFAULT "標準"
-    IDS_ERROR_DND_FAILED    "ドラッグ&ドロップ操作に失敗しました。"
-    IDS_ERROR_FAIL_GET_ABSPATH "ファイル名の取得に失敗しました。(絶対パス)"
-    IDS_ARCLOG_MKDIR_FAIL   "フォルダ作成に失敗"
-    IDS_ERROR_FILE_NOT_FOUND "ファイル '%s' が見つかりません。"
-    IDS_ERROR_FILE_NOT_SPECIFIED "処理可能なファイルが指定されていません。"
-    IDS_ERROR_FILE_REPLACE  "既存のアーカイブを置き換えることができませんでした。\n詳細情報 : %s"
+    IDS_COMPRESS_LEVEL_DEFAULT "Standard"
+    IDS_ERROR_DND_FAILED    "Failed in drag & drop operation"
+    IDS_ERROR_FAIL_GET_ABSPATH "Failed to get absolute path"
+    IDS_ARCLOG_MKDIR_FAIL   "Failed to create folder"
+    IDS_ERROR_FILE_NOT_FOUND "File '%s' is not found"
+    IDS_ERROR_FILE_NOT_SPECIFIED "There is no file to process"
+    IDS_ERROR_FILE_REPLACE  "Failed to replace existing file. %s"
     IDS_ERROR_FILELIST_DELETE_SELECTED_NOT_SUPPORTED 
-                            "この形式ではアーカイブからファイルを削除することは出来ません。"
-    IDS_ARCLOG_SKIP         "スキップ"
-    IDS_ERROR_FILELIST_NOT_SELECTED "ファイルが選択されていません。"
-    IDS_ERROR_GET_DESKTOP   "デスクトップのパスを取得できません。"
-    IDS_ARCLOG_ERROR_WRITE  "ファイルに書き込めません"
+                            "Content file cannot be removed from this archive format"
+    IDS_ARCLOG_SKIP         "Skip"
+    IDS_ERROR_FILELIST_NOT_SELECTED "No file is selected"
+    IDS_ERROR_GET_DESKTOP   "Failed to get desktop path"
+    IDS_ARCLOG_ERROR_WRITE  "Failed to write file"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_ARCLOG_ENTRY_IS_DIR "エントリはフォルダ"
-    IDS_ERROR_ILLEGAL_FORMAT_TYPE "圧縮形式として不正な形式が指定されました。"
-    IDS_ARCLOG_REMOVED      "削除"
-    IDS_ERROR_INVALID_PARAMETER "'%s' は不正なオプションです"
-    IDS_ARCLOG_KEEP         "保持"
-    IDS_ERROR_SAME_INPUT_AND_OUTPUT "'%s' は入力ファイルと同じ名前です。別の名前を指定してください。"
-    IDS_COMPRESS_LEVEL_FASTEST "速度重視"
-    IDS_COMPRESS_LEVEL_HIGH "圧縮率重視"
-    IDS_ERROR_SINGLE_FILE_ONLY "この形式では複数のファイルを圧縮することは出来ません。"
-    IDS_COMPRESS_LEVEL_EVEN_HIGHER "さらに圧縮率重視"
-    IDS_COMPRESS_LEVEL_ULTRA "最高圧縮率"
-    IDS_COMPRESS_MULTI_THREAD "マルチスレッド処理"
+    IDS_ARCLOG_ENTRY_IS_DIR "Entry is folder"
+    IDS_ERROR_ILLEGAL_FORMAT_TYPE "Illegal compression format"
+    IDS_ARCLOG_REMOVED      "Remove"
+    IDS_ERROR_INVALID_PARAMETER "Invalid parameter: '%s'"
+    IDS_ARCLOG_KEEP         "Keep"
+    IDS_ERROR_SAME_INPUT_AND_OUTPUT 
+                            "Output file name must be different from source file '%s'"
+    IDS_COMPRESS_LEVEL_FASTEST "Fast"
+    IDS_COMPRESS_LEVEL_HIGH "High compression"
+    IDS_ERROR_SINGLE_FILE_ONLY "This format can contain single file only"
+    IDS_COMPRESS_LEVEL_EVEN_HIGHER "Even higher compression"
+    IDS_COMPRESS_LEVEL_ULTRA "Maximum compression"
+    IDS_COMPRESS_MULTI_THREAD "Multi-threaded"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MESSAGE_CAPTION     "LhaForge"
-    IDS_ERROR_UNKNOWN_FORMAT "不明/未対応のファイル形式"
+    IDS_ERROR_UNKNOWN_FORMAT "Unknown format"
     IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
-    IDS_ARCHIVE_IS_NOT_OPENED "アーカイブが開かれていません"
-    IDS_ENTER_PASSPRASE     "パスワードを入力してください"
-    IDS_ERROR_OPEN_FILE     "ファイル '%s'を開けません"
+    IDS_ARCHIVE_IS_NOT_OPENED "Archive is not opened"
+    IDS_ENTER_PASSPHRASE    "Enter passphrase"
+    IDS_ERROR_OPEN_FILE     "Failed to open file '%s'"
     IDS_LHAFORGE_VERSION_STRING "Beta"
-    IDS_CONFIG_FORMAT_KEY   "項目"
-    IDS_ERROR_WRITE_FILE    "ファイル '%s' に書き込めません"
-    IDS_ERROR_UNEXPECTED    "予期せぬエラー: %s"
-    IDS_CONFIG_FORMAT_VALUE "値"
-    IDS_SEARCH_BY_FILENAME  "ファイル名: %s"
-    IDS_COMPRESS_METHOD     "圧縮メソッド"
+    IDS_CONFIG_FORMAT_KEY   "Item"
+    IDS_ERROR_WRITE_FILE    "Cannot write file '%s'."
+    IDS_ERROR_UNEXPECTED    "Unexpected error: %s"
+    IDS_CONFIG_FORMAT_VALUE "Value"
+    IDS_SEARCH_BY_FILENAME  "Filename: %s"
+    IDS_COMPRESS_METHOD     "Compression method"
     IDS_COMPRESS_METHOD_DEFLATE "Deflate"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_SHORTCUT_NAME_EXTRACT "LhaForgeで解凍"
-    IDS_SHORTCUT_NAME_LIST  "LhaForgeで閲覧"
-    IDS_FILELIST_ITEMCOUNT  "%d 項目"
-    IDS_FILELIST_SUBITEM    "フォルダ内項目数"
+    IDS_SHORTCUT_NAME_EXTRACT "Extract with LhaForge"
+    IDS_SHORTCUT_NAME_LIST  "List with LhaForge"
+    IDS_FILELIST_ITEMCOUNT  "%d items"
+    IDS_FILELIST_SUBITEM    "items in folder"
     IDS_FORMAT_NAME_ZSTD    "ZSTD"
-    IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE "LhaForgeで%sに個別圧縮"
-    IDS_SHORTCUT_NAME_TESTARCHIVE "LhaForgeで検査"
-    IDS_SHORTCUT_DESCRIPTION_TESTARCHIVE "アーカイブを検査します。"
+    IDS_SHORTCUT_NAME_COMPRESS_EX_SINGLE "Separately compress in %s"
+    IDS_SHORTCUT_NAME_TESTARCHIVE "Test with LhaForge"
+    IDS_SHORTCUT_DESCRIPTION_TESTARCHIVE "Tests archive"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COND_MDATE_EQUAL_OR_LESS "%d年%d月%d日以前"
-    IDS_COND_FOLDER         "フォルダ"
-    IDS_COND_FILE           "ファイル"
-    IDS_SEARCH_EVERYTHING   "全てのファイルとフォルダ"
-    IDS_SEARCH_FOLDER_NAME  "検索フォルダ名"
-    IDS_SEARCH_FOLDER_CONDITION "条件"
-    IDS_PANE_ITEMCOUNT      "%d個のアイテム(うち%d個を選択)"
-    IDS_PANE_ITEMCOUNT_INITIAL "000000個のアイテム(うち000000個を選択)"
-    IDS_SHORTCUT_DESCRIPTION_AUTOMATIC "ファイルの圧縮/解凍を自動的に判定します。"
-    IDS_SHORTCUT_DESCRIPTION_COMPRESS "ファイルを圧縮します。"
-    IDS_SHORTCUT_DESCRIPTION_EXTRACT "アーカイブを解凍します。"
-    IDS_SHORTCUT_DESCRIPTION_LIST "アーカイブを閲覧します。"
-    IDS_SHORTCUT_NAME_AUTOMATIC "LhaForgeで処理"
-    IDS_SHORTCUT_NAME_COMPRESS "LhaForgeで圧縮"
-    IDS_SHORTCUT_NAME_COMPRESS_EX "LhaForgeで%sに圧縮"
+    IDS_COND_MDATE_EQUAL_OR_LESS 
+                            "Equal or older than %d[year]/%d[month]/%d[day]"
+    IDS_COND_FOLDER         "Folder"
+    IDS_COND_FILE           "File"
+    IDS_SEARCH_EVERYTHING   "All files and folders"
+    IDS_SEARCH_FOLDER_NAME  "Name"
+    IDS_SEARCH_FOLDER_CONDITION "Condition"
+    IDS_PANE_ITEMCOUNT      "%d items (%d items selected)"
+    IDS_PANE_ITEMCOUNT_INITIAL "000000 items (000000 items selected)"
+    IDS_SHORTCUT_DESCRIPTION_AUTOMATIC 
+                            "Automatically decide compress or extract files"
+    IDS_SHORTCUT_DESCRIPTION_COMPRESS "Compress files"
+    IDS_SHORTCUT_DESCRIPTION_EXTRACT "Extract archive"
+    IDS_SHORTCUT_DESCRIPTION_LIST "List archive contents"
+    IDS_SHORTCUT_NAME_AUTOMATIC "Process with LhaForge"
+    IDS_SHORTCUT_NAME_COMPRESS "Compress with LhaForge"
+    IDS_SHORTCUT_NAME_COMPRESS_EX "Compress in %s"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_COMPRESS_MT_ALL_CORES "有効"
-    IDS_FILELIST_COLUMN_FILENAME "ファイル名"
-    IDS_FILELIST_COLUMN_ORIGINALSIZE "元サイズ"
-    IDS_FILELIST_COLUMN_FILETIME "更新日時"
-    IDS_FILELIST_COLUMN_FULLPATH "格納パス"
-    IDS_FILELIST_COLUMN_TYPENAME "ファイル種別"
-    IDS_COMPRESS_MT_SINGLE_THREAD "無効"
+    IDS_COMPRESS_MT_ALL_CORES "Enabled"
+    IDS_FILELIST_COLUMN_FILENAME "File name"
+    IDS_FILELIST_COLUMN_ORIGINALSIZE "Original size"
+    IDS_FILELIST_COLUMN_FILETIME "Modified date"
+    IDS_FILELIST_COLUMN_FULLPATH "Path as stored"
+    IDS_FILELIST_COLUMN_TYPENAME "File type"
+    IDS_COMPRESS_MT_SINGLE_THREAD "Disabled"
     IDS_FORMAT_NAME_7Z      "7z"
-    IDS_FORMAT_NAME_7Z_PASS "7zパスワード付き"
-    IDS_FORMAT_NAME_7Z_PASS_SPLIT "7zパスワード付き分割"
-    IDS_FORMAT_NAME_7Z_SFX  "7z自己解凍"
-    IDS_FORMAT_NAME_7Z_SPLIT "7z分割"
+    IDS_FORMAT_NAME_7Z_PASS "Encrypted 7z"
 END
 
 STRINGTABLE
 BEGIN
     IDS_FORMAT_NAME_BZ2     "BZip2"
-    IDS_COMPRESS_CHARSET    "文字コード"
+    IDS_COMPRESS_CHARSET    "Encoding"
     IDS_COMPRESS_CHARSET_UTF8 "UNICODE(UTF-8)"
-    IDS_COMPRESS_CHARSET_ACP "ANSI/Shift_JIS(非推奨)"
-    IDS_ENCRYPTION_METHOD   "暗号化方式"
+    IDS_COMPRESS_CHARSET_ACP "ANSI/Shift_JIS(Deprecated)"
+    IDS_ENCRYPTION_METHOD   "Encryption"
     IDS_FORMAT_NAME_GZ      "GZip"
     IDS_ENCRYPTION_ZIPCRYPT "ZipCrypto"
     IDS_ENCRYPTION_AES128   "AES128"
     IDS_ENCRYPTION_AES256   "AES256"
     IDS_ENCRYPTION_AES192   "AES192"
-    IDS_WAITING_FOR_SEMAPHORE "他のファイルの処理が終わるのを待っています"
-    IDS_TREE_SEARCH_FOLDER  "検索フォルダ"
-    IDS_SEARCH_BY_FILEPATH  "ファイルパス: %s"
-    IDS_SEARCH_BY_ORIGINAL_SIZE "圧縮前サイズ: %s"
-    IDS_SEARCH_BY_MDATE     "更新日: %s"
+    IDS_WAITING_FOR_SEMAPHORE "Waiting for other file to be processed"
+    IDS_TREE_SEARCH_FOLDER  "Search folder"
+    IDS_SEARCH_BY_FILEPATH  "File path: %s"
+    IDS_SEARCH_BY_ORIGINAL_SIZE "Original size: %s"
+    IDS_SEARCH_BY_MDATE     "Modified date: %s"
 END
 
 STRINGTABLE
@@ -1087,153 +1088,155 @@ BEGIN
     IDS_FORMAT_NAME_TAR     "TAR"
     IDS_FORMAT_NAME_TBZ     "TAR+BZip2"
     IDS_FORMAT_NAME_TGZ     "TAR+GZip"
-    IDS_SEARCH_BY_MODE      "ファイル種別: %s"
-    IDS_COND_FILESIZE_EQUAL "%sちょうど"
-    IDS_COND_FILESIZE_EQUAL_OR_GREATER "%s以上"
-    IDS_COND_FILESIZE_EQUAL_OR_LESS "%s以下"
-    IDS_COND_MDATE_EQUAL    "%d年%d月%d日に一致"
-    IDS_COND_MDATE_EQUAL_OR_GREATER "%d年%d月%d日以降"
+    IDS_SEARCH_BY_MODE      "File or folder: %s"
+    IDS_COND_FILESIZE_EQUAL "Equal to %s"
+    IDS_COND_FILESIZE_EQUAL_OR_GREATER "Equal or larger than %s"
+    IDS_COND_FILESIZE_EQUAL_OR_LESS "Equal or smaller than %s"
+    IDS_COND_MDATE_EQUAL    "On %d[year]/%d[month]/%d[day]"
+    IDS_COND_MDATE_EQUAL_OR_GREATER 
+                            "Equal or newer than %d[year]/%d[month]/%d[day]"
     IDS_FORMAT_NAME_ZIP     "ZIP"
-    IDS_FORMAT_NAME_ZIP_PASS "ZIPパスワード付き"
-    IDS_FORMAT_NAME_ZIP_PASS_SFX "ZIPパスワード付き自己解凍"
-    IDS_FORMAT_NAME_ZIP_PASS_SPLIT "ZIPパスワード付き分割"
-    IDS_FORMAT_NAME_ZIP_SFX "ZIP自己解凍"
-    IDS_FORMAT_NAME_ZIP_SPLIT "ZIP分割"
+    IDS_FORMAT_NAME_ZIP_PASS "Encrypted ZIP"
 END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "LhaForge ファイル一覧"
+    IDR_MAINFRAME           "LhaForge"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_CLOSE_WINDOW "プログラムを終了します\n終了"
-    ID_MENUITEM_CONFIGURE   "設定画面を開きます\nLhaForgeの設定"
-    ID_MENUITEM_DELETE_SELECTED "アーカイブから選択されたファイルを削除します\n選択ファイルを削除"
-    ID_MENUITEM_EXTRACT_SELECTED "選択したファイルを解凍します\n選択したファイルを解凍"
-    ID_MENUITEM_LISTVIEW_LARGEICON "大きいアイコンで表示\n大きいアイコン"
-    ID_MENUITEM_LISTVIEW_LIST "一覧表示します\n一覧"
-    ID_MENUITEM_LISTVIEW_REPORT "詳細情報も表示します\n詳細"
-    ID_MENUITEM_LISTVIEW_SMALLICON "小さいアイコンで表示\n小さいアイコン"
-    ID_MENUITEM_REFRESH     "ファイル一覧を更新します\nファイル一覧更新"
-    ID_MENUITEM_SELECT_ALL  "ファイルを全て選択します\n全てのファイルを選択"
-    ID_MENUITEM_UPDIR       "フォルダを一つあがります\n一つ上のフォルダに移動"
+    ID_MENUITEM_CLOSE_WINDOW "End program\nEnd"
+    ID_MENUITEM_CONFIGURE   "Open preferences\nPreferences"
+    ID_MENUITEM_DELETE_SELECTED 
+                            "Delete selected itemsfrom archive\nDelete selected items"
+    ID_MENUITEM_EXTRACT_SELECTED "Extract selected items\nExtract selected"
+    ID_MENUITEM_LISTVIEW_LARGEICON "Show large icons\nLarge icon"
+    ID_MENUITEM_LISTVIEW_LIST "Show list\nList"
+    ID_MENUITEM_LISTVIEW_REPORT "Show detailed list\nReport style"
+    ID_MENUITEM_LISTVIEW_SMALLICON "Show small icons\nSmall icon"
+    ID_MENUITEM_REFRESH     "Refresh file list\nRefresh list"
+    ID_MENUITEM_SELECT_ALL  "Select all items\nSelect all"
+    ID_MENUITEM_UPDIR       "Move up folder\nMove up"
 END
 
 STRINGTABLE
 BEGIN
-    ATL_IDS_IDLEMESSAGE     "操作可能"
+    ATL_IDS_IDLEMESSAGE     "Ready"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_EXTRACT_ARCHIVE "現在のアーカイブを設定に従って解凍します。\nアーカイブをすべて解凍"
-    ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE "ファイル属性を表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_FILETIME "ファイルの更新日時を表示するかどうか選択します。"
+    ID_MENUITEM_EXTRACT_ARCHIVE "Extract current archive\nExtract"
+    ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE "Show file attributes"
+    ID_MENUITEM_LISTVIEW_COLUMN_FILETIME "Show file modification date"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE "圧縮前のファイルサイズを表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH "ファイルの格納パスを表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME "ファイル種別を表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_RESET "表示項目のカスタマイズ設定を元に戻します"
-    ID_MENUITEM_OPEN_ASSOCIATION "選択されたファイルを一時フォルダに解凍し、関連付けで開きます\n関連付けで開く"
+    ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE "Show original file size"
+    ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH "Show path in archive"
+    ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME "Show file type"
+    ID_MENUITEM_LISTVIEW_COLUMN_RESET "Reset display items"
+    ID_MENUITEM_OPEN_ASSOCIATION 
+                            "Open selected items after extracting into temporary folder\nOpen selected item"
     ID_MENUITEM_EXTRACT_TEMPORARY 
-                            "選択されたファイルを一時フォルダに解凍します。既にファイルが存在すれば上書きされます。\n一時フォルダに上書き解凍"
-    ID_MENUITEM_CLEAR_TEMPORARY "一時解凍フォルダの中身を空にします\n一時フォルダをクリア"
+                            "Extract selected items into temporary folder. Overwrites existing temporary files.\nExtract into temporary folder"
+    ID_MENUITEM_CLEAR_TEMPORARY 
+                            "Clear temporary folder\nClear temporary folder"
     ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE 
-                            "選択されたファイルで一時フォルダの中身を上書き解凍し、関連付けで開きます\n上書き解凍して開く"
+                            "Open selected items after extracting into temporary folder. Overwrites existing temporary files.\nOpen after overwriting"
     ID_MENUITEM_EXTRACT_SELECTED_SAMEDIR 
-                            "選択されたファイルをアーカイブと同じフォルダに解凍します\nアーカイブと同じフォルダに解凍"
-    ID_MENUITEM_SHOW_COLUMNHEADER_MENU "詳細表示の表示項目をカスタマイズします\n詳細表示の表示項目カスタマイズ"
-    ID_MENUITEM_LISTVIEW_COLUMN_RATIO "圧縮率を表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE "圧縮後のファイルサイズを表示するかどうか選択します。"
-    ID_MENUITEM_LISTVIEW_COLUMN_METHOD "圧縮メソッドを表示するかどうか選択します。"
+                            "Extract selected items into archive's folder\nExtract into archive's folder"
+    ID_MENUITEM_SHOW_COLUMNHEADER_MENU 
+                            "Customize column in detailed report view\nCustomize column"
+    ID_MENUITEM_LISTVIEW_COLUMN_RATIO "Show compression ratio"
+    ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE "Show compressed file size"
+    ID_MENUITEM_LISTVIEW_COLUMN_METHOD "Show compression method"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_ERROR_CANT_CLEAR_TEMPDIR 
-                            "一時解凍用フォルダを空に出来ません。一時解凍されたファイルを使用中のプログラムがある場合は、一旦閉じてください。"
     IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT ".*"
     IDS_FILELIST_OPENASSOC_DEFAULT_DENY 
                             ".awk;.bat;.bin;.class;.cmd;.com;.cpl;.dll;.eml;.exe;.folder;.inf;.js;.jse;.lnk;.msc;.msi;.php;.pif;.pl;.reg;.scf;.scr;.sys;.url;.vbe;.vbs;.wsf;.wsh"
-    IDS_FILELIST_COLUMN_COMPRESSEDSIZE "圧縮後サイズ"
-    IDS_FILELIST_COLUMN_RATIO "圧縮率"
-    IDS_FILELIST_COLUMN_METHOD "メソッド"
-    IDS_CAPTION_CONFIG_USERCOMMON "LhaForge 設定[全ユーザー共通]"
+    IDS_FILELIST_COLUMN_COMPRESSEDSIZE "Compressed size"
+    IDS_FILELIST_COLUMN_RATIO "Compression ratio"
+    IDS_FILELIST_COLUMN_METHOD "Method"
+    IDS_CAPTION_CONFIG_USERCOMMON "LhaForge Preferences [all users]"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_LISTMODE_TREE "フォルダとファイルを階層表示\n階層表示"
-    ID_MENUITEM_LISTMODE_FLAT "フォルダ階層を無視して平坦に表示\n階層無視"
-    ID_MENUITEM_LISTMODE_FLAT_FILESONLY "ファイルのみを表示\nファイルのみ表示"
-    ID_MENUITEM_DUMMY       "(なし)"
-    ID_MENUITEM_FINDITEM    "現在のフォルダ以下のファイルを検索します。\nファイルを検索"
-    ID_MENUITEM_FINDITEM_END "検索を終了し通常の状態に戻します。\n検索を終了"
-    ID_MENUITEM_OPENARCHIVE "ディスク上のアーカイブを開きます。\nアーカイブを開く"
+    ID_MENUITEM_LISTMODE_TREE "Use folder structure\nUse folder structure"
+    ID_MENUITEM_LISTMODE_FLAT 
+                            "Ignore folder structure\nIgnore folder structure"
+    ID_MENUITEM_LISTMODE_FLAT_FILESONLY 
+                            "Ignore folder structure and show only files\nFiles only"
+    ID_MENUITEM_DUMMY       "(None)"
+    ID_MENUITEM_FINDITEM    "Search in folder\nSearch items"
+    ID_MENUITEM_FINDITEM_END "End search\nEnd search"
+    ID_MENUITEM_OPENARCHIVE "Open archive\nOpen archive"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_LOGINFO_OPERATION_EXTRACT "解凍結果"
-    IDS_LOGINFO_OPERATION_TESTARCHIVE "検査結果"
-    IDS_LOGINFO_RESULT      "処理結果"
-    IDS_LOGINFO_RESULT_OK   "正常"
-    IDS_LOGINFO_RESULT_NG   "問題有り"
-    IDS_LOGINFO_OPERATION_COMPRESS "圧縮結果"
-    IDS_LOGINFO_RESULT_NOTIMPL "機能無し"
-    IDS_LOGINFO_RESULT_NOTARCHIVE "アーカイブではない"
-    IDS_ERROR_UNICODECONTROL "アーカイブにUNICODE制御文字が含まれています。"
-    IDS_ERROR_USERCANCEL    "ユーザーによるキャンセルがありました"
-    IDS_ERROR_FILE_COPY     "ファイルのコピーに失敗しました"
+    IDS_LOGINFO_OPERATION_EXTRACT "Extract results"
+    IDS_LOGINFO_OPERATION_TESTARCHIVE "Test results"
+    IDS_LOGINFO_RESULT      "Process results"
+    IDS_LOGINFO_RESULT_OK   "OK"
+    IDS_LOGINFO_RESULT_NG   "NG"
+    IDS_LOGINFO_OPERATION_COMPRESS "Compress results"
+    IDS_LOGINFO_RESULT_NOTIMPL "Not implemented"
+    IDS_LOGINFO_RESULT_NOTARCHIVE "Not an archive"
+    IDS_ERROR_UNICODECONTROL "Archive contains UNICODE control characters"
+    IDS_ERROR_USERCANCEL    "Cancelled by user"
+    IDS_ERROR_FILE_COPY     "Failed to copy file"
 END
 
 STRINGTABLE
 BEGIN
-    ID_TABMENU_CLOSE        "タブを閉じる"
-    ID_TABMENU_RELOAD       "このタブを再読み込み"
-    ID_TABMENU_CLOSEOTHERS  "これ以外のタブを全て閉じる"
-    ID_TABMENU_RELOADALL    "開いているタブを全て再読み込み"
+    ID_TABMENU_CLOSE        "Close tab"
+    ID_TABMENU_RELOAD       "Reload this tab"
+    ID_TABMENU_CLOSEOTHERS  "Close other tabs"
+    ID_TABMENU_RELOADALL    "Reload all tabs"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_CLOSETAB    "現在のタブを閉じます\n閉じる"
-    ID_MENUITEM_ADD_FILE    "ファイルを現在の場所に追加します\nファイルを追加"
-    ID_MENUITEM_ADD_DIRECTORY "フォルダを現在の場所に追加します\nフォルダを追加"
+    ID_MENUITEM_CLOSETAB    "Close current tab\nClose"
+    ID_MENUITEM_ADD_FILE    "Add file into current location\nAdd file"
+    ID_MENUITEM_ADD_DIRECTORY "Add folder into current location\nAdd folder"
 END
 
 STRINGTABLE
 BEGIN
     IDS_ASK_MOVE_PROCESSED_FILES_TO_RECYCLE_BIN 
-                            "処理が完了しました。以下のファイルをごみ箱に移動しますか？\n"
-    IDS_ASK_DELETE_PROCESSED_FILE "処理が完了しました。以下のファイルを削除しますか？\n"
+                            "Process successfully completed. Are you sure to move files into recycle-bin?\n"
+    IDS_ASK_DELETE_PROCESSED_FILE 
+                            "Process successfully completed. Are you sure to delete files?\n"
     IDS_FORMAT_NAME_XZ      "XZ"
     IDS_FORMAT_NAME_LZMA    "LZMA"
     IDS_FORMAT_NAME_TAR_XZ  "TAR+XZ"
     IDS_FORMAT_NAME_TAR_LZMA "TAR+LZMA"
-    IDS_ENCRYPTED_ARCHIVE   "パスワード保護*"
-    IDS_FORMAT_NAME         "フォーマット名"
-    IDS_EXTENSION           "拡張子"
+    IDS_ENCRYPTED_ARCHIVE   "Encrypted*"
+    IDS_FORMAT_NAME         "Format name"
+    IDS_EXTENSION           "Extension"
 END
 
 STRINGTABLE
 BEGIN
-    ID_MENUITEM_TEST_ARCHIVE "現在のアーカイブをテストします\nアーカイブをテスト"
+    ID_MENUITEM_TEST_ARCHIVE "Test current archive\nTest archive"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_ERROR_READ_FILE     "ファイル '%s' を読めません"
-    IDS_ERROR_GET_STAT      "ファイル '%s' の属性を取得できません"
-    IDS_ERROR_MKDIR         "フォルダ '%s' を作成できません"
-    IDS_ERROR_UNEXPECTED_EOF "ファイルが途中で終わっています"
-    IDS_ERROR_CHDIR         "フォルダ '%s' に移動できません"
-    IDS_ARCLOG_ABORT        "中止"
+    IDS_ERROR_READ_FILE     "Failed to read '%s'"
+    IDS_ERROR_GET_STAT      "Failed to get attributes of '%s'"
+    IDS_ERROR_MKDIR         "Failed to create folder '%s' "
+    IDS_ERROR_UNEXPECTED_EOF "Unexpected end of file"
+    IDS_ERROR_CHDIR         "Failed to go into '%s' "
+    IDS_ARCLOG_ABORT        "Abort"
 END
 
 #endif    // ニュートラル (既定) resources
@@ -2334,7 +2337,7 @@ BEGIN
     IDS_ERROR_UNKNOWN_FORMAT "不明/未対応のファイル形式"
     IDS_FORMAT_NAME_TAR_ZSTD "TAR+ZSTD"
     IDS_ARCHIVE_IS_NOT_OPENED "アーカイブが開かれていません"
-    IDS_ENTER_PASSPRASE     "パスワードを入力してください"
+    IDS_ENTER_PASSPHRASE    "パスワードを入力してください"
     IDS_ERROR_OPEN_FILE     "ファイル '%s'を開けません"
     IDS_LHAFORGE_VERSION_STRING "Beta"
     IDS_CONFIG_FORMAT_KEY   "項目"
@@ -2388,9 +2391,6 @@ BEGIN
     IDS_COMPRESS_MT_SINGLE_THREAD "無効"
     IDS_FORMAT_NAME_7Z      "7z"
     IDS_FORMAT_NAME_7Z_PASS "7zパスワード付き"
-    IDS_FORMAT_NAME_7Z_PASS_SPLIT "7zパスワード付き分割"
-    IDS_FORMAT_NAME_7Z_SFX  "7z自己解凍"
-    IDS_FORMAT_NAME_7Z_SPLIT "7z分割"
 END
 
 STRINGTABLE
@@ -2425,10 +2425,6 @@ BEGIN
     IDS_COND_MDATE_EQUAL_OR_GREATER "%d年%d月%d日以降"
     IDS_FORMAT_NAME_ZIP     "ZIP"
     IDS_FORMAT_NAME_ZIP_PASS "ZIPパスワード付き"
-    IDS_FORMAT_NAME_ZIP_PASS_SFX "ZIPパスワード付き自己解凍"
-    IDS_FORMAT_NAME_ZIP_PASS_SPLIT "ZIPパスワード付き分割"
-    IDS_FORMAT_NAME_ZIP_SFX "ZIP自己解凍"
-    IDS_FORMAT_NAME_ZIP_SPLIT "ZIP分割"
 END
 
 STRINGTABLE
@@ -2485,8 +2481,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ERROR_CANT_CLEAR_TEMPDIR 
-                            "一時解凍用フォルダを空に出来ません。一時解凍されたファイルを使用中のプログラムがある場合は、一旦閉じてください。"
     IDS_FILELIST_OPENASSOC_DEFAULT_ACCEPT ".*"
     IDS_FILELIST_OPENASSOC_DEFAULT_DENY 
                             ".awk;.bat;.bin;.class;.cmd;.com;.cpl;.dll;.eml;.exe;.folder;.inf;.js;.jse;.lnk;.msc;.msi;.php;.pif;.pl;.reg;.scf;.scr;.sys;.url;.vbe;.vbs;.wsf;.wsh"
