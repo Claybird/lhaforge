@@ -485,7 +485,7 @@ TEST(CommonUtil, LF_setProcessTempPath)
 const char* CLFPassphraseGUI::operator()()
 {
 	if (raw.empty()) {
-		CTextInputDialog dlg(UtilLoadString(IDS_ENTER_PASSPRASE), true);
+		CTextInputDialog dlg(UtilLoadString(IDS_ENTER_PASSPHRASE), true);
 		dlg.SetInputText(raw);
 		if (IDOK == dlg.DoModal()) {
 			set_passphrase(dlg.GetInputText());

@@ -6,7 +6,7 @@
 #define IDS_ERROR_UNKNOWN_FORMAT        2
 #define IDS_FORMAT_NAME_TAR_ZSTD        3
 #define IDS_ARCHIVE_IS_NOT_OPENED       4
-#define IDS_ENTER_PASSPRASE             6
+#define IDS_ENTER_PASSPHRASE             6
 #define IDS_ERROR_OPEN_FILE             7
 #define IDS_LHAFORGE_VERSION_STRING     8
 #define IDS_CONFIG_FORMAT_KEY           9
