@@ -173,6 +173,54 @@ TEST(CLFArchive, write_open)
 	UtilDeleteDir(temp / L"test_write_open", true);
 	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
 }
+
+TEST(CLFArchive, write_open_gz)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	LF_COMPRESS_ARGS arg;
+	arg.load(CConfigFile());
+	std::filesystem::create_directories(temp / L"test_write_open");
+	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.gz", LF_ARCHIVE_FORMAT::GZ, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
+	}
+	UtilDeleteDir(temp / L"test_write_open", true);
+	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
+}
+
+TEST(CLFArchive, write_open_bz2)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	LF_COMPRESS_ARGS arg;
+	arg.load(CConfigFile());
+	std::filesystem::create_directories(temp / L"test_write_open");
+	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.bz2", LF_ARCHIVE_FORMAT::BZ2, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
+	}
+	UtilDeleteDir(temp / L"test_write_open", true);
+	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
+}
+
+TEST(CLFArchive, write_open_zstd)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	LF_COMPRESS_ARGS arg;
+	arg.load(CConfigFile());
+	std::filesystem::create_directories(temp / L"test_write_open");
+	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open"));
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open/test_write.zst", LF_ARCHIVE_FORMAT::ZSTD, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
+	}
+	UtilDeleteDir(temp / L"test_write_open", true);
+	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
+}
 #endif
 
 std::vector<LF_COMPRESS_CAPABILITY> CLFArchive::get_compression_capability()const
