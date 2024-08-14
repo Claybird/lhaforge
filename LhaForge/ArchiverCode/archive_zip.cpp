@@ -26,7 +26,7 @@ static std::wstring mzError2Text(int code)
 		case MZ_CRYPT_ERROR:return L"Cryptography error";
 		case MZ_EXIST_ERROR:return L"Does not exist";
 		case MZ_PASSWORD_ERROR:return L"Invalid password";
-		case MZ_SUPPORT_ERROR:return L"Library support error";
+		case MZ_SUPPORT_ERROR:return L"Not supported error";
 		case MZ_HASH_ERROR:return L"Hash error";
 		case MZ_OPEN_ERROR:return L"Stream open error";
 		case MZ_CLOSE_ERROR:return L"Stream close error";
