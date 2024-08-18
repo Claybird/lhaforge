@@ -292,7 +292,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 
 	SetColumnState(columnOrder, columnWidthArray);
 
-	return 0;
+	return 1;
 }
 
 
