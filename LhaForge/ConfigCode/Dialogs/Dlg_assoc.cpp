@@ -39,13 +39,11 @@ enum class ASSOC_TYPE : int {
 	_7Z,
 
 	RAR,
-	ACE,
 	ARJ,
 	BZA,
 	GZA,
 
 	UUE,
-	ISH,
 
 	TAR,
 	GZ,
@@ -88,13 +86,11 @@ const DLG_ASSOC_ITEM DLG_ASSOC_TABLE[]={
 	{ASSOC_TYPE::_7Z,	L".7z",		L"7-Zip archive"},
 
 	{ASSOC_TYPE::RAR,	L".rar",	L"WinRAR archive"},
-	{ASSOC_TYPE::ACE,	L".ace",	L"WinAce archive"},
 	{ASSOC_TYPE::ARJ,	L".arj",	L"ARJ archive"},
 	{ASSOC_TYPE::BZA,	L".bza",	L"BGA32.dll archive"},
 	{ASSOC_TYPE::GZA,	L".gza",	L"BGA32.dll archive"},
 
 	{ASSOC_TYPE::UUE,	L".uue",	L"uuencode binary-to-text encoding"},
-	{ASSOC_TYPE::ISH,	L".ish",	L"ish binary-to-text encoding"},
 
 	{ASSOC_TYPE::TAR,	L".tar",	L"\"Tape Archives\" format"},
 	{ASSOC_TYPE::GZ,		L".gz",		L"gzip compression format"},
