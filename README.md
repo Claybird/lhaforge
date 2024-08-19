@@ -12,57 +12,35 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 ## 圧縮・解凍・テストの全てに対応
 
 - zip/zipx
-
 - tar
-
 - gzip
-
 - bz2
-
 - zstandard
-
 - lz4
-
 - xz
-
 - 7z
 
 ## 解凍・テストのみ
 
 - lzh
-
 - Microsoft Cabinet
-
 - ISO9660 CD-ROM images
-
 - rar
-
 - arj
-
 - cpio
-
 - z(compress)
-
 - uuencode
-
 - [bga](https://www.madobe.net/archiver/lib/bga32.html)
 
 ## Ver.2.0.0以降、非対応
 
 - 一部のCab形式
-
 - [yz1](https://www.madobe.net/archiver/lib/yz1.html)
-
 - [jak](https://www.madobe.net/archiver/lib/jack32.html)
-
 - [ish](https://www.madobe.net/archiver/lib/aish32.html)
-
 - [gca](https://www.madobe.net/archiver/lib/ungca32.html)
-
 - [imp](https://www.madobe.net/archiver/lib/unimp32.html)
-
 - [hki](https://www.madobe.net/archiver/lib/unhki32.html)
-
 - [bel](https://www.madobe.net/archiver/lib/unbel32.html)
 
 
@@ -81,7 +59,7 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 - [zstd](https://github.com/facebook/zstd)
 - [xz utils(liblzma)](https://git.tukaani.org/?p=xz.git;a=summary)
 
-## その他ユーティリティ
+## ユーティリティ
 
 - [libcharset](https://github.com/Claybird/libcharset-msvc); fork of https://www.gnu.org/software/libiconv/
 - [simpleini](https://github.com/brofield/simpleini)
@@ -90,4 +68,4 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 # 旧バージョンとの違い
 
 旧バージョン(Ver.1.6.7およびそれ以前)では統合アーカイバプロジェクトのDLLを利用していましたが、現在のバージョン(LhaForge Ver.2.0.0以降)では使用しなくなりました。ほぼ全てのソースコードを書き換える、大幅な変更が加えられています。
-これに伴い、従来サポートしていた、アーカイバ「Noah」の機能拡張スクリプトB2Eへの対応も終了しています。
+これに伴い、従来サポートしていた形式の一部が非対応になったほか、アーカイバ「Noah」の機能拡張スクリプトB2Eへの対応も終了しています。
