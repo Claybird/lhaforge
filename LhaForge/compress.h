@@ -52,6 +52,7 @@ struct LF_COMPRESS_ARGS {
 		CConfigCompressFormatLZMA lzma;
 		CConfigCompressFormatXZ xz;
 		CConfigCompressFormatZSTD zstd;
+		CConfigCompressFormatLZ4 lz4;
 
 		void load(const CConfigFile& mngr) {
 			zip.load(mngr);
@@ -62,6 +63,7 @@ struct LF_COMPRESS_ARGS {
 			lzma.load(mngr);
 			xz.load(mngr);
 			zstd.load(mngr);
+			lz4.load(mngr);
 		}
 	}formats;
 	void load(const CConfigFile& mngr) {

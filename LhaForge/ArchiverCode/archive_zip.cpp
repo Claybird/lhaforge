@@ -1414,6 +1414,7 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 			{"lzma", L"LZMA1"},
 			{"zstd", L"ZSTD"},
 			{"xz", L"XZ"},
+			//{"lz4", L"LZ4"},
 		};
 		for (const auto& method : methods) {
 			{

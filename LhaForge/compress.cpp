@@ -726,14 +726,16 @@ TEST(compress, compressOneArchive)
 	EXPECT_NO_THROW(test_helper(L"output.tar.bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD));
 	EXPECT_NO_THROW(test_helper(L"output.tar.lzma",	LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD));
 	EXPECT_NO_THROW(test_helper(L"output.tar.xz",	LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD));
-	EXPECT_NO_THROW(test_helper(L"output.tar.zst",	LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.zst", LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.lz4",	LF_ARCHIVE_FORMAT::TAR_LZ4, LF_WOPT_STANDARD));
 
 	//not an archive, single file only
 	EXPECT_NO_THROW(test_helper(L"output.gz",	LF_ARCHIVE_FORMAT::GZ,	LF_WOPT_STANDARD));
 	EXPECT_NO_THROW(test_helper(L"output.bz2",	LF_ARCHIVE_FORMAT::BZ2,	LF_WOPT_STANDARD));
 	EXPECT_NO_THROW(test_helper(L"output.lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD));
 	EXPECT_NO_THROW(test_helper(L"output.xz",	LF_ARCHIVE_FORMAT::XZ,	LF_WOPT_STANDARD));
-	EXPECT_NO_THROW(test_helper(L"output.zst",	LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.zst", LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.lz4",	LF_ARCHIVE_FORMAT::LZ4, LF_WOPT_STANDARD));
 
 	UtilDeletePath(source_dir);
 }
@@ -1007,6 +1009,7 @@ const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
 	{L"lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
 	{L"xz",		LF_ARCHIVE_FORMAT::XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
 	{L"zstd",	LF_ARCHIVE_FORMAT::ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
+	{L"lz4",		LF_ARCHIVE_FORMAT::LZ4,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZ4},
 	{L"tar",		LF_ARCHIVE_FORMAT::TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
 	{L"tgz",		LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},		//compatibility
 	{L"tar+gz",	LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
@@ -1017,6 +1020,7 @@ const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
 	{L"txz",		LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},		//compatibility
 	{L"tar+xz",	LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
 	{L"tar+zstd",LF_ARCHIVE_FORMAT::TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
+	{L"tar+lz4",LF_ARCHIVE_FORMAT::TAR_LZ4,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZ4},
 };
 
 
@@ -1041,6 +1045,7 @@ TEST(compress, get_archive_format_args)
 	EXPECT_EQ(L"lzma", get_archive_format_args(LF_ARCHIVE_FORMAT::LZMA, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"xz", get_archive_format_args(LF_ARCHIVE_FORMAT::XZ, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"lz4", get_archive_format_args(LF_ARCHIVE_FORMAT::LZ4, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"tar", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"tgz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
 	//EXPECT_EQ(L"tar+gz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
@@ -1051,6 +1056,7 @@ TEST(compress, get_archive_format_args)
 	EXPECT_EQ(L"txz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
 	//EXPECT_EQ(L"tar+xz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
 	EXPECT_EQ(L"tar+zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar+lz4", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZ4, LF_WOPT_STANDARD).name);
 }
 #endif
 

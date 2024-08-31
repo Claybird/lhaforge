@@ -98,12 +98,14 @@ const static std::vector<LA_COMPRESSION_CAPABILITY> g_la_capabilities = {
 	{LF_ARCHIVE_FORMAT::LZMA, L"{ext}.lzma", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZMA, },
 	{LF_ARCHIVE_FORMAT::XZ, L"{ext}.xz", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_XZ, },
 	{LF_ARCHIVE_FORMAT::ZSTD, L"{ext}.zst", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_ZSTD, },
+	{LF_ARCHIVE_FORMAT::LZ4, L"{ext}.lz4", false, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_RAW | ARCHIVE_FILTER_LZ4, },
 	{LF_ARCHIVE_FORMAT::TAR, L".tar", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR},
 	{LF_ARCHIVE_FORMAT::TAR_GZ, L".tar.gz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_GZIP, },
 	{LF_ARCHIVE_FORMAT::TAR_BZ2, L".tar.bz2", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_BZIP2, },
 	{LF_ARCHIVE_FORMAT::TAR_LZMA, L".tar.lzma", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZMA, },
 	{LF_ARCHIVE_FORMAT::TAR_XZ, L".tar.xz", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_XZ, },
 	{LF_ARCHIVE_FORMAT::TAR_ZSTD, L".tar.zst", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_ZSTD, },
+	{LF_ARCHIVE_FORMAT::TAR_LZ4, L".tar.lz4", true, {LF_WOPT_STANDARD}, ARCHIVE_FORMAT_TAR | ARCHIVE_FILTER_LZ4, },
 };
 
 
@@ -330,6 +332,13 @@ struct LA_FILE_TO_READ
 			header[0] == 0xFD && header[1] == '7' && header[2] == 'z' &&
 			header[3] == 'X' && header[4] == 'Z' && header[5] == 0x00) {
 			return LF_ARCHIVE_FORMAT::XZ;
+		}
+		//lz4: https://github.com/lz4/lz4/blob/dev/doc/lz4_Frame_format.md
+		{
+			if (read >= 4 + 3 &&
+				header[3] == 0x18 && header[2] == 0x4D && header[1] == 0x22 && header[0] == 0x04) {
+				return LF_ARCHIVE_FORMAT::LZ4;
+			}
 		}
 		//lzma: lzma-file-format.txt in XZ Utils[https://tukaani.org/xz/]
 		{
@@ -559,6 +568,9 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 		case ARCHIVE_FILTER_ZSTD:
 			merge_map(params, args.formats.zstd.params);
 			break;
+		case ARCHIVE_FILTER_LZ4:
+			merge_map(params, args.formats.lz4.params);
+			break;
 		}
 	}
 	return params;
@@ -649,6 +661,12 @@ TEST(archive_libarchive, getLAOptionsFromConfig)
 		EXPECT_EQ(1, la_options.size());
 		EXPECT_EQ("3", la_options.at("compression-level"));
 	}
+
+	{
+		auto la_options = getLAOptionsFromConfig(fake_args, LF_ARCHIVE_FORMAT::LZ4, LF_WOPT_STANDARD);
+		EXPECT_EQ(1, la_options.size());
+		EXPECT_EQ("1", la_options.at("compression-level"));
+	}
 }
 #endif
 
@@ -735,6 +753,7 @@ TEST(CLFArchiveLA, is_modify_supported)
 	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.xz"));
 	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.lzma"));
 	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.zst"));
+	EXPECT_FALSE(check(dir / L"ArchiverCode/test/abcde.lz4"));
 
 	//EXPECT_FALSE(check(__FILEW__));
 	//EXPECT_FALSE(check(L"some_non_existing_file"));
@@ -774,6 +793,8 @@ LF_ARCHIVE_FORMAT CLFArchiveLA::get_format()
 				return LF_ARCHIVE_FORMAT::TAR_XZ;
 			case LF_ARCHIVE_FORMAT::ZSTD:
 				return LF_ARCHIVE_FORMAT::TAR_ZSTD;
+			case LF_ARCHIVE_FORMAT::LZ4:
+				return LF_ARCHIVE_FORMAT::TAR_LZ4;
 			case LF_ARCHIVE_FORMAT::INVALID:
 				return LF_ARCHIVE_FORMAT::INVALID;
 			default:
@@ -801,6 +822,8 @@ LF_ARCHIVE_FORMAT CLFArchiveLA::get_format()
 				return LF_ARCHIVE_FORMAT::XZ;
 			case ARCHIVE_FILTER_ZSTD:
 				return LF_ARCHIVE_FORMAT::ZSTD;
+			case ARCHIVE_FILTER_LZ4:
+				return LF_ARCHIVE_FORMAT::LZ4;
 			}
 			break;
 		case ARCHIVE_FORMAT_TAR:
@@ -815,6 +838,8 @@ LF_ARCHIVE_FORMAT CLFArchiveLA::get_format()
 				return LF_ARCHIVE_FORMAT::TAR_XZ;
 			case ARCHIVE_FILTER_ZSTD:
 				return LF_ARCHIVE_FORMAT::TAR_ZSTD;
+			case ARCHIVE_FILTER_LZ4:
+				return LF_ARCHIVE_FORMAT::TAR_LZ4;
 			case ARCHIVE_FILTER_NONE:
 			default:
 				return LF_ARCHIVE_FORMAT::TAR;
@@ -856,8 +881,14 @@ TEST(CLFArchiveLA, get_format)
 	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.zst", pp);
 	EXPECT_EQ(LF_ARCHIVE_FORMAT::ZSTD, a.get_format());
 
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.lz4", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::LZ4, a.get_format());
+
 	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/test_2099.tar.zst", pp);
 	EXPECT_EQ(LF_ARCHIVE_FORMAT::TAR_ZSTD, a.get_format());
+
+	a.read_open(LF_PROJECT_DIR() / L"ArchiverCode/test/test_2099.tar.lz4", pp);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::TAR_LZ4, a.get_format());
 }
 
 #endif
@@ -1261,6 +1292,7 @@ TEST(CLFArchiveLA, is_known_format)
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.xz"));
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.lzma"));
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.zst"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"abcde.lz4"));
 
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(__FILEW__));
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(L"some_non_existing_file"));

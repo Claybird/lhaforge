@@ -72,6 +72,9 @@ inline std::wstring mapConfigKeyToHumanReadableName(
 		{L"format_zstd/compression-level/9",IDS_COMPRESS_LEVEL_HIGH},
 		{L"format_zstd/compression-level/15",IDS_COMPRESS_LEVEL_EVEN_HIGHER},
 		{L"format_zstd/compression-level/22",IDS_COMPRESS_LEVEL_ULTRA},
+		//---
+		{L"format_lz4",IDS_FORMAT_NAME_LZ4},
+		{L"format_lz4/compression-level",IDS_COMPRESS_LEVEL},
 	};
 
 	auto ite = name_map.find(map_name);

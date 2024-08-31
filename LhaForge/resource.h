@@ -6,6 +6,7 @@
 #define IDS_ERROR_UNKNOWN_FORMAT        2
 #define IDS_FORMAT_NAME_TAR_ZSTD        3
 #define IDS_ARCHIVE_IS_NOT_OPENED       4
+#define IDS_FORMAT_NAME_LZ4             5
 #define IDS_ENTER_PASSPHRASE            6
 #define IDS_ERROR_OPEN_FILE             7
 #define IDS_LHAFORGE_VERSION_STRING     8
@@ -53,6 +54,7 @@
 #define IDS_ARCLOG_REMOVED              50
 #define IDS_ERROR_INVALID_PARAMETER     51
 #define IDS_ARCLOG_KEEP                 52
+#define IDS_FORMAT_NAME_TAR_LZ4         53
 #define IDS_ERROR_SAME_INPUT_AND_OUTPUT 55
 #define IDS_COMPRESS_LEVEL_FASTEST      56
 #define IDS_COMPRESS_LEVEL_HIGH         57
@@ -240,7 +242,10 @@
 #define IDC_BUTTON_EXTRACT_OVERWRITE_ALL 1109
 #define IDC_BUTTON_FORMAT_TAR_ZSTD      1109
 #define IDC_BUTTON_EXTRACT_SKIP         1110
+#define IDC_BUTTON_FORMAT_LZ4           1110
 #define IDC_BUTTON_EXTRACT_SKIP_ALL     1111
+#define IDC_BUTTON_FORMAT_TAR_ZSTD2     1111
+#define IDC_BUTTON_FORMAT_TAR_LZ4       1111
 #define IDC_LIST_ICON                   1114
 #define IDC_EDIT_ICON_PATH              1115
 #define IDC_BUTTON_BROWSE_ICON          1116

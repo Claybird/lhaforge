@@ -85,12 +85,14 @@ enum class LF_ARCHIVE_FORMAT :int {
 	LZMA,
 	XZ,
 	ZSTD,
+	LZ4,
 	TAR,
 	TAR_GZ,
 	TAR_BZ2,
 	TAR_LZMA,
 	TAR_XZ,
 	TAR_ZSTD,
+	TAR_LZ4,
 
 	//---read only format
 	READONLY,
@@ -312,7 +314,7 @@ class CLFArchive : public ILFArchiveFile
 	int64_t m_numEntries;
 public:
 	CLFArchive() :m_numEntries(-1) {}
-	virtual ~CLFArchive() {}
+	virtual ~CLFArchive() { close(); }
 
 	std::filesystem::path get_archive_path()const override {
 		if (m_ptr.get()) {
@@ -326,8 +328,8 @@ public:
 	void close()override {
 		if (m_ptr) {
 			m_ptr->close();
+			m_ptr.reset();
 		}
-		m_ptr = nullptr;
 		m_numEntries = -1;
 	}
 

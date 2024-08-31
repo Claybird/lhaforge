@@ -147,3 +147,12 @@ public:
 	virtual ~CConfigCompressFormatZSTD() {}
 };
 
+class CConfigCompressFormatLZ4 :public CConfigCompressFormatBase {
+public:
+	CConfigCompressFormatLZ4() :CConfigCompressFormatBase(L"format_lz4", {
+		{L"compression-level",{
+			L"1",L"2",L"3",L"4",L"5",L"6",L"7",L"8",L"9"}},
+		}) {}
+	virtual ~CConfigCompressFormatLZ4() {}
+};
+

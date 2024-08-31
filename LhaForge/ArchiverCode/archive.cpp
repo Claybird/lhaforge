@@ -52,6 +52,8 @@ TEST(archive, guessSuitableArchiver)
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test_broken_crc.zip"));
 
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"smile.zip.001"));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_PROJECT_DIR() / L"ArchiverCode/test/test_2099.tar.lz4"));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_PROJECT_DIR() / L"ArchiverCode/test/abcde.lz4"));
 
 	EXPECT_NO_THROW(guessSuitableArchiver(dir / L"test.gza"));
 	{
@@ -92,12 +94,14 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format)
 	case LF_ARCHIVE_FORMAT::LZMA:
 	case LF_ARCHIVE_FORMAT::XZ:
 	case LF_ARCHIVE_FORMAT::ZSTD:
+	case LF_ARCHIVE_FORMAT::LZ4:
 	case LF_ARCHIVE_FORMAT::TAR:
 	case LF_ARCHIVE_FORMAT::TAR_GZ:
 	case LF_ARCHIVE_FORMAT::TAR_BZ2:
 	case LF_ARCHIVE_FORMAT::TAR_LZMA:
 	case LF_ARCHIVE_FORMAT::TAR_XZ:
 	case LF_ARCHIVE_FORMAT::TAR_ZSTD:
+	case LF_ARCHIVE_FORMAT::TAR_LZ4:
 		return std::make_unique<CLFArchiveLA>();
 	default:
 		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNKNOWN_FORMAT));
@@ -113,12 +117,14 @@ TEST(archive, guessSuitableArchiver2)
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::LZMA));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::XZ));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::ZSTD));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::LZ4));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_GZ));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_BZ2));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_LZMA));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_XZ));
 	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_ZSTD));
+	EXPECT_NO_THROW(guessSuitableArchiver(LF_ARCHIVE_FORMAT::TAR_LZ4));
 }
 #endif
 
@@ -221,6 +227,53 @@ TEST(CLFArchive, write_open_zstd)
 	UtilDeleteDir(temp / L"test_write_open", true);
 	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open"));
 }
+
+TEST(CLFArchive, write_open_lz4)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	LF_COMPRESS_ARGS arg;
+	arg.load(CConfigFile());
+	std::filesystem::create_directories(temp / L"test_write_open_lz4");
+	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open_lz4"));
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open_lz4/test_write.lz4", LF_ARCHIVE_FORMAT::LZ4, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
+		LF_ENTRY_STAT entry;
+		entry.read_stat(__FILEW__, L"test");
+		entry.stat.st_size = 10;
+		int count = 0;
+		const char* data = "abcdefghij";
+		a.add_file_entry(entry, [&] {
+			LF_BUFFER_INFO li = {};
+			if (count == 0) {
+				li.offset = 0;
+				li.size = 10;
+				li.buffer = data;
+			}
+			count++;
+			return li;
+		});
+	}
+	UtilDeleteDir(temp / L"test_write_open_lz4", true);
+	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open_lz4"));
+}
+
+TEST(CLFArchive, write_open_tar_lz4)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	LF_COMPRESS_ARGS arg;
+	arg.load(CConfigFile());
+	std::filesystem::create_directories(temp / L"test_write_open_tar_lz4");
+	EXPECT_TRUE(std::filesystem::exists(temp / L"test_write_open_tar_lz4"));
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(a.write_open(temp / L"test_write_open_tar_lz4/test_write.tar.lz4", LF_ARCHIVE_FORMAT::TAR_LZ4, LF_WRITE_OPTIONS::LF_WOPT_STANDARD, arg, pp));
+	}
+	UtilDeleteDir(temp / L"test_write_open_tar_lz4", true);
+	EXPECT_FALSE(std::filesystem::exists(temp / L"test_write_open_tar_lz4"));
+}
 #endif
 
 std::vector<LF_COMPRESS_CAPABILITY> CLFArchive::get_compression_capability()const
@@ -267,12 +320,14 @@ TEST(CLFArchive, get_compression_capability_formatExt)
 	EXPECT_EQ(L".ext.lzma", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::LZMA).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".ext.xz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::XZ).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".ext.zst", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::ZSTD).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".ext.lz4", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::LZ4).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.gz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_GZ).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.bz2", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_BZ2).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.lzma", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_LZMA).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.xz", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_XZ).formatExt(path, LF_WOPT_STANDARD));
 	EXPECT_EQ(L".tar.zst", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_ZSTD).formatExt(path, LF_WOPT_STANDARD));
+	EXPECT_EQ(L".tar.lz4", CLFArchive::get_compression_capability(LF_ARCHIVE_FORMAT::TAR_LZ4).formatExt(path, LF_WOPT_STANDARD));
 }
 #endif
 

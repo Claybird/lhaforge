@@ -124,6 +124,7 @@ LRESULT CConfigDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
 		p->AddConfig<CConfigCompressFormatXZ>();
 		p->AddConfig<CConfigCompressFormatLZMA>();
 		p->AddConfig<CConfigCompressFormatZSTD>();
+		p->AddConfig<CConfigCompressFormatLZ4>();
 		ADD_PAGE(p, hItemDetail, L"TAR");
 	}
 
