@@ -11,18 +11,20 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 
 ## 圧縮・解凍・テストの全てに対応
 
-- zip/zipx
+- zip
 - tar
 - gzip
 - bz2
 - zstandard
 - lz4
 - xz
+- lzma
 - 7z
 
 ## 解凍・テストのみ
 
 - lzh
+- zipx
 - Microsoft Cabinet
 - ISO9660 CD-ROM images
 - rar
@@ -30,7 +32,7 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 - cpio
 - z(compress)
 - uuencode
-- [bga](https://www.madobe.net/archiver/lib/bga32.html)
+- bza/gza by [bga32.dll](https://www.madobe.net/archiver/lib/bga32.html)
 
 ## Ver.2.0.0以降、非対応
 
@@ -42,8 +44,8 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 - [imp](https://www.madobe.net/archiver/lib/unimp32.html)
 - [hki](https://www.madobe.net/archiver/lib/unhki32.html)
 - [bel](https://www.madobe.net/archiver/lib/unbel32.html)
-
-
+  
+  
 
 # 使用しているライブラリ
 
