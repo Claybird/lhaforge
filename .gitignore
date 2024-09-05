@@ -37,3 +37,4 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+commit-hash
