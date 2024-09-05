@@ -26,6 +26,10 @@
 #include "Dlg_Base.h"
 #include "resource.h"
 
+const char g_commit_hash[] = 
+#include "commit-hash"
+;
+
 class CConfigDlgVersion : public LFConfigDialogBase<CConfigDlgVersion>
 {
 protected:
@@ -48,6 +52,8 @@ public:
 		link_mailto.SetHyperLinkExtendedStyle(HLINK_USETAGS);
 		link_mailto.SubclassWindow(GetDlgItem(IDC_GITHUB));
 		link_mailto.SetHyperLink(L"https://github.com/Claybird/");
+
+		::SetWindowTextA(GetDlgItem(IDC_STATIC_HASH), g_commit_hash);
 		return TRUE;
 	}
 	LRESULT OnApply(){return TRUE;}

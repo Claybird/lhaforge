@@ -154,6 +154,7 @@
     <Image Include="toolbar.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="commit-hash" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

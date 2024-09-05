@@ -369,6 +369,7 @@
 #define IDC_BY_MTIME_EQUAL_OR_GREATER   1321
 #define IDC_CONDITION_DATE              1322
 #define IDC_BUTTON_PAUSE                1324
+#define IDC_STATIC_HASH                 1327
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -456,7 +457,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        206
 #define _APS_NEXT_COMMAND_VALUE         40161
-#define _APS_NEXT_CONTROL_VALUE         1327
+#define _APS_NEXT_CONTROL_VALUE         1328
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

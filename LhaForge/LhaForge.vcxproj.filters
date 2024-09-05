@@ -401,5 +401,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="commit-hash" />
   </ItemGroup>
 </Project>

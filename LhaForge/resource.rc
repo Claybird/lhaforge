@@ -203,9 +203,10 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     ICON            IDI_APP,IDC_STATIC,7,7,20,20
     LTEXT           "LhaForge Beta",IDC_STATIC,31,7,146,8
-    LTEXT           "Copyright (C) 2005- Claybird. All Rights Reserved.",IDC_STATIC,33,18,163,8
-    LTEXT           "Official site:<a>https://claybird.sakura.ne.jp/</a>",IDC_URL,15,35,192,8
-    LTEXT           "github:<a>https://github.com/Claybird/</a>",IDC_GITHUB,15,44,185,8
+    LTEXT           "Copyright (C) 2005- Claybird. All Rights Reserved.",IDC_STATIC,33,27,163,8
+    LTEXT           "Official site:<a>https://claybird.sakura.ne.jp/</a>",IDC_URL,15,42,192,8
+    LTEXT           "github:<a>https://github.com/Claybird/</a>",IDC_GITHUB,15,51,185,8
+    LTEXT           "<commit hash here>",IDC_STATIC_HASH,31,16,146,8
 END
 
 IDD_DIALOG_CONFIG DIALOGEX 0, 0, 473, 315
