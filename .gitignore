@@ -37,4 +37,4 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
-LhaForge/commit-hash
+*/commit-hash
