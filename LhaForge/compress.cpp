@@ -761,7 +761,7 @@ void compress_helper(
 	if (!cap.contains_multiple_files) {
 		size_t fileCount = 0;
 		for (const auto& src : sources.pathPair) {
-			if (std::filesystem::is_regular_file(src.entryPath)) {
+			if (std::filesystem::is_regular_file(src.originalFullPath)) {
 				fileCount++;
 			}
 			if (fileCount >= 2) {
