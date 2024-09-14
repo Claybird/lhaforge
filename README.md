@@ -44,6 +44,7 @@ LhaForge2はMITライセンスで公開されており、個人利用・商用�
 - [imp](https://www.madobe.net/archiver/lib/unimp32.html)
 - [hki](https://www.madobe.net/archiver/lib/unhki32.html)
 - [bel](https://www.madobe.net/archiver/lib/unbel32.html)
+- [ace](https://www.madobe.net/archiver/lib/UnAceV2J.html)
   
   
 
