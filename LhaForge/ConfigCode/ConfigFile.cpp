@@ -102,6 +102,10 @@ void CConfigFile::save()
 	//version
 	m_Config.SetValue(L"lhaforge", L"version", UtilLoadString(IDS_LHAFORGE_VERSION_STRING).c_str());
 
+	//make sure directory exists
+	auto direc = m_iniPath.parent_path();
+	std::filesystem::create_directories(direc);
+
 	//save
 	auto rc = m_Config.SaveFile(m_iniPath.c_str(), false);
 	if (rc < 0) {
