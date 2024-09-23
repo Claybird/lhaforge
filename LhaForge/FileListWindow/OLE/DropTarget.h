@@ -25,38 +25,105 @@
 #pragma once
 
 //Original code from http://hp.vector.co.jp/authors/VA016117/
-//Modified by Claybird http://claybird.sakura.ne.jp/
-
-class IDropCommunicator{	//CDropTargetとドロップ受け入れウィンドウが通信するために使うインターフェイス;ドラッグ先と処理部が別なためこのような構造になっている
+class ILFDropCommunicator{
 public:
-	virtual ~IDropCommunicator(){}
+	virtual ~ILFDropCommunicator(){}
 	virtual HRESULT DragEnter(IDataObject*,POINTL&,DWORD&)=0;
 	virtual HRESULT DragLeave()=0;
 	virtual HRESULT DragOver(IDataObject*,POINTL&,DWORD&)=0;
 	virtual HRESULT Drop(IDataObject*,POINTL&,DWORD&)=0;
 };
 
-class CDropTarget : public IDropTarget
+class CLFDropTarget : public IDropTarget
 {
 protected:
 	LONG _RefCount;
-	IDropCommunicator *m_lpCommunicator;
+	ILFDropCommunicator *m_lpCommunicator;
 	IDataObject *m_lpDataObject;
 public:
-	CDropTarget(IDropCommunicator *lpComm):_RefCount(1),m_lpCommunicator(lpComm),m_lpDataObject(NULL){}
-	virtual ~CDropTarget(){};
+	CLFDropTarget(ILFDropCommunicator *lpComm):_RefCount(1),m_lpCommunicator(lpComm),m_lpDataObject(NULL){}
+	virtual ~CLFDropTarget(){};
 
-	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv);
-	virtual ULONG __stdcall AddRef(void);
-	virtual ULONG __stdcall Release(void);
+	//---interface implementation
+	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv)override {
+		HRESULT hr;
 
-	virtual HRESULT __stdcall DragEnter(IDataObject* pDataObject, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect);
-	virtual HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect);
-	virtual HRESULT __stdcall DragLeave();
-	virtual HRESULT __stdcall Drop(IDataObject* pDataObject, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect);
+		if (iid == IID_IDropTarget || iid == IID_IUnknown) {
+			hr = S_OK;
+			*ppv = (void*)this;
+			AddRef();
+		} else {
+			hr = E_NOINTERFACE;
+			*ppv = 0;
+		}
+		return hr;
+	}
+	virtual ULONG __stdcall AddRef(void)override {
+		InterlockedIncrement(&_RefCount);
+		return (ULONG)_RefCount;
+	}
+	virtual ULONG __stdcall Release(void)override {
+		ULONG ret = (ULONG)InterlockedDecrement(&_RefCount);
+		return (ULONG)_RefCount;
+	}
+
+	virtual HRESULT __stdcall DragEnter(IDataObject* pDataObject, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect)override {
+		m_lpDataObject = pDataObject;
+		return m_lpCommunicator->DragEnter(m_lpDataObject, ptl, *pdwEffect);
+	}
+	virtual HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect)override {
+		return m_lpCommunicator->DragOver(m_lpDataObject, ptl, *pdwEffect);
+	}
+	virtual HRESULT __stdcall DragLeave()override {
+		m_lpDataObject = NULL;
+		return m_lpCommunicator->DragLeave();
+	}
+	virtual HRESULT __stdcall Drop(IDataObject* pDataObject, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect)override {
+		m_lpDataObject = NULL;
+		return m_lpCommunicator->Drop(pDataObject, ptl, *pdwEffect);
+	}
 
 	//---
-	bool QueryFormat(CLIPFORMAT cfFormat);
-	HRESULT GetDroppedFiles(IDataObject *lpDataObject,std::list<CString>&);
+	//check for format
+	bool QueryFormat(CLIPFORMAT cfFormat) {
+		ASSERT(m_lpDataObject);
+		if (!m_lpDataObject)return false;
+		FORMATETC fmt;
+
+		fmt.cfFormat = cfFormat;
+		fmt.ptd = NULL;
+		fmt.dwAspect = DVASPECT_CONTENT;
+		fmt.lindex = -1;
+		fmt.tymed = TYMED_HGLOBAL;
+		return S_OK == m_lpDataObject->QueryGetData(&fmt);
+	}
+	std::pair<HRESULT,std::vector<std::filesystem::path> > GetDroppedFiles(IDataObject *lpDataObject) {
+		FORMATETC fmt;
+		STGMEDIUM medium;
+
+		fmt.cfFormat = CF_HDROP;
+		fmt.ptd = NULL;
+		fmt.dwAspect = DVASPECT_CONTENT;
+		fmt.lindex = -1;
+		fmt.tymed = TYMED_HGLOBAL;
+
+		std::vector<std::filesystem::path> files;
+
+		HRESULT hr = lpDataObject->GetData(&fmt, &medium);
+		if (S_OK == hr) {
+			//files dropped
+			UINT nFileCount = ::DragQueryFileW((HDROP)medium.hGlobal, 0xFFFFFFFF, NULL, 0);
+
+			//get files
+			for (UINT i = 0; i < nFileCount; i++) {
+				auto size = ::DragQueryFileW((HDROP)medium.hGlobal, i, nullptr, 0) + 1;
+				std::vector<wchar_t> szBuffer(size);
+				::DragQueryFileW((HDROP)medium.hGlobal, i, &szBuffer[0], size);
+				files.push_back(&szBuffer[0]);
+			}
+			ReleaseStgMedium(&medium);
+		}
+		return std::make_pair(hr, files);
+	}
 };
 

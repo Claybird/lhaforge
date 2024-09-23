@@ -23,124 +23,91 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverCode/arc_interface.h"
-#include "ConfigManager.h"
+#include "ArchiverCode/archive.h"
+#include "ConfigFile.h"
 #include "ConfigExtract.h"
-#include "../Utilities/FileOperation.h"
+#include "Extract.h"
+#include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
+#include "resource.h"
 
-void CConfigExtract::load(CONFIG_SECTION &Config)
+void CConfigExtract::load(const CConfigFile &Config)
 {
-	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
+	const auto section = L"Extract";
+	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, (int)OUTPUT_TO::LastItem, (int)OUTPUT_TO::Desktop);
 
-	CString Buffer=Config.Data[_T("OutputDir")];
-	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
-	}else{
-		OutputDir=_T("");
+	auto value = Config.getText(section, L"OutputDir", L"");
+	if (value.empty()) {
+		OutputDirUserSpecified = L"";
+	} else {
+		try {
+			OutputDirUserSpecified = UtilGetCompletePathName(value);
+		} catch (const LF_EXCEPTION&) {
+			OutputDirUserSpecified = L"";
+		}
 	}
 
-	//解凍後フォルダを開くかどうか
-	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
+	OpenDir = Config.getBool(section, L"OpenFolder", true);
 
-	//解凍時フォルダを二重にするかどうか
-	CreateDir=(CREATE_OUTPUT_DIR)Config.Data[_T("CreateDir")].GetNParam(0,CREATE_OUTPUT_DIR_LAST_ITEM,CREATE_OUTPUT_DIR_ALWAYS);
+	CreateDir = Config.getIntRange(section, L"CreateDir",
+		0, (int)EXTRACT_CREATE_DIR::LastItem, (int)EXTRACT_CREATE_DIR::Always);
 
-	//解凍時ファイルを確認せずに上書きするかどうか
-	ForceOverwrite=Config.Data[_T("ForceOverwrite")].GetNParam(FALSE);
+	ForceOverwrite = Config.getBool(section, L"ForceOverwrite", false);
 
-	//解凍時フォルダ名から数字と記号を削除する
-	RemoveSymbolAndNumber=Config.Data[_T("RemoveSymbolAndNumber")].GetNParam(FALSE);
+	RemoveSymbolAndNumber = Config.getBool(section, L"RemoveSymbolAndNumber", false);
 
-	//解凍時ファイル・フォルダが一つだけの時フォルダを作らない
-	CreateNoFolderIfSingleFileOnly=Config.Data[_T("CreateNoFolderIfSingleFileOnly")].GetNParam(FALSE);
+	LimitExtractFileCount = Config.getBool(section, L"LimitExtractFileCount", false);
+	MaxExtractFileCount = std::max(1, Config.getInt(section, L"MaxExtractFileCount", 1));
+	DeleteArchiveAfterExtract = Config.getBool(section, L"DeleteArchiveAfterExtract", false);
 
-	//同時に解凍するファイル数を制限する
-	LimitExtractFileCount=Config.Data[_T("LimitExtractFileCount")].GetNParam(FALSE);
+	MoveToRecycleBin = Config.getBool(section, L"MoveToRecycleBin", true);
+	DeleteNoConfirm = Config.getBool(section, L"DeleteNoConfirm", false);
+	DenyExt = Config.getText(section, L"DenyExt", UtilLoadString(IDS_DENYEXT_DEFAULT));
+}
 
-	//同時に解凍するファイル数の上限
-	MaxExtractFileCount=max(1,Config.Data[_T("MaxExtractFileCount")].GetNParam(1));
+void CConfigExtract::store(CConfigFile &Config)const
+{
+	const auto section = L"Extract";
+	Config.setValue(section, L"OutputDirType", OutputDirType);
 
-	//正常に解凍できた圧縮ファイルを削除
-	DeleteArchiveAfterExtract=Config.Data[_T("DeleteArchiveAfterExtract")].GetNParam(FALSE);
+	Config.setValue(section, L"OutputDir", OutputDirUserSpecified);
 
-	//解凍後ファイルをごみ箱に移動
-	MoveToRecycleBin=Config.Data[_T("MoveToRecycleBin")].GetNParam(TRUE);
+	Config.setValue(section, L"OpenFolder", OpenDir);
+	Config.setValue(section, L"CreateDir", CreateDir);
+	Config.setValue(section, L"ForceOverwrite", ForceOverwrite);
+	Config.setValue(section, L"RemoveSymbolAndNumber", RemoveSymbolAndNumber);
+	Config.setValue(section, L"LimitExtractFileCount", LimitExtractFileCount);
+	Config.setValue(section, L"MaxExtractFileCount", MaxExtractFileCount);
+	Config.setValue(section, L"DeleteArchiveAfterExtract", DeleteArchiveAfterExtract);
+	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
+	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
+	Config.setValue(section, L"DenyExt", DenyExt);
+}
 
-	//確認せずにアーカイブを削除/ごみ箱に移動
-	DeleteNoConfirm=Config.Data[_T("DeleteNoConfirm")].GetNParam(FALSE);
-
-	//解凍エラーを検知できない場合も削除
-	ForceDelete=Config.Data[_T("ForceDelete")].GetNParam(FALSE);
-
-	//マルチボリュームも削除
-	DeleteMultiVolume=Config.Data[_T("DeleteMultiVolume")].GetNParam(FALSE);
-
-	//パスワード入力回数を最小にするならTRUE
-	MinimumPasswordRequest=Config.Data[_T("MinimumPasswordRequest")].GetNParam(FALSE);
-
-	//解凍対象から外す拡張子
-	if(has_key(Config.Data,_T("DenyExt"))){
-		DenyExt=Config.Data[_T("DenyExt")];
-	}else{
-		DenyExt.LoadString(IDS_DENYEXT_DEFAULT);
+//checks file extension
+bool CConfigExtract::isPathAcceptableToExtract(const std::filesystem::path& path)const
+{
+	const auto denyList = UtilSplitString(DenyExt, L";");
+	for (const auto& deny : denyList) {
+		if (UtilExtMatchSpec(path, deny)) {
+			return false;
+		}
 	}
+	return true;
 }
 
-void CConfigExtract::store(CONFIG_SECTION &Config)const
+#ifdef UNIT_TEST
+TEST(config, CConfigExtract)
 {
-	Config.Data[_T("OutputDirType")]=OutputDirType;
+	CConfigFile emptyFile;
+	CConfigExtract conf;
+	conf.load(emptyFile);
 
-	Config.Data[_T("OutputDir")]=OutputDir;
+	conf.DenyExt = L".docx;;.exe;.zipx";
 
-	//解凍後フォルダを開くかどうか
-	Config.Data[_T("OpenFolder")]=OpenDir;
-
-	//解凍時フォルダを二重にするかどうか
-	Config.Data[_T("CreateDir")]=CreateDir;
-
-	//解凍時ファイルを確認せずに上書きするかどうか
-	Config.Data[_T("ForceOverwrite")]=ForceOverwrite;
-
-	//解凍時フォルダ名から数字と記号を削除する
-	Config.Data[_T("RemoveSymbolAndNumber")]=RemoveSymbolAndNumber;
-
-	//解凍時ファイル・フォルダが一つだけの時フォルダを作らない
-	Config.Data[_T("CreateNoFolderIfSingleFileOnly")]=CreateNoFolderIfSingleFileOnly;
-
-	//同時に解凍するファイル数を制限する
-	Config.Data[_T("LimitExtractFileCount")]=LimitExtractFileCount;
-
-	//同時に解凍するファイル数の上限
-	Config.Data[_T("MaxExtractFileCount")]=MaxExtractFileCount;
-
-	//正常に解凍できた圧縮ファイルを削除
-	Config.Data[_T("DeleteArchiveAfterExtract")]=DeleteArchiveAfterExtract;
-
-	//解凍後ファイルをごみ箱に移動
-	Config.Data[_T("MoveToRecycleBin")]=MoveToRecycleBin;
-
-	//確認せずにアーカイブを削除/ごみ箱に移動
-	Config.Data[_T("DeleteNoConfirm")]=DeleteNoConfirm;
-
-	//解凍エラーを検知できない場合も削除
-	Config.Data[_T("ForceDelete")]=ForceDelete;
-
-	//マルチボリュームも削除
-	Config.Data[_T("DeleteMultiVolume")]=DeleteMultiVolume;
-
-	//パスワード入力回数を最小にするならTRUE
-	Config.Data[_T("MinimumPasswordRequest")]=MinimumPasswordRequest;
-
-	//解凍対象から外す拡張子
-	Config.Data[_T("DenyExt")]=DenyExt;
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.txt"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.docx"));
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.zip"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.zipx"));
 }
-
-void CConfigExtract::load(CConfigManager &ConfMan)
-{
-	load(ConfMan.GetSection(_T("Extract")));
-}
-
-void CConfigExtract::store(CConfigManager &ConfMan)const
-{
-	store(ConfMan.GetSection(_T("Extract")));
-}
+#endif

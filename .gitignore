@@ -1,17 +1,39 @@
-discarded
 *.exe
 *.suo
 *.opensdf
 *.sdf
 Debug
 Release
-Backup
-CVS
+UnitTest/
 *.user
 ipch
-lfcaldix
-lhaforge_related
-b2e32
-ShellExtDLL
-LFAssist
 *.ncb
+.vs
+*.aps
+
+#Ignore thumbnails created by Windows
+Thumbs.db
+#Ignore files built by Visual Studio
+*.obj
+*.pdb
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+[Bb]in
+[Dd]ebug*/
+*.lib
+*.sbr
+obj/
+[Rr]elease*/
+_ReSharper*/
+[Tt]est[Rr]esult*
+.vs/
+#Nuget packages folder
+packages/

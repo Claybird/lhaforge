@@ -24,249 +24,103 @@
 
 #include "stdafx.h"
 #include "SelectDlg.h"
-#include "../Compress.h"
-#include "../ArchiverManager.h"
+#include "compress.h"
+#include "resource.h"
 
-LRESULT CSelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
+//select compression mode
+class CSelectDialog : public CDialogImpl<CSelectDialog>, public CWinDataExchange<CSelectDialog>
 {
-	//DDX情報アップデート
-	DoDataExchange(FALSE);
-	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);	//公開パスワード欄を使用不可にする
-	CenterWindow();
-	return TRUE;
-}
+protected:
+	bool bPassword;
+	bool bSingleCompression;
+	bool bDeleteAfterCompress;
+	const bool bEnableSingleCompression;
+	const bool bEnableDeletion;
 
+	BEGIN_DDX_MAP(CSelectDialog)
+		DDX_CHECK(IDC_CHECK_COMPRESS_PASSWORD, bPassword)
+		DDX_CHECK(IDC_CHECK_SINGLE_COMPRESSION, bSingleCompression)
+		DDX_CHECK(IDC_CHECK_DELETE_AFTER_COMPRESS, bDeleteAfterCompress)
+	END_DDX_MAP()
 
-#define BUTTON_PARAM(x) case IDC_BUTTON_FORMAT_##x: Param=PARAMETER_##x;break
-void CSelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	PARAMETER_TYPE Param;
-	switch(nID){
-	case IDCANCEL:
-		Param=PARAMETER_UNDEFINED;
-		break;
-	case IDC_BUTTON_USEB2E:
-		Param=PARAMETER_B2E;
-		break;
-	BUTTON_PARAM(LZH);
-	BUTTON_PARAM(ZIP);
-	BUTTON_PARAM(CAB);
-	BUTTON_PARAM(7Z);
-	BUTTON_PARAM(TAR);
-	BUTTON_PARAM(GZ);
-	BUTTON_PARAM(BZ2);
-	BUTTON_PARAM(XZ);
-	BUTTON_PARAM(LZMA);
-	BUTTON_PARAM(TAR_GZ);
-	BUTTON_PARAM(TAR_BZ2);
-	BUTTON_PARAM(TAR_XZ);
-	BUTTON_PARAM(TAR_LZMA);
-	BUTTON_PARAM(JACK);
-	BUTTON_PARAM(YZ1);
-	BUTTON_PARAM(HKI);
-	BUTTON_PARAM(BZA);
-	BUTTON_PARAM(GZA);
-	BUTTON_PARAM(ISH);
-	BUTTON_PARAM(UUE);
-	default:/*ASSERT(!"Not implemented");*/return;
+	BEGIN_MSG_MAP_EX(CSelectDialog)
+		MSG_WM_INITDIALOG(OnInitDialog)
+		COMMAND_ID_HANDLER(IDC_CHECK_COMPRESS_PASSWORD, OnPassword)
+		MSG_WM_COMMAND(OnCommand)
+	END_MSG_MAP()
+
+	LRESULT OnPassword(WORD, WORD, HWND, BOOL&) {
+		DoDataExchange(TRUE);
+		return 0;
 	}
-	EndDialog(Param);
-}
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		DoDataExchange(FALSE);
 
-LRESULT CSelectDialog::OnPassword(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	if(BN_CLICKED==wNotifyCode){
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_PUBLIC_PASSWORD),bPassword);
+		::EnableWindow(GetDlgItem(IDC_CHECK_SINGLE_COMPRESSION), bEnableSingleCompression);
+		::EnableWindow(GetDlgItem(IDC_CHECK_DELETE_AFTER_COMPRESS), bEnableDeletion);
+
+		CenterWindow();
+		return TRUE;
 	}
-	return 0;
-}
-
-LRESULT CSelectDialog::OnSFX(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled)
-{
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	if(BN_CLICKED==wNotifyCode){
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SPLIT),!bSFX);
-		bSplit=false;
-	}
-	DoDataExchange(FALSE);
-	return 0;
-}
-
-int CSelectDialog::GetOptions()
-{
-	int Options=0;
-	if(bSFX)Options|=COMPRESS_SFX;
-	if(bSplit)Options|=COMPRESS_SPLIT;
-	if(bPassword){
-		if(bPublicPassword)Options|=COMPRESS_PUBLIC_PASSWORD;
-		else Options|=COMPRESS_PASSWORD;
-	}
-	return Options;
-}
-
-//----------------------------------------------------
-
-LRESULT CB2ESelectDialog::OnInitDialog(HWND hWnd, LPARAM lParam)
-{
-	//DDX情報アップデート
-	DoDataExchange(FALSE);
-
-	//---------------
-	// B2Eの情報取得
-	//---------------
-	//B2Eハンドラ
-	CArchiverB2E &ArcB2E=CArchiverDLLManager::GetInstance().GetB2EHandler();
-	ASSERT(ArcB2E.IsOK());	//B2Eが使えない時は呼ばないように！
-	if(!ArcB2E.IsOK())return FALSE;
-
-	//B2E情報取得
-	if(!ArcB2E.EnumCompressB2EScript(m_ScriptInfoArray))m_ScriptInfoArray.clear();
-
-	//使えるB2Eがあれば
-	if(!m_ScriptInfoArray.empty()){
-		//---形式
-		UINT uIdx=0;
-		for(;uIdx<m_ScriptInfoArray.size();uIdx++){
-			Combo_Format.AddString(CA2T(m_ScriptInfoArray[uIdx].szFormat));
+	void OnCommand(UINT nCode, int nID, HWND hWnd) {
+#define BUTTON_PARAM(x,y) case IDC_BUTTON_FORMAT_##x: format=LF_ARCHIVE_FORMAT::##y;break
+		DoDataExchange(TRUE);
+		LF_ARCHIVE_FORMAT format;
+		switch (nID) {
+			BUTTON_PARAM(ZIP, ZIP);
+			BUTTON_PARAM(7Z, _7Z);
+			BUTTON_PARAM(GZ, GZ);
+			BUTTON_PARAM(BZ2, BZ2);
+			BUTTON_PARAM(LZMA, LZMA);
+			BUTTON_PARAM(XZ, XZ);
+			BUTTON_PARAM(ZSTD, ZSTD);
+			BUTTON_PARAM(LZ4, LZ4);
+			BUTTON_PARAM(TAR, TAR);
+			BUTTON_PARAM(TAR_GZ, TAR_GZ);
+			BUTTON_PARAM(TAR_BZ2, TAR_BZ2);
+			BUTTON_PARAM(TAR_LZMA, TAR_LZMA);
+			BUTTON_PARAM(TAR_XZ, TAR_XZ);
+			BUTTON_PARAM(TAR_ZSTD, TAR_ZSTD);
+			BUTTON_PARAM(TAR_LZ4, TAR_LZ4);
+		case IDCANCEL:
+			format = LF_ARCHIVE_FORMAT::INVALID;
+			break;
+		default:
+			return;
 		}
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SFX),m_ScriptInfoArray[0].wAbility&B2EABILITY_SFX);
-		Combo_Format.SetCurSel(0);
+		EndDialog((int)format);
+	}
 
-		//---メソッド
-		if(m_ScriptInfoArray[0].MethodArray.empty()){
-			Combo_Method.AddString(_T("Default"));
+public:
+	enum { IDD = IDD_DIALOG_SELECT_COMPRESS_TYPE };
+	CSelectDialog(bool enableSingleCompression, bool enableDeletion) :
+		bPassword(false),
+		bSingleCompression(false),
+		bDeleteAfterCompress(false),
+		bEnableSingleCompression(enableSingleCompression),
+		bEnableDeletion(enableDeletion){}
+	virtual ~CSelectDialog() {}
+
+	LF_WRITE_OPTIONS GetOptions() {
+		int Options = LF_WOPT_STANDARD;
+		if(bPassword){
+			Options|= LF_WOPT_DATA_ENCRYPTION;
 		}
-		else{
-			for(uIdx=0;uIdx<m_ScriptInfoArray[0].MethodArray.size();uIdx++){
-				Combo_Method.AddString(CA2T(m_ScriptInfoArray[0].MethodArray[uIdx]));
-			}
-		}
-		Combo_Method.SetCurSel(m_ScriptInfoArray[0].nDefaultMethod);
+		return (LF_WRITE_OPTIONS)Options;
 	}
-	else{
-		::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SFX),false);
-		::EnableWindow(GetDlgItem(IDC_CHECK_SINGLE_COMPRESSION),false);
-		Combo_Format.EnableWindow(false);
-		Combo_Method.EnableWindow(false);
-		::EnableWindow(GetDlgItem(IDOK),false);
-	}
-
-	CenterWindow();
-	return TRUE;
-}
-
-void CB2ESelectDialog::OnCommand(UINT nCode, int nID, HWND hWnd)
-{
-	switch(nID){
-	case IDC_COMPRESS_USENORMAL:
-	case IDOK:
-	case IDCANCEL:
-		break;
-	default:return;
-	}
-	//DDX情報アップデート
-	DoDataExchange(TRUE);
-	{
-		int nIndex = Combo_Format.GetCurSel();
-		if(nIndex == CB_ERR){
-			m_strFormat.Empty();
-		}else{
-			Combo_Format.GetLBText(nIndex,m_strFormat);
-		}
-	}
-	{
-		int nIndex = Combo_Method.GetCurSel();
-		if(nIndex == CB_ERR){
-			m_strMethod.Empty();
-		}else{
-			Combo_Method.GetLBText(nIndex,m_strMethod);
-		}
-	}
-	EndDialog(nID);
-}
-
-void CB2ESelectDialog::OnComboFormat(UINT uNotifyCode, int nID, HWND hWndCtl)
-{
-	//---形式選択変更
-	int nIndex = Combo_Format.GetCurSel();
-	if(nIndex == CB_ERR || nIndex<0 || (unsigned)nIndex>=m_ScriptInfoArray.size())return;
-
-	m_bSFX=false;
-
-	//DDX情報アップデート
-	DoDataExchange(FALSE);
-
-	//自己解凍対応？
-	::EnableWindow(GetDlgItem(IDC_CHECK_COMPRESS_SFX),m_ScriptInfoArray[nIndex].wAbility&B2EABILITY_SFX);
-
-	//メソッド列挙
-	Combo_Method.ResetContent();	//消去
-	if(m_ScriptInfoArray[nIndex].MethodArray.empty()){
-		Combo_Method.AddString(_T("Default"));
-	}
-	else{
-		for(UINT uIdx=0;uIdx<m_ScriptInfoArray[nIndex].MethodArray.size();uIdx++){
-			Combo_Method.AddString(CA2T(m_ScriptInfoArray[nIndex].MethodArray[uIdx]));
-		}
-	}
-	Combo_Method.SetCurSel(m_ScriptInfoArray[nIndex].nDefaultMethod);
-}
-
+	bool IsSingleCompression()const { return bSingleCompression; }
+	bool GetDeleteAfterCompress()const { return bDeleteAfterCompress; }
+};
 
 //---------------------------------------------------------------
 
-//圧縮形式選択:キャンセルでPARAMETER_UNDEFINEDが返る
-PARAMETER_TYPE SelectCompressType(int &Options,bool &bSingleCompression,CString &strB2EFormat,CString &strB2EMethod,bool &bB2ESFX)
+std::tuple<LF_ARCHIVE_FORMAT,
+	LF_WRITE_OPTIONS,
+	bool /*singleCompression*/,
+	bool /*deleteAfterCompress*/>
+GUI_SelectCompressType(bool enableSingleCompression, bool enableDeletion)
 {
-	//初期化
-	PARAMETER_TYPE CompressType=PARAMETER_UNDEFINED;
-	bSingleCompression=false;
-	Options=0;
-
-	//OkかCancelまで繰り返し
-	while(true){	//---使用DLLを決定
-		if(PARAMETER_UNDEFINED==CompressType){	//形式が指定されていない場合
-			CSelectDialog SelDlg;
-			CompressType=(PARAMETER_TYPE)SelDlg.DoModal();
-			if(PARAMETER_UNDEFINED==CompressType){	//キャンセルの場合
-				return PARAMETER_UNDEFINED;
-			}else if(CompressType!=PARAMETER_B2E){
-				Options=SelDlg.GetOptions();
-				bSingleCompression=SelDlg.IsSingleCompression();
-				return CompressType;
-			}
-		}
-		if(CompressType==PARAMETER_B2E){	//B2Eを使用する場合
-			//---B2E32.dllのチェック
-			CArchiverB2E &B2EHandler=CArchiverDLLManager::GetInstance().GetB2EHandler();
-			if(!B2EHandler.IsOK()){
-				CompressType=PARAMETER_UNDEFINED;
-				CString msg;
-				msg.Format(IDS_ERROR_DLL_LOAD,B2EHandler.GetName());
-				ErrorMessage(msg);
-				continue;
-			}
-
-			//---形式選択
-			CB2ESelectDialog SelDlg;
-			INT_PTR Ret=SelDlg.DoModal();
-			if(IDCANCEL==Ret){	//キャンセルの場合
-				return PARAMETER_UNDEFINED;
-			}else if(IDC_COMPRESS_USENORMAL==Ret){	//通常のDLLを使う
-				CompressType=PARAMETER_UNDEFINED;
-			}else{
-				Options=-1;
-				bB2ESFX=SelDlg.IsSFX();
-				bSingleCompression=SelDlg.IsSingleCompression();
-				strB2EFormat=SelDlg.GetFormat();
-				strB2EMethod=SelDlg.GetMethod();
-				return CompressType;
-			}
-		}
-	}
+	CSelectDialog SelDlg(enableSingleCompression, enableDeletion);
+	auto format = (LF_ARCHIVE_FORMAT)SelDlg.DoModal();
+	return { format, SelDlg.GetOptions(), SelDlg.IsSingleCompression(), SelDlg.GetDeleteAfterCompress() };
 }

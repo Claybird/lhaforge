@@ -22,38 +22,19 @@
 * SOFTWARE.
 */
 
-//共通してincludeすべきファイルがすべて書いてある
-//プリコンパイルドヘッダ
-
 #pragma once
 //#define WINVER 0x0500
 #define _WIN32_WINNT 0x0600
-//#define _ATL_NO_COM
-//#define _WTL_NO_WTYPES
-#define _WTL_NO_UNION_CLASSES
-#define _ATL_NO_MSIMG
-#define _ATL_NO_OPENGL
+#define NOMINMAX
+
 #define ATL_NO_LEAN_AND_MEAN
-#define _ATL_USE_CSTRING_FLOAT	//CStringのFormatで小数が出力できるようになる
 
-//#if (defined _DEBUG)||(defined DEBUG)
-//#define _CRTDBG_MAP_ALLOC
-//#include <stdlib.h>
-//#include <crtdbg.h>
-//#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-//#endif
-
-#define _USE_32BIT_TIME_T	//time_tを32bitにする
-
-#define _STLP_USE_NEWALLOC	//STLで標準のアロケータを使う
-//#define _STLP_LEAKS_PEDANTIC	//STLのメモリリークを消す
-
-//ATLのCStringを使う
-//(cf.)http://hp.vector.co.jp/authors/VA022575/c/cstring.html
-//#define _WTL_FORWARD_DECLARE_CSTRING
-//#define _ATL_NO_AUTOMATIC_NAMESPACE
-#define _WTL_NO_CSTRING
-
+#pragma warning(push)
+#pragma warning(disable:6001)
+#pragma warning(disable:6054)
+#pragma warning(disable:6387)
+#pragma warning(disable:6400)
+#pragma warning(disable:6401)
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
@@ -64,38 +45,42 @@
 extern CAppModule _Module;
 #include <atlwin.h>
 #include <atlcrack.h>
-#include <atlmisc.h>
-#include <atldlgs.h>
 #include <atlctrls.h>
-#include <atlframe.h>
-#include <atlddx.h>		// DDX/DDVを使用するため
-#if !defined(_UNICODE)&&!defined(UNICODE)
- #include <mbctype.h>
-#endif//!defined(_UNICODE)&&!defined(UNICODE)
-#include <atlframe.h>
-#include <atlsplit.h>
 #include <atlctrlx.h>
-#include <time.h>
-
-#include <algorithm>
-#include <list>
-#include <vector>
-#include <string>
-#include <map>
-#include <stack>
-#include <unordered_map>
-#include <set>
-
-#include <comcat.h>
-
-#include <atlddx.h>		// DDX/DDVを使用するため
-#include <atlscrl.h>
-#include <Lmcons.h>
+#include <atlddx.h>
+#include <atldlgs.h>
+#include <atlframe.h>
+#include <atlmisc.h>
 #include <atlpath.h>
-#include <locale.h>
+#include <atlscrl.h>
+#include <atlsplit.h>
+#pragma warning(pop)
+#include <algorithm>
+#include <array>
 #include <cctype>
+#include <comcat.h>
+#include <filesystem>
+#include <fcntl.h>
+#include <functional>
+#include <inttypes.h>
+#include <io.h>
+#include <list>
+#include <Lmcons.h>
+#include <locale.h>
+#include <map>
+#include <regex>
+#include <set>
+#include <stack>
+#include <string>
+#include <sys/utime.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
-#define WM_USER_WM_SIZE		(WM_APP+1)	//WM_SIZEが来たら、PostMessageされる;ダイアログリサイズのトリックのため
+
+#include <SimpleIni.h>
 
 #if defined _M_IX86
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
@@ -107,46 +92,102 @@ extern CAppModule _Module;
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #endif
 
-//文字型の定義
-#if defined(_UNICODE)||defined(UNICODE)
-typedef std::wstring stdString;
-#else//defined(_UNICODE)||defined(UNICODE)
-typedef std::string stdString;
-#endif//defined(_UNICODE)||defined(UNICODE)
-
-//個数を数えるマクロ
+//enum
+#define ENUM_COUNT_AND_LASTITEM ItemCount,LastItem=(ItemCount-1)
 #define COUNTOF(x) (sizeof(x)/sizeof(x[0]))
 
-#define FILL_ZERO(x)	::ZeroMemory(&x,sizeof(x))
 #define ASSERT(x)	assert(x)
-
+#include "Utilities/StringUtil.h"
 //TRACE
-void UtilDebugTrace(LPCTSTR pszFormat, ...);
 #if defined(_DEBUG) || defined(DEBUG)
-#define TRACE UtilDebugTrace
-#else	// Releaseのとき
+#define TRACE(fmt, ...)	OutputDebugString(Format(fmt, __VA_ARGS__).c_str())
+#else
 #define TRACE
-#endif	//_DEBUG
+#endif
 
-//enum
-#define ENUM_COUNT_AND_LASTITEM(x) x##_ITEM_COUNT,x##_LAST_ITEM=(x##_ITEM_COUNT-1)
-
-
-//エラー定数
-//NOTE:10100 00000000000 0000000000000000b = 0xA0000000
-//NOTE:00100 00000000000 0000000000000000b = 0x20000000
-#define E_LF_CANNOT_DECIDE_FILENAME		((HRESULT)(0xA0000000|0x001))
-#define E_LF_OVERWRITE_SOURCE			((HRESULT)(0xA0000000|0x002))
-#define E_LF_UNKNOWN_FORMAT				((HRESULT)(0xA0000000|0x003))
-#define E_LF_FILELIST_NOT_SUPPORTED		((HRESULT)(0xA0000000|0x004))
-#define E_LF_SAME_INPUT_AND_OUTPUT		((HRESULT)(0xA0000000|0x008))
-#define E_LF_UNICODE_NOT_SUPPORTED		((HRESULT)(0xA0000000|0x010))
-#define E_LF_FILE_NOT_FOUND				((HRESULT)(0xA0000000|0x020))
-
-#define S_LF_ARCHIVE_EXISTS				((HRESULT)(0x20000000|0x001))
 
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+  TypeName(const TypeName&)=delete;        \
+  void operator=(const TypeName&)=delete;
+
+#ifdef _MSC_VER
+ #define WEAK_SYMBOL __declspec(selectany)
+#else
+ #define WEAK_SYMBOL __attribute__((weak))
+#endif
+
+
+struct LF_EXCEPTION {
+	std::wstring _msg;
+	LF_EXCEPTION(const std::wstring &err) {
+		_msg = err;
+	}
+	virtual ~LF_EXCEPTION() {}
+	const wchar_t* what()const { return _msg.c_str(); }
+};
+
+struct LF_USER_CANCEL_EXCEPTION: LF_EXCEPTION {
+	LF_USER_CANCEL_EXCEPTION() :LF_EXCEPTION(L"Cancel") {}
+	virtual ~LF_USER_CANCEL_EXCEPTION() {}
+};
+
+#define RAISE_EXCEPTION(...) throw LF_EXCEPTION(Format(__VA_ARGS__))
+#define CANCEL_EXCEPTION() throw LF_USER_CANCEL_EXCEPTION()
+
+
+template <class T>
+class LFWinDataExchange :public CWinDataExchange<T>
+{
+public:
+	BOOL DDX_Text(UINT nID, ATL::CString& strText, int cbSize, BOOL bSave, BOOL bValidate = FALSE, int nLength = 0) {
+		return __super::DDX_Text(nID, strText, cbSize, bSave, bValidate, nLength);
+	}
+
+	BOOL DDX_Text(UINT nID, std::wstring& strText, int /*cbSize*/, BOOL bSave, BOOL bValidate = FALSE, int nLength = 0)
+	{
+		T* pT = static_cast<T*>(this);
+		BOOL bSuccess = TRUE;
+
+		if (bSave) {
+			HWND hWndCtrl = pT->GetDlgItem(nID);
+			int nLen = ::GetWindowTextLength(hWndCtrl);
+			int nRetLen = -1;
+			std::vector<wchar_t> buf(nLen + 1);
+			LPTSTR lpstr = &buf[0];
+			if (lpstr != NULL) {
+				nRetLen = ::GetWindowText(hWndCtrl, lpstr, nLen + 1);
+				strText = lpstr;
+			}
+			if (nRetLen < nLen) {
+				bSuccess = FALSE;
+			}
+		} else {
+			bSuccess = pT->SetDlgItemText(nID, strText.c_str());
+		}
+
+		if (!bSuccess) {
+			pT->OnDataExchangeError(nID, bSave);
+		} else if (bSave && bValidate)   // validation
+		{
+			ATLASSERT(nLength > 0);
+			if ((int)strText.length() > nLength) {
+				_XData data = { ddxDataText };
+				data.textData.nLength = (int)strText.length();
+				data.textData.nMaxLength = nLength;
+				pT->OnDataValidateError(nID, bSave, data);
+				bSuccess = FALSE;
+			}
+		}
+		return bSuccess;
+	}
+};
+
+#ifdef UNIT_TEST
+#include <gtest/gtest.h>
+inline std::filesystem::path LF_PROJECT_DIR() {
+	return std::filesystem::path(__FILEW__).parent_path();
+}
+#endif
+

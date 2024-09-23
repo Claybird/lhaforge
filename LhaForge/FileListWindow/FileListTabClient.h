@@ -24,105 +24,88 @@
 
 #pragma once
 #include "FileListTabItem.h"
-#include "../resource.h"
+#include "resource.h"
 
-#define FILELISTWINDOW_DEFAULT_TREE_WIDTH	175
 
 class CFileListFrame;
-enum DLL_ID;
 struct CConfigFileListWindow;
 class CFileListTabClient:public CTabView,public CEventDispatcher
 {
 public:
 	BOOL PreTranslateMessage(MSG* pMsg);
 protected:
-	CSmartPtrCollection<CFileListTabItem> m_GC;
-	//HWND				m_hFrameWnd;
+	std::vector<std::shared_ptr<CFileListTabItem> > m_GC;
 	CFileListFrame&		m_rFrameWnd;
-	CConfigManager&		m_rConfig;
-	int					m_ColumnIndexArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
-	int					m_FileInfoWidth[FILEINFO_ITEM_COUNT];
-	bool				m_bShowTab;			//タブ表示?
-	bool				m_bShowTreeView;	//ツリービュー表示ならTrue
+	bool				m_bShowTab;
 
-	CFileListTabItem*	m_lpPrevTab;
-
-	//各リストビューで共通化する設定
-	int		m_nTreeWidth;
-	bool	m_bSortDescending;
-	int		m_nSortKeyType;
-	DWORD	m_dwListStyle;
-	FILELISTMODE	m_ListMode;//タブ間で共有はせず、保存のためだけに使用する
+	const CConfigFileListWindow& m_confFLW;
+	const LF_COMPRESS_ARGS& mr_compressArgs;
 protected:
 	BEGIN_MSG_MAP_EX(CFileListTabClient)
-		//MESSAGE_HANDLER(WM_CREATE, OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_SIZE(OnSize)
 		NOTIFY_CODE_HANDLER_EX(NM_SETFOCUS, OnWndStateChanged)
 		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnWndStateChanged)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnTabSelChanged)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)	//タブメニュー
+		NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnDeactivatingTab)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnActivateTab)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_PAGEACTIVATED, OnActivateTab)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_CONTEXTMENU,OnContextMenu)
+		REFLECTED_NOTIFY_CODE_HANDLER_EX(TBVN_TABCLOSEBTN, OnTabCloseBtn)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TOGGLE_TREEVIEW,OnToggleTreeView)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE,OnExtractArchive)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE,OnExtractArchive)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TEST_ARCHIVE,OnTestArchive)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE_ALL,OnExtractAll);
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE_ALL,OnExtractAll);
-		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_SORT_FILENAME,ID_MENUITEM_SORT_CRC,OnSortItemMenu)
+		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_SORT_FILENAME, ID_MENUITEM_SORT_RATIO,OnSortItemMenu)
 	if(GetActivePage()!=-1)CHAIN_COMMANDS_MEMBER(GetCurrentTab()->ListView)
 		CHAIN_MSG_MAP(CTabView)
 		REFLECT_NOTIFICATIONS()
 		DEFAULT_REFLECTION_HANDLER()
-	ALT_MSG_MAP(1)	//タブコントロール
-		MSG_WM_MBUTTONUP(OnMButtonUp)	//マウスホイール(中ボタン)クリック
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGING, OnTabSelChanging)
-		REFLECTED_NOTIFY_CODE_HANDLER_EX(TCN_SELCHANGE, OnTabSelChanged)
+	ALT_MSG_MAP(1)	//tab control
+		MSG_WM_MBUTTONUP(OnMButtonUp)	//mouse middle button click
 		CHAIN_MSG_MAP_ALT(CTabView,1)
 	END_MSG_MAP()
 protected:
-	//---イベントハンドラ
-	LRESULT OnDestroy();
+	LRESULT OnDestroy() { ClearAllTabs(); return 0; }
 	void OnSize(UINT uType, CSize &size);
-	LRESULT OnTabSelChanging(LPNMHDR pnmh);
-	LRESULT OnTabSelChanged(LPNMHDR pnmh);
-	LRESULT OnWndStateChanged(LPNMHDR pnmh);
+	LRESULT OnDeactivatingTab(LPNMHDR pnmh) {
+		OnDeactivatingTab(GetActivePage());
+		SetMsgHandled(FALSE);
+		return 0;
+	}
+	void OnDeactivatingTab(int page);
+	LRESULT OnActivateTab(LPNMHDR pnmh) {
+		OnActivateTab(GetActivePage());
+		SetMsgHandled(FALSE);
+		return 0;
+	}
+	void OnActivateTab(int page);
+	LRESULT OnWndStateChanged(LPNMHDR) { dispatchEvent(WM_FILELIST_WND_STATE_CHANGED); return 0; }
 	LRESULT OnContextMenu(LPNMHDR pnmh);
+	LRESULT OnTabCloseBtn(LPNMHDR pnmh);
 	void OnMButtonUp(UINT, CPoint&);
-	void OnExtractArchive(UINT,int,HWND);	//アーカイブをすべて解凍
-	void OnTestArchive(UINT,int,HWND);	//アーカイブを検査
+	void OnExtractArchive(UINT,int,HWND);
+	void OnTestArchive(UINT,int,HWND);
 	void OnSortItemMenu(UINT,int,HWND);
 	void OnToggleTreeView(UINT,int,HWND);
-	void OnExtractAll(UINT,int,HWND);
 protected:
-	int CreateNewTab(const CConfigFileListWindow& ConfFLW);
+	int CreateNewTab();
 	void ClearAllTabs();
 	void RemoveTab(int);
 	void RemoveTabExcept(int);
-	void FitClient();
-	void OnActivateTab(int newIdx);
-	void OnDeactivateTab(CFileListTabItem*);
-	void GetTabSettingsToClient(CFileListTabItem*);	//指定したタブの設定をメンバ変数に読み込む
 	void UpdateClientArea();
 public:
-	CFileListTabClient(CConfigManager&,CFileListFrame&);
+	CFileListTabClient(const CConfigFileListWindow&, const LF_COMPRESS_ARGS&, CFileListFrame&);
 	virtual ~CFileListTabClient(){ClearAllTabs();}
-	//void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
 	CFileListTabItem* GetCurrentTab();
 
-	void ReloadArchiverIfLost();
-
-	HRESULT OpenArchiveInTab(LPCTSTR lpszArc,DLL_ID forceID,const CConfigFileListWindow& ConfFLW,LPCTSTR lpMutexName,HANDLE hMutex,CString &strErr);
-	HRESULT ReopenArchiveFile(FILELISTMODE,int nPage=-1);
+	HRESULT OpenArchiveInTab(const std::filesystem::path& arcpath, const std::wstring& mutexName, HANDLE hMutex, ARCLOG &arcLog);
+	HRESULT ReopenArchiveFile(int nPage=-1);
 	void UpdateFileListConfig(const CConfigFileListWindow& ConfFLW);
 	bool ReopenArchiveFileAll();
-	FILELISTMODE GetFileListMode();
 
 	void StoreSettings(CConfigFileListWindow&);
 
-	void SetCurrentTab(int idx);
-	void SetCurrentTab(HANDLE);
+	void SetActivePage(int i) { __super::SetActivePage(i); }
+	void SetActivePage(HANDLE);
 	void CloseCurrentTab(){RemoveTab(GetActivePage());}
 
 	DWORD GetListViewStyle();

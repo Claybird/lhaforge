@@ -24,31 +24,83 @@
 
 #pragma once
 //Original code from http://hp.vector.co.jp/authors/VA016117/
-//Modified by Claybird http://claybird.sakura.ne.jp/
 
-
-class CEnumFORMATETC : public IEnumFORMATETC
+class CLFDnDEnumFORMATETC : public IEnumFORMATETC
 {
-friend class CEnumFORMATETC;
-public:
-	CEnumFORMATETC() : _RefCount(1){
-		_current = 0;
-	};
-	~CEnumFORMATETC(){};
-
-	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv);
-	virtual ULONG __stdcall AddRef(void);
-	virtual ULONG __stdcall Release(void);
-
-	virtual HRESULT __stdcall Next(ULONG celt, FORMATETC * rgelt, ULONG * pceltFetched);
-	virtual HRESULT __stdcall Skip(ULONG celt);
-	virtual HRESULT __stdcall Reset(void);
-	virtual HRESULT __stdcall Clone(IEnumFORMATETC ** ppenum);
-
-	BOOL SetFormat(FORMATETC *fmt);
 private:
 	LONG _RefCount;
 protected:
 	std::vector<FORMATETC> m_fmtArray;
-	int		_current;
+	size_t _current;
+public:
+	CLFDnDEnumFORMATETC() : _RefCount(1), _current(0) {};
+	~CLFDnDEnumFORMATETC(){};
+
+	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv)override {
+		HRESULT hr;
+		if (iid == IID_IEnumFORMATETC || iid == IID_IUnknown) {
+			hr = S_OK;
+			*ppv = (void*)this;
+			AddRef();
+		} else {
+			hr = E_NOINTERFACE;
+			*ppv = 0;
+		}
+		return hr;
+	}
+	virtual ULONG __stdcall AddRef(void)override {
+		InterlockedIncrement(&_RefCount);
+		return (ULONG)_RefCount;
+	}
+	virtual ULONG __stdcall Release(void)override {
+		ULONG ret = (ULONG)InterlockedDecrement(&_RefCount);
+		if (ret == 0) {
+			delete this;
+		}
+		return (ULONG)_RefCount;
+	}
+
+	virtual HRESULT __stdcall Next(ULONG celt, FORMATETC * rgelt, ULONG * pceltFetched)override {
+		ULONG n = celt;
+		if (pceltFetched != nullptr) *pceltFetched = 0;
+		if (celt <= 0 || rgelt == nullptr || _current >= m_fmtArray.size())	return S_FALSE;
+		if (pceltFetched == nullptr && celt != 1)	return S_FALSE;
+
+		while (_current < m_fmtArray.size() && n > 0) {
+			*rgelt++ = m_fmtArray[_current];
+			_current++;
+			n--;
+		}
+		if (pceltFetched != nullptr) *pceltFetched = celt - n;
+
+		return (n == 0) ? S_OK : S_FALSE;
+	}
+	virtual HRESULT __stdcall Skip(ULONG celt)override {
+		while (_current < m_fmtArray.size() && celt > 0) {
+			_current++;
+			celt--;
+		}
+		return (celt == 0) ? S_OK : S_FALSE;
+	}
+	virtual HRESULT __stdcall Reset(void)override {
+		_current = 0;
+		return S_OK;
+	}
+	virtual HRESULT __stdcall Clone(IEnumFORMATETC ** ppenum)override {
+		CLFDnDEnumFORMATETC	*pfmt;
+
+		if (!ppenum)return E_POINTER;
+		pfmt = new CLFDnDEnumFORMATETC;
+		if (pfmt == NULL) return E_OUTOFMEMORY;
+
+		pfmt->m_fmtArray = m_fmtArray;
+		pfmt->_current = _current;
+		*ppenum = pfmt;
+		return S_OK;
+	}
+
+	BOOL SetFormat(const FORMATETC &fmt) {
+		m_fmtArray.push_back(fmt);
+		return	TRUE;
+	}
 };

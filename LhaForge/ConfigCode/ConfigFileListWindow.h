@@ -23,54 +23,76 @@
 */
 
 #pragma once
+#include "FileListWindow/FileListModel.h"
+#include "FileListWindow/MenuCommand.h"
+#include "ConfigFile.h"
 
-struct CConfigFileListWindow:public IConfigConverter{
+struct CConfigFileListWindow:public IConfigIO{
 public:
-	int Width;					//ウィンドウの幅
-	int Height;					//ウィンドウの高さ
-	int TreeWidth;				//ツリービューの幅
+	struct GENERAL {
+		bool StoreSetting;
+		bool ExitWithEscape;
+		bool KeepSingleInstance;
+		bool DisableTab;	//trie if disable tab
+	}general;
 
-	int SortColumn;				//どのカラムでソートするか
-	BOOL SortDescending;		//ソートの昇順・降順
-	int ListStyle;				//リストビューの形式
+	struct DIMENSIONS{
+		int Width;
+		int Height;
+		int TreeWidth;
 
-	BOOL StoreSetting;			//ウィンドウの設定を保存
+		int WindowPos_x;
+		int WindowPos_y;
+		bool StoreWindowPosition;
+	}dimensions;
 
-	int WindowPos_x;			//ウィンドウの座標(x)
-	int WindowPos_y;			//ウィンドウの座標(y)
-	BOOL StoreWindowPosition;	//ウィンドウの位置を保存する
+	struct VIEW {
+		int SortColumnIndex;
+		bool SortAtoZ;	//true if sort descending
+		int ListStyle;
 
-	BOOL IgnoreMeaninglessPath;	//空白や.のみのパス指定は無視する
-	FILELISTMODE FileListMode;	//ファイル表示の階層モード
-	BOOL ExpandTree;			//起動時にツリービューを展開しておく
-	BOOL DisplayFileSizeInByte;	//バイト単位でファイルサイズを表記する
-	BOOL DisplayPathOnly;		//フルパスの欄にファイル名を表示しない
-	int ColumnOrderArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの並び順
-	int ColumnWidthArray[FILEINFO_ITEM_COUNT];	//リストビューカラムの幅
-	BOOL ExitWithEscape;		//[ESC]キーで終了
-	BOOL DisableTab;			//タブ表示を使わないならTRUE
-	BOOL KeepSingleInstance;	//ウィンドウを一つに保つならTRUE
-	BOOL DenyPathExt;			//%PATHEXT%で指定されたファイルを開かないならTRUE
+		bool DisplayFileSizeInByte;
+		bool DisplayPathOnly;
+		struct LISTVIEW_COLUMN {
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> order;
+			std::array<int, (int)FILEINFO_TYPE::ItemCount> width;
+		}column;
 
-	CString strCustomToolbarImage;	//カスタムツールバー画像
-	BOOL ShowToolbar;			//ツールバーを表示するならTRUE
-	BOOL ShowTreeView;			//ツリービューを表示するならTRUE
+		bool ExpandTree;	//true to expand treeview on startup
+		bool ShowTreeView;
+		bool ShowToolbar;
+		std::wstring strCustomToolbarImage;
 
-	struct tagOpenAssoc{
-		virtual ~tagOpenAssoc(){}
-		CString Accept;
-		CString Deny;
-	}OpenAssoc;
+		struct tagOpenAssoc {
+			virtual ~tagOpenAssoc() {}
+			std::wstring Accept;
+			std::wstring Deny;
+			bool DenyExecutables;	//true to deny opening files that match %PATHEXT%
+		}OpenAssoc;
 
-	std::vector<CMenuCommandItem> MenuCommandArray;	//「プログラムで開く」のコマンド
+		std::vector<CLFMenuCommandItem> MenuCommandArray;	//Open with app
+
+		std::vector<std::pair<std::wstring, ARCHIVE_FIND_CONDITION> > searchFolderItems;
+	}view;
+
 protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
-	void loadMenuCommand(CONFIG_SECTION&,CMenuCommandItem&);
-	void storeMenuCommand(CONFIG_SECTION&,const CMenuCommandItem&)const;
+	void loadMenuCommand(const CConfigFile&);
+	void storeMenuCommand(CConfigFile&)const;
+
+	void load_sub(const CConfigFile&);
+	void store_sub(CConfigFile&)const;
 public:
 	virtual ~CConfigFileListWindow(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile &Config) {
+		load_sub(Config);
+		loadMenuCommand(Config);
+	}
+	virtual void store(CConfigFile& Config)const {
+		store_sub(Config);
+		storeMenuCommand(Config);
+	}
+
+	//checks file extension whether file is allowed to be opened.
+	bool isPathAcceptableToOpenAssoc(const std::filesystem::path &path, bool bDenyOnly)const;
 };
 

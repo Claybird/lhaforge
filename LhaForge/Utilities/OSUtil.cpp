@@ -26,285 +26,17 @@
 #include "OSUtil.h"
 #include "Utility.h"
 #include "FileOperation.h"
+#include "resource.h"
 
-//=======================================================
-//From http://www.athomejp.com/goldfish/api/shortcut.asp
-//=======================================================
-HRESULT UtilCreateShortcut(LPCTSTR lpszPathLink,LPCTSTR lpszPathTarget,LPCTSTR lpszArgs,LPCTSTR lpszIconPath,int iIcon,LPCTSTR lpszDescription)
-{
-	HRESULT hRes;
-	IShellLink* psl =NULL;
-
-	// IShellLink インターフェイスを取得
-	hRes = CoCreateInstance(
-		CLSID_ShellLink,NULL,
-		CLSCTX_INPROC_SERVER,
-		IID_IShellLink,
-		(LPVOID *)&psl);
-
-	if(FAILED(hRes)){
-		//失敗
-		//ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CREATE_SHORTCUT)));
-		return hRes;
-	}
-
-	IPersistFile* ppf=NULL;
-	// Linkオブジェクトのパスを設定(たとえば、C:\Windows\notepad.exeなど)
-	psl->SetPath(lpszPathTarget);
-	//引数設定
-	psl->SetArguments(lpszArgs);
-	//アイコン設定
-	psl->SetIconLocation(lpszIconPath,iIcon);
-	//説明文設定
-	psl->SetDescription(lpszDescription);
-	// IPersistFileインターフェイスを取得後Linkパスファイル名を保存
-	hRes =psl->QueryInterface( IID_IPersistFile,(void**)&ppf);
-	if(FAILED(hRes)){
-		//ppfの取得に失敗
-		psl->Release();
-		return hRes;
-	}
-
-#if defined(_UNICODE)||defined(UNICODE)
-	hRes = ppf->Save(lpszPathLink, TRUE);
-#else
-	WCHAR wsz[_MAX_PATH+1];
-
-	MultiByteToWideChar(CP_ACP, 0,lpszPathLink, -1,wsz, _MAX_PATH);
-	// ディスクに保存する
-	hRes = ppf->Save(wsz, TRUE);
-#endif
-	ppf->Release();
-	psl->Release();
-	return hRes;
-}
-
-HRESULT UtilGetShortcutInfo(LPCTSTR lpPath,CString &strTargetPath,CString &strParam,CString &strWorkingDir)
-{
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
-	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
-
-	if(SUCCEEDED(hr)){
-		pLink->SetPath(lpPath);
-		CComQIPtr<IPersistFile> pFile=pLink;
-		if(pFile){
-			hr=pFile->Load(lpPath,STGM_READ);
-			if(SUCCEEDED(hr)){
-				{
-					WCHAR szBuffer[_MAX_PATH+1];
-					hr=pLink->GetPath(szBuffer,COUNTOF(szBuffer),NULL,0);
-					if(FAILED(hr))return hr;
-					strTargetPath=szBuffer;
-				}
-
-				{
-					WCHAR szArg[INFOTIPSIZE+1];
-					hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-					if(FAILED(hr))return hr;
-					strParam=szArg;
-				}
-
-				{
-					WCHAR szDir[_MAX_PATH+1];
-					hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-					if(FAILED(hr))return hr;
-					strWorkingDir=szDir;
-				}
-			}
-		}
-	}
-	return hr;
-}
-
-void UtilGetShortcutInfo(const std::vector<CString> &files,std::vector<SHORTCUTINFO> &info)
-{
-	CComPtr<IShellLink> pLink;
-
-	// IShellLink インターフェイスを取得
-	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
-
-	info.clear();
-	if(SUCCEEDED(hr)){
-		size_t size=files.size();
-		info.resize(size);
-		for(size_t i=0;i<size;i++){
-			pLink->SetPath(files[i]);
-			CComQIPtr<IPersistFile> pFile=pLink;
-			if(pFile){
-				hr=pFile->Load(files[i],STGM_READ);
-				if(FAILED(hr))continue;
-
-				WCHAR szTarget[_MAX_PATH+1];
-				hr=pLink->GetPath(szTarget,COUNTOF(szTarget),NULL,0);
-				if(FAILED(hr))continue;
-
-				WCHAR szArg[INFOTIPSIZE+1];
-				hr=pLink->GetArguments(szArg,COUNTOF(szArg));
-				if(FAILED(hr))continue;
-
-				WCHAR szDir[_MAX_PATH+1];
-				hr=pLink->GetWorkingDirectory(szDir,COUNTOF(szDir));
-				if(FAILED(hr))continue;
-
-				//通常の情報
-				CPath title=files[i];
-				title.StripPath();
-				title.RemoveExtension();
-				info[i].strTitle=(LPCTSTR)title;
-				info[i].strCmd=szTarget;
-				info[i].strParam=szArg;
-				info[i].strWorkingDir=szDir;
-
-				//アイコン情報:アイコンを取得し、ビットマップに変換
-				SHFILEINFO sfi={0};
-				SHGetFileInfo(files[i],0,&sfi,sizeof(sfi),SHGFI_ICON | SHGFI_SMALLICON);
-				UtilMakeDIBFromIcon(info[i].cIconBmpSmall,sfi.hIcon);
-				DestroyIcon(sfi.hIcon);
-			}
-		}
-	}
-}
-
-
-//From http://techtips.belution.com/ja/vc/0012/
-void UtilSetAbsoluteForegroundWindow(HWND hWnd)
-{
-	int nTargetID, nForegroundID;
-	DWORD sp_time;
-
-	// フォアグラウンドウィンドウを作成したスレッドのIDを取得
-	nForegroundID = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
-	// 目的のウィンドウを作成したスレッドのIDを取得
-	nTargetID = GetWindowThreadProcessId(hWnd, NULL );
-
-	// スレッドのインプット状態を結び付ける
-	AttachThreadInput(nTargetID, nForegroundID, TRUE );  // TRUE で結び付け
-
-	// 現在の設定を sp_time に保存
-	SystemParametersInfo( SPI_GETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
-	// ウィンドウの切り替え時間を 0ms にする
-	SystemParametersInfo( SPI_SETFOREGROUNDLOCKTIMEOUT,0,(LPVOID)0,0);
-
-	// ウィンドウをフォアグラウンドに持ってくる
-	SetForegroundWindow(hWnd);
-
-	// 設定を元に戻す
-	SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,0,&sp_time,0);
-
-	// スレッドのインプット状態を切り離す
-	AttachThreadInput(nTargetID, nForegroundID, FALSE );  // FALSE で切り離し
-}
-
-
-BOOL UtilIsWow64()
-{
-	typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
-
-	BOOL bIsWow64 = FALSE;
-
-	LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(_T("kernel32")),"IsWow64Process");
-
-	if(fnIsWow64Process){
-		if(!fnIsWow64Process(GetCurrentProcess(),&bIsWow64)){
-			return FALSE;
-		}
-	}
-	return bIsWow64;
-}
-
-
-//コマンドライン引数を取得(個数を返す)
-int UtilGetCommandLineParams(std::vector<CString> &rParams)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	int nArgc=0;
-	LPWSTR *lplpArgs=CommandLineToArgvW(GetCommandLine(), &nArgc);
-	rParams.resize(nArgc);
-	for(int i=0;i<nArgc;i++){
-		rParams[i]=lplpArgs[i];
-	}
-	LocalFree(lplpArgs);
-	return nArgc;
-#else//defined(_UNICODE)||defined(UNICODE)
-	rParams.resize(__argc);
-	for(int i=0;i<__argc;i++){
-		rParams[i]=__argv[i];
-	}
-	return __argc;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
-
-void UtilNavigateDirectory(LPCTSTR lpszDir)
-{
-	//Explorerで開く
-	TCHAR szExplorerPath[_MAX_PATH+1];
-	FILL_ZERO(szExplorerPath);
-	GetWindowsDirectory(szExplorerPath,_MAX_PATH);
-	PathAppend(szExplorerPath,_T("Explorer.exe"));
-	ShellExecute(NULL, _T("open"), szExplorerPath, lpszDir, NULL, SW_SHOWNORMAL);
-}
-
-//環境変数を参照し、辞書形式で取得する
-void UtilGetEnvInfo(std::map<stdString,stdString> &envInfo)
-{
-	LPTSTR lpEnvStr = GetEnvironmentStrings();
-	LPCTSTR lpStr    = lpEnvStr;
-
-	for(;*lpStr!='\0';){
-		LPCTSTR lpSplit=lpStr+1;	//環境変数名の先頭が'='だった場合に備える
-		for(;*lpSplit!=L'\0' && *lpSplit != L'=';lpSplit++)continue;
-
-		//---環境変数名
-		stdString strKey(lpStr,lpSplit);
-		//大文字に正規化
-		std::transform(strKey.begin(), strKey.end(), strKey.begin(), std::toupper);
-		//---環境変数の値
-		CString strValue=lpSplit+1;
-		envInfo[strKey]=strValue;
-
-		for(lpStr=lpSplit;*lpStr!=L'\0';lpStr++)continue;
-		lpStr++;
-	}
-
-	FreeEnvironmentStrings(lpEnvStr);
-}
-
-//UtilExpandTemplateString()のパラメータ展開に必要な情報を構築する
-void UtilMakeExpandInformation(std::map<stdString,CString> &envInfo)
-{
-	//環境変数で構築
-	std::map<stdString,stdString> envs;
-	UtilGetEnvInfo(envs);
-	for(std::map<stdString,stdString>::iterator ite=envs.begin();ite!=envs.end();++ite){
-		//%ENVIRONMENT%の形式に変換
-		envInfo[L'%'+(*ite).first+L'%']=(*ite).second.c_str();
-	}
-
-	//---LhaForge本体の情報
-	envInfo[_T("ProgramPath")]=UtilGetModulePath();
-	envInfo[_T("ProgramFileName")]=PathFindFileName(UtilGetModulePath());
-
-	CPath dir=UtilGetModuleDirectoryPath();
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDir")]=(LPCTSTR)dir;
-
-	dir.StripToRoot();
-	//末尾のBackslashを取り除く;RemoveBackslashではドライブ名直後のBackslashが取り除けない
-	dir.RemoveBackslash();
-	envInfo[_T("ProgramDrive")]=(LPCTSTR)dir;
-}
-
-void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
+//convert icon into bitmap with alpha information
+void makeDIBFromIcon(CBitmap &bitmap, HICON icon)
 {
 	ICONINFO ii;
-	::GetIconInfo(icon,&ii);
+	::GetIconInfo(icon, &ii);
 	BITMAP bm;
-	GetObject(ii.hbmColor,sizeof(bm),&bm);
+	GetObject(ii.hbmColor, sizeof(bm), &bm);
 
-	BITMAPINFO bmpinfo={0};
+	BITMAPINFO bmpinfo = { 0 };
 	bmpinfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmpinfo.bmiHeader.biWidth = bm.bmWidth;
 	bmpinfo.bmiHeader.biHeight = bm.bmWidth;
@@ -312,48 +44,225 @@ void UtilMakeDIBFromIcon(CBitmap &bitmap,HICON icon)
 	bmpinfo.bmiHeader.biBitCount = 32;
 	bmpinfo.bmiHeader.biCompression = BI_RGB;
 
-	HDC hTempDC=::GetDC(NULL);
-	CDC hDestDC,hSrcDC;
+	HDC hTempDC = ::GetDC(NULL);
+	CDC hDestDC, hSrcDC;
 	hDestDC.CreateCompatibleDC(hTempDC);
 	hSrcDC.CreateCompatibleDC(hDestDC);
-	bitmap.CreateDIBSection(NULL,&bmpinfo,DIB_RGB_COLORS,NULL,NULL,NULL);
-	HBITMAP hOldDest=hDestDC.SelectBitmap(bitmap);
-	HBITMAP hOldSrc=hSrcDC.SelectBitmap(ii.hbmColor);
+	bitmap.CreateDIBSection(NULL, &bmpinfo, DIB_RGB_COLORS, NULL, NULL, NULL);
+	HBITMAP hOldDest = hDestDC.SelectBitmap(bitmap);
+	HBITMAP hOldSrc = hSrcDC.SelectBitmap(ii.hbmColor);
 
 	//hDestDC.MaskBlt(0,0,16,16,hSrcDC,0,0,ii.hbmMask,0,0,MAKEROP4(SRCCOPY, PATCOPY));
-	hDestDC.BitBlt(0,0,bm.bmWidth,bm.bmHeight,hSrcDC,0,0,SRCCOPY);
+	hDestDC.BitBlt(0, 0, bm.bmWidth, bm.bmHeight, hSrcDC, 0, 0, SRCCOPY);
 
 	hDestDC.SelectBitmap(hOldDest);
 	hSrcDC.SelectBitmap(hOldSrc);
 
 	DeleteObject(ii.hbmColor);
 	DeleteObject(ii.hbmMask);
-	ReleaseDC(NULL,hTempDC);
+	ReleaseDC(NULL, hTempDC);
 }
 
-
-//プロセス優先度の設定
-void UtilSetPriorityClass(DWORD dwPriorityClass)
+HRESULT UtilCreateShortcut(
+	const std::filesystem::path& pathLink,
+	const std::filesystem::path& pathTarget,
+	const std::wstring& args,
+	const std::filesystem::path& iconPath,
+	int iIcon,
+	const std::wstring &description)
 {
-	HANDLE hProcess=GetCurrentProcess();
-	SetPriorityClass(hProcess,dwPriorityClass);
+	CComPtr<IShellLinkW> pLink;
+	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
+
+	// such as C:\Windows\notepad.exe
+	pLink->SetPath(pathTarget.c_str());
+	pLink->SetArguments(args.c_str());
+	pLink->SetIconLocation(iconPath.c_str(),iIcon);
+	pLink->SetDescription(description.c_str());
+	//save to file
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if (pFile) {
+		return pFile->Save(pathLink.c_str(), TRUE);
+	} else {
+		return E_FAIL;
+	}
 }
 
+HRESULT UtilGetShortcutInfo(const std::filesystem::path& path, UTIL_SHORTCUTINFO& info)
+{
+	CComPtr<IShellLinkW> pLink;
+	HRESULT hr = pLink.CoCreateInstance(CLSID_ShellLink);
+	if (FAILED(hr))return hr;
 
-//クリップボードにテキストを設定
-void UtilSetTextOnClipboard(LPCTSTR lpszText)
+	pLink->SetPath(path.c_str());
+	CComQIPtr<IPersistFile> pFile = pLink;
+	if(pFile){
+		hr = pFile->Load(path.c_str(), STGM_READ);
+		if (FAILED(hr))return hr;
+		info.title = path.stem().c_str();
+
+		{
+			//The maximum path size that can be returned is MAX_PATH
+			//https://docs.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishelllinkw-getpath
+			wchar_t szTarget[_MAX_PATH + 1] = {};
+			hr = pLink->GetPath(szTarget, COUNTOF(szTarget), NULL, 0);
+			if (FAILED(hr))return hr;
+			info.cmd = szTarget;
+		}
+
+		{
+			wchar_t szArg[INFOTIPSIZE + 1] = {};
+			hr = pLink->GetArguments(szArg, COUNTOF(szArg));
+			if (FAILED(hr))return hr;
+			info.param = szArg;
+		}
+
+		{
+			wchar_t szDir[_MAX_PATH + 1] = {};
+			hr = pLink->GetWorkingDirectory(szDir, COUNTOF(szDir));
+			if (FAILED(hr))return hr;
+			info.workingDir = szDir;
+		}
+
+		//get icon and convert to bitmap
+		SHFILEINFO sfi={0};
+		SHGetFileInfoW(path.c_str(), 0, &sfi, sizeof(sfi), SHGFI_ICON | SHGFI_SMALLICON);
+		if(!info.cIconBmpSmall.IsNull())info.cIconBmpSmall.DeleteObject();
+		makeDIBFromIcon(info.cIconBmpSmall, sfi.hIcon);
+		DestroyIcon(sfi.hIcon);
+	}
+	return S_OK;
+}
+
+#ifdef UNIT_TEST
+TEST(OSUtil, UtilCreateShortcut_UtilGetShortcutInfo) {
+	auto temp_dir = std::filesystem::temp_directory_path();
+	auto link_file = temp_dir / "test.lnk";
+	const wchar_t* target = LR"(C:\Windows\notepad.exe)";
+	const wchar_t* args = L"";
+	const wchar_t* icon_file = LR"(C:\Windows\System32\SHELL32.dll)";
+	const int icon_index = 5;
+	const wchar_t* desc = L"test link";
+
+	EXPECT_FALSE(std::filesystem::exists(link_file));
+	EXPECT_EQ(S_OK, UtilCreateShortcut(
+		link_file.c_str(),
+		target,
+		args,
+		icon_file,
+		icon_index,
+		desc));
+	EXPECT_TRUE(std::filesystem::exists(link_file));
+
+	UTIL_SHORTCUTINFO info;
+	EXPECT_EQ(S_OK, UtilGetShortcutInfo(link_file, info));
+	EXPECT_EQ(toLower(target), toLower(info.cmd));
+	EXPECT_EQ(args, info.param);
+	EXPECT_EQ(L"", info.workingDir);
+	std::filesystem::remove(link_file);
+}
+#endif
+
+void UtilNavigateDirectory(const std::filesystem::path& path)
+{
+	//The maximum size of the buffer specified by the lpBuffer parameter, in TCHARs.
+	//This value should be set to MAX_PATH.
+	if (std::filesystem::is_directory(path)) {
+		ShellExecuteW(nullptr, L"open", path.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+	} else {
+		wchar_t buf[MAX_PATH] = {};
+		GetWindowsDirectory(buf, MAX_PATH);
+		auto explorer = std::filesystem::path(buf) / L"explorer.exe";
+		ShellExecuteW(nullptr, L"open", explorer.make_preferred().c_str(),
+			(L"/select,"+path.wstring()).c_str(), nullptr, SW_SHOWNORMAL);
+	}
+}
+
+//retrieve environment variables as key=value pair
+std::map<std::wstring, std::wstring> UtilGetEnvInfo()
+{
+	/*
+	https://docs.microsoft.com/ja-jp/windows/win32/procthread/environment-variables
+	Var1=Value1\0
+	Var2=Value2\0
+	Var3=Value3\0
+	...
+	VarN=ValueN\0\0
+
+	The name of an environment variable cannot include an equal sign (=).
+	*/
+
+	std::map<std::wstring, std::wstring> envInfo;
+	wchar_t* lpRaw = GetEnvironmentStringsW();
+	const wchar_t* lpEnvStr = lpRaw;
+	if (!lpEnvStr) {
+		return envInfo;
+	}
+
+	for (; *lpEnvStr != L'\0'; ) {
+		std::wstring block = lpEnvStr;
+		lpEnvStr += block.length()+1;
+
+		auto pos = block.find_first_of(L'=');
+		if (pos == std::wstring::npos) continue;	//mis-formatted string
+		
+		auto key = block.substr(0, pos);
+		auto value = block.substr(pos+1);
+		if (!key.empty()) {
+			envInfo[toUpper(key)] = value;
+		}
+	}
+
+	FreeEnvironmentStringsW(lpRaw);
+	return envInfo;
+}
+
+#ifdef UNIT_TEST
+TEST(OSUtil, UtilGetEnvInfo) {
+	auto envInfo = UtilGetEnvInfo();
+	EXPECT_TRUE(has_key(envInfo, L"PATH"));
+	for (const auto& item : envInfo) {
+		wchar_t buf[_MAX_ENV] = {};
+		//size_t s = 0;
+		//_wgetenv_s(&s, buf, item.first.c_str());
+		GetEnvironmentVariableW(item.first.c_str(), buf, COUNTOF(buf));
+		std::wstring env = buf;
+		EXPECT_EQ(std::wstring(env), item.second);
+	}
+}
+#endif
+
+std::wstring UtilGetWindowClassName(HWND hWnd)
+{
+	std::wstring name;
+	name.resize(256);
+	for (;;) {
+		int bufsize = (int)name.size();
+		auto nCopied = GetClassNameW(hWnd, &name[0], bufsize);
+		if (nCopied < bufsize) {
+			break;
+		} else {
+			name.resize(name.size() * 2);
+		}
+	}
+	return name.c_str();
+}
+
+//Copy text to clipboard
+void UtilSetTextOnClipboard(const std::wstring& text)
 {
 	HGLOBAL hMem;
-	LPTSTR lpBuff;
+	wchar_t* lpBuff;
 
-	hMem = GlobalAlloc((GHND|GMEM_SHARE),(_tcslen(lpszText) + 1) * sizeof(TCHAR));
+	hMem = GlobalAlloc((GHND|GMEM_SHARE),(text.length() + 1) * sizeof(wchar_t));
 	if(hMem){
-		lpBuff = (LPTSTR)GlobalLock(hMem);
+		lpBuff = (wchar_t*)GlobalLock(hMem);
 		if (lpBuff){
-			_tcscpy_s(lpBuff, _tcslen(lpszText)+1, lpszText);
+			wcscpy_s(lpBuff, text.length() + 1, text.c_str());
 			GlobalUnlock( hMem );
 
-			if ( OpenClipboard(NULL) ){
+			if ( OpenClipboard(nullptr) ){
 				EmptyClipboard();
 				SetClipboardData( CF_UNICODETEXT, hMem );
 				CloseClipboard();
@@ -365,3 +274,116 @@ void UtilSetTextOnClipboard(LPCTSTR lpszText)
 		}
 	}
 }
+
+#ifdef UNIT_TEST
+TEST(OSUtil, UtilSetTextOnClipboard)
+{
+	const auto string = L"abcdeあいうえお";
+
+	UtilSetTextOnClipboard(string);
+	ASSERT_TRUE(IsClipboardFormatAvailable(CF_UNICODETEXT));
+	ASSERT_TRUE(OpenClipboard(nullptr));
+	HGLOBAL hg = nullptr;
+	hg = GetClipboardData(CF_UNICODETEXT);
+	ASSERT_NE(nullptr, hg);
+	std::wstring p = (const wchar_t*)GlobalLock(hg);
+
+	GlobalUnlock(hg);
+	CloseClipboard();
+
+	EXPECT_EQ(string, p);
+}
+#endif
+
+std::pair<std::filesystem::path, int> UtilPathParseIconLocation(const std::wstring& path_and_index)
+{
+	std::wregex re_path(L"^(.+?),(-?\\d+)$");
+
+	std::wcmatch results;
+	if (std::regex_search(path_and_index.c_str(), results, re_path)) {
+		std::wstring path = results[1];
+		std::wstring index = results[2];
+		return std::make_pair<>(path, _wtoi(index.c_str()));
+	}
+	return std::make_pair<>(path_and_index, 0);
+}
+
+#ifdef UNIT_TEST
+
+TEST(OSUtil, UtilPathParseIconLocation)
+{
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/te,st/icon.dll,5");
+		EXPECT_EQ(path_and_index.first, L"c:/te,st/icon.dll");
+		EXPECT_EQ(path_and_index.second, 5);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll,-1");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.second, -1);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll");
+		EXPECT_EQ(path_and_index.second, 0);
+	}
+
+	{
+		auto path_and_index = UtilPathParseIconLocation(L"c:/test/icon.dll,");
+		EXPECT_EQ(path_and_index.first, L"c:/test/icon.dll,");
+		EXPECT_EQ(path_and_index.second, 0);
+	}
+}
+#endif
+
+
+CCurrentDirManager::CCurrentDirManager(const std::filesystem::path& chdirTo)
+{
+	_prevDir = std::filesystem::current_path();
+	try {
+		std::filesystem::current_path(chdirTo);
+	} catch (std::filesystem::filesystem_error) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CHDIR), chdirTo.c_str());
+	}
+}
+
+CCurrentDirManager::~CCurrentDirManager() noexcept(false)
+{
+	try {
+		std::filesystem::current_path(_prevDir);
+	} catch (std::filesystem::filesystem_error) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_CHDIR), _prevDir.c_str());
+	}
+}
+
+#ifdef UNIT_TEST
+
+TEST(OSUtil, CurrentDirManager) {
+	auto prevPath = std::filesystem::current_path();
+	{
+		CCurrentDirManager cdm(std::filesystem::temp_directory_path().c_str());
+		auto currentPath = UtilPathAddLastSeparator(std::filesystem::current_path());
+		EXPECT_EQ(UtilPathAddLastSeparator(std::filesystem::temp_directory_path()),
+			currentPath);
+	}
+	auto currentPath = std::filesystem::current_path();
+	EXPECT_EQ(prevPath.wstring(), currentPath.wstring());
+
+	auto path = std::filesystem::temp_directory_path() / L"lf_path_test";
+	{
+		std::filesystem::create_directories(path);
+		CCurrentDirManager cdm(path.c_str());
+		//what if previous directory does not exist?
+		EXPECT_THROW({
+			CCurrentDirManager cdm2(prevPath.c_str());
+			std::filesystem::remove(path);
+			EXPECT_FALSE(std::filesystem::exists(path));
+			}, LF_EXCEPTION);
+	}
+}
+
+
+#endif
+

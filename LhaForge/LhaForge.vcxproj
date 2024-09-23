@@ -1,410 +1,118 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
+    <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release-X64|Win32">
-      <Configuration>Release-X64</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
+    <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="UnitTest|x64">
+      <Configuration>UnitTest</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}</ProjectGuid>
-    <RootNamespace>LhaForge</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <_ProjectFileVersion>15.0.27924.0</_ProjectFileVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Dev\vc2017\WTL91_5321_Final\Include</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
-    <LinkIncremental />
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Dev\vc2017\WTL91_5321_Final\Include</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
-    <LinkIncremental />
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Dev\vc2017\WTL91_5321_Final\Include</IncludePath>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/LhaForge.tlb</TypeLibraryName>
-      <HeaderFileName />
-    </Midl>
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;STRICT;ASSOC_NOCHECK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0411</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;shlwapi.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug/LhaForge.bsc</OutputFile>
-    </Bscmake>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/LhaForge.tlb</TypeLibraryName>
-      <HeaderFileName />
-    </Midl>
-    <ClCompile>
-      <Optimization>MinSpace</Optimization>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0411</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;shlwapi.lib;imagehlp.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/LhaForge.bsc</OutputFile>
-    </Bscmake>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">
-    <Midl>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/LhaForge.tlb</TypeLibraryName>
-      <HeaderFileName />
-    </Midl>
-    <ClCompile>
-      <Optimization>MinSpace</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>common.h</PrecompiledHeaderFile>
-      <PrecompiledHeaderOutputFile>.\Release/LhaForge.pch</PrecompiledHeaderOutputFile>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-    </ClCompile>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0411</Culture>
-    </ResourceCompile>
-    <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;shlwapi.lib;imagehlp.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Link>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/LhaForge.bsc</OutputFile>
-    </Bscmake>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ArchiverCode\ArcEntryInfo.cpp" />
-    <ClCompile Include="ArchiverCode\Archiver7ZIP.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverAISH.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverB2E.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverBGA.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverCAB.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverJACK.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverTAR.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNACE.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNARJ.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNBEL.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNGCA.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNHKI.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNIMP.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNISO.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNLHA.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverUNRAR.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverXACRETT.cpp" />
-    <ClCompile Include="ArchiverCode\ArchiverYZ1.cpp" />
-    <ClCompile Include="ArchiverCode\arc_interface.cpp" />
-    <ClCompile Include="ArchiverManager.cpp" />
+    <ClCompile Include="ArchiverCode\archive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_arj.cpp" />
+    <ClCompile Include="ArchiverCode\archive_bga.cpp" />
+    <ClCompile Include="ArchiverCode\archive_libarchive.cpp" />
+    <ClCompile Include="ArchiverCode\archive_rar.cpp" />
+    <ClCompile Include="ArchiverCode\archive_zip.cpp" />
+    <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp" />
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
     <ClCompile Include="compress.cpp" />
-    <ClCompile Include="ConfigCode\AssocSettings.cpp" />
-    <ClCompile Include="ConfigCode\Config7Z.cpp" />
-    <ClCompile Include="ConfigCode\ConfigAISH.cpp" />
-    <ClCompile Include="ConfigCode\ConfigB2E.cpp" />
-    <ClCompile Include="ConfigCode\ConfigBGA.cpp" />
-    <ClCompile Include="ConfigCode\ConfigCAB.cpp" />
     <ClCompile Include="ConfigCode\ConfigCompress.cpp" />
-    <ClCompile Include="ConfigCode\ConfigDLL.cpp" />
     <ClCompile Include="ConfigCode\ConfigExtract.cpp" />
     <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp" />
     <ClCompile Include="ConfigCode\ConfigGeneral.cpp" />
-    <ClCompile Include="ConfigCode\ConfigJACK.cpp" />
-    <ClCompile Include="ConfigCode\ConfigManager.cpp" />
+    <ClCompile Include="ConfigCode\ConfigFile.cpp" />
     <ClCompile Include="ConfigCode\ConfigOpenAction.cpp" />
     <ClCompile Include="ConfigCode\ConfigShellExt.cpp" />
-    <ClCompile Include="ConfigCode\ConfigTAR.cpp" />
-    <ClCompile Include="ConfigCode\ConfigUNHKI.cpp" />
-    <ClCompile Include="ConfigCode\ConfigUNLHA.cpp" />
-    <ClCompile Include="ConfigCode\ConfigUpdate.cpp" />
-    <ClCompile Include="ConfigCode\Configwnd.cpp" />
-    <ClCompile Include="ConfigCode\ConfigXACRETT.cpp" />
-    <ClCompile Include="ConfigCode\ConfigZIP.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_7z.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_aish.cpp" />
+    <ClCompile Include="ConfigCode\Dialogs\Configwnd.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_assoc.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_b2e.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_bga.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_cab.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_compress_general.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_detail.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_DLL.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_dll_update.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_extract_general.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_general.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_hki.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_jack.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_lzh.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_openaction.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_shellext.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_tar.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_version.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_xacrett.cpp" />
-    <ClCompile Include="ConfigCode\Dialogs\Dlg_zip.cpp" />
-    <ClCompile Include="Dialogs\LogDialog.cpp" />
-    <ClCompile Include="Dialogs\LogListDialog.cpp" />
-    <ClCompile Include="Dialogs\ProgressDlg.cpp" />
+    <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
+    <ClCompile Include="Dialogs\FindDlg.cpp" />
     <ClCompile Include="Dialogs\SelectDlg.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
+      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="Dialogs\WaitDialog.cpp" />
     <ClCompile Include="extract.cpp" />
     <ClCompile Include="FileListWindow\ArcFileContent.cpp" />
     <ClCompile Include="FileListWindow\FileListFrame.cpp" />
     <ClCompile Include="FileListWindow\FileListModel.cpp" />
     <ClCompile Include="FileListWindow\FileListTabClient.cpp" />
-    <ClCompile Include="FileListWindow\FileListTabItem.cpp" />
     <ClCompile Include="FileListWindow\FileListView.cpp" />
-    <ClCompile Include="FileListWindow\FileTreeView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DataObject.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DnDSource.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DropSource.cpp" />
-    <ClCompile Include="FileListWindow\OLE\DropTarget.cpp" />
-    <ClCompile Include="FileListWindow\OLE\EnumFORMATETC.cpp" />
-    <ClCompile Include="FileListWindow\OLE\STGMEDIUM.cpp" />
-    <ClCompile Include="FileListWindow\ShellDataManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TestArchive.cpp" />
-    <ClCompile Include="Update.cpp" />
-    <ClCompile Include="Utilities\ConfigFile.cpp">
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release-X64|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.obj</ObjectFileName>
-      <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
-    </ClCompile>
+    <ClCompile Include="Utilities\CustomControl.cpp" />
     <ClCompile Include="Utilities\FileOperation.cpp" />
     <ClCompile Include="Utilities\OSUtil.cpp" />
+    <ClCompile Include="Utilities\Semaphore.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
-    <ClCompile Include="Utilities\TemporaryDirMgr.cpp" />
     <ClCompile Include="Utilities\Utility.cpp" />
-    <ClCompile Include="Utilities\variant.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ArchiverCode\ArcEntryInfo.h" />
-    <ClInclude Include="ArchiverCode\Archiver7ZIP.h" />
-    <ClInclude Include="ArchiverCode\ArchiverAISH.h" />
-    <ClInclude Include="ArchiverCode\ArchiverB2E.h" />
-    <ClInclude Include="ArchiverCode\ArchiverBGA.h" />
-    <ClInclude Include="ArchiverCode\ArchiverCAB.h" />
-    <ClInclude Include="ArchiverCode\ArchiverJACK.h" />
-    <ClInclude Include="ArchiverCode\ArchiverTAR.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNACE.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNARJ.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNBEL.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNGCA.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNHKI.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNIMP.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNISO.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNLHA.h" />
-    <ClInclude Include="ArchiverCode\ArchiverUNRAR.h" />
-    <ClInclude Include="ArchiverCode\ArchiverXACRETT.h" />
-    <ClInclude Include="ArchiverCode\ArchiverYZ1.h" />
-    <ClInclude Include="ArchiverCode\arc_interface.h" />
-    <ClInclude Include="ArchiverManager.h" />
+    <ClInclude Include="ArchiverCode\archive_arj.h" />
+    <ClInclude Include="ArchiverCode\archive_bga.h" />
+    <ClInclude Include="ArchiverCode\archive_libarchive.h" />
+    <ClInclude Include="ArchiverCode\archive.h" />
+    <ClInclude Include="ArchiverCode\archive_rar.h" />
+    <ClInclude Include="ArchiverCode\archive_zip.h" />
+    <ClInclude Include="ArchiverCode\mini_lzh_decoder.h" />
     <ClInclude Include="Association.h" />
     <ClInclude Include="CmdLineInfo.h" />
     <ClInclude Include="CommonUtil.h" />
     <ClInclude Include="compress.h" />
-    <ClInclude Include="ConfigCode\AssocSettings.h" />
-    <ClInclude Include="ConfigCode\Config7Z.h" />
-    <ClInclude Include="ConfigCode\ConfigAISH.h" />
-    <ClInclude Include="ConfigCode\ConfigB2E.h" />
-    <ClInclude Include="ConfigCode\ConfigBGA.h" />
-    <ClInclude Include="ConfigCode\ConfigCAB.h" />
     <ClInclude Include="ConfigCode\ConfigCompress.h" />
-    <ClInclude Include="ConfigCode\ConfigDLL.h" />
+    <ClInclude Include="ConfigCode\ConfigCompressFormat.h" />
     <ClInclude Include="ConfigCode\ConfigExtract.h" />
     <ClInclude Include="ConfigCode\ConfigFileListWindow.h" />
     <ClInclude Include="ConfigCode\ConfigGeneral.h" />
-    <ClInclude Include="ConfigCode\ConfigJACK.h" />
-    <ClInclude Include="ConfigCode\ConfigManager.h" />
+    <ClInclude Include="ConfigCode\ConfigFile.h" />
     <ClInclude Include="ConfigCode\ConfigOpenAction.h" />
     <ClInclude Include="ConfigCode\ConfigShellExt.h" />
-    <ClInclude Include="ConfigCode\ConfigTAR.h" />
-    <ClInclude Include="ConfigCode\ConfigUNHKI.h" />
-    <ClInclude Include="ConfigCode\ConfigUNLHA.h" />
-    <ClInclude Include="ConfigCode\ConfigUpdate.h" />
-    <ClInclude Include="ConfigCode\Configwnd.h" />
-    <ClInclude Include="ConfigCode\ConfigXACRETT.h" />
-    <ClInclude Include="ConfigCode\ConfigZIP.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_7z.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_aish.h" />
+    <ClInclude Include="ConfigCode\Dialogs\Configwnd.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_assoc.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_b2e.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_base.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_bga.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_cab.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_compress_general.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_detail.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_DLL.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_dll_update.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_extract_general.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_filelistwindow.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_general.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_hki.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_jack.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_lzh.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_openaction.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_shellext.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_shortcut.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_tar.h" />
+    <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h" />
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_xacrett.h" />
-    <ClInclude Include="ConfigCode\Dialogs\Dlg_zip.h" />
-    <ClInclude Include="Dialogs\JackVolumeSizeDlg.h" />
-    <ClInclude Include="Dialogs\LFFolderDialog.h" />
-    <ClInclude Include="Dialogs\LogDialog.h" />
+    <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h" />
+    <ClInclude Include="Dialogs\ConfirmOverwriteInArchiveDlg.h" />
     <ClInclude Include="Dialogs\LogListDialog.h" />
     <ClInclude Include="Dialogs\ProgressDlg.h" />
+    <ClInclude Include="Dialogs\FindDlg.h" />
     <ClInclude Include="Dialogs\SelectDlg.h" />
-    <ClInclude Include="Dialogs\SevenZipVolumeSizeDlg.h" />
     <ClInclude Include="Dialogs\TextInputDlg.h" />
     <ClInclude Include="Dialogs\WaitDialog.h" />
     <ClInclude Include="extract.h" />
-    <ClInclude Include="FileListWindow\AnimationUpdater.h" />
     <ClInclude Include="FileListWindow\ArcFileContent.h" />
+    <ClInclude Include="FileListWindow\EventDispatcher.h" />
+    <ClInclude Include="FileListWindow\FileViewBase.h" />
     <ClInclude Include="FileListWindow\FileListFrame.h" />
     <ClInclude Include="FileListWindow\FileListMessages.h" />
     <ClInclude Include="FileListWindow\FileListModel.h" />
@@ -418,48 +126,291 @@
     <ClInclude Include="FileListWindow\OLE\DropSource.h" />
     <ClInclude Include="FileListWindow\OLE\DropTarget.h" />
     <ClInclude Include="FileListWindow\OLE\EnumFORMATETC.h" />
-    <ClInclude Include="FileListWindow\OLE\STGMEDIUM.h" />
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="TestArchive.h" />
-    <ClInclude Include="Update.h" />
-    <ClInclude Include="Utilities\ConfigFile.h" />
-    <ClInclude Include="Utilities\DummyWindow.h" />
-    <ClInclude Include="Utilities\EventDispatcher.h" />
+    <ClInclude Include="Utilities\CustomControl.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
-    <ClInclude Include="Utilities\PtrCollection.h" />
     <ClInclude Include="Utilities\Semaphore.h" />
     <ClInclude Include="Utilities\shellmanager.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
-    <ClInclude Include="Utilities\TemporaryDirMgr.h" />
     <ClInclude Include="Utilities\Utility.h" />
-    <ClInclude Include="Utilities\variant.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="animation.bmp" />
+    <ResourceCompile Include="resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="manifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
     <Image Include="app_test.ico" />
     <Image Include="compress.ico" />
     <Image Include="extract.ico" />
+    <Image Include="graphics\search.ico" />
     <Image Include="LhaForge.ico" />
     <Image Include="list.ico" />
     <Image Include="sortmark.bmp" />
     <Image Include="toolbar.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="manifest.xml" />
+    <None Include="commit-hash" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="resource.rc" />
+    <ProjectReference Include="..\dependency\backends\bzip2\libbz2.vcxproj">
+      <Project>{b21147c0-d52f-406c-8c55-22868335ada3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\libarchive\archive_static.vcxproj">
+      <Project>{131b9eef-9725-30a9-842f-7c244500c1ec}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\libcharset\libcharset.vcxproj">
+      <Project>{fddff1f1-5dc5-4879-8bee-cf8a6b2eb855}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\lz4\liblz4.vcxproj">
+      <Project>{9092c5cc-3e71-41b3-bf68-4a7bdd8a5476}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\minizip-ng\minizip.vcxproj">
+      <Project>{0a9f72f0-8880-3523-9b09-d8c39a76ed8c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\unrar\UnRARLib.vcxproj">
+      <Project>{e815c46c-36c4-499f-bbc2-e772c6b17971}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\win-iconv\win-iconv.vcxproj">
+      <Project>{31c02a3c-757f-4dcc-8f69-280c43df14d6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\xzutils\liblzma.vcxproj">
+      <Project>{12728250-16ec-4dc6-94d7-e21dd88947f8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\zlib-ng\zlibstatic.vcxproj">
+      <Project>{2c895043-853b-3bba-b2d7-dedd58611d69}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\dependency\backends\zstd\libzstd.vcxproj">
+      <Project>{8bfd8150-94d5-4bf9-8a50-7bd9929a0850}</Project>
+    </ProjectReference>
   </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F8574620-45A9-4ED5-AC5D-10ECEB4CF57B}</ProjectGuid>
+    <RootNamespace>LhaForge</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LhaForge</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <VcpkgConfiguration>Release</VcpkgConfiguration>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>15.0.27924.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <Microsoft-googletest-v140-windesktop-msvcstl-static-rt-dyn-Disable-gtest_main>true</Microsoft-googletest-v140-windesktop-msvcstl-static-rt-dyn-Disable-gtest_main>
+    <Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static-Disable-gtest_main>true</Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static-Disable-gtest_main>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static-Disable-gtest_main />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Microsoft-googletest-v140-windesktop-msvcstl-static-rt-dyn-Disable-gtest_main>true</Microsoft-googletest-v140-windesktop-msvcstl-static-rt-dyn-Disable-gtest_main>
+    <Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static-Disable-gtest_main>true</Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static-Disable-gtest_main>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\dependency\WTL\include</IncludePath>
+    <LinkIncremental />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TypeLibraryName>.\Debug/LhaForge.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnablePREfast>true</EnablePREfast>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0411</Culture>
+    </ResourceCompile>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\lib\x86</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug/LhaForge.bsc</OutputFile>
+    </Bscmake>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)get-commit-hash.bat</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TypeLibraryName>.\Debug/LhaForge.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>UNIT_TEST;WIN32;_WINDOWS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0411</Culture>
+    </ResourceCompile>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x86\Release;$(SolutionDir)\dependency\backends\bzip2\x86\Release;$(SolutionDir)\dependency\backends\libiconv\x86\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x86\Release;$(SolutionDir)\dependency\backends\lz4\x86\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\backends\zstd\x86\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x86\Release\lib;$(SolutionDir)\dependency\backends\unrar\build\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug/LhaForge.bsc</OutputFile>
+    </Bscmake>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)get-commit-hash.bat</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>true</MkTypLibCompatible>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TypeLibraryName>.\Release/LhaForge.tlb</TypeLibraryName>
+      <HeaderFileName>
+      </HeaderFileName>
+    </Midl>
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(SolutionDir)LhaForge;$(SolutionDir)\dependency\backends\libarchive\source;$(SolutionDir)\dependency\simpleini;$(SolutionDir)\dependency\backends\zlib-ng\source;$(SolutionDir)\dependency\backends\zlib-ng\;$(SolutionDir)\dependency\backends\bzip2\source;$(SolutionDir)\dependency\backends\minizip-ng;$(SolutionDir)\dependency\backends\minizip-ng\source;$(SolutionDir)\dependency\backends\unrar</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0411</Culture>
+    </ResourceCompile>
+    <Link>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Release/LhaForge.bsc</OutputFile>
+    </Bscmake>
+    <Manifest>
+      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+    </Manifest>
+    <PreBuildEvent>
+      <Command>$(SolutionDir)get-commit-hash.bat</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.3\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets" Condition="Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.3\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets')" />
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
       <UserProperties RESOURCE_FILE="resource.rc" />
     </VisualStudio>
   </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.3\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.3\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets'))" />
+  </Target>
 </Project>

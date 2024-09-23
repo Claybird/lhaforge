@@ -23,32 +23,36 @@
 */
 
 #pragma once
+#include "ConfigFile.h"
 
-struct CConfigShellExt:public IConfigConverter{
+struct CConfigShellExt:public IConfigIO{
 public:
-	BOOL ShellMenuCompress;
-	BOOL ShellMenuExtract;
-	BOOL ShellMenuList;
-	BOOL ShellMenuTest;
-	BOOL ShellMenuUnderSubMenu;
-	BOOL DragMenuCompress;
-	BOOL DragMenuExtract;
-	BOOL DragMenuUnderSubMenu;
-	BOOL ForceExtraMenu;
-	BOOL UseCustomMenu;
+	bool ShellMenuCompress;
+	bool ShellMenuExtract;
+	bool ShellMenuList;
+	bool ShellMenuTest;
+	bool ShellMenuUnderSubMenu;
+	bool DragMenuCompress;
+	bool DragMenuExtract;
+	bool DragMenuUnderSubMenu;
+	bool ForceExtraMenu;
 protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
-	void loadShellMenu(CONFIG_SECTION&);
-	void storeShellMenu(CONFIG_SECTION&)const;
-	void loadDragMenu(CONFIG_SECTION&);
-	void storeDragMenu(CONFIG_SECTION&)const;
-	void loadExtraMenu(CONFIG_SECTION&);
-	void storeExtraMenu(CONFIG_SECTION&)const;
-	void loadCustomMenu(CONFIG_SECTION&);
-	void storeCustomMenu(CONFIG_SECTION&)const;
+	void loadShellMenu(const CConfigFile&);
+	void storeShellMenu(CConfigFile&)const;
+	void loadDragMenu(const CConfigFile&);
+	void storeDragMenu(CConfigFile&)const;
+	void loadExtraMenu(const CConfigFile&);
+	void storeExtraMenu(CConfigFile&)const;
 public:
 	virtual ~CConfigShellExt(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile& Config) {
+		loadShellMenu(Config);
+		loadDragMenu(Config);
+		loadExtraMenu(Config);
+	}
+	virtual void store(CConfigFile& Config)const {
+		storeShellMenu(Config);
+		storeDragMenu(Config);
+		storeExtraMenu(Config);
+	}
 };

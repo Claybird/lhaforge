@@ -24,50 +24,56 @@
 
 #pragma once
 
-//LhaForgeでのファイル処理の方法
-enum PROCESS_MODE{
-	PROCESS_INVALID,
-	PROCESS_CONFIGURE,
-	PROCESS_COMPRESS,
-	PROCESS_EXTRACT,
-	PROCESS_AUTOMATIC,
-	PROCESS_LIST,
-	PROCESS_TEST,
+//LhaForge mode
+enum class PROCESS_MODE : int {
+	INVALID,
+	CONFIGURE,
+	COMPRESS,
+	EXTRACT,
+	AUTOMATIC,	//extract if possible, compress otherwise
+	LIST,
+	TEST,
+	MANAGED,	//depends on users' keyboard state
 };
 
 
+#include "ArchiverCode/archive.h"
+#include "Utilities/OSUtil.h"
+#include "extract.h"
 
-class CConfigManager;
-enum DLL_ID;
-enum OUTPUT_TO;
-enum CREATE_OUTPUT_DIR;
-enum LFPROCESS_PRIORITY;
-//コマンドライン解釈の結果を格納するためのクラス
-class CMDLINEINFO{
-public:
-	CMDLINEINFO();
-	virtual ~CMDLINEINFO(){}
-	std::list<CString> FileList;	//ファイル名リスト
-	CString OutputDir;				//出力先フォルダ
-	CString OutputFileName;			//出力先ファイル名
-	PARAMETER_TYPE CompressType;
-	int Options;				//圧縮オプション
-	DLL_ID idForceDLL;			//使用を強制するDLL
-	bool bSingleCompression;	//ファイルを一つずつ圧縮するならtrue
-	CString ConfigPath;			//設定ファイルのパス
+// command line arguments
+struct CMDLINEINFO{
+	enum class ACTION{
+		Default=-1,
+		False,
+		True,
+	};
+	CMDLINEINFO() :
+		CompressType(LF_ARCHIVE_FORMAT::INVALID),
+		Options(0),
+		bSingleCompression(false),
+		OutputToOverride(OUTPUT_TO::NoOverride),
+		CreateDirOverride(EXTRACT_CREATE_DIR::NoOverride),
+		IgnoreTopDirOverride(ACTION::Default),
+		DeleteAfterProcess(ACTION::Default)
+		{}
+
+	std::vector<std::filesystem::path> FileList;
+	std::filesystem::path OutputDir;
+	std::filesystem::path OutputFileName;
+	LF_ARCHIVE_FORMAT CompressType;
+	int Options;
+	bool bSingleCompression;
+	std::filesystem::path ConfigPath;
 	OUTPUT_TO OutputToOverride;
-	CREATE_OUTPUT_DIR CreateDirOverride;
-	int IgnoreTopDirOverride;	//-1:default,0:false,1:true
-	int DeleteAfterProcess;	//-1:default,0:false, other:true
-	LFPROCESS_PRIORITY PriorityOverride;	//default:no change, other:change priority
-
-	CString strMethod;
-	CString strFormat;
-	CString strLevel;
-
-	CString strSplitSize;	//分割ボリュームサイズ
+	EXTRACT_CREATE_DIR CreateDirOverride;
+	ACTION IgnoreTopDirOverride;
+	ACTION DeleteAfterProcess;
 };
 
-//コマンドラインを解釈する
-PROCESS_MODE ParseCommandLine(CConfigManager&,CMDLINEINFO&);
+
+//Parse command line
+std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
+	const std::wstring& cmdline,
+	std::function<void(const std::wstring& msg)> errorHandler);
 

@@ -27,667 +27,780 @@
 #include "Utility.h"
 #include "StringUtil.h"
 #include "OSUtil.h"
+#include "resource.h"
 
-
-#if !defined(_UNICODE)&&!defined(UNICODE)
- #include <imagehlp.h> //MakeSureDirectoryPathExists()
+std::filesystem::path UtilGetDesktopPath()
+{
+	wchar_t* ptr = nullptr;
+	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Desktop, 0, nullptr, &ptr))) {
+		std::filesystem::path path = ptr;
+		CoTaskMemFree(ptr);
+		ptr = nullptr;
+		return path;
+	} else {
+		//possibly, no desktops
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+	}
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetDesktopPath) {
+	EXPECT_TRUE(std::filesystem::exists(UtilGetDesktopPath()));
+}
 #endif
 
-LPCTSTR UtilGetTempPath()
+std::filesystem::path UtilGetSendToPath()
 {
-	static CPath s_tempPath;
-	if(_tcslen(s_tempPath)==0){		//初期設定
-		//環境変数取得
-		std::map<stdString,stdString> envs;
-		UtilGetEnvInfo(envs);
-		if(!has_key(envs,_T("TMP")) && !has_key(envs,_T("TEMP"))){
-			//%TMP%/%TEMP%が存在しなければ自前の一時フォルダを使う(C:\Users\xxx\AppData\Roaming\LhaForge\temp)
-			TCHAR szPath[_MAX_PATH+1]={0};
-			SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szPath);
-			s_tempPath=szPath;
-			s_tempPath.Append(_T("lhaforge\\temp\\"));
-			UtilMakeSureDirectoryPathExists(s_tempPath);
-		}else{
-			//通常のパス
-			std::vector<TCHAR> buffer(GetTempPath(0,NULL)+1);
-			GetTempPath(buffer.size(),&buffer[0]);
-			buffer.back()=_T('\0');
-			s_tempPath=&buffer[0];
-			s_tempPath.AddBackslash();
+	wchar_t* ptr = nullptr;
+	if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_SendTo, 0, nullptr, &ptr))) {
+		std::filesystem::path path = ptr;
+		CoTaskMemFree(ptr);
+		ptr = nullptr;
+		return path;
+	} else {
+		//possibly, no sendto
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
+	}
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetSendToPath) {
+	EXPECT_TRUE(std::filesystem::exists(UtilGetSendToPath()));
+}
+#endif
+
+//returns a temp dir exclusive use of lhaforge
+std::filesystem::path UtilGetTempPath()
+{
+	auto tempDir = std::filesystem::temp_directory_path() / L"lhaforge";
+	std::filesystem::create_directories(tempDir);
+	return UtilPathAddLastSeparator(tempDir);
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetTempPath) {
+	EXPECT_TRUE(std::filesystem::exists(UtilGetTempPath()));
+}
+#endif
+
+std::filesystem::path UtilGetTemporaryFileName()
+{
+	for (size_t index = 0; ;index++){
+		auto path = std::filesystem::path(UtilGetTempPath()) / Format(L"tmp%d.tmp", index);
+		if (!std::filesystem::exists(path)) {
+			touchFile(path);
+			return path.make_preferred();
 		}
 	}
-	return s_tempPath;
 }
-
-bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix)
-{
-	if(!GetTempFileName(UtilGetTempPath(),prefix,0,fname)){
-		return false;
-	}
-	return true;
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetTemporaryFileName) {
+	auto path = UtilGetTemporaryFileName();
+	EXPECT_TRUE(std::filesystem::exists(path));
+	EXPECT_TRUE(UtilDeletePath(path));
 }
+#endif
 
-bool UtilDeletePath(LPCTSTR PathName)
+bool UtilDeletePath(const std::filesystem::path& path)
 {
-	if( PathIsDirectory(PathName) ) {//ディレクトリ
-		//ファイルの属性を標準に戻す
-		if( UtilDeleteDir(PathName, true) )return true;
-	} else if( PathFileExists(PathName) ) {//ファイル
-		//ファイルの属性を標準に戻す
-		SetFileAttributes(PathName, FILE_ATTRIBUTE_NORMAL);
-		if( DeleteFile(PathName) )return true;
+	if( std::filesystem::is_directory(path) ) {
+		//directory
+		if( UtilDeleteDir(path, true) )return true;
+	} else if( std::filesystem::exists(path) ) {
+		//file
+		//reset file attribute
+		SetFileAttributesW(path.c_str(), FILE_ATTRIBUTE_NORMAL);
+		if( DeleteFileW(path.c_str()) )return true;
 	}
 	return false;
 }
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilDeletePath) {
+	//delete file
+	auto path = UtilGetTemporaryFileName();
+	EXPECT_TRUE(std::filesystem::exists(path));
+	EXPECT_TRUE(UtilDeletePath(path));
+	EXPECT_FALSE(std::filesystem::exists(path));
+	EXPECT_FALSE(UtilDeletePath(path));
 
-//bDeleteParent=trueのとき、Path自身も削除する
-//bDeleteParent=falseのときは、Pathの中身だけ削除する
-bool UtilDeleteDir(LPCTSTR Path,bool bDeleteParent)
+	//delete directory
+	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilDeletePath";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	for (int i = 0; i < 100; i++) {
+		touchFile(dir / Format(L"a%03d.txt", i));
+	}
+	std::filesystem::create_directories(dir / L"testDir");
+	for (int i = 0; i < 100; i++) {
+		touchFile(dir / Format(L"testDir/b%03d.txt", i));
+	}
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+#endif
+
+//bDeleteParent=true: delete Path itself
+//bDeleteParent=false: delete only children of Path
+bool UtilDeleteDir(const std::filesystem::path& path, bool bDeleteParent)
 {
-	std::vector<WIN32_FIND_DATA> lps;
+	auto FindParam = std::filesystem::path(path) / L"*";
 
-	TCHAR FindParam[_MAX_PATH+1];
-	FILL_ZERO(FindParam);
-	_tcsncpy_s(FindParam,Path,_MAX_PATH);
-	PathAppend(FindParam, _T("*"));
+	bool bRet = true;
 
-	{
-		WIN32_FIND_DATA fd;
-		HANDLE h = FindFirstFile(FindParam, &fd);
-		do {
-			lps.push_back(fd);
-		} while( FindNextFile(h, &fd) );
-		FindClose(h);
+	CFindFile cFindFile;
+	BOOL bContinue = cFindFile.FindFile(FindParam.c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			if (cFindFile.IsDirectory()) {
+				//directory
+				if (!UtilDeleteDir((const wchar_t*)cFindFile.GetFilePath(), true)) {
+					bRet = false;
+				}
+			} else {
+				//reset file attribute
+				SetFileAttributesW(cFindFile.GetFilePath(), FILE_ATTRIBUTE_NORMAL);
+				if (!DeleteFileW(cFindFile.GetFilePath()))bRet = false;
+			}
+		}
+		bContinue = cFindFile.FindNextFile();
 	}
 
-	bool bRet=true;
-
-	for( std::vector<WIN32_FIND_DATA>::const_iterator ite = lps.begin(); ite != lps.end();++ite ) {
-		const WIN32_FIND_DATA& lp = *ite;
-		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) && 0 != _tcscmp(lp.cFileName, _T("..")) && 0 != _tcscmp(lp.cFileName, _T(".")) ) {
-			CString SubPath = Path;
-			SubPath += _T("\\");
-			SubPath += lp.cFileName;
-
-			bRet = bRet&&UtilDeleteDir(SubPath, true);
-		}
-		if( ( lp.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) != FILE_ATTRIBUTE_DIRECTORY ) {
-			// lp.cFileNameでファイル名が分かる
-			TCHAR FileName[_MAX_PATH + 1];
-			FILL_ZERO(FileName);
-			_tcsncpy_s(FileName, Path, _MAX_PATH);
-			PathAppend(FileName, lp.cFileName);
-
-			SetFileAttributes(FileName, FILE_ATTRIBUTE_NORMAL);
-			if( !DeleteFile(FileName) )bRet = false;
-		}
-	}
 	if(bDeleteParent){
-		//bRet=bRet&&UtilDeletePath(Path);
-		if(!RemoveDirectory(Path))bRet=false;
+		if(!RemoveDirectoryW(path.c_str()))bRet=false;
 	}
 
 	return bRet;
 }
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilDeleteDir) {
+	//delete file
+	auto path = UtilGetTempPath() / L"test_UtilDeleteDir";
+	EXPECT_FALSE(std::filesystem::exists(path));
+	std::filesystem::create_directories(path);
+	EXPECT_TRUE(std::filesystem::exists(path));
 
-
-//読み取り元ファイルを書き込み先ファイルのseekのある箇所から後にコピーして書き込む
-//戻り値はエラーなしなら0,読み取りエラーは1,書き込みエラーは-1
-int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom)
-{
-	//16KBずつコピー
-	DWORD dwRead=0,dwWrite=0;
-	std::vector<BYTE> Buffer(16*1024);
-	for(;;){
-		if(!ReadFile(hReadFrom,&Buffer.at(0),16*1024,&dwRead,NULL)){
-			return 1;
-		}
-		if(0==dwRead){
-			break;
-		}
-		if(!WriteFile(hWriteTo,&Buffer.at(0),dwRead,&dwWrite,NULL)){
-			return -1;
-		}
-		if(dwRead!=dwWrite){
-			return -1;
-		}
-	}
-	return 0;
+	touchFile(path / L"test.txt");
+	EXPECT_TRUE(UtilDeleteDir(path, true));
+	EXPECT_FALSE(std::filesystem::exists(path));
 }
+#endif
 
-void UtilModifyPath(CString &strPath)
-{
-	// パスの修正
-	strPath.Replace(_T("/"),_T("\\"));	//パス区切り文字
-
-	int Ret=0;
-	do{
-		Ret=strPath.Replace(_T("\\\\"),_T("\\"));	//\\を\に置き換えていく
-	}while(Ret!=0);
-	strPath.Replace(_T("..\\"),_T("__\\"));	//相対パス指定..は__に置き換える
-	strPath.Replace(_T(":"),_T("__"));	//ドライブ名も置き換える(C:からC__へ)
-}
-
-BOOL UtilMoveFileToRecycleBin(LPCTSTR lpFileName)
-{
-	ASSERT(lpFileName);
-	if(!lpFileName)return false;
-	const UINT len=_tcslen(lpFileName);
-	std::vector<TCHAR> Buffer(len+2);
-	_tcsncpy_s(&Buffer[0],len+1,lpFileName,len+1);
-	Buffer.back()=_T('\0');
-
-	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//削除
-	shfo.pFrom=&Buffer[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
-	shfo.fFlags=FOF_SILENT/*進捗状況を表示しない*/|FOF_ALLOWUNDO/*UNDO情報付加;ごみ箱へ*/|FOF_NOCONFIRMATION/*確認ダイアログを表示しない*/;
-	return SHFileOperation(&shfo);
-}
-
-BOOL UtilMoveFileToRecycleBin(const std::list<CString> &fileList)
+bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList)
 {
 	ASSERT(!fileList.empty());
 	if(fileList.empty())return false;
 
-	//引数作成
-	CString Param;
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		Param+=*ite;
-		Param+=_T('|');
+	std::wstring param;
+	for(const auto& item: fileList){
+		param += item;
+		param += L'|';
 	}
-	Param+=_T('|');
-	std::vector<TCHAR> Buffer(Param.GetLength()+1);
+	param += L'|';
 
-	UtilMakeFilterString(Param,&Buffer[0],Buffer.size());
+	auto filter = UtilMakeFilterString(param);
 
-	SHFILEOPSTRUCT shfo={0};
-	shfo.wFunc=FO_DELETE;	//削除
-	shfo.pFrom=&Buffer[0];//ファイル名のリスト末尾は\0\0で終わる必要有り
-	shfo.fFlags=FOF_SILENT/*進捗状況を表示しない*/|FOF_ALLOWUNDO/*UNDO情報付加;ごみ箱へ*/|FOF_NOCONFIRMATION/*確認ダイアログを表示しない*/;
-	return SHFileOperation(&shfo);
+	SHFILEOPSTRUCTW shfo={0};
+	shfo.wFunc = FO_DELETE;
+	shfo.pFrom = &filter[0];
+	shfo.fFlags =
+		FOF_SILENT |	//do not show progress
+		FOF_ALLOWUNDO |	//allow undo i.e., to recycle bin
+		FOF_NOCONFIRMATION;	//no confirm window
+	return 0 == SHFileOperationW(&shfo);
 }
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilMoveFileToRecycleBin) {
+	std::vector<std::filesystem::path> fileList;
+	//delete directory
+	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilMoveFileToRecycleBin";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	for (int i = 0; i < 3; i++) {
+		fileList.push_back(dir / Format(L"a%03d.txt", i));
+		touchFile(dir / Format(L"a%03d.txt", i));
+	}
+	EXPECT_TRUE(UtilMoveFileToRecycleBin(fileList));
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+#endif
 
-//フォルダ内ファイル(ディレクトリは除く)を再帰検索
-bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString> &rFileList)
+
+//recursively enumerates files (no directories) in specified directory
+std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root)
 {
 	CFindFile cFindFile;
-	TCHAR szPath[_MAX_PATH+1];
-	_tcsncpy_s(szPath,lpszRoot,_MAX_PATH);
-	PathAppend(szPath,_T("*"));
 
-	BOOL bContinue=cFindFile.FindFile(szPath);
+	std::vector<std::filesystem::path> files;
+	BOOL bContinue = cFindFile.FindFile((root / L"*").c_str());
 	while(bContinue){
 		if(!cFindFile.IsDots()){
 			if(cFindFile.IsDirectory()){
-				UtilRecursiveEnumFile(cFindFile.GetFilePath(),rFileList);
+				auto subFiles = UtilRecursiveEnumFile((const wchar_t*)cFindFile.GetFilePath());
+				files.insert(files.end(), subFiles.begin(), subFiles.end());
 			}else{
-				rFileList.push_back(cFindFile.GetFilePath());
+				files.push_back((const wchar_t*)cFindFile.GetFilePath());
 			}
 		}
 		bContinue=cFindFile.FindNextFile();
 	}
 
-	return !rFileList.empty();
+	return files;
 }
 
-//フルパスかつ絶対パスの取得
-PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName)
+//recursively enumerates files and directories in specified directory
+std::vector<std::filesystem::path> UtilRecursiveEnumFileAndDirectory(const std::filesystem::path& root)
 {
-	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
-	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ファイル名が指定されていない\n"));
-		return PATHERROR_INVALID;
+	CFindFile cFindFile;
+
+	std::vector<std::filesystem::path> files;
+	BOOL bContinue = cFindFile.FindFile((root / L"*").c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			files.push_back((const wchar_t*)cFindFile.GetFilePath());
+			if (cFindFile.IsDirectory()) {
+				auto subFiles = UtilRecursiveEnumFile((const wchar_t*)cFindFile.GetFilePath());
+				files.insert(files.end(), subFiles.begin(), subFiles.end());
+			}
+		}
+		bContinue = cFindFile.FindNextFile();
 	}
 
-	//---絶対パス取得
-	TCHAR szAbsPath[_MAX_PATH+1]={0};
+	return files;
+}
+
+//enumerates files and directories in specified directory
+std::vector<std::filesystem::path> UtilEnumSubFileAndDirectory(const std::filesystem::path& root)
+{
+	CFindFile cFindFile;
+
+	std::vector<std::filesystem::path> files;
+	BOOL bContinue = cFindFile.FindFile((std::filesystem::path(root) / L"*").c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			files.push_back((const wchar_t*)cFindFile.GetFilePath());
+		}
+		bContinue = cFindFile.FindNextFile();
+	}
+
+	return files;
+}
+
+//returns filenames that matches to the given pattern
+std::vector<std::filesystem::path> UtilPathExpandWild(const std::filesystem::path& pattern)
+{
+	std::vector<std::filesystem::path> out;
+	//expand wild
+	CFindFile cFindFile;
+	BOOL bContinue = cFindFile.FindFile(pattern.c_str());
+	while (bContinue) {
+		if (!cFindFile.IsDots()) {
+			out.push_back((const wchar_t*)cFindFile.GetFilePath());
+		}
+		bContinue = cFindFile.FindNextFile();
+	}
+	return out;
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
+	//prepare files
+	std::vector<std::filesystem::path> fileList, fileAndDir;
+	auto dir = std::filesystem::path(UtilGetTempPath()) / L"lhaforge_test/UtilRecursiveEnumXXX_UtilPathExpandWild";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	for (int i = 0; i < 3; i++) {
+		auto fname = dir / Format(L"a%03d.txt", i);
+		fileList.push_back(fname);
+		fileAndDir.push_back(fname);
+		touchFile(fname);
+	}
+
+	std::filesystem::create_directories(dir / L"b");
+	fileAndDir.push_back(dir / L"b");
+	for (int i = 0; i < 3; i++) {
+		auto fname = dir / Format(L"b/a%03d.txt", i);
+		fileList.push_back(fname);
+		fileAndDir.push_back(fname);
+		touchFile(fname);
+	}
+
+	//enumerate
 	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ルートかどうかのチェックを行う
-		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
-		PathAddBackslash(Buffer);
-		if(PathIsRoot(Buffer)){
-			//ドライブ名だけが指定されている場合、
-			//_tfullpathはそのドライブのカレントディレクトリを取得してしまう
-			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
-		}
-		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("絶対パス取得失敗\n"));
-			return PATHERROR_ABSPATH;
+		auto enumerated = UtilRecursiveEnumFile(dir);
+		EXPECT_EQ(fileList.size(), enumerated.size());
+		if (fileList.size() == enumerated.size()) {
+			for (size_t i = 0; i < fileList.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileList[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
+			}
 		}
 	}
-
-	if(!PathFileExists(szAbsPath)&&!PathIsDirectory(szAbsPath)){
-		//パスがファイルもしくはディレクトリとして存在しないなら、エラーとする
-		TRACE(_T("ファイルが存在しない\n"));
-		return PATHERROR_NOTFOUND;
-	}
-	if(!GetLongPathName(szAbsPath,szAbsPath,_MAX_PATH)){
-		TRACE(_T("ロングファイル名取得失敗\n"));
-		return PATHERROR_LONGNAME;
-	}
-	_FullPath=szAbsPath;
-	return PATHERROR_NONE;
-}
-
-//絶対パスの取得
-bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName)
-{
-	ASSERT(lpszFileName&&_tcslen(lpszFileName)>0);
-	if(!lpszFileName||_tcslen(lpszFileName)<=0){
-		TRACE(_T("ファイル名が指定されていない\n"));
-		return false;
-	}
-
-	//---絶対パス取得
-	TCHAR szAbsPath[_MAX_PATH+1]={0};
 	{
-		TCHAR Buffer[_MAX_PATH+1]={0};	//ルートかどうかのチェックを行う
-		_tcsncpy_s(Buffer,lpszFileName,_MAX_PATH);
-		PathAddBackslash(Buffer);
-		if(PathIsRoot(Buffer)){
-			//ドライブ名だけが指定されている場合、
-			//_tfullpathはそのドライブのカレントディレクトリを取得してしまう
-			_tcsncpy_s(szAbsPath,lpszFileName,_MAX_PATH);
-		}
-		else if(!_tfullpath(szAbsPath,lpszFileName,_MAX_PATH)){
-			TRACE(_T("絶対パス取得失敗\n"));
-			return false;
-		}
-	}
-
-	_FullPath=szAbsPath;
-	return true;
-}
-
-//ワイルドカードの展開
-bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList)
-{
-	std::list<CString> tempList;
-	std::list<CString>::const_iterator ite=r_inList.begin();
-	const std::list<CString>::const_iterator end=r_inList.end();
-	for(;ite!=end;++ite){
-		if(-1==(*ite).FindOneOf(_T("*?"))){	//ワイルド展開可能な文字はない
-			tempList.push_back(*ite);
-		}else{
-			//ワイルド展開
-			CFindFile cFindFile;
-			BOOL bContinue=cFindFile.FindFile(*ite);
-			while(bContinue){
-				if(!cFindFile.IsDots()){
-					tempList.push_back(cFindFile.GetFilePath());
-				}
-				bContinue=cFindFile.FindNextFile();
+		auto enumerated = UtilRecursiveEnumFileAndDirectory(dir);
+		EXPECT_EQ(fileAndDir.size(), enumerated.size());
+		if (fileAndDir.size() == enumerated.size()) {
+			for (size_t i = 0; i < fileAndDir.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
 			}
 		}
 	}
-	r_outList=tempList;
-	return true;
-}
-
-
-bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam)
-{
-	std::list<CString> tempList;
-	if(-1==r_inParam.FindOneOf(_T("*?"))){	//ワイルド展開可能な文字はない
-		tempList.push_back(r_inParam);
-	}else{
-		//ワイルド展開
-		CFindFile cFindFile;
-		BOOL bContinue=cFindFile.FindFile(r_inParam);
-		while(bContinue){
-			if(!cFindFile.IsDots()){
-				tempList.push_back(cFindFile.GetFilePath());
+	{
+		auto enumerated = UtilEnumSubFileAndDirectory(dir);
+		EXPECT_EQ(4, enumerated.size());
+		if (4 == enumerated.size()) {
+			for (size_t i = 0; i < enumerated.size(); i++) {
+				EXPECT_EQ(
+					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
+					std::filesystem::path(enumerated[i]).make_preferred().wstring());
 			}
-			bContinue=cFindFile.FindNextFile();
 		}
 	}
-	r_outList=tempList;
-	return true;
-}
 
-//パスのディレクトリ部分だけを取り出す
-void UtilPathGetDirectoryPart(CString &str)
-{
-	LPTSTR lpszBuf=str.GetBuffer(_MAX_PATH+1);
-	PathRemoveFileSpec(lpszBuf);
-	PathAddBackslash(lpszBuf);
-	str.ReleaseBuffer();
-}
+	//expand wild
+	{
+		auto enumerated = UtilPathExpandWild(dir);
+		EXPECT_EQ(size_t(1), enumerated.size());
+		EXPECT_EQ(enumerated[0], dir.make_preferred());
 
-//自分のプログラムのファイル名を返す
-LPCTSTR UtilGetModulePath()
-{
-	static TCHAR s_szExePath[_MAX_PATH+1]={0};
-	if(s_szExePath[0]!=_T('\0'))return s_szExePath;
+		auto pdir = std::filesystem::path(dir);
+		enumerated = UtilPathExpandWild(pdir / L"*.txt");
+		EXPECT_EQ(size_t(3), enumerated.size());
+		EXPECT_TRUE(isIn(enumerated, pdir / L"a000.txt"));
+		EXPECT_TRUE(isIn(enumerated, pdir / L"a001.txt"));
+		EXPECT_TRUE(isIn(enumerated, pdir / L"a002.txt"));
 
-	GetModuleFileName(GetModuleHandle(NULL), s_szExePath, _MAX_PATH);	//本体のパス取得
-	return s_szExePath;
-}
-
-//自分のプログラムのおいてあるディレクトリのパス名を返す
-LPCTSTR UtilGetModuleDirectoryPath()
-{
-	static TCHAR s_szDirPath[_MAX_PATH+1]={0};
-	if(s_szDirPath[0]!=_T('\0'))return s_szDirPath;
-
-	GetModuleFileName(GetModuleHandle(NULL), s_szDirPath, _MAX_PATH);	//本体のパス取得
-	PathRemoveFileSpec(s_szDirPath);
-	return s_szDirPath;
-}
-
-//複数階層のディレクトリを一気に作成する
-BOOL UtilMakeSureDirectoryPathExists(LPCTSTR _lpszPath)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	CPath path(_lpszPath);
-	path.RemoveFileSpec();
-	path.AddBackslash();
-
-	//TODO:UNICODE版のみでチェックを入れているのでANSIビルド時には適宜処理し直すべき
-	CString tmp(path);
-	if(-1!=tmp.Find(_T(" \\"))||-1!=tmp.Find(_T(".\\"))){	//パスとして処理できないファイル名がある
-		ASSERT(!"Unacceptable Directory Name");
-		return FALSE;
+		enumerated = UtilPathExpandWild(pdir / L"*.exe");
+		EXPECT_TRUE(enumerated.empty());
 	}
 
-	//UNICODE版のみで必要なチェック
-	if(path.IsRoot())return TRUE;	//ドライブルートなら作成しない(できない)
-
-	int nRet=SHCreateDirectoryEx(NULL,path,NULL);
-	switch(nRet){
-	case ERROR_SUCCESS:
-		return TRUE;
-	case ERROR_ALREADY_EXISTS:
-		if(path.IsDirectory())return TRUE;	//すでにディレクトリがある場合だけセーフとする
-		else return FALSE;
-	default:
-		return FALSE;
-	}
-#else//defined(_UNICODE)||defined(UNICODE)
-  #pragma comment(lib, "Dbghelp.lib")
-	return MakeSureDirectoryPathExists(_lpszPath);
-#endif//defined(_UNICODE)||defined(UNICODE)
+	//cleanup
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
 }
-
-//TCHARファイル名をSJISファイル名に変換する。正しく変換できない場合には、falseを返す
-bool UtilPathT2A(CStringA &strA,LPCTSTR lpPath,bool bOnDisk)
-{
-#if defined(_UNICODE)||defined(UNICODE)
-	CStringA strTemp(lpPath);
-	if(strTemp==lpPath){
-		//欠損無く変換できた
-		strA=strTemp;
-		return true;
-	}
-	if(!bOnDisk){
-		//ディスク上のファイルではないので、以降の代替手段は執れない
-		return false;
-	}
-	//ショートファイル名で代用してみる
-	WCHAR szPath[_MAX_PATH+1];
-	GetShortPathNameW(lpPath,szPath,_MAX_PATH+1);
-
-	//欠損無くSJISに変換できているかどうかチェックする
-	return UtilPathT2A(strA,szPath,false);
-
-#else//defined(_UNICODE)||defined(UNICODE)
-	//SJISそのまま
-	strA=lpPath;
-	return true;
-#endif//defined(_UNICODE)||defined(UNICODE)
-}
-
-//パスに共通する部分を取り出し、基底パスを取り出す
-void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList)
-{
-	bool bFirst=true;
-	size_t ElementsCount=0;	//共通項目数
-	std::vector<CString> PathElements;	//共通項目の配列
-
-	std::list<CString>::const_iterator ite,end;
-	end=PathList.end();
-	for(ite=PathList.begin();ite!=end;++ite){
-		if(!bFirst&&0==ElementsCount){
-			//既に共通している要素が配列内に存在しないとき
-			break;
-		}
-
-		//親ディレクトリまでで終わるパスを作る
-		TCHAR Path[_MAX_PATH+1];
-		FILL_ZERO(Path);
-		_tcsncpy_s(Path,*ite,_MAX_PATH);
-		PathRemoveFileSpec(Path);
-		PathAddBackslash(Path);
-
-		CString buffer;
-		size_t iElement=0;	//一致しているパスの要素のカウント用(ループ内)
-		size_t iIndex=0;	//パス内の文字のインデックス
-		const size_t Length=_tcslen(Path);
-		for(;iIndex<Length;iIndex++){
-#if !defined(_UNICODE)&&!defined(UNICODE)
-			if(_MBC_SINGLE==_mbsbtype((const unsigned char *)Path,iIndex)){
 #endif
-				if(_T('\\')==Path[iIndex]){
-					//初回ならパスを詰め込み、そうでなければ要素を比較
-					if(bFirst){
-						PathElements.push_back(buffer);
-						buffer.Empty();
-						continue;
-					}
-					else{
-						//大文字小文字区別せずに比較
-						if(0==PathElements[iElement].CompareNoCase(buffer)){
-							//要素が共通しているうちはOK
-							iElement++;
-							if(iElement>=ElementsCount)break;
-							else{
-								buffer.Empty();
-								continue;
-							}
-						}
-						else
-						{
-							//要素数を減らす
-							//0オリジンのi番目で不一致ならばi個まで一致
-							ElementsCount=iElement;
-							break;
-						}
-					}
-				}
-#if !defined(_UNICODE)&&!defined(UNICODE)
-			}
+
+bool UtilPathIsRoot(const std::filesystem::path& path)
+{
+	auto p = std::filesystem::path(path);
+	p.make_preferred();
+	if (p == p.root_path() || p == p.root_name())return true;
+	return false;
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilPathIsRoot) {
+	EXPECT_TRUE(UtilPathIsRoot(L"c:/"));
+	EXPECT_TRUE(UtilPathIsRoot(L"c:\\"));
+	EXPECT_TRUE(UtilPathIsRoot(L"c:"));
+	EXPECT_FALSE(UtilPathIsRoot(L"c:/windows/"));
+	EXPECT_FALSE(UtilPathIsRoot(L"c:\\windows\\"));
+}
 #endif
-			buffer+=Path[iIndex];
-		}
-		if(bFirst){
-			bFirst=false;
-			ElementsCount=PathElements.size();
-		}
-		else if(ElementsCount>iElement){
-			//パスが短かった場合、不一致なしのまま処理が終了する場合がある
-			ElementsCount=iElement;
-		}
+
+std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path)
+{
+	std::wstring p = path.wstring();
+	if (p.empty() || (p.back() != L'/' && p.back() != L'\\')) {
+		p += std::filesystem::path::preferred_separator;
+	}
+	return p;
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilPathAddLastSeparator) {
+	std::wstring sep;
+	sep = std::filesystem::path::preferred_separator;
+	EXPECT_EQ(sep, UtilPathAddLastSeparator(L""));
+	EXPECT_EQ(L"C:" + sep, UtilPathAddLastSeparator(L"C:"));
+	EXPECT_EQ(L"C:\\", UtilPathAddLastSeparator(L"C:\\"));
+	EXPECT_EQ(L"C:/", UtilPathAddLastSeparator(L"C:/"));
+	EXPECT_EQ(std::wstring(L"/tmp") + sep, UtilPathAddLastSeparator(L"/tmp"));
+	EXPECT_EQ(L"/tmp\\", UtilPathAddLastSeparator(L"/tmp\\"));
+	EXPECT_EQ(L"/tmp/", UtilPathAddLastSeparator(L"/tmp/"));
+}
+#endif
+
+std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& path)
+{
+	std::wstring p = path;
+	if (!p.empty() && (p.back() == L'/' || p.back() == L'\\')) {
+		p.back() = L'\0';
+	}
+	return p.c_str();
+}
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilPathRemoveLastSeparator) {
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L""));
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"/"));
+	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"\\"));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:/"));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:\\"));
+	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp\\"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp/"));
+	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp"));
+}
+#endif
+
+
+//get full & absolute path
+std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& filePath)
+{
+	if(filePath.empty()){
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_PATH_EMPTY));
 	}
 
-	BasePath.Empty();
-	for(size_t i=0;i<ElementsCount;i++){
-		BasePath+=PathElements[i];
-		BasePath+=_T("\\");
+	std::filesystem::path abs_path = filePath;
+	if(!UtilPathIsRoot(abs_path)){
+		//when only drive letter is given, _wfullpath returns current directory on that drive
+		wchar_t* buf = _wfullpath(nullptr, filePath.c_str(), 0);
+		if (!buf) {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_FULLPATH));
+		}
+		abs_path = buf;
+		free(buf);
 	}
-	TRACE(_T("BasePath=%s\n"),BasePath);
+
+	if (std::filesystem::exists(abs_path)) {
+		DWORD bufSize = GetLongPathNameW(abs_path.c_str(), nullptr, 0);
+		std::wstring buf;
+		buf.resize(bufSize);
+		if (!GetLongPathNameW(abs_path.c_str(), &buf[0], bufSize)) {
+			//RAISE_EXCEPTION(L"failed to get long filename");
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_FULLPATH));
+		}
+		abs_path = buf.c_str();
+	}
+	return abs_path.make_preferred().wstring();
 }
 
-const LPCTSTR c_InvalidPathChar=_T("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\"<>|:*?\\/\b\t");
-
-//ファイル名に使えない文字列を置き換える
-void UtilFixFileName(CString &rStr,LPCTSTR lpszOrg,TCHAR replace)
-{
-	rStr=lpszOrg;
-	int length=_tcslen(c_InvalidPathChar);
-	for(int i=0;i<length;i++){
-		rStr.Replace(c_InvalidPathChar[i],replace);
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetCompletePathName) {
+	EXPECT_THROW(UtilGetCompletePathName(L""), LF_EXCEPTION);
+	EXPECT_TRUE(UtilPathIsRoot(L"C:\\"));
+	EXPECT_TRUE(UtilPathIsRoot(UtilGetCompletePathName(L"C:")));
+	EXPECT_TRUE(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\")));
+	EXPECT_FALSE(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\Windows")));
+	auto tempDir = std::filesystem::temp_directory_path();
+	EXPECT_FALSE(UtilPathIsRoot(UtilGetCompletePathName(tempDir)));
+	{
+		CCurrentDirManager mngr(tempDir);
+		auto dest = L"C:\\Windows";
+		auto relpath = std::filesystem::relative(dest);
+		auto expected = toLower(std::filesystem::path(dest).make_preferred());
+		auto actual = toLower(std::filesystem::path(UtilGetCompletePathName(relpath)));
+		EXPECT_EQ(expected, actual);
 	}
 }
+#endif
 
-
-LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr)
+//executable name
+std::filesystem::path UtilGetModulePath()
 {
-	for(;*lpStr!=_T('\0');lpStr++){
-		if(*lpStr==_T('/') || *lpStr==_T('\\')){
+	std::wstring name;
+	name.resize(256);
+	for (;;) {
+		DWORD bufsize = (DWORD)name.size();
+		auto nCopied = GetModuleFileNameW(GetModuleHandleW(nullptr), &name[0], bufsize);
+		if (nCopied < bufsize) {
 			break;
+		} else {
+			name.resize(name.size() * 2);
 		}
 	}
-	//終端
-	return lpStr;
+	return name.c_str();
 }
 
-bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,bool bSkipMeaningless)
+std::filesystem::path UtilGetModuleDirectoryPath()
 {
-	LPCTSTR lpEnd=UtilPathNextSeparator(lpStart);
-	if(bSkipMeaningless){
-		while(true){
-			//---無効なパスかどうかチェック
-			//2文字以上のパスは有効であると見なす
-
-			int length=lpEnd-lpStart;
-			if(length==1){
-				if(_T('.')==*lpStart || _T('\\')==*lpStart || _T('/')==*lpStart){
-					//無効なパス
-					//次の要素を取ってくる
-					lpStart=lpEnd;
-					lpEnd=UtilPathNextSeparator(lpStart);
-				}else{
-					break;
-				}
-			}else if(length==0){
-				if(_T('\0')==*lpEnd){	//もうパスの要素がなくなったので返る
-					return false;
-				}else{
-					lpEnd++;
-					//次の要素を取ってくる
-					lpStart=lpEnd;
-					lpEnd=UtilPathNextSeparator(lpStart);
-				}
-			}else{
-				break;
-			}
-		}
-	}
-	r_lpStart=lpStart;
-	r_lpEnd=lpEnd;
-	return true;
-}
-
-//Pathが'/'もしくは'\\'で終わっているならtrue
-bool UtilPathEndWithSeparator(LPCTSTR lpPath)
-{
-	UINT length=_tcslen(lpPath);
-	TCHAR c=lpPath[length-1];
-	return (_T('/')==c || _T('\\')==c);
-}
-
-//パス名の最後の部分を取り出す
-void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath)
-{
-	CString strPath=lpPath;
-	strPath.Replace(_T('\\'),_T('/'));
-	while(true){
-		int idx=strPath.ReverseFind(_T('/'));
-		if(-1==idx){	//そのまま
-			strSection=lpPath;
-			return;
-		}else if(idx<strPath.GetLength()-1){
-			//末尾がSeparatorではない
-			strSection=lpPath+idx+1;
-			return;
-		}else{	//末尾がSeparator
-			//末尾を削る->削った後はループで再度処理;strSectionにはSeparator付きの文字が格納される
-			strPath.Delete(idx,strPath.GetLength());
-		}
-	}
+	return std::filesystem::path(UtilGetModulePath()).parent_path();
 }
 
 
-
-//ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
-bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit)
-{
-	ASSERT(lpFile);
-	if(!lpFile)return false;
-	if(!PathFileExists(lpFile))return false;
-
-	//Open
-	HANDLE hFile=CreateFile(lpFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-	if(INVALID_HANDLE_VALUE==hFile)return false;
-
-	//4GB越えファイルは扱わないのでファイルサイズ取得はこれでよい
-	DWORD dwSize=GetFileSize(hFile,NULL);
-
-	//読み込み範囲
-	if(-1!=dwLimit){	//範囲制限されている
-		dwSize=min(dwSize,dwLimit);
-	}
-
-	cReadBuffer.resize(dwSize);
-	DWORD dwRead,dwIndex=0;
-	//---読み込み
-	while(true){
-		const DWORD BLOCKSIZE=1024*10;	//10KBごとに読み込み
-		DWORD readsize=BLOCKSIZE;
-		if(dwIndex+readsize>dwSize){
-			readsize=dwSize-dwIndex;
-		}
-		if(!ReadFile(hFile,&cReadBuffer[dwIndex],readsize,&dwRead,NULL)){
-			CloseHandle(hFile);
-			return false;
-		}
-		dwIndex+=dwRead;
-		if(readsize<BLOCKSIZE)break;	//読み切った
-	}
-	CloseHandle(hFile);
-
-	if(dwSize!=dwIndex){
-		return false;
-	}
-
-	return true;
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilGetModulePath_UtilGetModuleDirectoryPath) {
+	//TODO: is there any better test?
+	EXPECT_FALSE(UtilGetModulePath().empty());
+	EXPECT_TRUE(std::filesystem::exists(UtilGetModulePath()));
+	EXPECT_TRUE(std::filesystem::exists(UtilGetModuleDirectoryPath()));
 }
+#endif
 
-bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER &container)
+//read whole file
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize)
 {
-	//行バッファをクリア
-	container.data.clear();
-	container.lines.clear();
+	if (filePath.empty())RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_PATH_EMPTY));
+	if(!std::filesystem::exists(filePath))RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), filePath.c_str());
 
-	//---読み込み
+	struct _stat64 stat = {};
+	if (0 != _wstat64(filePath.c_str(), &stat))RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_GET_STAT));
+	auto file_size = (size_t)stat.st_size;
+	if (maxSize != 0) {
+		file_size = std::min(file_size, maxSize);
+	}
+
+	CAutoFile fp;
+	fp.open(filePath, L"rb");
+	if (!fp.is_opened())RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), filePath.c_str());
+
 	std::vector<BYTE> cReadBuffer;
-	if(!UtilReadFile(lpFile,cReadBuffer))return false;
-	//終端の0追加
-	cReadBuffer.resize(cReadBuffer.size()+2);
-	cReadBuffer[cReadBuffer.size()-1];
-	cReadBuffer[cReadBuffer.size()-2];
+	cReadBuffer.resize(file_size);
+	auto ret = fread(&cReadBuffer[0], 1, cReadBuffer.size(), fp);
+	if (ret != cReadBuffer.size()) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_READ_FILE), filePath.c_str());
+	}
+
+	return cReadBuffer;
+}
+
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilReadFile) {
+	//prepare
+	auto fname = UtilGetTempPath() / L"lhaforge_test_file.tmp";
+	{
+		CAutoFile fp;
+		fp.open(fname, L"w");
+		fprintf(fp, "test file content");
+	}
+	{
+		auto read = UtilReadFile(fname);
+		EXPECT_EQ(size_t(17), read.size());
+		read.push_back('\0');
+		EXPECT_EQ("test file content", std::string((const char*)&read[0]));
+	}
+	{
+		auto read = UtilReadFile(fname, 5);
+		EXPECT_EQ(size_t(5), read.size());
+		read.push_back('\0');
+		EXPECT_EQ("test ", std::string((const char*)&read[0]));
+	}
+	std::filesystem::remove(fname);
+}
+
+#endif
+
+bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::filesystem::path& directory)
+{
+	return startsWith(
+		std::filesystem::path(subject).make_preferred(),
+		std::filesystem::path(UtilPathAddLastSeparator(directory)).make_preferred()
+	);
+}
+
+#ifdef UNIT_TEST
+TEST(FileOperation, UtilPathIsInSubDirectory) {
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b\\"));
+	EXPECT_TRUE(UtilPathIsInSubDirectory(L"a/b/c", L"a"));
+	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a", L"/a/b/c"));
+	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a/b/cd", L"/a/b/c"));
+}
+#endif
+
+void touchFile(const std::filesystem::path& path)
+{
+	CAutoFile fp;
+	fp.open(path, L"w");
+}
+
+
+#ifdef UNIT_TEST
+TEST(FileOperation, touchFile_CAutoFile)
+{
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/touchFile";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
 
 	{
-		CStringW strData;
-		UtilGuessToUNICODE(strData,&cReadBuffer[0],cReadBuffer.size());
-		container.data.assign((LPCWSTR)strData,(LPCWSTR)strData+strData.GetLength());
-		container.data.push_back(L'\0');
+		CAutoFile fp;
+		auto filename = dir / L"a.txt";
+		EXPECT_FALSE(std::filesystem::exists(filename));
+		fp.open(filename);
+		EXPECT_FALSE(fp.is_opened());
+
+		touchFile(filename);
+
+		EXPECT_TRUE(std::filesystem::exists(filename));
+		fp.open(filename);
+		EXPECT_TRUE(fp.is_opened());
+		EXPECT_EQ(filename, fp.get_path());
 	}
 
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
 
-	LPWSTR p=&container.data[0];
-	const LPCWSTR end=p+container.data.size();
-	LPCWSTR lastHead=p;
+#endif
 
-	//解釈
-	for(;p!=end && *p!=L'\0';p++){
-		if(*p==_T('\n')||*p==_T('\r')){
-			if(lastHead<p){	//空行は飛ばす
-				container.lines.push_back(lastHead);
+CTemporaryDirectoryManager::CTemporaryDirectoryManager()
+{
+	//%TEMP%/tmp%05d/filename...
+	std::filesystem::path base = UtilGetTempPath();
+	for (int count = 0; count < NUM_DIR_LIMIT; count++) {
+		auto name = Format(L"tmp%05d", count);
+		if (!std::filesystem::exists(base / name)) {
+			try {
+				m_path = base / name;
+				std::filesystem::create_directories(base / name);
+				return;
+			} catch (std::filesystem::filesystem_error) {
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR), m_path.c_str());
 			}
-			lastHead=p+1;
-			*p=L'\0';
 		}
 	}
-	return true;
+	RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR), m_path.c_str());
 }
+
+
+#ifdef UNIT_TEST
+TEST(FileOperation, CTemporaryDirectoryManager) {
+	std::filesystem::path path;
+	{
+		CTemporaryDirectoryManager tmpMngr;
+		path = tmpMngr.path();
+		EXPECT_TRUE(std::filesystem::exists(path));
+	}
+	EXPECT_FALSE(std::filesystem::exists(path));
+}
+
+#endif
+
+size_t CContinuousFile::read(void* buffer, size_t toRead)
+{
+	if (_currentFile >= _files.size()) {
+		if (_files.empty()) {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF));
+		} else {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF) + L": " + _files.back().c_str());
+		}
+	}
+	if (!_fp.is_opened()) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
+	}
+	size_t actualRead = 0;
+	for (;;) {
+		actualRead += fread(((unsigned char*)buffer) + actualRead, 1, toRead - actualRead, _fp);
+		if (actualRead >= toRead) {
+			_curPos += actualRead;
+			return actualRead;
+		} else if (feof(_fp)) {
+			if (!nextFile()) {
+				if (_currentFile >= _files.size()) {
+					//reached end of file list
+					_curPos += actualRead;
+					return actualRead;
+				} else if (!_fp.is_opened()) {
+					RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
+				}
+			}
+			continue;
+		} else if (ferror(_fp)) {
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_READ_FILE), _files[_currentFile].c_str());
+		}
+	}
+}
+
+#ifdef UNIT_TEST
+
+TEST(FileOperation, CContinuousFile) {
+	//create test files
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/continuousFile";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+
+	std::vector<std::filesystem::path> files;
+	for (int i = 0; i < 10; i++) {
+		CAutoFile fp;
+		auto fname = dir / Format(L"file%02d.txt", i);
+		files.push_back(fname);
+		fp.open(fname, L"w");
+		for (int j = 0; j < 5; j++) {
+			fputc('a' + i, fp);
+		}
+	}
+
+	//test subject
+	CContinuousFile cfp;
+	EXPECT_FALSE(cfp.is_opened());
+	cfp.openFiles(files);
+	EXPECT_TRUE(cfp.is_opened());
+	EXPECT_EQ(0, cfp.tell());
+
+	char buffer[256];	// 256 > 5*10
+	memset(buffer, 0, sizeof(buffer));
+	EXPECT_EQ(10, cfp.read(buffer, 10));
+	EXPECT_STREQ("aaaaabbbbb", buffer);
+	EXPECT_EQ(10, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	EXPECT_EQ(1, cfp.read(buffer, 1));
+	EXPECT_STREQ("c", buffer);
+	EXPECT_EQ(11, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	EXPECT_EQ(1, cfp.read(buffer, 1));
+	EXPECT_STREQ("c", buffer);
+	EXPECT_EQ(12, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	EXPECT_EQ(50-12, cfp.read(buffer, 50));
+	EXPECT_STREQ("cccdddddeeeeefffffggggghhhhhiiiiijjjjj", buffer);
+	EXPECT_EQ(50, cfp.tell());
+
+	//---seek
+	memset(buffer, 0, sizeof(buffer));
+	cfp.seek(0, SEEK_SET);
+	EXPECT_EQ(0, cfp.tell());
+	EXPECT_EQ(10, cfp.read(buffer, 10));
+	EXPECT_STREQ("aaaaabbbbb", buffer);
+	EXPECT_EQ(10, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	cfp.seek(20, SEEK_CUR);
+	EXPECT_EQ(30, cfp.tell());
+	EXPECT_EQ(10, cfp.read(buffer, 10));
+	EXPECT_STREQ("ggggghhhhh", buffer);
+	EXPECT_EQ(40, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	cfp.seek(-20, SEEK_CUR);
+	EXPECT_EQ(20, cfp.tell());
+	EXPECT_EQ(10, cfp.read(buffer, 10));
+	EXPECT_STREQ("eeeeefffff", buffer);
+	EXPECT_EQ(30, cfp.tell());
+
+	memset(buffer, 0, sizeof(buffer));
+	cfp.seek(-20, SEEK_END);
+	EXPECT_EQ(30, cfp.tell());
+	EXPECT_EQ(10, cfp.read(buffer, 10));
+	EXPECT_STREQ("ggggghhhhh", buffer);
+	EXPECT_EQ(40, cfp.tell());
+
+	cfp.close();
+
+	//cleanup
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+
+TEST(FileOperation, CContinuousFile_fail) {
+	//create test files
+	std::filesystem::path fname = UtilGetTempPath() / L"lhaforge_test/some_non_existing_file";
+	EXPECT_FALSE(std::filesystem::exists(fname));
+
+	std::vector<std::filesystem::path> files;
+	files.push_back(fname);
+
+	//test subject
+	CContinuousFile cfp;
+	EXPECT_FALSE(cfp.openFiles(files));
+	EXPECT_THROW(cfp.read(nullptr, 0), LF_EXCEPTION);
+}
+
+#endif
+

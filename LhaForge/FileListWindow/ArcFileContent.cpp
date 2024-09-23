@@ -23,550 +23,1325 @@
 */
 
 #include "stdafx.h"
+#include "ConfigCode/ConfigFile.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
+#include "Dialogs/ProgressDlg.h"
+#include "extract.h"
+#include "compress.h"
+#include "CommonUtil.h"
 #include "ArcFileContent.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/FileOperation.h"
-#include "../ArchiverCode/arc_interface.h"
-#include "../ArchiverManager.h"
 
-CArchiveFileContent::CArchiveFileContent():
-m_bReadOnly(false),
-m_bEncrypted(false)
+bool ARCHIVE_FIND_CONDITION::matchItem(const ARCHIVE_ENTRY_INFO& p)const
 {
-	Clear();
-}
-
-CArchiveFileContent::~CArchiveFileContent()
-{
-	Clear();
-}
-
-void CArchiveFileContent::Clear()
-{
-	m_Root.Clear();
-	m_Root.lpParent=NULL;
-
-	m_bReadOnly=false;
-	m_GC.DeleteAll();
-
-	m_lpArchiver=NULL;
-	m_pathArcFileName.Empty();
-	m_bExtractEachSupported=false;
-}
-
-ARCHIVE_ENTRY_INFO_TREE* CArchiveFileContent::ForceFindEntry(ARCHIVE_ENTRY_INFO_TREE* lpParent,LPCTSTR lpName)
-{
-	ASSERT(lpParent);
-	ARCHIVE_ENTRY_INFO_TREE::DICT::iterator ite=lpParent->childrenDict.find(lpName);
-	if(lpParent->childrenDict.end()==ite){
-		ARCHIVE_ENTRY_INFO_TREE* lpTree=new ARCHIVE_ENTRY_INFO_TREE;
-		m_GC.Add(lpTree);
-		lpTree->Clear();
-
-		lpTree->lpParent=lpParent;
-		lpParent->childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type(lpName,lpTree));
-		lpParent->childrenArray.push_back(lpTree);
-		return lpTree;
-	}else{
-		return (*ite).second;
-	}
-}
-
-HRESULT CArchiveFileContent::InspectArchiveStruct(LPCTSTR lpFile,CConfigManager &ConfMan,CArchiverDLL *lpArchiver,std::vector<ARCHIVE_ENTRY_INFO> &entries,IArchiveContentUpdateHandler* lpHandler)
-{
-	//解析開始
-	TRACE(_T("ディレクトリ構造解析開始\n"));
-	if(!lpArchiver->InspectArchiveBegin(lpFile,ConfMan)){
-		//スキャンできない
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
-
-	//少なくとも一つのファイルが暗号化されているならtrue
-	bool bEncrypted = false;
-
-	HRESULT hr=S_OK;
-	//一覧取得
-	while(lpArchiver->InspectArchiveNext()){
-		ARCHIVE_ENTRY_INFO item;
-
-		//格納ファイル名取得
-		lpArchiver->InspectArchiveGetFileName(item.strFullPath);
-		//属性取得
-		item.nAttribute=lpArchiver->InspectArchiveGetAttribute();
-		//ファイルサイズ(圧縮前)
-		if(!lpArchiver->InspectArchiveGetOriginalFileSize(item.llOriginalSize)){
-			item.llOriginalSize.LowPart=-1;
-			item.llOriginalSize.HighPart=-1;
+	switch (key) {
+	case KEY::filename:
+		return UtilPathMatchSpec(p._entryName, patternStr);
+	case KEY::fullpath:
+		return UtilPathMatchSpec(p._entry.path, patternStr);
+	case KEY::originalSize:
+		switch (compare) {
+		case COMPARE::equal:
+			return (st_size == p._entry.stat.st_size);
+		case COMPARE::equalOrGreater:
+			return (st_size <= p._entry.stat.st_size);
+		case COMPARE::equalOrLess:
+			return (st_size >= p._entry.stat.st_size);
 		}
-		//ファイルサイズ(圧縮後)
-		if(!lpArchiver->InspectArchiveGetCompressedFileSize(item.llCompressedSize)){
-			item.llCompressedSize.LowPart=-1;
-			item.llCompressedSize.HighPart=-1;
-		}
-		//日時取得
-		if(!lpArchiver->InspectArchiveGetWriteTime(item.cFileTime)){
-			item.cFileTime.dwLowDateTime=-1;
-			item.cFileTime.dwHighDateTime=-1;
-		}
-		//圧縮率
-		item.wRatio=lpArchiver->InspectArchiveGetRatio();
-		//CRC
-		item.dwCRC=lpArchiver->InspectArchiveGetCRC();
-		//メソッド
-		lpArchiver->InspectArchiveGetMethodString(item.strMethod);
+	case KEY::mdate:
+		//by day
+	{
+		if (p._entry.stat.st_mtime == 0)return false;	//no date provided
+		auto ft_gmt = UtilUnixTimeToFileTime(p._entry.stat.st_mtime);
+		FILETIME ft_local;
+		FileTimeToLocalFileTime(&ft_gmt, &ft_local);
+		SYSTEMTIME systime = {};
+		FileTimeToSystemTime(&ft_local, &systime);
 
-		//暗号
-		bEncrypted = bEncrypted || ((item.nAttribute & FA_ENCRYPTED)!=0);
-
-		//登録		
-		entries.push_back(item);
-
-		//更新
-		if(lpHandler){
-			while(UtilDoMessageLoop())continue;
-			lpHandler->onUpdated(item);
-			if(lpHandler->isAborted()){
-				hr=E_ABORT;
-				break;
-			}
+		switch (compare) {
+		case COMPARE::equal:
+			return (mdate.wYear == systime.wYear)
+				&& (mdate.wMonth == systime.wMonth)
+				&& (mdate.wDay == systime.wDay);
+		case COMPARE::equalOrGreater:
+			return (mdate.wYear < systime.wYear)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth < systime.wMonth)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth == systime.wMonth && mdate.wDay <= systime.wDay);
+		case COMPARE::equalOrLess:
+			return (mdate.wYear > systime.wYear)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth > systime.wMonth)
+				|| (mdate.wYear == systime.wYear && mdate.wMonth == systime.wMonth && mdate.wDay >= systime.wDay);
 		}
 	}
-	//解析終了
-	lpArchiver->InspectArchiveEnd();
-
-	m_bEncrypted = bEncrypted;
-	return hr;
-}
-
-
-HRESULT CArchiveFileContent::ConstructFlat(LPCTSTR lpFile,CConfigManager &ConfMan,DLL_ID idForce,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
-{
-	Clear();
-
-	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
-
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
-	if(!lpArchiver){
-		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
-		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
-		return E_LF_UNKNOWN_FORMAT;
-	}
-	if(!lpArchiver->QueryInspectSupported()){
-		//閲覧できない形式
-		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
-
-	//--構造取得
-	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
-	if(FAILED(hr)){
-		ASSERT(hr==E_ABORT);
-		if(hr==E_ABORT){
-			strErr.Format(IDS_ERROR_USERCANCEL);
+	case KEY::mode:
+		if (st_mode_mask & S_IFDIR) {
+			return p.is_directory();
+		} else {
+			return (p._entry.stat.st_mode & st_mode_mask) != 0;
 		}
-		return hr;
-	}
-	//記録
-	m_lpArchiver=lpArchiver;
-	m_pathArcFileName=lpFile;
-	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
-
-	//解析
-	size_t numEntries=entries.size();
-	for(size_t i=0;i<numEntries;i++){
-		if(bFilesOnly && entries[i].nAttribute&FA_DIREC)continue;	//ファイルのみの場合はディレクトリは無視
-
-		ARCHIVE_ENTRY_INFO_TREE* lpEntry=new ARCHIVE_ENTRY_INFO_TREE;
-		m_GC.Add(lpEntry);
-		lpEntry->Clear();
-
-		//エントリ設定
-		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
-		lpEntry->lpParent=&m_Root;
-		UtilPathGetLastSection(lpEntry->strTitle,entries[i].strFullPath);
-
-		m_Root.childrenDict.insert(ARCHIVE_ENTRY_INFO_TREE::DICT::value_type((LPCTSTR)lpEntry->strTitle,lpEntry));
-		m_Root.childrenArray.push_back(lpEntry);
-
-		//後で設定する
-		lpEntry->bDir=false;
-		lpEntry->bSafe=true;
-	}
-
-	PostProcess(m_lpArchiver->IsUnicodeCapable(),NULL);
-	return S_OK;
-}
-
-HRESULT CArchiveFileContent::ConstructTree(LPCTSTR lpFile,CConfigManager &ConfMan,DLL_ID idForce,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler* lpHandler)
-{
-	Clear();
-
-	m_bReadOnly = GetFileAttributes(lpFile) & FILE_ATTRIBUTE_READONLY;
-
-	CArchiverDLL* lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(lpFile,lpDenyExt,idForce);
-	if(!lpArchiver){
-		//不明な形式 or 非対応DLLでUNICODEファイル名を扱おうとした
-		strErr.Format(IDS_FILELIST_FORMAT_UNKNOWN,lpFile);
-		//UNICODE関係のチェック
-		if(!UtilCheckT2A(lpFile)){
-			//UNICODEに対応していないのにUNICODEファイル名のファイルを扱おうとした可能性がある
-			strErr+=_T("\r\n\r\n");
-			strErr.AppendFormat(IDS_ERROR_UNICODEPATH);
-		}
-		return E_LF_UNKNOWN_FORMAT;
-	}
-	if(!lpArchiver->QueryInspectSupported()){
-		//閲覧できない形式
-		strErr.Format(IDS_FILELIST_FORMAT_NOTSUPPORTED,lpFile);
-		return E_LF_FILELIST_NOT_SUPPORTED;
-	}
-
-	//--構造取得
-	std::vector<ARCHIVE_ENTRY_INFO> entries;
-	HRESULT hr=InspectArchiveStruct(lpFile,ConfMan,lpArchiver,entries,lpHandler);
-	if(FAILED(hr)){
-		ASSERT(hr==E_ABORT && "Not Implemented");
-		if(hr==E_ABORT){
-			strErr.Format(IDS_ERROR_USERCANCEL);
-		}
-		return hr;
-	}
-
-	//記録
-	m_lpArchiver=lpArchiver;
-	m_pathArcFileName=lpFile;
-	m_bExtractEachSupported=m_lpArchiver->QueryExtractSpecifiedOnlySupported(m_pathArcFileName);
-
-	//解析
-	//TODO:既に出現したディレクトリのみを対象に比較を行う
-	size_t numEntries=entries.size();
-	for(size_t i=0;i<numEntries;i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpEntry=&m_Root;
-		LPCTSTR lpPath=entries[i].strFullPath;
-
-		CString strEntry;
-		CString strTitle;
-		bool bBreak=false;
-		for(;*lpPath!=L'\0';){
-			LPCTSTR lpStart,lpEnd;
-			if(UtilPathNextSection(lpPath,lpStart,lpEnd,bSkipMeaningless)){
-				UtilAssignSubString(strEntry,lpStart,lpEnd);
-				lpPath=lpEnd;
-				if(*lpPath!=L'\0')lpPath++;
-			}else{
-				//分割不能
-				strEntry=lpPath;
-				bBreak=true;
-			}
-			strTitle=strEntry;
-			//小文字化
-			strEntry.MakeLower();
-
-			//子エントリ検索
-			lpEntry=ForceFindEntry(lpEntry,strEntry);
-			if(bBreak){
-				break;
-			}else{
-				if(lpEntry->strTitle.IsEmpty()){
-					//仮想ディレクトリの設定
-					lpEntry->strTitle=strTitle;
-				}
-			}
-		}
-		ASSERT(lpEntry);
-		//エントリ設定
-		*((ARCHIVE_ENTRY_INFO*)lpEntry)=entries[i];
-
-		lpEntry->strTitle=strTitle;
-
-		//後で設定する
-		lpEntry->bDir=false;
-		lpEntry->bSafe=true;
-	}
-
-	PostProcess(m_lpArchiver->IsUnicodeCapable(),NULL);
-	return S_OK;
-}
-
-/*
- * ファイル一覧追加後の処理
- * ディレクトリ内ファイルのサイズを取得するなど
- * bUnicodeは使用したDLLがUNICODEに対応している場合にはtrue
- */
-void CArchiveFileContent::PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE* pNode)
-{
-	if(!pNode)pNode=&m_Root;
-	//属性
-	if(-1==pNode->nAttribute){	//まったく分かっていない場合
-		if(!pNode->childrenDict.empty()||UtilPathEndWithSeparator(pNode->strFullPath)){
-			//以下の条件のいずれかに合致すればディレクトリ
-			//・ノード名末尾にパス区切り文字が付いている(bDir)
-			//・子ノードが空でない
-			pNode->nAttribute=FA_DIREC;
-			pNode->bDir=true;
-		}else{
-			pNode->nAttribute=FA_UNKNOWN;
-		}
-	}else{
-		if(!pNode->childrenDict.empty()||UtilPathEndWithSeparator(pNode->strFullPath)){
-			pNode->nAttribute|=FA_DIREC;
-			pNode->bDir=true;
-		}
-	}
-	if(pNode->nAttribute&FA_DIREC){
-		//フォルダには拡張子はない
-		pNode->strExt=FOLDER_EXTENSION_STRING;
-
-		pNode->llOriginalSize.QuadPart=0;
-		pNode->llCompressedSize.QuadPart=0;
-	}else{
-		pNode->strExt=PathFindExtension(pNode->strFullPath);
-	}
-
-	//危険判定
-	if(bUnicode){
-		pNode->bSafe=UtilIsSafeUnicode(pNode->strFullPath);
-	}
-
-	//子ノードにも適用
-	size_t numChildren=pNode->childrenArray.size();
-	for(size_t i=0;i<numChildren;i++){
-		ARCHIVE_ENTRY_INFO_TREE* pChild=pNode->childrenArray[i];
-		PostProcess(bUnicode,pChild);
-
-		//---ディレクトリなら、中のデータのサイズを集計する
-		if(pNode->bDir){
-			//---圧縮前サイズ
-			if(pNode->llOriginalSize.QuadPart>=0){	//ファイルサイズ取得に失敗していない
-				if(pChild->llOriginalSize.QuadPart>=0){
-					pNode->llOriginalSize.QuadPart+=pChild->llOriginalSize.QuadPart;
-				}else{
-					pNode->llOriginalSize.LowPart=-1;
-					pNode->llOriginalSize.HighPart=-1;
-				}
-			}
-			//---圧縮後サイズ
-			if(pNode->llCompressedSize.QuadPart>=0){	//ファイルサイズ取得に失敗していない
-				if(pChild->llCompressedSize.QuadPart>=0){
-					pNode->llCompressedSize.QuadPart+=pChild->llCompressedSize.QuadPart;
-				}else{
-					pNode->llCompressedSize.LowPart=-1;
-					pNode->llCompressedSize.HighPart=-1;
-				}
-			}
-		}
-	}
-}
-
-
-
-void CArchiveFileContent::FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const
-{
-	//幅優先探索
-	std::vector<ARCHIVE_ENTRY_INFO_TREE*> dirs;
-	for(size_t i=0;i<lpTop->childrenArray.size();i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpTop->childrenArray[i];
-		ASSERT(lpNode);
-		CString strKey;
-		if(bMatchPath){	//パス名も一致
-			strKey=lpNode->strFullPath;
-			strKey.Replace(_T("/"),_T("\\"));
-		}else{
-			strKey=lpNode->strTitle;
-		}
-		if(::PathMatchSpec(strKey,lpszMask)){
-			founds.push_back(lpNode);
-		}
-		if(lpNode->bDir){	//ディレクトリは再帰検索
-			dirs.push_back(lpNode);
-		}
-	}
-	//ディレクトリ
-	for(size_t i=0;i<dirs.size();i++){
-		FindSubItem(lpszMask,bMatchPath,dirs[i],founds);
-	}
-}
-
-
-void CArchiveFileContent::FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const
-{
-	founds.clear();
-	ASSERT(lpTop);
-	if(!lpTop)return;
-
-	CString strMask(lpszMask);
-	strMask.Replace(_T("/"),_T("\\"));
-	bool bMatchPath=(-1!=strMask.Find(_T('\\')));
-
-	//*も?も付いていない場合は*を検索条件に追加
-	if(-1==strMask.FindOneOf(_T("*?"))){
-		strMask.Insert(0,_T("*"));
-		strMask+=_T("*");
-	}
-
-	FindSubItem(strMask,bMatchPath,lpTop,founds);
-}
-
-
-bool CArchiveFileContent::ExtractItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog)
-{
-	if(!IsExtractEachSupported()){
-		//選択ファイルの解凍はサポートされていない
+	default:
+		ASSERT(!"This code cannot be run");
 		return false;
 	}
-
-	return m_lpArchiver->ExtractItems(m_pathArcFileName,ConfMan,lpBase,items,lpszDir,bCollapseDir,strLog);
 }
 
-void CArchiveFileContent::CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpParent,std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > &toExtractList)
+std::wstring ARCHIVE_FIND_CONDITION::toString()const
 {
-	size_t numChildren=lpParent->GetNumChildren();
-	for(size_t i=0;i<numChildren;i++){
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=lpParent->GetChild(i);
-		CPath path=lpOutputDir;
+	std::wstring desc;
+	switch (key) {
+	case KEY::filename:
+		if (patternStr==L"*" || patternStr == L"*.*") {
+			desc = UtilLoadString(IDS_SEARCH_EVERYTHING);
+		} else {
+			desc = Format(UtilLoadString(IDS_SEARCH_BY_FILENAME), patternStr.c_str());
+		}
+		break;
+	case KEY::fullpath:
+		if (patternStr == L"*" || patternStr == L"*.*") {
+			desc = UtilLoadString(IDS_SEARCH_EVERYTHING);
+		} else {
+			desc = Format(UtilLoadString(IDS_SEARCH_BY_FILEPATH), patternStr.c_str());
+		}
+		break;
+	case KEY::originalSize:
+	{
+		std::wstring cond;
+		auto size = UtilFormatSizeStrict(st_size);
+		switch (compare) {
+		case COMPARE::equal:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL), size.c_str());
+			break;
+		case COMPARE::equalOrGreater:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_GREATER), size.c_str());
+			break;
+		case COMPARE::equalOrLess:
+			cond = Format(UtilLoadString(IDS_COND_FILESIZE_EQUAL_OR_LESS), size.c_str());
+			break;
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_ORIGINAL_SIZE), cond.c_str());
+		break;
+	}
+	case KEY::mdate:
+	{
+		std::wstring cond;
+		switch (compare) {
+		case COMPARE::equal:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		case COMPARE::equalOrGreater:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL_OR_GREATER), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		case COMPARE::equalOrLess:
+			cond = Format(UtilLoadString(IDS_COND_MDATE_EQUAL_OR_LESS), mdate.wYear, mdate.wMonth, mdate.wDay);
+			break;
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_MDATE), cond.c_str());
+		break;
+	}
+	case KEY::mode:
+	{
+		std::wstring cond;
+		if (st_mode_mask & S_IFDIR) {
+			cond = UtilLoadString(IDS_COND_FOLDER);
+		} else {
+			cond = UtilLoadString(IDS_COND_FILE);
+		}
+		desc = Format(UtilLoadString(IDS_SEARCH_BY_MODE), cond.c_str());
+		break;
+	}
+	}
+	return desc;
+}
 
-		CString strItem;
-		ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-		path.Append(strItem);
 
-		if(::PathIsDirectory(path)){
-			// フォルダが存在するが中身はそろっているか?
-			CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
-		}else if(!::PathFileExists(path)){
-			// キャッシュが存在しないので、解凍要請リストに加える
-			toExtractList[lpParent].push_back(lpNode);
+//-----
+void CArchiveFileContent::scanArchiveStruct(
+	const std::filesystem::path& archiveName,
+	ILFScanProgressHandler& progressHandler)
+{
+	clear();
+	m_pRoot = std::make_shared<ARCHIVE_ENTRY_INFO>();
+
+	progressHandler.setArchive(archiveName);
+	CLFArchive arc;
+	arc.read_open(archiveName, m_passphrase);
+	m_numFiles = 0;
+
+	bool bEncrypted = false;
+	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		m_numFiles++;
+		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->path));
+		auto elements = UtilSplitString(pathname, L"/");
+
+		if (elements.empty() || elements[0].empty())continue;
+
+		auto &item = m_pRoot->addEntry(elements);
+		item._entry = *entry;
+		item._entryName = elements.back();
+		item._originalSize = entry->stat.st_size;
+
+		bEncrypted = bEncrypted || entry->is_encrypted;
+
+		//notifier
+		progressHandler.onNextEntry(entry->path);
+	}
+	m_bEncrypted = bEncrypted;
+	m_bModifySupported = (
+		!(GetFileAttributesW(archiveName.c_str()) & FILE_ATTRIBUTE_READONLY)) &&
+		arc.is_modify_supported() &&
+		toLower(archiveName.extension()) != L".exe";	//Self Extracting Archive
+	m_pathArchive = archiveName;
+	postScanArchive(nullptr);
+}
+
+void CArchiveFileContent::postScanArchive(ARCHIVE_ENTRY_INFO* pNode)
+{
+	if (!pNode)pNode = m_pRoot.get();
+
+	if (pNode->is_directory()) {
+		pNode->_originalSize = 0;
+		//children
+		for (auto& child : pNode->_children) {
+			postScanArchive(child.get());
+
+			if (pNode->_originalSize >= 0) {
+				if (child->_originalSize >= 0) {
+					pNode->_originalSize += child->_originalSize;
+				} else {
+					//file size unknown
+					pNode->_originalSize = -1;
+				}
+			}
 		}
 	}
 }
 
 
-//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-bool CArchiveFileContent::MakeSureItemsExtracted(CConfigManager &ConfMan,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog)
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, scanArchiveStruct)
 {
-	//選択されたアイテムを列挙
-	std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > toExtractList;
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
 
-	std::list<CString> newFilesList;	//これから解凍するファイルのディスク上のパス名
+	auto arcpath = std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip";
+	content.scanArchiveStruct(arcpath, CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+	EXPECT_EQ(arcpath, content.getArchivePath());
 
-	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=items.begin();ite!=items.end();++ite){
-		// 存在をチェックし、もし解凍済みであればそれを開く
-		ARCHIVE_ENTRY_INFO_TREE* lpNode=*ite;
-		CPath path=lpOutputDir;
+	const auto* root = content.getRootNode();
+	EXPECT_EQ(3, root->getNumChildren());
+	EXPECT_EQ(L"dirA", root->getChild(0)->_entryName);
+	EXPECT_EQ(L"dirA", root->getChild(L"dirA")->_entryName);
+	EXPECT_TRUE(root->getChild(L"dirA")->_entry.path.empty());
+	EXPECT_EQ(L"dirB", root->getChild(L"dirA")->getChild(L"dirB")->_entryName);
+	EXPECT_EQ(L"dirA/dirB/", root->getChild(L"dirA")->getChild(L"dirB")->_entry.path);
+	EXPECT_EQ(8, root->enumChildren().size());
+	EXPECT_EQ(L"file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entryName);
+	EXPECT_EQ(L"かきくけこ/file3.txt", root->getChild(L"かきくけこ")->getChild(0)->_entry.path);
+	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entryName);
+	EXPECT_EQ(L"あいうえお.txt", root->getChild(L"あいうえお.txt")->_entry.path);
 
-		CString strItem;
-		ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-		path.Append(strItem);
+	content.clear();
+	EXPECT_FALSE(content.isOK());
+}
+#endif
 
-		if(bOverwrite){
-			// 上書き解凍するので、存在するファイルは削除
-			if(lpNode->bDir){
-				if(::PathIsDirectory(path))UtilDeleteDir(path,true);
-			}else{
-				if(::PathFileExists(path))UtilDeletePath(path);
-			}
-			//解凍要請リストに加える
-			toExtractList[lpBase].push_back(lpNode);
-			newFilesList.push_back(path);
-		}else{	//上書きはしない
-			if(::PathIsDirectory(path)){
-				// フォルダが存在するが中身はそろっているか?
-				CollectUnextractedFiles(lpOutputDir,lpBase,lpNode,toExtractList);
-			}else if(!::PathFileExists(path)){
-				// キャッシュが存在しないので、解凍要請リストに加える
-				toExtractList[lpBase].push_back(lpNode);
-				newFilesList.push_back(path);
+
+std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > CArchiveFileContent::findItem(
+	const ARCHIVE_FIND_CONDITION& condition,
+	const ARCHIVE_ENTRY_INFO* parent)const 
+{
+	if (!parent)parent = m_pRoot.get();
+	//---breadth first search
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > found;
+	for (auto& child : parent->_children) {
+		if (condition.matchItem(*(child.get()))) {
+			found.push_back(child);
+		}
+	}
+	for (auto& child : parent->_children) {
+		if (child->is_directory()) {
+			auto subFound = findItem(condition, child.get());
+			found.insert(found.end(), subFound.begin(), subFound.end());
+		}
+	}
+	return found;
+}
+
+#ifdef UNIT_TEST
+TEST(ArcFileContent, findItem)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
+
+	ARCHIVE_FIND_CONDITION afc;
+
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_content.zip", CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+
+	//---by filename
+	afc.setFindByFilename(L"*");
+	auto result = content.findItem(afc);
+	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
+
+	afc.setFindByFilename(L"*.*");
+	result = content.findItem(afc);
+	EXPECT_EQ(content.getRootNode()->enumChildren().size(), result.size());
+
+	afc.setFindByFilename(L".txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	afc.setFindByFilename(L"*.txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	afc.setFindByFilename(L".TXT");
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	afc.setFindByFilename(L"dirB");
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	//---by fullpath
+	afc.setFindByFullpath(L"かきくけこ/*.txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	afc.setFindByFullpath(L"かきくけこ\\*.txt");
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	//---by original size
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equal);
+	result = content.findItem(afc);
+	EXPECT_EQ(3, result.size());
+
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+	result = content.findItem(afc);
+	EXPECT_EQ(3, result.size());
+
+	afc.setFindByOriginalSize(5, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
+	result = content.findItem(afc);
+	EXPECT_EQ(8, result.size());
+
+	//---by mode
+	afc.setFindByMode(S_IFDIR);
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	afc.setFindByMode(S_IFREG);
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+	//------------------
+	content.scanArchiveStruct(std::filesystem::path(__FILEW__).parent_path() / L"test/test_mtime.zip", CLFScanProgressHandlerNULL());
+	EXPECT_TRUE(content.isOK());
+
+	//---by st_mtime, in date unit
+	SYSTEMTIME st = {};
+	st.wYear = 2021;
+	st.wMonth = 6;
+	st.wDay = 4;
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equal);
+	result = content.findItem(afc);
+	EXPECT_EQ(1, result.size());
+
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equalOrGreater);
+	result = content.findItem(afc);
+	EXPECT_EQ(2, result.size());
+
+	afc.setFindByMDate(st, ARCHIVE_FIND_CONDITION::COMPARE::equalOrLess);
+	result = content.findItem(afc);
+	EXPECT_EQ(4, result.size());
+
+}
+#endif
+
+//extracts one entry; for directories, caller should expand and add children to items
+std::vector<std::filesystem::path> CArchiveFileContent::extractEntries(
+	const std::vector<const ARCHIVE_ENTRY_INFO*> &entries,
+	const std::filesystem::path &outputDir,
+	const ARCHIVE_ENTRY_INFO* lpBase,
+	ILFProgressHandler& progressHandler,
+	ARCLOG &arcLog)
+{
+	std::vector<std::filesystem::path> extracted;
+	CLFArchive arc;
+	progressHandler.setArchive(m_pathArchive);
+	progressHandler.setNumEntries(entries.size());
+	arc.read_open(m_pathArchive, m_passphrase);
+
+	std::unordered_map<std::wstring, const ARCHIVE_ENTRY_INFO*> unextracted;
+	for (const auto &item : entries) {
+		unextracted[item->calcFullpath()] = item;
+	}
+
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+
+	for (auto entry = arc.read_entry_begin(); entry && !unextracted.empty(); entry = arc.read_entry_next()) {
+		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->path));
+		auto iter = unextracted.find(pathname);
+		if (iter != unextracted.end()) {
+			auto out = extractCurrentEntry(arc, entry, outputDir, arcLog, preExtractHandler, progressHandler);
+			extracted.push_back(out);
+			unextracted.erase(iter);
+		}
+	}
+	arc.close();
+	return extracted;
+}
+
+#ifdef UNIT_TEST
+TEST(ArcFileContent, extractEntries)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto tempDir = UtilGetTempPath() / L"arcfilecontent_extractEntries";
+	tempDir.make_preferred();
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+
+		EXPECT_FALSE(content.checkArchiveExists());
+
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*");
+		auto entries = content.findItem(afc);
+		EXPECT_EQ(8, entries.size());
+		entriesSub.clear();
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(), CLFProgressHandlerNULL(), arcLog);
+		EXPECT_EQ(6, extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"あいうえお.txt",
+			//tempDir / L"dirA",	implicit entry
+			tempDir / L"dirA/dirB/",
+			tempDir / L"dirA/dirB/file2.txt",
+			tempDir / L"dirA/dirB/dirC/",
+			tempDir / L"dirA/dirB/dirC/file1.txt",
+			//tempDir / L"かきくけこ",	implicit entry
+			tempDir / L"かきくけこ/file3.txt",
+		};
+		//all entries are returned as extracted
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
+	}
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+
+	{
+		auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+
+		EXPECT_FALSE(content.checkArchiveExists());
+
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
+		EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*.txt");
+		auto entries = content.findItem(afc);
+		EXPECT_EQ(1, entries.size());
+		entriesSub.clear();
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.extractEntries(entriesSub, tempDir, content.getRootNode(), CLFProgressHandlerNULL(), arcLog);
+		EXPECT_EQ(entries.size(), extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"test.txt",
+		};
+		//all entries are returned as extracted, even if the directory is not stored explicitly
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
+	}
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+#endif
+
+std::tuple<std::filesystem::path,	//output file name
+	std::unique_ptr<ILFArchiveFile>,	//output file handle
+	std::vector<std::filesystem::path>>	//files not removed
+CArchiveFileContent::subDeleteEntries(
+	const LF_COMPRESS_ARGS& args,
+	const std::vector<std::pair<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/>> &items_to_delete,
+	ILFProgressHandler& progressHandler,
+	ILFOverwriteInArchiveConfirm& confirmHandler,
+	ARCLOG &arcLog)
+{
+	//check for single-file-compressor
+	if (!isMultipleContentAllowed()) {
+		throw LF_EXCEPTION(L"This format cannot contain more than one file");
+	}
+
+	CLFArchive src;
+	src.read_open(m_pathArchive, m_passphrase);
+
+	std::vector<std::filesystem::path> not_removed;
+
+	auto judger = [&](const LF_ENTRY_STAT& entry) {
+		progressHandler.onNextEntry(entry.path, entry.stat.st_size);
+		progressHandler.onEntryIO(0);	//TODO
+		auto subject = std::filesystem::path(entry.path);
+
+		for (const auto& item : items_to_delete) {
+			if (subject == item.first || UtilPathIsInSubDirectory(subject, item.first)) {
+				//check overwrite, or just delete. depends on confirmHandler
+				auto decision = confirmHandler(item.second, entry);
+				switch (decision) {
+				case overwrite_options::overwrite:
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_REMOVED));
+					return false;
+				case overwrite_options::skip:
+					not_removed.push_back(subject);
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_KEEP));
+					return true;
+				case overwrite_options::abort:
+				default:
+					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_ABORT));
+					CANCEL_EXCEPTION();
+				}
+				return false;
 			}
 		}
-		path.RemoveBackslash();
-		//開く予定リストに追加
-		r_filesList.push_back(path);
-	}
-	if(toExtractList.empty()){
+		return true;
+	};
+
+	auto tempFile = UtilGetTemporaryFileName();
+	auto dest = src.make_copy_archive(tempFile, args, judger);
+	return { tempFile, std::move(dest), not_removed};
+}
+
+bool CArchiveFileContent::isMultipleContentAllowed()const
+{
+	//check for single-file-compressor
+	CLFArchive arc;
+	arc.read_open(m_pathArchive, std::make_shared<CLFPassphraseNULL>());
+	auto caps = CLFArchive::get_compression_capability(arc.get_format());
+	if (caps.contains_multiple_files) {
 		return true;
 	}
-
-	//未解凍の物のみ一時フォルダに解凍
-	for(std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> >::iterator ite=toExtractList.begin();ite!=toExtractList.end();++ite){
-		const std::list<ARCHIVE_ENTRY_INFO_TREE*> &filesList = (*ite).second;
-		if(!ExtractItems(ConfMan,filesList,lpOutputDir,lpBase,false,strLog)){
-			for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator iteRemove=filesList.begin(); iteRemove!=filesList.end(); ++iteRemove){
-				//失敗したので削除
-				ARCHIVE_ENTRY_INFO_TREE* lpNode = *iteRemove;
-				CPath path=lpOutputDir;
-				CString strItem;
-				ArcEntryInfoTree_GetNodePathRelative(lpNode,lpBase,strItem);
-				path.Append(strItem);
-				UtilDeletePath(path);
-			}
-			return false;
-		}
-	}
-	return true;
+	return false;
 }
 
-
-HRESULT CArchiveFileContent::AddItem(const std::list<CString> &fileList,LPCTSTR lpDestDir,CConfigManager& rConfig,CString &strLog)
+void CArchiveFileContent::addEntries(
+	const LF_COMPRESS_ARGS& args,
+	const std::vector<std::filesystem::path> &files,
+	const ARCHIVE_ENTRY_INFO* lpParent,
+	ILFProgressHandler& progressHandler,
+	ILFOverwriteInArchiveConfirm& confirmHandler,
+	ARCLOG &arcLog)
 {
-	ASSERT(IsAddItemsSupported());
-	if(!IsAddItemsSupported())return false;
+	//check for single-file-compressor
+	if (!isMultipleContentAllowed()) {
+		throw LF_EXCEPTION(L"This format cannot contain more than one file");
+	}
 
-	//---ファイル名チェック
-	bool bUnicode=IsUnicodeCapable();
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		if(0==m_pathArcFileName.CompareNoCase(*ite)){
-			//アーカイブ自身を追加しようとした
-			return E_LF_SAME_INPUT_AND_OUTPUT;
+	//---
+	// check for existing file
+	// ask user to remove or keep existing files
+	// then add new files
+	//---
+	std::filesystem::path destDir;
+	if(lpParent)destDir = lpParent->calcFullpath();
+
+	auto get_path_in_archive = [&](const std::filesystem::path& file) {
+		return destDir / file.filename();
+	};
+
+	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
+	for (const auto &file : files) {
+		auto entryPath = get_path_in_archive(file);
+		items_to_delete.push_back({ entryPath, file });
+	}
+
+	arcLog.setArchivePath(m_pathArchive);
+	progressHandler.setArchive(m_pathArchive);
+	progressHandler.setNumEntries(files.size() + m_numFiles);
+
+	//read from source
+	auto [tempFile,dest,not_removed] = subDeleteEntries(args, items_to_delete, progressHandler, confirmHandler, arcLog);
+
+	//add
+	for (const auto &file : files) {
+		//keep existing files if user wants to
+		if(isIn(not_removed, get_path_in_archive(file)))continue;
+
+		try {
+			LF_ENTRY_STAT entry;
+			auto entryPath = destDir / std::filesystem::path(file).filename();
+			entry.read_stat(file, entryPath);
+			progressHandler.onNextEntry(entry.path, entry.stat.st_size);
+
+			if (std::filesystem::is_regular_file(file)) {
+				RAW_FILE_READER provider;
+				provider.open(file);
+				uint64_t size = 0;
+				dest->add_file_entry(entry, [&]() {
+					auto data = provider();
+					if (data.offset) {
+						size = data.offset->offset + data.size;
+					} else {
+						size += data.size;
+					}
+					progressHandler.onEntryIO(size);
+					return data;
+				});
+				progressHandler.onEntryIO(entry.stat.st_size);
+			} else {
+				//directory
+				dest->add_directory_entry(entry);
+				progressHandler.onEntryIO(entry.stat.st_size);
+			}
+			arcLog(file, UtilLoadString(IDS_ARCLOG_OK));
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
+			arcLog(file, e.what());
+			UtilDeletePath(m_pathArchive);
+			throw;
+		} catch (const LF_EXCEPTION& e) {
+			arcLog(file, e.what());
+			UtilDeletePath(m_pathArchive);
+			throw;
+		} catch (const std::filesystem::filesystem_error& e) {
+			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
+			arcLog(file, msg);
+			UtilDeletePath(m_pathArchive);
+			throw LF_EXCEPTION(msg);
 		}
-		//---UNICODEチェック
-		if(!bUnicode){
-			if(!UtilCheckT2A(*ite)){
-				//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-				return E_LF_UNICODE_NOT_SUPPORTED;
+	}
+	dest->close();
+	UtilDeletePath(m_pathArchive);
+	std::filesystem::rename(tempFile, m_pathArchive);
+}
+
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, addEntries_keep)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src = UtilGetTempPath() / "file3.txt";
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+	{
+		//keep previous
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.addEntries(
+			args,
+			{ src },
+			content.getRootNode()->getChild(L"かきくけこ"),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::skip),
+			arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
+		EXPECT_NE(10, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, addEntries_abort)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src = UtilGetTempPath() / "file3.txt";
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+	{
+		//abort
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		EXPECT_THROW(
+			content.addEntries(
+				args,
+				{ src },
+				content.getRootNode()->getChild(L"かきくけこ"),
+				CLFProgressHandlerNULL(),
+				CLFOverwriteInArchiveConfirmFORCED(overwrite_options::abort),
+				arcLog), LF_USER_CANCEL_EXCEPTION);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
+		EXPECT_NE(10, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+
+	UtilDeletePath(temp);
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, addEntries_replace)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src = UtilGetTempPath() / "file3.txt";
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+
+	{
+		//overwrite
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.addEntries(
+			args,
+			{ src },
+			content.getRootNode()->getChild(L"かきくけこ"),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+			arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
+		EXPECT_EQ(10, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, addEntries_replace_gz)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_gzip.gz", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src = UtilGetTempPath() / "file3.txt";
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		fputs("abcde12345", f);
+	}
+
+	{
+		//overwrite
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		EXPECT_THROW(
+			content.addEntries(
+			args,
+			{ src },
+			content.getRootNode(),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+			arcLog), LF_EXCEPTION);
+	}
+	UtilDeletePath(temp);
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+#endif
+
+void CArchiveFileContent::deleteEntries(
+	const LF_COMPRESS_ARGS& args,
+	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+	ILFProgressHandler& progressHandler,
+	ARCLOG &arcLog)
+{
+	/*
+	* To delete items from archive,
+	* skip items while making a copy of existing archive
+	*/
+	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
+	for (const auto &item : items) {
+		items_to_delete.push_back({
+			std::filesystem::path(item->calcFullpath()).lexically_normal(),
+			L""
+		});
+	}
+	arcLog.setArchivePath(m_pathArchive);
+	progressHandler.setArchive(m_pathArchive);
+	progressHandler.setNumEntries(m_numFiles);
+
+	//read from source
+	auto[tempFile, dest, not_removed] = subDeleteEntries(
+		args,
+		items_to_delete,
+		progressHandler,
+		CLFOverwriteInArchiveConfirmFORCED(overwrite_options::overwrite),
+		arcLog);
+	dest->close();
+	UtilDeletePath(m_pathArchive);
+	std::filesystem::rename(tempFile, m_pathArchive);
+}
+
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, deleteEntries_file)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.deleteEntries(args,
+			{ content.getRootNode()->getChild(L"かきくけこ")->getChild(L"file3.txt") },
+			CLFProgressHandlerNULL(), arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, deleteEntries_dir)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.deleteEntries(args,
+			{ content.getRootNode()->getChild(L"かきくけこ") },
+			CLFProgressHandlerNULL(), arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(ArcFileContent, deleteEntries_gz)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_gzip.gz", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		EXPECT_THROW(content.deleteEntries(args,
+			{ content.getRootNode()->getChild(0) },
+			CLFProgressHandlerNULL(), arcLog), LF_EXCEPTION);
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+#endif
+
+std::vector<std::filesystem::path>
+CArchiveFileContent::makeSureItemsExtracted(	//returns list of extracted files
+	const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+	const std::filesystem::path &outputDir,
+	const ARCHIVE_ENTRY_INFO* lpBase,
+	ILFProgressHandler& progressHandler,
+	enum class overwrite_options options,
+	ARCLOG &arcLog)
+{
+	std::vector<const ARCHIVE_ENTRY_INFO*> toExtract;
+
+	for(auto &item: items){
+		std::filesystem::path path = outputDir;
+
+		auto subPath = item->getRelativePath(lpBase);
+		path /= subPath;
+
+		auto children = item->enumChildren();
+		for (auto c : children) {
+			if (!c->_entry.path.empty()) {
+				toExtract.push_back(c);
 			}
 		}
 	}
-
-	//---追加
-	//基底ディレクトリ取得などはCArchiverDLL側に任せる
-	if(m_lpArchiver->AddItemToArchive(m_pathArcFileName,m_bEncrypted,fileList,rConfig,lpDestDir,strLog)){
-		return S_OK;
+	arcLog.setArchivePath(m_pathArchive);
+	if (toExtract.empty()) {
+		return {};
 	}else{
-		return S_FALSE;
+		try {
+			arcLog.setArchivePath(m_pathArchive);
+			auto extractedFiles = extractEntries(toExtract, outputDir, lpBase, progressHandler, arcLog);
+			return extractedFiles;
+		} catch (const LF_EXCEPTION& e) {
+			arcLog.logException(e);
+			throw;
+		}
 	}
 }
 
-bool CArchiveFileContent::DeleteItems(CConfigManager &ConfMan,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &fileList,CString &strLog)
+#ifdef UNIT_TEST
+
+TEST(ArcFileContent, makeSureItemsExtracted)
 {
-	ASSERT(IsDeleteItemsSupported());
-	if(!IsDeleteItemsSupported())return false;
-	//削除対象を列挙
-	std::list<CString> filesToDel;
-	for(std::list<ARCHIVE_ENTRY_INFO_TREE*>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		(*ite)->EnumFiles(filesToDel);
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto tempDir = UtilGetTempPath() / L"arcfilecontent_makeSureItemsExtracted";
+	tempDir.make_preferred();
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+
+	{
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+		content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+
+		EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+
+		ARCHIVE_FIND_CONDITION afc;
+		afc.setFindByFullpath(L"*");
+		auto entries = content.findItem(afc);
+		EXPECT_EQ(8, entries.size());
+
+		std::vector<const ARCHIVE_ENTRY_INFO*> entriesSub;
+		for (auto entry : entries) {
+			entriesSub.push_back(entry.get());
+		}
+
+		EXPECT_EQ(entries.size(), entriesSub.size());
+		auto extracted = content.makeSureItemsExtracted(entriesSub, tempDir, nullptr, CLFProgressHandlerNULL(), overwrite_options::abort, arcLog);
+		EXPECT_EQ(6, extracted.size());
+
+		for (auto f : extracted) {
+			EXPECT_TRUE(std::filesystem::exists(f));
+			//extracted file should be in tempDir
+			EXPECT_NE(std::wstring::npos, f.make_preferred().wstring().find(tempDir));
+		}
+
+		const std::vector<std::filesystem::path> expectedPath = {
+			tempDir / L"あいうえお.txt",
+			//tempDir / L"dirA",	implicit entry
+			tempDir / L"dirA/dirB/",
+			tempDir / L"dirA/dirB/file2.txt",
+			tempDir / L"dirA/dirB/dirC/",
+			tempDir / L"dirA/dirB/dirC/file1.txt",
+			//tempDir / L"かきくけこ",	implicit entry
+			tempDir / L"かきくけこ/file3.txt",
+		};
+		//all entries are returned as extracted, even if the directory is not stored explicitly
+		for (const auto p : expectedPath) {
+			EXPECT_TRUE(isIn(extracted, p));
+		}
 	}
-	return m_lpArchiver->DeleteItemFromArchive(m_pathArcFileName,ConfMan,filesToDel,strLog);
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
 }
+#endif
 
-bool CArchiveFileContent::IsDeleteItemsSupported()const
-{
-	return (!m_bReadOnly) && m_lpArchiver && m_lpArchiver->QueryDeleteItemFromArchiveSupported(m_pathArcFileName);
-}
 
-bool CArchiveFileContent::IsAddItemsSupported()const
-{
-	return (!m_bReadOnly) && m_lpArchiver && m_lpArchiver->QueryAddItemToArchiveSupported(m_pathArcFileName);
-}
+#ifdef UNIT_TEST
 
-bool CArchiveFileContent::IsUnicodeCapable()const
+TEST(ArcFileContent, ARCHIVE_ENTRY_INFO)
 {
-	return m_lpArchiver && m_lpArchiver->IsUnicodeCapable();
-}
+	_wsetlocale(LC_ALL, L"");	//default locale
+	ARCHIVE_ENTRY_INFO root;
+	std::vector<std::wstring> files = {
+		L"/dirA/dirB/dirC/file1.txt",
+		L"/dirA/dirB",
+		L"/dirA/dirB/file2.txt",
+		L"/dirA/dirB/あいうえお.txt",
+		L"/",
+	};
+	for (const auto &file : files) {
+		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(file));
+		auto elements = UtilSplitString(pathname, L"/");
+		if (elements.empty() || elements[0].empty())continue;
 
-bool CArchiveFileContent::ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr)
-{
-	if(m_lpArchiver && !m_lpArchiver->IsOK()){
-		return (LOAD_RESULT_OK==m_lpArchiver->LoadDLL(ConfigManager,strErr));
+		auto &item = root.addEntry(elements);
+		EXPECT_NE(&item, &root);
+		EXPECT_NE(L"/", pathname);
+
+		item._entry.path = pathname;
+		item._entry.stat.st_mode = S_IFREG;	//fake info
+		item._entry.stat.st_mtime = time(nullptr);
+		item._originalSize = 10;
 	}
-	return true;
+	/*
+		/dirA
+		|-- dirB
+			|-- dirC
+			|   |-- file1.txt
+			|-- file2.txt
+			|-- あいうえお.txt
+	*/
+
+	EXPECT_EQ(1, root.getNumChildren());
+	EXPECT_EQ(L"dirA", root.getChild(0)->_entryName);
+	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->_entryName);
+	EXPECT_EQ(L"dirA", root.getChild(L"DIRA")->_entryName);
+	EXPECT_EQ(nullptr, root.getChild(1));
+	EXPECT_EQ(nullptr, root.getChild(L"dirB"));
+	EXPECT_EQ(nullptr, root.getChild(L"DIRC"));
+
+	EXPECT_EQ(L".txt", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"file2.txt")->getExt());
+	EXPECT_EQ(L"dirA", root.getChild(L"dirA")->calcFullpath());
+	EXPECT_EQ(L"dirA/dirB/dirC", root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->calcFullpath());
+	EXPECT_EQ(6, root.enumChildren().size());
+
+	auto file1 = root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"dirC")->getChild(L"file1.txt");
+	EXPECT_EQ(L"dirB/dirC/file1.txt", file1->getRelativePath(root.getChild(L"dirA")));
+	EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", file1->getRelativePath(&root));
+
+	auto aiueo = root.getChild(L"dirA")->getChild(L"dirB")->getChild(L"あいうえお.txt");
+	EXPECT_EQ(L"あいうえお.txt", aiueo->_entryName);
+	EXPECT_EQ(L"dirB/あいうえお.txt", aiueo->getRelativePath(root.getChild(L"dirA")));
+	EXPECT_EQ(L"dirA/dirB/あいうえお.txt", aiueo->getRelativePath(&root));
 }
+
+
+TEST(ArcFileContent, isArchiveEncrypted)
+{
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
+	EXPECT_TRUE(content.isArchiveEncrypted());
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+	EXPECT_FALSE(content.isArchiveEncrypted());
+}
+
+TEST(ArcFileContent, isModifySupported_checkArchiveExists_isMultipleContentAllowed)
+{
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
+
+	EXPECT_FALSE(content.checkArchiveExists());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
+	EXPECT_TRUE(content.isModifySupported());
+	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_extract.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(8, content.getRootNode()->enumChildren().size());
+	EXPECT_TRUE(content.isModifySupported());
+	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test.tar.gz", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(2, content.getRootNode()->enumChildren().size());
+	EXPECT_TRUE(content.isModifySupported());
+	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_TRUE(content.isMultipleContentAllowed());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_gzip.gz", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(1, content.getRootNode()->enumChildren().size());
+	EXPECT_FALSE(content.isModifySupported());
+	EXPECT_TRUE(content.checkArchiveExists());
+	EXPECT_FALSE(content.isMultipleContentAllowed());
+}
+
+TEST(ArcFileContent, safe_unicode_path)
+{
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	CArchiveFileContent content(pp);
+
+	EXPECT_FALSE(content.checkArchiveExists());
+
+	content.scanArchiveStruct(LF_PROJECT_DIR() / L"test/test_unicode_control.zip", CLFScanProgressHandlerNULL());
+	EXPECT_EQ(3, content.getRootNode()->enumChildren().size());
+	auto dir = content.getRootNode()->getChild(0);
+	auto numEntries = dir->getNumChildren();
+	EXPECT_EQ(2, numEntries);
+
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(0)->calcFullpath()));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(0)->_entryName));
+	EXPECT_FALSE(UtilIsSafeUnicode(dir->getChild(0)->_entry.path));
+
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->calcFullpath()));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->_entryName));
+	EXPECT_TRUE(UtilIsSafeUnicode(dir->getChild(1)->_entry.path));
+}
+#endif
+

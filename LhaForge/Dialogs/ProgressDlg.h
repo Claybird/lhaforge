@@ -23,31 +23,102 @@
 */
 
 #pragma once
-#include "../resource.h"
+#include "resource.h"
 
-class CProgressDialog:public CDialogImpl<CProgressDialog>,public CMessageFilter
+class CProgressDialog:public CDialogImpl<CProgressDialog>
 {
 protected:
-	CProgressBarCtrl m_Progress;
-	CStatic m_Info;
-	CString m_strInfo;	//進行情報文字列
-	CString m_strTitle;
-	int m_TotalFiles;	//合計ファイル数
-	int m_CurrentIndex;	//現在の処理中ファイルインデックス
+	CProgressBarCtrl m_fileProgress, m_entryProgress;
+	CStatic m_fileInfo, m_entryInfo, m_entrySizeInfo;
+	bool m_bAbort, m_bPaused;
+	int64_t m_entrySize;
+	std::wstring m_entryPath;
+	std::wstring m_originalTitle;
 public:
 	enum{IDD=IDD_DIALOG_PROGRESS};
 
-	BEGIN_MSG_MAP_EX(CMainDlg)
+	BEGIN_MSG_MAP_EX(CProgressDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
+		COMMAND_ID_HANDLER_EX(IDOK, __noop)
+		COMMAND_ID_HANDLER_EX(IDCANCEL, OnAbortBtn)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_ABORT, OnAbortBtn)
+		COMMAND_ID_HANDLER_EX(IDC_BUTTON_PAUSE, OnPauseBtn)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	void SetTotalFileCount(int nFiles);	//トータルのファイル数を設定
-	void SetNextState(LPCTSTR lpszFile);	//処理中ファイル名を指定してプログレスバーを進める
-	void OnDestroy();
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		m_fileProgress = GetDlgItem(IDC_PROGRESS_FILE);
+		m_fileInfo = GetDlgItem(IDC_STATIC_FILEINFO);
+		m_entryProgress = GetDlgItem(IDC_PROGRESS_ENTRY);
+		m_entryInfo = GetDlgItem(IDC_STATIC_ENTRY);
+		m_entrySizeInfo = GetDlgItem(IDC_STATIC_ENTRY_SIZE);
+		m_fileProgress.SetRange32(0, 100);
+		m_fileProgress.SetPos(0);
+		m_entryProgress.SetRange32(0, 100);
+		m_entryProgress.SetPos(0);
+		m_bAbort = false;
+		m_bPaused = false;
 
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
+		CenterWindow();
+		
+		CString tmp;
+		GetWindowText(tmp);
+		m_originalTitle = (LPCWSTR)tmp;
+		return TRUE;
+	}
+	void SetEntry(
+		const std::wstring& archivePath,
+		int64_t entryIndex,
+		int64_t numEntries,
+		const std::wstring& entryPath,
+		int64_t entrySize
+	) {
+		m_fileInfo.SetWindowText(archivePath.c_str());
+		auto str = m_originalTitle + Format(L"[%I64d / %I64d]",
+			entryIndex,
+			numEntries
+		);
+		SetWindowText(str.c_str());
+		m_fileProgress.SetPos(int(entryIndex * 100ull / std::max(1ll, numEntries)));
+
+		m_entrySize = entrySize;
+		m_entryPath = entryPath;
+		m_entryInfo.SetWindowText(entryPath.c_str());
+		m_entryProgress.SetPos(0);
+	}
+	void SetEntryProgress(int64_t currentSize) {
+		if (m_entrySizeInfo.IsWindow()) {
+			auto str = Format(L"%s / %s",
+				UtilFormatSize(currentSize).c_str(),
+				UtilFormatSize(m_entrySize).c_str()
+			);
+			m_entrySizeInfo.SetWindowText(str.c_str());
+		}
+		if (m_entryProgress.IsWindow()) {
+			m_entryProgress.SetPos(int(currentSize * 100ull / std::max(1ll, m_entrySize)));
+		}
+	}
+	void SetSpecialMessage(const std::wstring& msg) {
+		if (m_entryInfo.IsWindow()) {
+			m_entryInfo.SetWindowTextW(msg.c_str());
+		}
+	}
+	LRESULT OnAbortBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		m_bAbort = true;
+		DestroyWindow();
+		return 0;
+	}
+	LRESULT OnPauseBtn(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		m_bPaused = !m_bPaused;
+		if (m_entryProgress.IsWindow()) {
+			m_entryProgress.SetState(m_bPaused ? PBST_PAUSED : PBST_NORMAL);
+		}
+		return 0;
+	}
+
+	bool isAborted()const {
+		return m_bAbort;
+	}
+	bool isPaused()const {
+		return m_bPaused;
 	}
 };

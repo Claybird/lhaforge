@@ -25,28 +25,23 @@
 #include "stdafx.h"
 #include "menucommand.h"
 #include "FileListModel.h"
-#include "../Utilities/OSUtil.h"
-#include "../ConfigCode/ConfigManager.h"
-#include "../ConfigCode/ConfigFileListWindow.h"
-#include "../resource.h"
+#include "Utilities/OSUtil.h"
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigFileListWindow.h"
+#include "resource.h"
 
 
-//---「送る」メニューのコマンド
-std::vector<SHORTCUTINFO> s_SendToCmd;
-//「プログラムで開く」のコマンド類
-std::vector<CMenuCommandItem> s_MenuCommandArray;
+//---SendTo commands
+std::vector<UTIL_SHORTCUTINFO> s_SendToCmd;
+//---OpenWith commands
+std::vector<CLFMenuCommandItem> s_MenuCommandArray;
 
-UINT MenuCommand_GetNumSendToCmd()
-{
-	return (UINT)s_SendToCmd.size();
-}
-
-const std::vector<CMenuCommandItem>& MenuCommand_GetCmdArray()
+const std::vector<CLFMenuCommandItem>& MenuCommand_GetCmdArray()
 {
 	return s_MenuCommandArray;
 }
 
-const std::vector<SHORTCUTINFO>& MenuCommand_GetSendToCmdArray()
+const std::vector<UTIL_SHORTCUTINFO>& MenuCommand_GetSendToCmdArray()
 {
 	return s_SendToCmd;
 }
@@ -54,21 +49,21 @@ const std::vector<SHORTCUTINFO>& MenuCommand_GetSendToCmdArray()
 void MenuCommand_MakeUserAppMenu(HMENU hMenu)
 {
 	ASSERT(hMenu);
-	if(!hMenu)return;
-	CMenuHandle cSubMenu=hMenu;
-	//古いメニューの削除
-	int size=cSubMenu.GetMenuItemCount();
-	for(int i=0;i<size;i++){
-		cSubMenu.RemoveMenu(0,MF_BYPOSITION);
+	if (!hMenu)return;
+	CMenuHandle cSubMenu = hMenu;
+	//remove old menu
+	int size = cSubMenu.GetMenuItemCount();
+	for (int i = 0; i < size; i++) {
+		cSubMenu.RemoveMenu(0, MF_BYPOSITION);
 	}
-	if(s_MenuCommandArray.empty()){
-		cSubMenu.InsertMenu(-1,MF_BYPOSITION|MF_STRING,(UINT_PTR)ID_MENUITEM_DUMMY,CString(MAKEINTRESOURCE(ID_MENUITEM_DUMMY)));
-		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY,MF_DISABLED|MF_GRAYED|MF_BYCOMMAND);
-	}else{
-		//LhaForge設定のコマンド
-		for(UINT u=0;u<s_MenuCommandArray.size();u++){
-			UINT nOffset=ID_MENUITEM_USERAPP_BEGIN+u;
-			cSubMenu.InsertMenu(-1,MF_BYPOSITION|MF_STRING,(UINT_PTR)nOffset,s_MenuCommandArray[u].Caption);
+	if (s_MenuCommandArray.empty()) {
+		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, UtilLoadString(ID_MENUITEM_DUMMY).c_str());
+		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_GRAYED | MF_BYCOMMAND);
+	} else {
+		//add custom command
+		for (UINT u = 0; u < s_MenuCommandArray.size(); u++) {
+			UINT nOffset = ID_MENUITEM_USERAPP_BEGIN + u;
+			cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)nOffset, s_MenuCommandArray[u].Caption.c_str());
 		}
 	}
 }
@@ -76,58 +71,59 @@ void MenuCommand_MakeUserAppMenu(HMENU hMenu)
 void MenuCommand_MakeSendToMenu(HMENU hMenu)
 {
 	ASSERT(hMenu);
-	if(!hMenu)return;
-	CMenuHandle cSubMenu=hMenu;
-	//古いメニューの削除
-	int size=cSubMenu.GetMenuItemCount();
-	for(int i=0;i<size;i++){
-		cSubMenu.RemoveMenu(0,MF_BYPOSITION);
+	if (!hMenu)return;
+	CMenuHandle cSubMenu = hMenu;
+	//remove old menu
+	int size = cSubMenu.GetMenuItemCount();
+	for (int i = 0; i < size; i++) {
+		cSubMenu.RemoveMenu(0, MF_BYPOSITION);
 	}
-	if(s_SendToCmd.empty()){
-		cSubMenu.InsertMenu(-1,MF_BYPOSITION|MF_STRING,(UINT_PTR)ID_MENUITEM_DUMMY,CString(MAKEINTRESOURCE(ID_MENUITEM_DUMMY)));
-		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY,MF_DISABLED|MF_GRAYED|MF_BYCOMMAND);
-	}else{
-		//SendToのコマンド
-		for(UINT u=0;u<s_SendToCmd.size();u++){
-			bool bIcon=!s_SendToCmd[u].cIconBmpSmall.IsNull();
+	if (s_SendToCmd.empty()) {
+		cSubMenu.InsertMenu(-1, MF_BYPOSITION | MF_STRING, (UINT_PTR)ID_MENUITEM_DUMMY, UtilLoadString(ID_MENUITEM_DUMMY).c_str());
+		cSubMenu.EnableMenuItem(ID_MENUITEM_DUMMY, MF_GRAYED | MF_BYCOMMAND);
+	} else {
+		//add SendTo command
+		for (UINT u = 0; u < s_SendToCmd.size(); u++) {
+			bool bIcon = !s_SendToCmd[u].cIconBmpSmall.IsNull();
 
-			MENUITEMINFO mii={0};
-			mii.cbSize=sizeof(mii);
-			mii.fMask=MIIM_ID | MIIM_STRING | MIIM_FTYPE | (bIcon ? MIIM_BITMAP : 0);
-			mii.fType=MFT_STRING;
-			mii.dwTypeData=(LPTSTR)(LPCTSTR)s_SendToCmd[u].strTitle;
-			mii.wID=ID_MENUITEM_USERAPP_END+u;
-			mii.hbmpItem=(HBITMAP)s_SendToCmd[u].cIconBmpSmall;
-			cSubMenu.InsertMenuItem(-1,MF_BYPOSITION|MF_STRING,&mii);
+			MENUITEMINFO mii = { 0 };
+			mii.cbSize = sizeof(mii);
+			mii.fMask = MIIM_ID | MIIM_STRING | MIIM_FTYPE | (bIcon ? MIIM_BITMAP : 0);
+			mii.fType = MFT_STRING;
+			mii.dwTypeData = (LPTSTR)(LPCTSTR)s_SendToCmd[u].title.c_str();
+			mii.wID = ID_MENUITEM_USERAPP_END + u;
+			mii.hbmpItem = (HBITMAP)s_SendToCmd[u].cIconBmpSmall;
+			cSubMenu.InsertMenuItem(-1, MF_BYPOSITION | MF_STRING, &mii);
 		}
 	}
 }
 
 void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW)
 {
-	s_MenuCommandArray=ConfFLW.MenuCommandArray;
+	s_MenuCommandArray = ConfFLW.view.MenuCommandArray;
 }
 
 void MenuCommand_MakeSendToCommands()
 {
-	TCHAR szSendTo[_MAX_PATH];
-	std::vector<CString> files;
-	if(SHGetSpecialFolderPath(NULL,szSendTo,CSIDL_SENDTO,FALSE)){
-		PathAddBackslash(szSendTo);
-		PathAppend(szSendTo,_T("*.lnk"));
-		CFindFile cFind;
+	std::filesystem::path szSendTo;
+	std::vector<std::wstring> files;
+	szSendTo = UtilGetSendToPath();
+	szSendTo /= L"*.lnk";
+	CFindFile cFind;
 
-		BOOL bFound=cFind.FindFile(szSendTo);
-		for(;bFound;bFound=cFind.FindNextFile()){
-			if(cFind.IsDots())continue;
+	BOOL bFound = cFind.FindFile(szSendTo.c_str());
+	for (; bFound; bFound = cFind.FindNextFile()) {
+		if (cFind.IsDots())continue;
 
-			if(!cFind.IsDirectory()){	//サブディレクトリ検索はしない
-				files.push_back(cFind.GetFilePath());
-			}
+		if (!cFind.IsDirectory()) {
+			files.push_back(cFind.GetFilePath().operator LPCWSTR());
 		}
 	}
 
-	UtilGetShortcutInfo(files,s_SendToCmd);
+	s_SendToCmd.resize(files.size());
+	for (size_t i = 0; i < files.size(); i++) {
+		UtilGetShortcutInfo(files[i], s_SendToCmd[i]);
+	}
 }
 
 

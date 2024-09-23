@@ -24,68 +24,228 @@
 
 #pragma once
 
-LPCTSTR UtilGetTempPath();
-bool UtilGetTemporaryFileName(LPTSTR fname,LPCTSTR prefix);
-bool UtilDeletePath(LPCTSTR PathName);
-bool UtilDeleteDir(LPCTSTR Path,bool);
-int UtilAppendFile(HANDLE hWriteTo,HANDLE hReadFrom);
-void UtilModifyPath(CString&);	//DTVを起こす可能性のあるパスを修正する
+std::filesystem::path UtilGetDesktopPath();
+std::filesystem::path UtilGetSendToPath();
 
-BOOL UtilMoveFileToRecycleBin(LPCTSTR);	//ファイルをごみ箱に移動
-BOOL UtilMoveFileToRecycleBin(const std::list<CString>&);	//ファイルをごみ箱に移動
+//returns a temp dir exclusive use of lhaforge
+std::filesystem::path UtilGetTempPath();
+std::filesystem::path UtilGetTemporaryFileName();
+bool UtilDeletePath(const std::filesystem::path& path);
 
-//フォルダ内ファイル(ディレクトリは除く)を再帰検索
-bool UtilRecursiveEnumFile(LPCTSTR lpszRoot,std::list<CString>&);
+//bDeleteParent=true: delete Path itself
+//bDeleteParent=false: delete only children of Path
+bool UtilDeleteDir(const std::filesystem::path& path, bool bDeleteParent);
 
-//フルパスかつ絶対パスの取得
-enum PATHERROR{
-	PATHERROR_NONE,		//成功
-	PATHERROR_INVALID,	//パラメータ指定が不正
-	PATHERROR_ABSPATH,	//絶対パスの取得に失敗
-	PATHERROR_NOTFOUND,	//ファイルもしくはフォルダが見つからない
-	PATHERROR_LONGNAME,	//ロングファイル名取得失敗
+
+//delete temporary directory automatically
+class CTemporaryDirectoryManager
+{
+	enum { NUM_DIR_LIMIT = 10000 };
+protected:
+	std::filesystem::path m_path;
+public:
+	CTemporaryDirectoryManager();
+	virtual ~CTemporaryDirectoryManager() {
+		UtilDeleteDir(m_path, true);
+	}
+
+	std::filesystem::path path()const {
+		return m_path;
+	}
 };
-PATHERROR UtilGetCompletePathName(CString &_FullPath,LPCTSTR lpszFileName);
-//絶対パスの取得
-bool UtilGetAbsPathName(CString &_FullPath,LPCTSTR lpszFileName);
 
-//ワイルドカードの展開
-bool UtilPathExpandWild(std::list<CString> &r_outList,const std::list<CString> &r_inList);
-bool UtilPathExpandWild(std::list<CString> &r_outList,const CString &r_inParam);
 
-//パスのディレクトリ部分だけを取り出す
-void UtilPathGetDirectoryPart(CString&);
+bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList);
 
-//自分のプログラムのファイル名を返す
-LPCTSTR UtilGetModulePath();
+//recursively enumerates files (no directories) in specified directory
+std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root);
 
-//自分のプログラムのおいてあるディレクトリのパス名を返す
-LPCTSTR UtilGetModuleDirectoryPath();
+//recursively enumerates files and directories in specified directory
+std::vector<std::filesystem::path> UtilRecursiveEnumFileAndDirectory(const std::filesystem::path& root);
 
-//複数階層のディレクトリを一気に作成する
-BOOL UtilMakeSureDirectoryPathExists(LPCTSTR lpszPath);
+std::vector<std::filesystem::path> UtilEnumSubFileAndDirectory(const std::filesystem::path& root);
 
-//TCHARファイル名をSJISファイル名に変換する。正しく変換できない場合には、falseを返す
-bool UtilPathT2A(CStringA&,LPCTSTR,bool bOnDisk);
 
-//パスに共通する部分を取り出し、基底パスを取り出す
-void UtilGetBaseDirectory(CString &BasePath,const std::list<CString> &PathList);
+bool UtilPathIsRoot(const std::filesystem::path& path);
+std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path);
+std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& path);
 
-//ファイル名に使えない文字列を置き換える
-void UtilFixFileName(CString &,LPCTSTR lpszOrg,TCHAR replace);
+//get full & absolute path
+std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& filePath);
 
-LPCTSTR UtilPathNextSeparator(LPCTSTR lpStr);
-bool UtilPathNextSection(LPCTSTR lpStart,LPCTSTR& r_lpStart,LPCTSTR& r_lpEnd,bool bSkipMeaningless);
-//Pathが'/'もしくは'\\'で終わっているならtrue
-bool UtilPathEndWithSeparator(LPCTSTR lpPath);
-void UtilPathGetLastSection(CString &strSection,LPCTSTR lpPath);
+//returns filenames that matches to the given pattern
+std::vector<std::filesystem::path> UtilPathExpandWild(const std::filesystem::path& pattern);
 
-//ファイルを丸ごと、もしくは指定されたところまで読み込み(-1で丸ごと)
-bool UtilReadFile(LPCTSTR lpFile,std::vector<BYTE> &cReadBuffer,DWORD dwLimit=-1);
+//executable name
+std::filesystem::path UtilGetModulePath();
+std::filesystem::path UtilGetModuleDirectoryPath();
 
-struct FILELINECONTAINER{
-	virtual ~FILELINECONTAINER(){}
-	std::vector<WCHAR> data;
-	std::vector<LPCWSTR> lines;
+//read whole file
+std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize = 0);
+
+bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::filesystem::path& directory);
+
+class CAutoFile {
+protected:
+	FILE *_fp;
+	std::filesystem::path _path;
+	CAutoFile(const CAutoFile&) = delete;
+	const CAutoFile& operator=(const CAutoFile&) = delete;
+public:
+	CAutoFile() :_fp(NULL){}
+	virtual ~CAutoFile() {
+		close();
+	}
+	operator FILE*() { return _fp; }
+	bool is_opened() const { return _fp != NULL; }
+	void close() {
+		if (_fp) {
+			fclose(_fp);
+			_fp = NULL;
+			_path.clear();
+		}
+	}
+	void open(const std::filesystem::path& fname, const std::wstring& mode = L"rb") {
+		close();
+		_path = fname;
+		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
+		if (err==0 && _fp) {
+			//set buffer size
+			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024 * 32);
+		}
+	}
+	const std::filesystem::path &get_path()const { return _path; }
 };
-bool UtilReadFileSplitted(LPCTSTR lpFile,FILELINECONTAINER&);
+
+void touchFile(const std::filesystem::path& path);
+
+
+
+//read only
+class CContinuousFile
+{
+protected:
+	std::vector<std::filesystem::path> _files;
+	CAutoFile _fp;
+	size_t _currentFile;
+	int64_t _curPos;
+protected:
+	bool nextFile() {
+		//_fp.close();
+		_currentFile++;
+		//reached end of file list
+		if (_currentFile >= _files.size()) return false;
+
+		_fp.open(_files[_currentFile]);
+		if (!_fp.is_opened()) return false;
+		return true;
+	}
+	bool seek_forward(int64_t offset) {
+		if (_files.empty()) return false;
+		if(!_fp.is_opened()) return false;
+		for (;;) {
+			int64_t remain = std::filesystem::file_size(_files[_currentFile]) - _ftelli64(_fp);
+			if (offset < remain) {
+				_curPos += offset;
+				_fseeki64(_fp, offset, SEEK_CUR);
+				return true;
+			} else {
+				offset -= remain;
+				_curPos += remain;
+				if (!nextFile()) {
+					return false;
+				}
+			}
+		}
+	}
+	bool seek_backward(int64_t offset/*negative value*/) {
+		if (_files.empty())return false;
+		if (!_fp.is_opened())return false;
+		for (;;) {
+			int64_t capacity = _ftelli64(_fp);
+			if (offset + capacity > 0) {
+				_curPos += offset;
+				_fseeki64(_fp, offset, SEEK_CUR);
+				return true;
+			} else {
+				offset += capacity;
+				_curPos -= capacity;
+
+				_fp.close();
+				_currentFile--;
+				//reached end of file list
+				if (_currentFile < 0) return false;
+
+				_fp.open(_files[_currentFile]);
+				if (!_fp.is_opened()) return false;
+				_fseeki64(_fp, 0, SEEK_END);
+			}
+		}
+	}
+	bool seek_to_end() {
+		if (_files.empty())return false;
+		_currentFile = _files.size() - 1;
+		_fp.open(_files[_currentFile]);
+		_fseeki64(_fp, 0, SEEK_END);
+		_curPos = 0;
+		for (const auto& fname : _files) {
+			_curPos += std::filesystem::file_size(fname);
+		}
+		return true;
+	}
+	bool seek_to_begin() {
+		if (_files.empty())return false;
+		_currentFile = 0;
+		_curPos = 0;
+		_fp.open(_files[_currentFile]);
+		return _fp.is_opened();
+	}
+public:
+	CContinuousFile() :_currentFile(0), _curPos(0){}
+	virtual ~CContinuousFile() { close(); }
+	void close() {
+		_fp.close();
+		_files.clear();
+		_currentFile = 0;
+		_curPos = 0;
+	}
+	bool is_opened()const { return _fp.is_opened(); }
+	size_t getNumFiles()const { return _files.size(); }
+	int64_t tell()const { return _curPos; }
+	bool seek(int64_t offset, int32_t origin) {
+		switch (origin) {
+		case SEEK_CUR:
+			if (offset >= 0)return seek_forward(offset);
+			else return seek_backward(offset);
+			break;
+		case SEEK_END:
+			if (offset > 0){
+				return false;
+			} else {
+				if(!seek_to_end())return false;
+				return seek_backward(offset);
+			}
+			break;
+		case SEEK_SET:
+			if (offset >= 0) {
+				if(!seek_to_begin())return false;
+				return seek_forward(offset);
+			} else {
+				return false;
+			}
+			break;
+		default:
+			return false;
+		}
+	}
+	size_t read(void* buffer, size_t toRead);
+	bool openFiles(const std::vector<std::filesystem::path>& files) {
+		close();
+		_files = files;
+		if (files.empty())return false;
+		_currentFile = 0;
+		_fp.open(files[0]);
+		return _fp.is_opened();
+	}
+};
+

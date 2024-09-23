@@ -23,34 +23,27 @@
 */
 
 #pragma once
+#include "ConfigFile.h"
 
-enum OUTPUT_TO;
-enum CREATE_OUTPUT_DIR;
-struct CConfigExtract:public IConfigConverter{
+struct CConfigExtract:public IConfigIO{
 public:
-	OUTPUT_TO OutputDirType;
-	CString OutputDir;
-	BOOL OpenDir;
-	CREATE_OUTPUT_DIR CreateDir;
-	BOOL ForceOverwrite;
-	BOOL RemoveSymbolAndNumber;
-	BOOL CreateNoFolderIfSingleFileOnly;
-	BOOL LimitExtractFileCount;
+	int/*OUTPUT_TO*/ OutputDirType;
+	std::wstring OutputDirUserSpecified;
+	bool OpenDir;
+	int/*CREATE_OUTPUT_DIR*/ CreateDir;
+	bool ForceOverwrite;
+	bool RemoveSymbolAndNumber;
+	bool LimitExtractFileCount;
 	int MaxExtractFileCount;
-	BOOL DeleteArchiveAfterExtract;	//正常に解凍できた圧縮ファイルを削除
-	BOOL MoveToRecycleBin;			//解凍後ファイルをごみ箱に移動
-	BOOL DeleteNoConfirm;			//確認せずに削除/ごみ箱に移動
-	BOOL ForceDelete;				//解凍エラーを検知できない場合も削除
-	BOOL DeleteMultiVolume;			//マルチボリュームもまとめて削除
-	BOOL MinimumPasswordRequest;	//パスワード入力回数を最小にするならTRUE
+	bool DeleteArchiveAfterExtract;
+	bool MoveToRecycleBin;
+	bool DeleteNoConfirm;
 
-	CString DenyExt;		//解凍対象から外す拡張子
-protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
+	std::wstring DenyExt;
 public:
 	virtual ~CConfigExtract(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile&);
+	virtual void store(CConfigFile&)const;
+	bool isPathAcceptableToExtract(const std::filesystem::path& path)const;
 };
 

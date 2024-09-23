@@ -23,72 +23,68 @@
 */
 
 #pragma once
-#include "../resource.h"
-#include "../ArchiverManager.h"
-#include "../ConfigCode/ConfigManager.h"
+#include "resource.h"
+#include "ConfigCode/ConfigFile.h"
 #include "MenuCommand.h"
 #include "FileListTabClient.h"
-#include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
+#include "OLE/DropTarget.h"
 
-const LPCTSTR LHAFORGE_FILE_LIST_CLASS=_T("LhaForgeFileList");
-
-#define FILELISTWINDOW_DEFAULT_WIDTH	760
-#define FILELISTWINDOW_DEFAULT_HEIGHT	500
+const auto LHAFORGE_FILE_LIST_CLASS = L"LhaForgeFileList";
 
 class CFileListFrame:
 	public CFrameWindowImpl<CFileListFrame>,
 	public CUpdateUI<CFileListFrame>,
 	public CMessageFilter,
 	public CIdleHandler,
-	public IDropCommunicator//自前のDnDインターフェイス
+	public ILFDropCommunicator
 {
 protected:
-	//bool m_bFirst;		//初回表示
-	//DLL_ID m_idForceDLL;	//強制使用するDLL
+	CConfigFile &mr_Config;
+	CConfigFileListWindow m_ConfFLW;
+	LF_COMPRESS_ARGS m_compressArgs;
 
-	CConfigManager		&mr_Config;
+	CAccelerator m_AccelEx;		//keyboard accelerator
+	std::unique_ptr<CFileListTabClient> m_TabClientWnd;
+	CMultiPaneStatusBarCtrl m_StatusBar;
+	CRect m_WindowRect;
 
-	//----------------------
-	// ウィンドウ関係メンバ
-	//----------------------
-	CAccelerator			m_AccelEx;		//追加のウィンドウアクセラレータ:[ESC]でウィンドウを閉じる、等を担当
-	CFileListTabClient		m_TabClientWnd;
-	CMultiPaneStatusBarCtrl m_StatusBar;		//ステータスバー
-	CRect					m_WindowRect;		// ウィンドウサイズ
-
-	static CString			ms_strPropString;	// SetPropの識別名:LhaForgeのウィンドウである事を示す
 protected:
-	//---ドロップ受け入れ
-	CDropTarget m_DropTarget;	//ドロップ受け入れに使う
+	CLFDropTarget m_DropTarget;
 	void EnableDropTarget(bool bEnable);
-	//IDropCommunicatorの実装
-	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
-	HRESULT DragLeave();
-	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
-	HRESULT Drop(IDataObject*,POINTL&,DWORD&);
+	//---IDropCommunicator
+	HRESULT DragEnter(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {return DragOver(lpDataObject, pt, dwEffect);}
+	HRESULT DragLeave()override { return S_OK; }
+	HRESULT DragOver(IDataObject*,POINTL&,DWORD&)override;
+	HRESULT Drop(IDataObject*,POINTL&,DWORD&)override;
 protected:
-	void ReopenArchiveFile(FILELISTMODE);
-
 	void UpdateUpDirButtonState();
 	void EnableEntryExtractOperationMenu(bool);
-	void EnableEntryDeleteOperationMenu(bool);
-	void EnableAddItemsMenu(bool);
+	void EnableEntryDeleteOperationMenu(bool bActive) { UIEnable(ID_MENUITEM_DELETE_SELECTED, bActive); }
+	void EnableAddItemsMenu(bool bActive) {
+		UIEnable(ID_MENUITEM_ADD_FILE, bActive);
+		UIEnable(ID_MENUITEM_ADD_DIRECTORY, bActive);
+	}
+	void EnableSendTo_OpenAppMenu(bool bEnable) {
+		//open with app / sendto
+		CMenuHandle cMenu[] = {
+			GetAdditionalMenuHandle(MENUTYPE::UserApp),
+			GetAdditionalMenuHandle(MENUTYPE::SendTo)
+		};
+		for (auto &menu : cMenu) {
+			int size = menu.GetMenuItemCount();
+			for (int i = 0; i < size; i++) {
+				menu.EnableMenuItem(i, MF_BYPOSITION | (bEnable ? MF_ENABLED : MF_GRAYED));
+			}
+		}
+	}
 	void UpdateWindowTitle();
 	void UpdateStatusBar();
 	void UpdateMenuState();
-	HANDLE GetMultiOpenLockMutex(LPCTSTR lpszMutex);
-	void SetOpenAssocLimitation(const CConfigFileListWindow& ConfFLW);
+	HANDLE GetMultiOpenLockMutex(const std::wstring& strMutex);
 
-	HMENU GetUserAppMenuHandle();
-	HMENU GetSendToMenuHandle();
-	//ファイル一覧ウィンドウの列挙
-	static BOOL CALLBACK EnumFileListWindowProc(HWND hWnd,LPARAM lParam);
-	//最初のファイル一覧ウィンドウの列挙
-	static BOOL CALLBACK EnumFirstFileListWindowProc(HWND hWnd,LPARAM lParam);
-	//ウィンドウプロパティの列挙
-	static BOOL CALLBACK EnumPropProc(HWND hWnd,LPTSTR lpszString,HANDLE hData,ULONG_PTR dwData);
+	enum class MENUTYPE { UserApp, SendTo, };
+	HMENU GetAdditionalMenuHandle(MENUTYPE type);
 
-	//ツールバー作成
 	HWND CreateToolBarCtrl(HWND hWndParent, UINT nResourceID,HIMAGELIST hImageList);
 protected:
 	//---internal window functions
@@ -96,29 +92,33 @@ protected:
 	LRESULT OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled);
 	void OnSize(UINT uType, CSize);
 	void OnMove(const CPoint&);
-	void OnCommandCloseWindow(UINT uNotifyCode, int nID, HWND hWndCtl);
-	void OnUpDir(UINT,int,HWND);
+	void OnCommandCloseWindow(UINT uNotifyCode, int nID, HWND hWndCtl) { DestroyWindow(); }
+	void OnUpDir(UINT, int, HWND) {
+		CFileListTabItem* pTab = m_TabClientWnd->GetCurrentTab();
+		if (pTab)pTab->Model.MoveUpDir();
+	}
 	void OnConfigure(UINT,int,HWND);
 
 	void OnListViewStyle(UINT,int,HWND);
-	void OnRefresh(UINT,int,HWND);
-	LRESULT OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled);
-	void OnListMode(UINT,int,HWND);	//表示モード変更
+	void OnRefresh(UINT, int, HWND) { m_TabClientWnd->ReopenArchiveFile(); }
+	LRESULT OnRefresh(UINT, WPARAM, LPARAM, BOOL& bHandled) { m_TabClientWnd->ReopenArchiveFile(); return 0; }
 	void OnOpenArchive(UINT,int,HWND);
 	void OnCloseTab(UINT,int,HWND);
 	void OnNextTab(UINT,int,HWND);
 	void OnToggleFocus(UINT,int,HWND);
 	LRESULT OnMouseWheel(UINT,short,CPoint&);
 
-	LRESULT OnFileListModelChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		UpdateWindowTitle();
+		UpdateMenuState();
+		UpdateStatusBar();
+		UpdateUpDirButtonState();
+		return 0;
+	}
 	LRESULT OnFileListWndStateChanged(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnOpenByPropName(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	LRESULT OnActivateFile(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 protected:
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CFileListFrame)
 		MSG_WM_CREATE(OnCreate)
 		MESSAGE_HANDLER(WM_DESTROY,OnDestroy)
@@ -136,16 +136,13 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTVIEW_LIST,OnListViewStyle)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_REFRESH,OnRefresh)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CONFIGURE,OnConfigure)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_TREE,OnListMode)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_FLAT,OnListMode)
-		COMMAND_ID_HANDLER_EX(ID_MENUITEM_LISTMODE_FLAT_FILESONLY,OnListMode)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPENARCHIVE,OnOpenArchive);
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_CLOSETAB,OnCloseTab);
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_NEXTTAB,OnNextTab);
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_PREVTAB,OnNextTab);
-		MESSAGE_HANDLER(WM_FILELIST_MODELCHANGED,OnFileListModelChanged);
-		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListArchiveLoaded)
-		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
+		MESSAGE_HANDLER(WM_FILELIST_MODELCHANGED, OnFileListUpdated);
+		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListUpdated)
+		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListUpdated)
 		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
 		MESSAGE_HANDLER(WM_FILELIST_WND_STATE_CHANGED, OnFileListWndStateChanged)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_TOGGLE_FOCUS,OnToggleFocus)
@@ -176,9 +173,6 @@ public:
 		UPDATE_ELEMENT(ID_MENUITEM_UPDIR,						UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_SELECT_ALL,					UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_SHOW_COLUMNHEADER_MENU,		UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_LISTMODE_TREE,				UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_LISTMODE_FLAT,				UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_LISTMODE_FLAT_FILESONLY,		UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_FINDITEM,					UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_FINDITEM_END,				UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_NEXTTAB,						UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
@@ -195,14 +189,10 @@ public:
 		UPDATE_ELEMENT(ID_MENUITEM_SORT_COMPRESSEDSIZE,			UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_SORT_METHOD,					UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 		UPDATE_ELEMENT(ID_MENUITEM_SORT_RATIO,					UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_SORT_CRC,					UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_EXTRACT_ARCHIVE_ALL,			UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE_ALL,UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
-		UPDATE_ELEMENT(ID_MENUITEM_EXTRACT_ARCHIVE_AND_CLOSE,	UPDUI_MENUPOPUP|UPDUI_TOOLBAR)
 	END_UPDATE_UI_MAP()
 
 	//---
-	CFileListFrame(CConfigManager &conf);
+	CFileListFrame(CConfigFile &conf);
 	virtual ~CFileListFrame(){}
 
 	BOOL OnIdle(){
@@ -212,7 +202,7 @@ public:
 	}
 	BOOL PreTranslateMessage(MSG* pMsg);
 
-	HRESULT OpenArchiveFile(LPCTSTR fname,DLL_ID idForceDLL,bool bAllowRelayOpen=true);
+	HRESULT OpenArchiveFile(const std::filesystem::path& fname,bool bAllowRelayOpen=true);
 
 	void GetFreeClientRect(CRect &rc){
 		GetClientRect(rc);

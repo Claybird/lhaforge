@@ -23,35 +23,64 @@
 */
 
 #pragma once
+#include "FileListWindow/ArcFileContent.h"
 
-//#include <string>
-//ファイルのアイコンなどを管理する
-
-#if defined(_UNICODE)||defined(UNICODE)
- typedef std::wstring StlString;
-#else
- typedef std::string StlString;
-#endif
-
-class SHELLDATA{
+class LF_SHELLDATA{
 public:
 	int IconIndex;
-	CString TypeName;
+	std::wstring TypeName;
 };
 
-//シェル情報管理クラス
-//アイコン、ファイルタイプ名など
-class CShellDataManager
+class CLFShellDataManager
 {
 protected:
-	HIMAGELIST			ImageListSmall;
-	HIMAGELIST			ImageListLarge;
-	std::unordered_map<StlString,SHELLDATA> ShellDataMap;
-	std::unordered_map<StlString,SHELLDATA>::iterator CShellDataManager::RegisterData(LPCTSTR Ext,DWORD Attribute=FILE_ATTRIBUTE_NORMAL);
+	CImageList _imageListSmall;
+	CImageList _imageListLarge;
+	std::unordered_map<std::wstring, LF_SHELLDATA> _shellDataMap;
+	const LF_SHELLDATA& makeSureDataRegistered(const wchar_t* extension, DWORD Attribute = FILE_ATTRIBUTE_NORMAL) {
+		if (!extension)extension = ARCHIVE_ENTRY_INFO::dirDummyExt();
+
+		auto ite = _shellDataMap.find(extension);
+		if (ite == _shellDataMap.end()) {
+			//if not found, register data
+			LF_SHELLDATA ShellData;
+
+			//file icon index
+			SHFILEINFO shfi = {};
+			SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_LARGEICON | SHGFI_SYSICONINDEX);
+			ShellData.IconIndex = shfi.iIcon;
+
+			//filetype name
+			SHGetFileInfoW(extension, Attribute, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_TYPENAME);
+			ShellData.TypeName = shfi.szTypeName;
+
+			auto result = _shellDataMap.insert(std::make_pair(extension, ShellData));
+			return (*result.first).second;
+		} else {
+			return (*ite).second;
+		}
+	}
 public:
-	virtual ~CShellDataManager(){}
-	void Init();
-	HIMAGELIST GetImageList(bool bLarge);
-	int GetIconIndex(LPCTSTR);
-	LPCTSTR GetTypeName(LPCTSTR);
+	virtual ~CLFShellDataManager(){}
+	void Init() {
+		SHFILEINFO shfi = {};
+		_imageListLarge = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_LARGEICON);
+		_imageListSmall = (HIMAGELIST)SHGetFileInfo(L"", 0, &shfi, sizeof(shfi), SHGFI_SYSICONINDEX | SHGFI_ICON | SHGFI_SMALLICON);
+
+		//register for folder
+		makeSureDataRegistered(ARCHIVE_ENTRY_INFO::dirDummyExt(), FILE_ATTRIBUTE_DIRECTORY);
+	}
+	HIMAGELIST GetImageList(bool bLarge) {
+		if (bLarge) {
+			return _imageListLarge;
+		} else {
+			return _imageListSmall;
+		}
+	}
+	int GetIconIndex(const wchar_t* extension) {
+		return makeSureDataRegistered(extension).IconIndex;
+	}
+	const std::wstring GetTypeName(const wchar_t* extension){
+		return makeSureDataRegistered(extension).TypeName;
+	}
 };

@@ -24,589 +24,1191 @@
 
 #include "stdafx.h"
 #include "compress.h"
-#include "Dialogs/LogDialog.h"
+#include "ArchiverCode/archive.h"
+#include "Dialogs/LogListDialog.h"
 
 #include "resource.h"
 
-#include "archivermanager.h"
 #include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
-#include "ConfigCode/ConfigManager.h"
+#include "Utilities/CustomControl.h"
+#include "ConfigCode/ConfigFile.h"
 #include "ConfigCode/ConfigCompress.h"
+#include "ConfigCode/ConfigCompressFormat.h"
 #include "ConfigCode/ConfigGeneral.h"
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
-bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList);
+#ifdef UNIT_TEST
+#include "extract.h"	//for extract test
+#endif
 
-bool Compress(const std::list<CString> &_ParamList,const PARAMETER_TYPE Type,CConfigManager &ConfigManager,LPCTSTR lpszFormat,LPCTSTR lpszMethod,LPCTSTR lpszLevel,CMDLINEINFO& CmdLineInfo)
+void parseCompressOption(const CConfigFile& config, LF_COMPRESS_ARGS& args, const CMDLINEINFO* lpCmdLineInfo)
 {
-	TRACE(_T("Function ::Compress() started.\n"));
+	args.load(config);
 
-	std::list<CString> ParamList=_ParamList;
-
-	CArchiverDLLManager &ArchiverManager=CArchiverDLLManager::GetInstance();
-	CConfigCompress ConfCompress;
-	ConfCompress.load(ConfigManager);
-	CConfigGeneral ConfGeneral;
-	ConfGeneral.load(ConfigManager);
-
-	int Options=CmdLineInfo.Options;
-	//---設定上書き
-	//出力先上書き
-	if(-1!=CmdLineInfo.OutputToOverride){
-		ConfCompress.OutputDirType=CmdLineInfo.OutputToOverride;
-	}
-	if(-1!=CmdLineInfo.IgnoreTopDirOverride){
-		ConfCompress.IgnoreTopDirectory=CmdLineInfo.IgnoreTopDirOverride;
-	}
-	if(-1!=CmdLineInfo.DeleteAfterProcess){
-		ConfCompress.DeleteAfterCompress=CmdLineInfo.DeleteAfterProcess;
-	}
-
-	CArchiverDLL *lpArchiver=ArchiverManager.GetArchiver(GetDllIDFromParameterType(Type));
-	if(!lpArchiver || !lpArchiver->IsOK()){
-		return false;
-	}
-
-	//ディレクトリ内にファイルが全て入っているかの判定
-	if(ConfCompress.IgnoreTopDirectory){
-		//NOTE: this code equals to ParamList.size()==1
-		std::list<CString>::const_iterator ite=ParamList.begin();
-		ite++;
-		if(ite==ParamList.end()){
-			//ファイルが一つしかない
-			CPath path=*ParamList.begin();
-			path.AddBackslash();
-			if(path.IsDirectory()){
-				//単体のディレクトリを圧縮
-				UtilPathExpandWild(ParamList,path+_T("*"));
+	//overwrite with command line arguments
+	if (lpCmdLineInfo) {
+		if (OUTPUT_TO::NoOverride != lpCmdLineInfo->OutputToOverride) {
+			args.compress.OutputDirType = (int)lpCmdLineInfo->OutputToOverride;
+		}
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {
+				args.compress.DeleteAfterCompress = false;
+			} else {
+				args.compress.DeleteAfterCompress = true;
 			}
-			if(ParamList.empty()){
-				ParamList=_ParamList;
+		}
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->IgnoreTopDirOverride) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->IgnoreTopDirOverride) {
+				args.compress.IgnoreTopDirectory = false;
+			} else {
+				args.compress.IgnoreTopDirectory = true;
 			}
 		}
 	}
+}
 
-	//UNICODE対応のチェック
-	if(!lpArchiver->IsUnicodeCapable()){		//UNICODEに対応していない
-		if(!UtilCheckT2AList(ParamList)){
-			//ファイル名にUNICODE文字を持つファイルを圧縮しようとした
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-			return false;
+//retrieves common path name of containing directories
+std::wstring getSourcesBasePath(const std::vector<std::filesystem::path> &sources)
+{
+	std::unordered_set<std::wstring> directories;
+	for (const auto &item : sources) {
+		if (std::filesystem::is_directory(item)) {
+			directories.insert(item);
+		} else {
+			directories.insert(item.parent_path());
 		}
 	}
 
-	//----------------------------------------------
-	// GZ/BZ2/JACKで圧縮可能(単ファイル)かどうかチェック
-	//----------------------------------------------
-	if(PARAMETER_GZ==Type||PARAMETER_BZ2==Type||PARAMETER_XZ==Type||PARAMETER_LZMA==Type||PARAMETER_JACK==Type){
-		int nFileCount=0;
-		CPath pathFileName;
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
-			nFileCount+=FindFileToCompress(*ite,pathFileName);
-			if(nFileCount>=2){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_SINGLE_FILE_ONLY)));
-				return false;
+	if (directories.empty())return L"";
+	std::vector<std::wstring> commonParts;
+
+	bool first = true;
+	for(const auto &directory: directories){
+		auto parts = UtilSplitString(
+			UtilPathRemoveLastSeparator(
+				replace(directory, L"\\", L"/")
+			), L"/");
+
+		if (first) {
+			commonParts = parts;
+			first = false;
+		} else {
+			size_t count = std::min(commonParts.size(), parts.size());
+			for (size_t i = 0; i < count; i++) {
+				//compare path; Win32 ignores path cases
+				if (0 != _wcsicmp(parts[i].c_str(), commonParts[i].c_str())) {
+					commonParts.resize(i);
+					break;
+				}
 			}
 		}
-		if(0==nFileCount){
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_FILE_NOT_SPECIFIED)));
-			return false;
+		if (commonParts.empty())break;
+	}
+
+	return join(L"/", commonParts);
+}
+
+#ifdef UNIT_TEST
+TEST(compress, getSourcesBasePath)
+{
+	auto dir = UtilGetTempPath() / L"lhaforge_test/getSourcesBasePath";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir / L"abc");
+	std::filesystem::create_directories(dir / L"ghi");
+
+	{
+		EXPECT_EQ(L"", getSourcesBasePath({ }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc/" }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc/",dir / L"ABC/ghi/" }));
+		EXPECT_EQ(dir, getSourcesBasePath({ dir / L"abc",dir / L"ghi/" }));
+		EXPECT_EQ(dir / L"abc", getSourcesBasePath({ dir / L"abc",dir / L"abc/" }));
+		EXPECT_EQ(std::filesystem::path(L"c:/windows"), getSourcesBasePath({ L"c:/windows",L"c:/windows/system32" }));
+	}
+
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+
+#endif
+
+//replace filenames that are not suitable for pathname
+std::wstring volumeLabelToDirectoryName(const std::wstring& volume_label)
+{
+	const std::vector<wchar_t> toFilter = {
+		L'/', L'\\', L':', L'*', L'?', L'"', L'<', L'>', L'|',
+	};
+	auto p = volume_label;
+	for (const auto &f : toFilter) {
+		p = replace(p, f, L"_");
+	}
+	return p;
+}
+
+#ifdef UNIT_TEST
+TEST(compress, volumeLabelToDirectoryName)
+{
+	EXPECT_EQ(L"a_b_c_d_e_f_g_h_i_j", volumeLabelToDirectoryName(L"a/b\\c:d*e?f\"g<h>i|j"));
+}
+#endif
+
+std::wstring determineDefaultArchiveTitle(
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS option,
+	const std::wstring &input_path
+	)
+{
+	auto ext = CLFArchive::get_compression_capability(format).formatExt(input_path, option);
+
+	//calculate archive name from first selection
+	if (UtilPathIsRoot(input_path)) {
+		//drives: get volume label
+		//MSDN: The maximum buffer size is MAX_PATH+1
+		wchar_t szVolume[MAX_PATH + 2] = {};
+		GetVolumeInformationW(
+			UtilPathAddLastSeparator(input_path).c_str(),
+			szVolume, MAX_PATH + 1,
+			nullptr, nullptr, nullptr, nullptr, 0);
+		return volumeLabelToDirectoryName(szVolume) + ext;
+	} else if (std::filesystem::is_directory(input_path)) {
+		return std::filesystem::path(UtilPathRemoveLastSeparator(input_path)).filename().wstring() + ext;
+	} else {
+		//regular file: remove extension
+		return std::filesystem::path(input_path).stem().wstring() + ext;
+	}
+}
+
+#ifdef UNIT_TEST
+TEST(compress, determineDefaultArchiveTitle)
+{
+	EXPECT_EQ(L"source.zip", determineDefaultArchiveTitle(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, L"/path/to/source.txt"));
+	EXPECT_EQ(L"source.txt.gz", determineDefaultArchiveTitle(LF_ARCHIVE_FORMAT::GZ, LF_WOPT_STANDARD, L"/path/to/source.txt"));
+}
+#endif
+
+
+
+//---
+//get relative path of source files, from basePath
+std::vector<COMPRESS_SOURCES::PATH_PAIR> getRelativePathList(
+	const std::filesystem::path& basePath,
+	const std::vector<std::filesystem::path>& sourcePathList)
+{
+	std::vector<COMPRESS_SOURCES::PATH_PAIR> out;
+	for (const auto& path : sourcePathList) {
+		if (basePath != path) {
+			COMPRESS_SOURCES::PATH_PAIR rp;
+			rp.originalFullPath = path;
+			rp.entryPath = std::filesystem::relative(path, basePath);
+			rp.entryPath = replace(rp.entryPath, L"\\", L"/");
+			out.push_back(rp);
 		}
-		ParamList.clear();
-		ParamList.push_back(pathFileName);
-	}else if(PARAMETER_ISH==Type||PARAMETER_UUE==Type){	// ISH/UUEで変換可能か(ファイルかどうか)チェック
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
-			if(PathIsDirectory(*ite)){
-				ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_CANT_COMPRESS_FOLDER)));
-				return false;
+	}
+	return out;
+}
+
+#ifdef UNIT_TEST
+TEST(compress, getRelativePathList)
+{
+	auto result = getRelativePathList(L"/path/to/base/",
+		{ L"/path/to/base/", L"/path/to/base/file1.txt", L"/path/to/base/dir1/file2.txt", });
+	EXPECT_EQ(2, result.size());
+	if (result.size() >= 2) {
+		EXPECT_EQ(L"file1.txt", result[0].entryPath);
+		EXPECT_EQ(L"/path/to/base/file1.txt", result[0].originalFullPath);
+		EXPECT_EQ(std::filesystem::path(L"dir1/file2.txt").make_preferred(), result[1].entryPath);
+		EXPECT_EQ(L"/path/to/base/dir1/file2.txt", result[1].originalFullPath);
+	}
+}
+#endif
+
+std::vector<std::filesystem::path> getAllSourceFiles(const std::vector<std::filesystem::path> &sourcePathList)
+{
+	std::vector<std::filesystem::path> out;
+	for (const auto& path : sourcePathList) {
+		out.push_back(path);
+		if (std::filesystem::is_directory(path)) {
+			auto tmp = UtilRecursiveEnumFileAndDirectory(path);
+			out.insert(out.end(), tmp.begin(), tmp.end());
+		}
+	}
+	std::sort(out.begin(), out.end());
+	out.erase(std::unique(out.begin(), out.end()), out.end());
+	return out;
+}
+
+#ifdef UNIT_TEST
+TEST(compress, getAllSourceFiles)
+{
+	//delete directory
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/getAllSourceFiles";
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	std::filesystem::create_directories(dir / L"a");
+	std::filesystem::create_directories(dir / L"b/c");
+	for (int i = 0; i < 3; i++) {
+		touchFile(dir / Format(L"a/a%03d.txt", i));
+		touchFile(dir / Format(L"b/c/b%03d.txt", i));
+	}
+
+	auto files = getAllSourceFiles({ dir });
+	EXPECT_EQ(9, files.size());		//a,a[000-002].txt,b,b/c,b/c/b[000-002].txt
+
+	files = getAllSourceFiles({ dir / L"a" });
+	EXPECT_EQ(4, files.size());		//a,a[000-002].txt
+	files = getAllSourceFiles({ dir / L"b" });
+	EXPECT_EQ(5, files.size());		//b,b/c,b/c/b[000-002].txt
+	files = getAllSourceFiles({ dir / L"c" });
+	EXPECT_EQ(1, files.size());		//dir nor file does not exist, but listed
+	files = getAllSourceFiles({ dir / L"b/c" });
+	EXPECT_EQ(4, files.size());		//b/c,b/c/b[000-002].txt
+
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+#endif
+
+COMPRESS_SOURCES buildCompressSources(
+	const LF_COMPRESS_ARGS &args,
+	const std::vector<std::filesystem::path> &givenFiles
+)
+{
+	COMPRESS_SOURCES targets;
+	std::vector<std::filesystem::path> sourcePathList = getAllSourceFiles(givenFiles);
+	targets.basePath = getSourcesBasePath(givenFiles);
+	try {
+		if (givenFiles.size() == 1 && std::filesystem::is_directory(givenFiles[0])) {
+			switch ((COMPRESS_IGNORE_TOP_DIR)args.compress.IgnoreTopDirectory) {
+			case COMPRESS_IGNORE_TOP_DIR::Recursive:
+			{
+				auto parent = givenFiles[0];
+				auto files = UtilEnumSubFileAndDirectory(parent);
+				for (;;) {
+					if (files.size() == 1 && std::filesystem::is_directory(files[0])) {
+						parent = files[0];
+						auto files_sub = UtilEnumSubFileAndDirectory(parent);
+						if (!files_sub.empty()) {
+							files = files_sub;
+							continue;
+						}
+					}
+					sourcePathList = getAllSourceFiles(files);
+					targets.basePath = getSourcesBasePath(sourcePathList);
+					break;
+				}
+			}break;
+			case COMPRESS_IGNORE_TOP_DIR::FirstTop:
+			{
+				auto di = std::filesystem::directory_iterator(givenFiles.front());
+				if (std::filesystem::begin(di) != std::filesystem::end(di)) {	//not an empty dir
+					targets.basePath = givenFiles.front();
+				}
+			}
+				break;
+			case COMPRESS_IGNORE_TOP_DIR::None:
+			default:
+				targets.basePath = std::filesystem::path(targets.basePath).parent_path();
+				break;
 			}
 		}
+
+		targets.pathPair = getRelativePathList(targets.basePath, sourcePathList);
+	} catch (const std::filesystem::filesystem_error& e) {
+		auto msg = UtilCP932toUNICODE(e.what(), strlen(e.what()));
+		throw LF_EXCEPTION(msg);
 	}
 
-	//=========================================================
-	// カレントディレクトリ設定のために\で終わる基点パスを取得
-	//=========================================================
-	CString pathBase;
-	UtilGetBaseDirectory(pathBase,ParamList);
-	TRACE(pathBase),TRACE(_T("\n"));
+	return targets;
+}
 
-	//カレントディレクトリ設定
-	SetCurrentDirectory(pathBase);
 
-	//圧縮先ファイル名決定
-	TRACE(_T("圧縮先ファイル名決定\n"));
-	CPath pathArcFileName;
-	CString strErr;
-	HRESULT hr=GetArchiveName(pathArcFileName,_ParamList,Type,Options,ConfCompress,ConfGeneral,CmdLineInfo,lpArchiver->IsUnicodeCapable(),strErr);
-	if(FAILED(hr)){
-		if(hr!=E_ABORT){
-			ErrorMessage(strErr);
-		}
-		return false;
+std::filesystem::path confirmOutputFile(
+	const std::filesystem::path &default_archive_path,
+	const COMPRESS_SOURCES &original_source_list,
+	const std::wstring& ext,	//with '.'
+	bool bInputFilenameFirst)	//Compress.SpecifyOutputFilename;
+{
+	std::set<std::filesystem::path> sourceFiles;
+	for (const auto& src : original_source_list.pathPair) {
+		sourceFiles.insert(toLower(src.originalFullPath));
 	}
 
-	//====================================================================
-	// 未対応DLLでファイル名にUNICODE文字を持つファイルを圧縮しようとした
-	//====================================================================
-	if(!lpArchiver->IsUnicodeCapable()&&!UtilCheckT2A(pathArcFileName)){
-		//GetArchiveNameで弾き切れなかったもの(B2E/JACKなど)をここで弾く
-		//B2Eは別系統で処理されているが、念のため。
-		ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH)));
-		return false;
-	}
+	auto archive_path = default_archive_path;
+	archive_path.make_preferred();
+	bool bForceOverwrite = false;
+	
+	//if file exists
+	bInputFilenameFirst = bInputFilenameFirst || std::filesystem::exists(archive_path);
 
-	if(PARAMETER_JACK!=Type){
-		if(PathFileExists(pathArcFileName)){
-			if(!DeleteFile(pathArcFileName)){
-				//削除できなかった
-				CString strLastError;
-				UtilGetLastErrorMessage(strLastError);
-				CString msg;
-				msg.Format(IDS_ERROR_FILE_REPLACE,(LPCTSTR)strLastError);
-
+	for (;;) {
+		if (!bInputFilenameFirst) {
+			if (isIn(sourceFiles, toLower(archive_path))) {
+				// source file and output archive are the same
+				auto msg = Format(UtilLoadString(IDS_ERROR_SAME_INPUT_AND_OUTPUT), archive_path.c_str());
 				ErrorMessage(msg);
-				return false;
+			} else {
+				return archive_path;
 			}
 		}
 
-		//======================================
-		// レスポンスファイル内に記入するために
-		// 圧縮対象ファイル名を修正する
-		//======================================
-		const int nBasePathLength=pathBase.GetLength();
-		for(std::list<CString>::iterator ite=ParamList.begin();ite!=ParamList.end();++ite){
-			//ベースパスを元に相対パス取得 : 共通である基底パスの文字数分だけカットする
-			//(*ite)=(*ite).Right((*ite).GetLength()-BasePathLength);
-			//(*ite).Delete(0,nBasePathLength);
-			(*ite)=(LPCTSTR)(*ite)+nBasePathLength;
+		// "save as" dialog
+		CLFShellFileSaveDialog dlg(archive_path.c_str(), FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT, ext.c_str());
+		if (IDCANCEL == dlg.DoModal()) {
+			CANCEL_EXCEPTION();
+		}
 
-			//もしBasePathと同じになって空になってしまったパスがあれば、カレントディレクトリ指定を代わりに入れておく
-			if((*ite).IsEmpty()){
-				*ite=_T(".");
+		{
+			CString path;
+			dlg.GetFilePath(path);
+			archive_path = path.operator LPCWSTR();
+		}
+
+		bInputFilenameFirst = false;
+	}
+}
+
+#ifdef UNIT_TEST
+TEST(compress, buildCompressSources_confirmOutputFile)
+{
+	//delete directory
+	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/compressSources";
+	UtilDeletePath(dir);
+	//subject files
+	EXPECT_FALSE(std::filesystem::exists(dir));
+	std::filesystem::create_directories(dir);
+	std::filesystem::create_directories(dir / L"a");
+	std::filesystem::create_directories(dir / L"b/c");
+	for (int i = 0; i < 3; i++) {
+		touchFile(dir / Format(L"a/a%03d.txt", i));
+		touchFile(dir / Format(L"b/c/b%03d.txt", i));
+	}
+	{
+		CAutoFile fp;
+		fp.open(dir / L"a/test.txt", L"w");
+		EXPECT_TRUE(fp.is_opened());
+		fprintf(fp, "abcde");
+	}
+
+	{
+		std::vector<std::filesystem::path> givenFiles;
+		givenFiles.push_back(dir / L"a");
+		givenFiles.push_back(dir / L"b");
+
+		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigFile());
+		fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::None;
+		auto sources = buildCompressSources(fake_args, givenFiles);
+
+		EXPECT_EQ(dir, sources.basePath);
+		EXPECT_EQ(10, sources.pathPair.size());
+
+		std::map<std::wstring, std::wstring> expected = {
+			{(dir / L"a").make_preferred(),L"a"},
+			{(dir / L"a/a000.txt").make_preferred(),L"a/a000.txt"},
+			{(dir / L"a/a001.txt").make_preferred(),L"a/a001.txt"},
+			{(dir / L"a/a002.txt").make_preferred(),L"a/a002.txt"},
+			{(dir / L"a/test.txt").make_preferred(),L"a/test.txt"},
+			{(dir / L"b").make_preferred(),L"b"},
+			{(dir / L"b/c").make_preferred(),L"b/c"},
+			{(dir / L"b/c/b000.txt").make_preferred(),L"b/c/b000.txt"},
+			{(dir / L"b/c/b001.txt").make_preferred(),L"b/c/b001.txt"},
+			{(dir / L"b/c/b002.txt").make_preferred(),L"b/c/b002.txt"},
+		};
+
+		for (auto pair : sources.pathPair) {
+			auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+			EXPECT_TRUE(has_key(expected, orgPath));
+			EXPECT_EQ(expected[orgPath], pair.entryPath);
+		}
+
+
+		//---
+		auto output_path = confirmOutputFile(dir / L"test.archive", sources, L".archive", false);
+		EXPECT_EQ(dir / L"test.archive", output_path);
+	}
+	{
+		std::vector<std::filesystem::path> givenFiles;
+		givenFiles.push_back(dir / L"a");
+		givenFiles.push_back(dir / L"b");
+
+		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigFile());
+		fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::Recursive;
+		auto sources = buildCompressSources(fake_args, givenFiles);
+
+		EXPECT_EQ(dir, sources.basePath);
+		EXPECT_EQ(10, sources.pathPair.size());
+
+		std::map<std::wstring, std::wstring> expected = {
+			{(dir / L"a").make_preferred(),L"a"},
+			{(dir / L"a/a000.txt").make_preferred(),L"a/a000.txt"},
+			{(dir / L"a/a001.txt").make_preferred(),L"a/a001.txt"},
+			{(dir / L"a/a002.txt").make_preferred(),L"a/a002.txt"},
+			{(dir / L"a/test.txt").make_preferred(),L"a/test.txt"},
+			{(dir / L"b").make_preferred(),L"b"},
+			{(dir / L"b/c").make_preferred(),L"b/c"},
+			{(dir / L"b/c/b000.txt").make_preferred(),L"b/c/b000.txt"},
+			{(dir / L"b/c/b001.txt").make_preferred(),L"b/c/b001.txt"},
+			{(dir / L"b/c/b002.txt").make_preferred(),L"b/c/b002.txt"},
+		};
+
+		for (auto pair : sources.pathPair) {
+			auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+			EXPECT_TRUE(has_key(expected, orgPath));
+			EXPECT_EQ(expected[orgPath], pair.entryPath);
+		}
+	}
+	{
+		std::vector<std::filesystem::path> givenFiles;
+		givenFiles.push_back(dir / L"a");
+
+		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigFile());
+		fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::None;
+		auto sources = buildCompressSources(fake_args, givenFiles);
+
+		EXPECT_EQ(dir, sources.basePath);
+		EXPECT_EQ(5, sources.pathPair.size());
+
+		std::map<std::wstring, std::wstring> expected = {
+			{(dir / L"a").make_preferred(),L"a"},
+			{(dir / L"a/a000.txt").make_preferred(),L"a/a000.txt"},
+			{(dir / L"a/a001.txt").make_preferred(),L"a/a001.txt"},
+			{(dir / L"a/a002.txt").make_preferred(),L"a/a002.txt"},
+			{(dir / L"a/test.txt").make_preferred(),L"a/test.txt"},
+		};
+
+		for (auto pair : sources.pathPair) {
+			auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+			EXPECT_TRUE(has_key(expected, orgPath));
+			EXPECT_EQ(expected[orgPath], pair.entryPath);
+		}
+	}
+	{
+		std::vector<std::filesystem::path> givenFiles;
+		givenFiles.push_back(dir / L"b");
+
+		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigFile());
+		fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::FirstTop;
+		auto sources = buildCompressSources(fake_args, givenFiles);
+
+		EXPECT_EQ(dir / L"b", sources.basePath);
+		EXPECT_EQ(4, sources.pathPair.size());
+
+		std::map<std::wstring, std::wstring> expected = {
+			{(dir / L"b/c").make_preferred(),L"c"},
+			{(dir / L"b/c/b000.txt").make_preferred(),L"c/b000.txt"},
+			{(dir / L"b/c/b001.txt").make_preferred(),L"c/b001.txt"},
+			{(dir / L"b/c/b002.txt").make_preferred(),L"c/b002.txt"},
+		};
+
+		for (auto pair : sources.pathPair) {
+			auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+			EXPECT_TRUE(has_key(expected, orgPath));
+			EXPECT_EQ(expected[orgPath], pair.entryPath);
+		}
+	}
+	//---
+	{
+		std::vector<std::filesystem::path> givenFiles;
+		givenFiles.push_back(dir / L"b");
+
+		LF_COMPRESS_ARGS fake_args;
+		fake_args.load(CConfigFile());
+		fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::Recursive;
+		auto sources = buildCompressSources(fake_args, givenFiles);
+
+		EXPECT_EQ(dir / L"b/c", sources.basePath);
+		EXPECT_EQ(3, sources.pathPair.size());
+
+		std::map<std::wstring, std::wstring> expected = {
+			{(dir / L"b/c/b000.txt").make_preferred(),L"b000.txt"},
+			{(dir / L"b/c/b001.txt").make_preferred(),L"b001.txt"},
+			{(dir / L"b/c/b002.txt").make_preferred(),L"b002.txt"},
+		};
+
+		for (auto pair : sources.pathPair) {
+			auto orgPath = std::filesystem::path(pair.originalFullPath).make_preferred();
+			EXPECT_TRUE(has_key(expected, orgPath));
+			EXPECT_EQ(expected[orgPath], pair.entryPath);
+		}
+	}
+
+	UtilDeletePath(dir);
+	EXPECT_FALSE(std::filesystem::exists(dir));
+}
+
+
+#endif
+
+std::wstring determineDefaultArchiveDir(
+	OUTPUT_TO outputDirType,
+	const std::filesystem::path& original_file_path,
+	const wchar_t* user_specified_dirpath
+	)
+{
+	struct FILE_CALLBACK :I_LF_GET_OUTPUT_DIR_CALLBACK {
+		std::filesystem::path defaultPath;
+		virtual std::filesystem::path operator()() { return defaultPath; }	//called in case OUTPUT_TO_ALWAYS_ASK_WHERE
+		virtual ~FILE_CALLBACK() {}
+	};
+	FILE_CALLBACK fileCallback;
+	fileCallback.defaultPath= std::filesystem::path(original_file_path).parent_path().make_preferred();
+
+	return LF_get_output_dir(
+		outputDirType,
+		original_file_path,
+		user_specified_dirpath,
+		fileCallback);
+}
+
+#ifdef UNIT_TEST
+
+TEST(compress, determineDefaultArchiveDir)
+{
+	auto temp = std::filesystem::path(UtilGetTempPath());
+	EXPECT_EQ(UtilGetDesktopPath(), determineDefaultArchiveDir(OUTPUT_TO::Desktop, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO::SameDir, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(L"C:/path_to_dir", determineDefaultArchiveDir(OUTPUT_TO::SpecificDir, temp, L"C:/path_to_dir"));
+	EXPECT_EQ(temp.parent_path(), determineDefaultArchiveDir(OUTPUT_TO::AlwaysAsk, temp, L"C:/path_to_dir"));
+}
+
+#endif
+
+void compressOneArchive(
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	const LF_COMPRESS_ARGS& args,
+	const std::filesystem::path& output_archive,
+	const COMPRESS_SOURCES &source_files,
+	ARCLOG &arcLog,
+	ILFProgressHandler &progressHandler,
+	std::shared_ptr<ILFPassphrase> passphrase_callback
+) {
+	CLFArchive archive;
+	archive.write_open(output_archive, format, options, args, passphrase_callback);
+	progressHandler.setArchive(output_archive);
+	progressHandler.setNumEntries(source_files.pathPair.size());
+	for (const auto &source : source_files.pathPair) {
+		try {
+			LF_ENTRY_STAT entry;
+			entry.read_stat(source.originalFullPath, source.entryPath);
+
+			if (std::filesystem::is_regular_file(source.originalFullPath)) {
+				progressHandler.onNextEntry(source.originalFullPath, entry.stat.st_size);
+				RAW_FILE_READER provider;
+				provider.open(source.originalFullPath);
+				uint64_t size = 0;
+				archive.add_file_entry(entry, [&]() {
+					auto data = provider();
+					if (data.offset) {
+						size = data.offset->offset + data.size;
+					} else {
+						size += data.size;
+					}
+					progressHandler.onEntryIO(size);
+					while (UtilDoMessageLoop())continue;
+					return data;
+				});
+
+				progressHandler.onEntryIO(entry.stat.st_size);
+				arcLog(source.originalFullPath, UtilLoadString(IDS_ARCLOG_OK));
+			} else {
+				//directory
+				progressHandler.onNextEntry(source.originalFullPath, 0);
+				archive.add_directory_entry(entry);
+				arcLog(source.originalFullPath, UtilLoadString(IDS_ARCLOG_OK));
+			}
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
+			arcLog.logException(e);
+			archive.close();
+			UtilDeletePath(output_archive);
+			throw;
+		} catch (const LF_EXCEPTION& e) {
+			arcLog.logException(e);
+			archive.close();
+			UtilDeletePath(output_archive);
+			throw;
+		} catch (const std::filesystem::filesystem_error& e) {
+			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
+			arcLog.logException(LF_EXCEPTION(msg));
+			archive.close();
+			UtilDeletePath(output_archive);
+			throw LF_EXCEPTION(msg);
+		}
+	}
+	arcLog(output_archive, UtilLoadString(IDS_ARCLOG_OK));
+}
+
+#ifdef UNIT_TEST
+TEST(compress, compressOneArchive)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	//delete directory
+	std::filesystem::path source_dir = UtilGetTempPath() / L"lhaforge_test/compress";
+	UtilDeletePath(source_dir);
+	EXPECT_FALSE(std::filesystem::exists(source_dir));
+	std::filesystem::create_directories(source_dir);
+	std::filesystem::create_directories(source_dir / L"a");
+	std::filesystem::create_directories(source_dir / L"b/c");
+
+	std::vector<std::filesystem::path> givenFiles;
+	givenFiles.push_back(source_dir / L"a");
+	givenFiles.push_back(source_dir / L"b");
+	for (int i = 0; i < 3; i++) {
+		touchFile(source_dir / Format(L"a/a%03d.txt", i));
+		touchFile(source_dir / Format(L"b/c/b%03d.txt", i));
+	}
+	{
+		CAutoFile fp;
+		fp.open(source_dir / L"a/test.txt", L"w");
+		EXPECT_TRUE(fp.is_opened());
+		fprintf(fp, "abcde");
+	}
+
+	LF_COMPRESS_ARGS fake_args;
+	fake_args.load(CConfigFile());
+	fake_args.compress.IgnoreTopDirectory = (int)COMPRESS_IGNORE_TOP_DIR::None;
+
+	auto sources = buildCompressSources(fake_args, givenFiles);
+	auto single_source = buildCompressSources(fake_args, { source_dir / L"a/test.txt" });
+
+	auto test_helper = [&](std::wstring archive_name,
+		LF_ARCHIVE_FORMAT format,
+		LF_WRITE_OPTIONS options
+		) {
+		std::filesystem::path archive = UtilGetTempPath() / L"lhaforge_test" / archive_name;
+		ARCLOG arcLog;
+
+		const auto& cap = CLFArchive::get_compression_capability(format);
+
+		if (options & LF_WOPT_DATA_ENCRYPTION) {
+			//expect user cancel
+			auto pp = std::make_shared<CLFPassphraseNULL>();
+			EXPECT_THROW(compressOneArchive(format, options, fake_args, archive,
+				(cap.contains_multiple_files ? sources : single_source), arcLog,
+				CLFProgressHandlerNULL(),
+				pp),
+				LF_USER_CANCEL_EXCEPTION);
+
+			UtilDeletePath(archive);
+		}
+
+		//expect successful compression
+		compressOneArchive(format, options, fake_args, archive,
+			(cap.contains_multiple_files ? sources : single_source), arcLog,
+			CLFProgressHandlerNULL(),
+			std::make_shared<CLFPassphraseConst>(L"password"));
+
+		//expect readable archive
+		{
+			ASSERT_TRUE(std::filesystem::exists(archive));
+			testOneArchive(archive, arcLog,
+				CLFProgressHandlerNULL(),
+				std::make_shared<CLFPassphraseConst>(L"password"));
+		}
+
+		UtilDeletePath(archive);
+	};
+
+	EXPECT_NO_THROW(test_helper(L"output.zip", LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD));	//zip
+	EXPECT_NO_THROW(test_helper(L"enc.zip",	LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION));	//zip, encrypted
+	EXPECT_NO_THROW(test_helper(L"output.7z",	LF_ARCHIVE_FORMAT::_7Z,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar",	LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.gz",	LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.lzma",	LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.xz",	LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.zst", LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.tar.lz4",	LF_ARCHIVE_FORMAT::TAR_LZ4, LF_WOPT_STANDARD));
+
+	//not an archive, single file only
+	EXPECT_NO_THROW(test_helper(L"output.gz",	LF_ARCHIVE_FORMAT::GZ,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.bz2",	LF_ARCHIVE_FORMAT::BZ2,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.xz",	LF_ARCHIVE_FORMAT::XZ,	LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.zst", LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD));
+	EXPECT_NO_THROW(test_helper(L"output.lz4",	LF_ARCHIVE_FORMAT::LZ4, LF_WOPT_STANDARD));
+
+	UtilDeletePath(source_dir);
+}
+
+#endif
+
+void compress_helper(
+	const std::vector<std::filesystem::path> &givenFiles,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	const CMDLINEINFO* lpCmdLineInfo,
+	ARCLOG &arcLog,
+	LF_COMPRESS_ARGS &args,
+	ILFProgressHandler &progressHandler,
+	std::shared_ptr<ILFPassphrase> passphraseHandler
+	)
+{
+	// get common path for base path
+	COMPRESS_SOURCES sources = buildCompressSources(args, givenFiles);
+
+	//check if the format can contain only one file
+	const auto& cap = CLFArchive::get_compression_capability(format);
+	if (!cap.contains_multiple_files) {
+		size_t fileCount = 0;
+		for (const auto& src : sources.pathPair) {
+			if (std::filesystem::is_regular_file(src.originalFullPath)) {
+				fileCount++;
+			}
+			if (fileCount >= 2) {
+				//warn that archiving is not supported for this file
+				ErrorMessage(UtilLoadString(IDS_ERROR_SINGLE_FILE_ONLY));
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_SINGLE_FILE_ONLY));
 			}
 		}
-	}
-
-	//セマフォによる排他処理
-	CSemaphoreLocker SemaphoreLock;
-	if(ConfCompress.LimitCompressFileCount){
-		SemaphoreLock.Lock(LHAFORGE_COMPRESS_SEMAPHORE_NAME,ConfCompress.MaxCompressFileCount);
-	}
-
-
-	TRACE(_T("ArchiverHandler 呼び出し\n"));
-	//------------
-	// 圧縮を行う
-	//------------
-	CString strLog;
-	/*
-	formatの指定は、B2E32.dllでのみ有効
-	levelの指定は、B2E32.dll以外で有効
-	*/
-	bool bRet=lpArchiver->Compress(pathArcFileName,ParamList,ConfigManager,Type,Options,lpszFormat,lpszMethod,lpszLevel,strLog);
-	//---ログ表示
-	switch(ConfGeneral.LogViewEvent){
-	case LOGVIEW_ON_ERROR:
-		if(!bRet){
-			CLogDialog LogDlg;
-			LogDlg.SetData(strLog);
-			LogDlg.DoModal();
-		}
-		break;
-	case LOGVIEW_ALWAYS:
-		CLogDialog LogDlg;
-		LogDlg.SetData(strLog);
-		LogDlg.DoModal();
-		break;
-	}
-
-	if(ConfGeneral.NotifyShellAfterProcess){
-		//圧縮完了を通知
-		::SHChangeNotify(SHCNE_CREATE,SHCNF_PATH,pathArcFileName,NULL);
-	}
-
-	//出力先フォルダを開く
-	if(bRet && ConfCompress.OpenDir){
-		CPath pathOpenDir=pathArcFileName;
-		pathOpenDir.RemoveFileSpec();
-		pathOpenDir.AddBackslash();
-		if(ConfGeneral.Filer.UseFiler){
-			//パラメータ展開に必要な情報
-			std::map<stdString,CString> envInfo;
-			MakeExpandInformationEx(envInfo,pathOpenDir,pathArcFileName);
-
-			//コマンド・パラメータ展開
-			CString strCmd,strParam;
-			UtilExpandTemplateString(strCmd,ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
-			UtilExpandTemplateString(strParam,ConfGeneral.Filer.Param,envInfo);	//パラメータ
-			ShellExecute(NULL, _T("open"), strCmd,strParam, NULL, SW_SHOWNORMAL);
-		}else{
-			//Explorerで開く
-			UtilNavigateDirectory(pathOpenDir);
+		if (0 == fileCount) {
+			ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
+			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));
 		}
 	}
 
-	//正常に圧縮できたファイルを削除orごみ箱に移動
-	if(bRet && ConfCompress.DeleteAfterCompress){
-		if(!ConfCompress.ForceDelete && lpArchiver->IsWeakErrorCheck()){
-			//エラーチェック機構が貧弱なため、圧縮失敗時にも正常と判断してしまうような
-			//DLLを使ったときには明示的に指定しない限り削除させない
-			MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_MESSAGE_COMPRESS_DELETE_SKIPPED)),UtilGetMessageCaption(),MB_OK|MB_ICONINFORMATION);
-		}else{
-			//カレントディレクトリは削除できないので別の場所へ移動
-			::SetCurrentDirectory(UtilGetModuleDirectoryPath());
-			//削除:オリジナルの指定で消す
-			DeleteOriginalFiles(ConfCompress,_ParamList);
+	//output directory
+	std::filesystem::path pathOutputDir;
+	if (lpCmdLineInfo && !lpCmdLineInfo->OutputDir.empty()) {
+		pathOutputDir = lpCmdLineInfo->OutputDir;
+	} else {
+		auto OutputFileName = lpCmdLineInfo ? lpCmdLineInfo->OutputFileName : std::filesystem::path();
+		if (!OutputFileName.empty() && OutputFileName.filename().has_parent_path()) {
+			pathOutputDir = OutputFileName.filename().parent_path();
+		} else {
+			pathOutputDir = determineDefaultArchiveDir(
+				(OUTPUT_TO)args.compress.OutputDirType,
+				givenFiles.front(),
+				args.compress.OutputDirUserSpecified.c_str());
 		}
 	}
 
-
-	TRACE(_T("Exit Compress()\n"));
-	return bRet;
-}
-
-void GetArchiveFileExtension(PARAMETER_TYPE type,LPCTSTR lpszOrgFile,CString &rExt,LPCTSTR lpszDefaultExt)
-{
-	switch(type){
-	case PARAMETER_GZ:
-	case PARAMETER_BZ2:
-	case PARAMETER_XZ:
-	case PARAMETER_LZMA:
-		rExt=PathFindExtension(lpszOrgFile);
-		rExt+=lpszDefaultExt;
-		break;
-	case PARAMETER_JACK:
-		//JACKの場合にはアーカイブファイル名が出力先フォルダ名になる
-		//:ファイル名はDLLが生成する
-		rExt.Empty();
-		break;
-	default:
-		rExt=lpszDefaultExt;
-		break;
-	}
-}
-
-HRESULT CheckArchiveName(LPCTSTR lpszArcFile,const std::list<CString> &rOrgFileList,bool bOverwrite,bool bUnicodeCapable,CString &strErr)
-{
-	// ファイル名が長すぎたとき
-	if(_tcslen(lpszArcFile)>=_MAX_PATH){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH));
-		return E_LF_CANNOT_DECIDE_FILENAME;
-	}
-
-	// できあがったファイル名が入力元のファイル名と同じか
-	std::list<CString>::const_iterator ite,end;
-	end=rOrgFileList.end();
-	for(ite=rOrgFileList.begin();ite!=end;++ite){
-		if(0==(*ite).CompareNoCase(lpszArcFile)){
-			strErr.Format(IDS_ERROR_SAME_INPUT_AND_OUTPUT,lpszArcFile);
-			return E_LF_OVERWRITE_SOURCE;
-		}
-	}
-
-	// 未対応DLLにUNICODEファイル名を渡していないか
-	if(!bUnicodeCapable && !UtilCheckT2A(lpszArcFile)){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH));
-		return E_LF_CANNOT_DECIDE_FILENAME;
-	}
-
-	// ファイルが既に存在するかどうか
-	if(!bOverwrite){
-		if(PathFileExists(lpszArcFile)){
-			// ファイルが存在したら問題あり
-			// この場合はエラーメッセージを出さずにファイル名を入力させる
-			return S_LF_ARCHIVE_EXISTS;
-		}
-	}
-
-	return S_OK;
-}
-
-int FindCompressionParamIndex(PARAMETER_TYPE type,int Options)
-{
-	//圧縮形式の情報を検索
-	for(int nIndex=0;nIndex<COMPRESS_PARAM_COUNT;nIndex++){
-		if(type==CompressParameterArray[nIndex].Type){
-			if(Options==CompressParameterArray[nIndex].Options){
-				return nIndex;
-			}
-		}
-	}
-	return -1;
-}
-
-//上書き確認など
-HRESULT ConfirmOutputFile(CPath &r_pathArcFileName,const std::list<CString> &rOrgFileNameList,LPCTSTR lpExt,BOOL bAskName,bool bUnicodeCapable)
-{
-	//----------------------------
-	// ファイル名指定が適切か確認
-	//----------------------------
-	bool bForceOverwrite=false;
-	BOOL bInputFilenameFirst=bAskName;//Config.Common.Compress.SpecifyOutputFilename;
-
-	HRESULT hStatus=E_UNEXPECTED;
-	while(S_OK!=hStatus){
-		if(!bInputFilenameFirst){
-			//ファイル名の長さなど確認
-			CString strLocalErr;
-			hStatus=CheckArchiveName(r_pathArcFileName,rOrgFileNameList,bForceOverwrite,bUnicodeCapable,strLocalErr);
-			if(FAILED(hStatus)){
-				ErrorMessage(strLocalErr);
-			}
-			if(S_OK==hStatus){
-				break;	//完了
-			}
-		}
-
-		//最初のファイル名は仮生成したものを使う
-		//選択されたファイル名が返ってくる
-		CPath pathFile;
-		if(E_LF_CANNOT_DECIDE_FILENAME==hStatus){
-			//ファイル名が決定できない場合、カレントディレクトリを現行パスとする
-			TCHAR szBuffer[_MAX_PATH+1]={0};
-			GetCurrentDirectory(_MAX_PATH,szBuffer);
-			pathFile=szBuffer;
-			pathFile.Append(CString(MAKEINTRESOURCE(IDS_UNTITLED)) + lpExt);
-		}else{
-			pathFile=r_pathArcFileName;
-		}
-
-		//==================
-		// 名前を付けて保存
-		//==================
-		//フィルタ文字列生成
-		CString strFilter(MAKEINTRESOURCE(IDS_COMPRESS_FILE));
-		strFilter.AppendFormat(_T(" (*%s)|*%s"),lpExt,lpExt);
-		TCHAR filter[_MAX_PATH+2]={0};
-		UtilMakeFilterString(strFilter,filter,COUNTOF(filter));
-
-		CFileDialog dlg(FALSE, lpExt, pathFile, OFN_OVERWRITEPROMPT|OFN_NOCHANGEDIR,filter);
-		if(IDCANCEL==dlg.DoModal()){	//キャンセル
-			return E_ABORT;
-		}
-
-		r_pathArcFileName=dlg.m_szFileName;
-		//DELETED:ファイル名のロングパスを取得
-
-		bForceOverwrite=true;
-		bInputFilenameFirst=false;
-	}
-	return S_OK;
-}
-
-/*************************************************************
-アーカイブファイル名を決定する。
-
- 基本的には、コマンドライン引数で与えられるファイル名のうち、
-最初のファイル名を元にして、拡張子だけを変えたファイルを作る。
-*************************************************************/
-HRESULT GetArchiveName(CPath &r_pathArcFileName,const std::list<CString> &OrgFileNameList,const PARAMETER_TYPE Type,const int Options,const CConfigCompress &ConfCompress,const CConfigGeneral &ConfGeneral,CMDLINEINFO &rCmdLineInfo,bool bUnicodeCapable,CString &strErr)
-{
-	ASSERT(!OrgFileNameList.empty());
-
-	//==================
-	// ファイル名の生成
-	//==================
-	BOOL bDirectory=FALSE;	//圧縮対象に指定された物がフォルダならtrue;フォルダとファイルで末尾の'.'の扱いを変える
-	BOOL bDriveRoot=FALSE;	//圧縮対象がドライブのルート(X:\ etc.)ならtrue
-	CPath pathOrgFileName;
-
-
-	bool bFileNameSpecified=(0<rCmdLineInfo.OutputFileName.GetLength());
-
-	//---元のファイル名
-	if(bFileNameSpecified){
-		//TODO:ここで処理するのはおかしい
-		pathOrgFileName=(LPCTSTR)rCmdLineInfo.OutputFileName;
-		pathOrgFileName.StripPath();	//パス名を取り除く
-	}else{
-		//先頭のファイル名を元に暫定的にファイル名を作り出す
-		pathOrgFileName=(LPCTSTR)*OrgFileNameList.begin();
-
-		//---判定
-		//ディレクトリかどうか
-		bDirectory=pathOrgFileName.IsDirectory();
-		//ドライブのルートかどうか
-		CPath pathRoot=pathOrgFileName;
-		pathRoot.AddBackslash();
-		bDriveRoot=pathRoot.IsRoot();
-		if(bDriveRoot){
-			//ボリューム名取得
-			TCHAR szVolume[MAX_PATH];
-			GetVolumeInformation(pathRoot,szVolume,MAX_PATH,NULL,NULL,NULL,NULL,0);
-			//ドライブを丸ごと圧縮する場合には、ボリューム名をファイル名とする
-			UtilFixFileName(pathOrgFileName,szVolume,_T('_'));
-		}
-	}
-
-	//圧縮形式の情報を検索
-	int nIndex=FindCompressionParamIndex(Type,Options);
-	if(-1==nIndex){
-		strErr=CString(MAKEINTRESOURCE(IDS_ERROR_ILLEGAL_FORMAT_TYPE));
-		return E_FAIL;
-	}
-
-	//拡張子決定
-	CString strExt;
-	if(bFileNameSpecified){
-		strExt=PathFindExtension(pathOrgFileName);
-	}else{
-		GetArchiveFileExtension(Type,pathOrgFileName,strExt,CompressParameterArray[nIndex].Ext);
-	}
-
-	//出力先フォルダ名
-	CPath pathOutputDir;
-	if(0!=rCmdLineInfo.OutputDir.GetLength()){
-		//出力先フォルダが指定されている場合
-		pathOutputDir=(LPCTSTR)rCmdLineInfo.OutputDir;
-	}else{
-		//設定を元に出力先を決める
-		bool bUseForAll;
-		HRESULT hr=GetOutputDirPathFromConfig(ConfCompress.OutputDirType,pathOrgFileName,ConfCompress.OutputDir,pathOutputDir,bUseForAll,strErr);
-		if(FAILED(hr)){
-			return hr;
-		}
-		if(bUseForAll){
-			rCmdLineInfo.OutputDir=(LPCTSTR)pathOutputDir;
-		}
-	}
-	pathOutputDir.AddBackslash();
-
-	// 出力先がネットワークドライブ/リムーバブルディスクであるなら警告
-	// 出力先が存在しないなら、作成確認
-	HRESULT hRes=ConfirmOutputDir(ConfGeneral,pathOutputDir,strErr);
-	if(FAILED(hRes)){
-		//キャンセルなど
-		return hRes;
-	}
-
-	if(PARAMETER_JACK==Type){
-		//JACK形式の場合は出力フォルダだけ指定
-		r_pathArcFileName=pathOutputDir;
-		return S_OK;
-	}
-
-	//ファイル名から拡張子とパス名を削除
-	if(bDirectory || bDriveRoot){	//ディレクトリ
-		//ディレクトリからは拡張子(最後の'.'以降の文字列)を削除しない
-		CPath pathDir=pathOrgFileName;
-		pathDir.StripPath();
-
-		r_pathArcFileName=pathOutputDir;
-		r_pathArcFileName.Append(pathDir);
-		r_pathArcFileName=(LPCTSTR)(((CString)r_pathArcFileName)+strExt);
-	}else{	//ファイル
-		CPath pathFile=pathOrgFileName;
-		pathFile.StripPath();
-		r_pathArcFileName=pathOutputDir;
-		r_pathArcFileName.Append(pathFile);
-		if(PARAMETER_B2E!=Type){
-			//B2Eの時は拡張子の扱いをB2E32.dllに任せる
-			r_pathArcFileName.RemoveExtension();
-		}
-		r_pathArcFileName=(LPCTSTR)(((CString)r_pathArcFileName)+strExt);
-	}
-
-	//---B2Eを特別扱い
-	if(PARAMETER_B2E==Type){
-		return S_OK;
-	}
-
-	//ドライブルートを圧縮する場合、ファイル名は即決しない
-	return ConfirmOutputFile(r_pathArcFileName,OrgFileNameList,strExt,ConfCompress.SpecifyOutputFilename || bDriveRoot,bUnicodeCapable);
-}
-
-
-//pathFileNameは最初のファイル名
-//深さ優先探索
-int FindFileToCompress(LPCTSTR lpszPath,CPath &pathFileName)
-{
-	if(!PathIsDirectory(lpszPath)){	//パスがファイルの場合
-		pathFileName=lpszPath;
-		return 1;
-	}else{	//パスがフォルダの場合、フォルダ内部のファイルを探す
-		int nFileCount=0;
-
-		CPath pathWild=lpszPath;
-		pathWild.Append(_T("\\*"));
-		CFindFile cFind;
-
-		BOOL bFound=cFind.FindFile(pathWild);
-		for(;bFound;bFound=cFind.FindNextFile()){
-			if(cFind.IsDots())continue;
-
-			if(cFind.IsDirectory()){	//サブディレクトリ検索
-				nFileCount+=FindFileToCompress(cFind.GetFilePath(),pathFileName);
-				if(nFileCount>=2){
-					return 2;
-				}
-			}else{
-				pathFileName=(LPCTSTR)cFind.GetFilePath();
-				nFileCount++;
-				if(nFileCount>=2){
-					return 2;
-				}
-			}
-		}
-		return nFileCount;
-	}
-}
-
-bool DeleteOriginalFiles(const CConfigCompress &ConfCompress,const std::list<CString>& fileList)
-{
-	CString strFiles;	//ファイル一覧
-	size_t idx=0;
-	for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-		strFiles+=_T("\n");
-		strFiles+=*ite;
-		idx++;
-		if(idx>=10 && idx<fileList.size()){
-			strFiles+=_T("\n");
-			strFiles.AppendFormat(IDS_NUM_EXTRA_FILES,fileList.size()-idx);
+	// Warn if output is on network or on a removable disk
+	for (;;) {
+		if (LF_confirm_output_dir_type(args.general, pathOutputDir)) {
 			break;
+		} else {
+			// Need to change path
+			CLFShellFileOpenDialog dlg(pathOutputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			if (IDOK == dlg.DoModal()) {
+				CString tmp;
+				dlg.GetFilePath(tmp);
+				pathOutputDir = tmp.operator LPCWSTR();
+				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
+				if (keepConfig) {
+					args.compress.OutputDirType = (int)OUTPUT_TO::SpecificDir;
+					args.compress.OutputDirUserSpecified = pathOutputDir.c_str();
+				}
+			} else {
+				CANCEL_EXCEPTION();
+			}
+		}
+	}
+	// Confirm to make extract dir if it does not exist
+	LF_ask_and_make_sure_output_dir_exists(pathOutputDir, (LOSTDIR)args.general.OnDirNotFound);
+
+	//archive file title
+	std::wstring defaultArchiveTitle;
+	if (!lpCmdLineInfo || lpCmdLineInfo->OutputFileName.empty()) {
+		defaultArchiveTitle = determineDefaultArchiveTitle(format, options, givenFiles.front());
+	} else {
+		//only filenames
+		defaultArchiveTitle = lpCmdLineInfo->OutputFileName.filename();
+	}
+
+	//confirm
+	arcLog.setArchivePath(pathOutputDir / defaultArchiveTitle);
+	auto archivePath = confirmOutputFile(
+		pathOutputDir / defaultArchiveTitle,
+		sources,
+		cap.formatExt(givenFiles.front(), options),
+		args.compress.SpecifyOutputFilename || args.compress.OutputDirType == (int)OUTPUT_TO::AlwaysAsk);
+
+	//delete archive
+	if (std::filesystem::exists(archivePath)) {
+		if (!UtilDeletePath(archivePath)) {
+			auto strLastError = UtilGetLastErrorMessage();
+			auto msg = Format(UtilLoadString(IDS_ERROR_FILE_REPLACE), strLastError.c_str());
+
+			ErrorMessage(msg.c_str());
+			RAISE_EXCEPTION(msg);
 		}
 	}
 
-	//削除する
-	if(ConfCompress.MoveToRecycleBin){
-		//--------------
-		// ごみ箱に移動
-		//--------------
-		if(!ConfCompress.DeleteNoConfirm){	//削除確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_MOVE_ORIGINALFILE_TO_RECYCLE_BIN);
-			Message+=strFiles;
+	progressHandler.setArchive(archivePath);
+	arcLog.setArchivePath(archivePath);
 
-			//確認後ゴミ箱に移動
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
+	//limit concurrent compressions
+	CSemaphoreLocker SemaphoreLock;
+	if (args.compress.LimitCompressFileCount) {
+		const wchar_t* LHAFORGE_COMPRESS_SEMAPHORE_NAME = L"LhaForgeCompressLimitSemaphore";
+		SemaphoreLock.Create(LHAFORGE_COMPRESS_SEMAPHORE_NAME, args.compress.MaxCompressFileCount);
+		//Wait for semaphore lock
+		//progress dialog shows waiting message
+		progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+		for (; !SemaphoreLock.Lock(20);) {
+			while (UtilDoMessageLoop())continue;
+			progressHandler.poll();	//needed to detect cancel
+			Sleep(20);
 		}
+	}
 
-		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
-		return true;
-	}else{
-		//------
-		// 削除
-		//------
-		if(!ConfCompress.DeleteNoConfirm){	//確認する場合
-			CString Message;
-			Message.Format(IDS_ASK_DELETE_ORIGINALFILE);
-			Message+=strFiles;
+	//do compression
+	compressOneArchive(
+		format,
+		options,
+		args,
+		archivePath,
+		sources,
+		arcLog,
+		progressHandler,
+		passphraseHandler);
 
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
+	//notify shell
+	::SHChangeNotify(SHCNE_CREATE, SHCNF_PATH, archivePath.c_str(), nullptr);
+
+	//open output directory
+	if (args.compress.OpenDir) {
+		if (args.general.Filer.UseFiler) {
+			auto pathOpenDir = std::filesystem::path(archivePath).parent_path();
+			auto envInfo = LF_make_expand_information(pathOpenDir.c_str(), archivePath.c_str());
+
+			auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
+			auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
+			ShellExecuteW(nullptr, L"open", strCmd.c_str(), strParam.c_str(), nullptr, SW_SHOWNORMAL);
+		} else {
+			UtilNavigateDirectory(archivePath);
 		}
-		//削除実行
-		for(std::list<CString>::const_iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			UtilDeletePath(*ite);
-		}
-		return true;
+	}
+
+	//delete original asrchive
+	if (args.compress.DeleteAfterCompress) {
+		//set current directory to that of myself
+		::SetCurrentDirectoryW(UtilGetModuleDirectoryPath().c_str());
+		//delete
+		LF_deleteOriginalArchives(args.compress.MoveToRecycleBin, args.compress.DeleteNoConfirm, givenFiles);
 	}
 }
+
+#ifdef UNIT_TEST
+/*TEST(compress, compress_helper)
+{
+}*/
+#endif
+
+bool GUI_compress_multiple_files(
+	const std::vector<std::filesystem::path> &givenFiles,
+	LF_ARCHIVE_FORMAT format,
+	LF_WRITE_OPTIONS options,
+	ILFProgressHandler &progressHandler,
+	const CConfigFile& config,
+	const CMDLINEINFO* lpCmdLineInfo)
+{
+	LF_COMPRESS_ARGS args;
+	parseCompressOption(config, args, lpCmdLineInfo);
+
+	//do compression
+	if (lpCmdLineInfo && 0 != lpCmdLineInfo->Options) {
+		options = (LF_WRITE_OPTIONS)lpCmdLineInfo->Options;
+	}
+
+	size_t idxFile = 0, totalFiles = 1;
+
+	std::vector<ARCLOG> logs;
+	if (lpCmdLineInfo && lpCmdLineInfo->bSingleCompression) {
+		totalFiles = givenFiles.size();
+		for (const auto &file : givenFiles) {
+			idxFile++;
+			try {
+				logs.resize(logs.size() + 1);
+				compress_helper(
+					{ file },
+					format,
+					options,
+					lpCmdLineInfo,
+					logs.back(),
+					args,
+					progressHandler,
+					std::make_shared<CLFPassphraseGUI>()
+				);
+			} catch (const LF_USER_CANCEL_EXCEPTION&) {
+				break;
+			} catch (const LF_EXCEPTION&) {
+				continue;
+			}
+		}
+	} else {
+		idxFile++;
+		try {
+			logs.resize(logs.size() + 1);
+			compress_helper(
+				givenFiles,
+				format,
+				options,
+				lpCmdLineInfo,
+				logs.back(),
+				args,
+				progressHandler,
+				std::make_shared<CLFPassphraseGUI>()
+			);
+		} catch (const LF_EXCEPTION &) {
+		}
+	}
+	progressHandler.end();
+
+	bool bAllOK = true;
+	for (const auto& log : logs) {
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
+	}
+	//---display logs
+	bool displayLog = false;
+	switch ((LOGVIEW)args.general.LogViewEvent) {
+	case LOGVIEW::OnError:
+		if (!bAllOK) {
+			displayLog = true;
+		}
+		break;
+	case LOGVIEW::Always:
+		displayLog = true;
+		break;
+	}
+
+	if (displayLog) {
+		CLogListDialog LogDlg(UtilLoadString(IDS_LOGINFO_OPERATION_COMPRESS).c_str());
+		LogDlg.SetLogArray(logs);
+		LogDlg.DoModal(::GetDesktopWindow());
+	}
+
+	return bAllOK;
+}
+
+
+const std::vector<COMPRESS_COMMANDLINE_PARAMETER> g_CompressionCmdParams = {
+	{L"zip",		LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_ZIP},
+	{L"zippass",	LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_ZIP_PASS},
+//	{L"zipsfx",	LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_SFX		,IDS_FORMAT_NAME_ZIP_SFX},
+//	{L"zippasssfx",LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SFX,IDS_FORMAT_NAME_ZIP_PASS_SFX},
+//	{L"zipsplit",	LF_ARCHIVE_FORMAT::ZIP,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_ZIP_SPLIT},
+//	{L"zippasssplit",LF_ARCHIVE_FORMAT::ZIP,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_ZIP_PASS_SPLIT},
+	{L"7z",		LF_ARCHIVE_FORMAT::_7Z,		LF_WOPT_STANDARD					,IDS_FORMAT_NAME_7Z},
+//	{L"7zpass",	LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_DATA_ENCRYPTION	,IDS_FORMAT_NAME_7Z_PASS},
+//	{L"7zsfx",	LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_SFX		,IDS_FORMAT_NAME_7Z_SFX},
+//	{L"7zsplit",	LF_ARCHIVE_FORMAT::7Z,		COMPRESS_SPLIT		,IDS_FORMAT_NAME_7Z_SPLIT},
+//	{L"7zpasssplit",LF_ARCHIVE_FORMAT::7Z,		LF_WOPT_DATA_ENCRYPTION | COMPRESS_SPLIT,IDS_FORMAT_NAME_7Z_PASS_SPLIT},
+	{L"gz",		LF_ARCHIVE_FORMAT::GZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_GZ},
+	{L"bz2",		LF_ARCHIVE_FORMAT::BZ2,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_BZ2},
+	{L"lzma",	LF_ARCHIVE_FORMAT::LZMA,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZMA},
+	{L"xz",		LF_ARCHIVE_FORMAT::XZ,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_XZ},
+	{L"zstd",	LF_ARCHIVE_FORMAT::ZSTD,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_ZSTD},
+	{L"lz4",		LF_ARCHIVE_FORMAT::LZ4,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_LZ4},
+	{L"tar",		LF_ARCHIVE_FORMAT::TAR,		LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR},
+	{L"tgz",		LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},		//compatibility
+	{L"tar+gz",	LF_ARCHIVE_FORMAT::TAR_GZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TGZ},
+	{L"tbz",		LF_ARCHIVE_FORMAT::TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},			//compatibility
+	{L"tar+bz2",	LF_ARCHIVE_FORMAT::TAR_BZ2,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TBZ},
+	{L"tlz",		LF_ARCHIVE_FORMAT::TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},		//compatibility
+	{L"tar+lzma",LF_ARCHIVE_FORMAT::TAR_LZMA,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZMA},
+	{L"txz",		LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},		//compatibility
+	{L"tar+xz",	LF_ARCHIVE_FORMAT::TAR_XZ,	LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_XZ},
+	{L"tar+zstd",LF_ARCHIVE_FORMAT::TAR_ZSTD,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_ZSTD},
+	{L"tar+lz4",LF_ARCHIVE_FORMAT::TAR_LZ4,LF_WOPT_STANDARD			,IDS_FORMAT_NAME_TAR_LZ4},
+};
+
+
+const COMPRESS_COMMANDLINE_PARAMETER& get_archive_format_args(LF_ARCHIVE_FORMAT fmt, int opts)
+{
+	for (const auto &item : g_CompressionCmdParams) {
+		if (item.Type == fmt && item.Options == opts) {
+			return item;
+		}
+	}
+	throw ARCHIVE_EXCEPTION(EINVAL);
+}
+
+#ifdef UNIT_TEST
+TEST(compress, get_archive_format_args)
+{
+	EXPECT_EQ(L"zip", get_archive_format_args(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"zippass", get_archive_format_args(LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION).name);
+	EXPECT_EQ(L"7z", get_archive_format_args(LF_ARCHIVE_FORMAT::_7Z, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"gz", get_archive_format_args(LF_ARCHIVE_FORMAT::GZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"bz2", get_archive_format_args(LF_ARCHIVE_FORMAT::BZ2, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"lzma", get_archive_format_args(LF_ARCHIVE_FORMAT::LZMA, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"xz", get_archive_format_args(LF_ARCHIVE_FORMAT::XZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"lz4", get_archive_format_args(LF_ARCHIVE_FORMAT::LZ4, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tgz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+gz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_GZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tbz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+bz2", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_BZ2, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tlz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+lzma", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZMA, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"txz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
+	//EXPECT_EQ(L"tar+xz", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_XZ, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar+zstd", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_ZSTD, LF_WOPT_STANDARD).name);
+	EXPECT_EQ(L"tar+lz4", get_archive_format_args(LF_ARCHIVE_FORMAT::TAR_LZ4, LF_WOPT_STANDARD).name);
+}
+#endif
+
+
+//----
+
+void RAW_FILE_READER::open(const std::filesystem::path& path)
+{
+	close();
+	fp.open(path, L"rb");
+	if (!fp.is_opened()) {
+		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), path.wstring().c_str());
+	}
+}
+
+
+#ifdef UNIT_TEST
+
+#pragma comment(lib,"Bcrypt.lib")
+TEST(compress, RAW_FILE_READER)
+{
+	auto fileToRead = std::filesystem::path(__FILEW__).parent_path() / L"test/test_raw_file_reader.txt";
+	std::string expected_hash = "dc2545110ea53ef9ce169fd676cf9f24a966e6571be630d221eae8b8bb7717a5";
+
+	RAW_FILE_READER reader;
+	EXPECT_THROW(reader.open(L"some_non_existing_file"), LF_EXCEPTION);
+	reader.open(fileToRead);
+	std::vector<char> buf;
+	for (;;) {
+		auto bi = reader();
+		if (!bi.size)break;
+		buf.insert(buf.end(), (const char*)(bi.buffer), (const char*)(bi.buffer) + bi.size);
+	}
+
+	//sha256
+	//https://docs.microsoft.com/en-us/windows/win32/seccng/creating-a-hash-with-cng
+	std::string hash;
+	{
+		BCRYPT_ALG_HANDLE hAlg = nullptr;
+
+#define NT_SUCCESS(Status)          (((NTSTATUS)(Status)) >= 0)
+
+		//open an algorithm handle
+		if (NT_SUCCESS(BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_SHA256_ALGORITHM, nullptr, 0))) {
+			//calculate the size of the buffer to hold the hash object
+			DWORD cbData = 0, cbHashObject = 0;
+			if (NT_SUCCESS(BCryptGetProperty(hAlg, BCRYPT_OBJECT_LENGTH, (PBYTE)&cbHashObject, sizeof(DWORD), &cbData, 0))) {
+				//allocate the hash object on the heap
+				std::vector<BYTE> bHashObject;
+				bHashObject.resize(cbHashObject);
+				//calculate the length of the hash
+				DWORD cbHash = 0;
+				if (NT_SUCCESS(BCryptGetProperty(hAlg, BCRYPT_HASH_LENGTH, (PBYTE)&cbHash, sizeof(DWORD), &cbData, 0))) {
+					//allocate the hash buffer on the heap
+					std::vector<BYTE> bHash;
+					bHash.resize(cbHash);
+					//create a hash
+					BCRYPT_HASH_HANDLE hHash = nullptr;
+					if (NT_SUCCESS(BCryptCreateHash(hAlg, &hHash, &bHashObject[0], cbHashObject, nullptr, 0, 0))) {
+						//hash some data
+						if (NT_SUCCESS(BCryptHashData(hHash, (PBYTE)&buf[0], (ULONG)buf.size(), 0))) {
+							//close the hash
+							if (NT_SUCCESS(BCryptFinishHash(hHash, &bHash[0], cbHash, 0))) {
+								for (auto c : bHash) {
+									char strbuf[8] = {};
+									sprintf_s(strbuf, "%02x", c);
+									hash += strbuf;
+								}
+							}
+						}
+					}
+					if (hHash) {
+						BCryptDestroyHash(hHash);
+					}
+				}
+			}
+		}
+		if (hAlg) {
+			BCryptCloseAlgorithmProvider(hAlg, 0);
+		}
+	}
+
+
+	EXPECT_EQ(expected_hash, hash);
+}
+
+
+
+
+/*
+
+TEST(compress, GUI_compress_multiple_files)
+{
+	bool GUI_compress_multiple_files(
+		const std::vector<std::wstring> &givenFiles,
+		LF_ARCHIVE_FORMAT format,
+		LF_WRITE_OPTIONS options,
+		CMDLINEINFO& CmdLineInfo);
+	TODO;
+}
+*/
+
+TEST(compress, copyArchive)	//or maybe test for CLFArchive
+{
+	auto src_filename = std::filesystem::path(__FILEW__).parent_path() / L"test/test_extract.zip";
+	auto tempFile = UtilGetTemporaryFileName();
+	CLFArchive src;
+	LF_COMPRESS_ARGS fake_args;
+	fake_args.load(CConfigFile());
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	src.read_open(src_filename, pp);
+	auto dest = src.make_copy_archive(tempFile, fake_args, [](const LF_ENTRY_STAT& entry) {
+		if (entry.path.wstring().find(L"dirC") == std::wstring::npos) {
+			return true;
+		} else {
+			return false;
+		}
+		return true;
+	});
+
+	dest->close();
+	dest = nullptr;
+
+	EXPECT_TRUE(CLFArchive::is_known_format(tempFile));
+
+	auto tempDir = UtilGetTempPath() / L"test_copyArchive";
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::abort);
+	EXPECT_NO_THROW(arc.read_open(tempFile, pp));
+	EXPECT_NO_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
+	EXPECT_FALSE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_FALSE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
+
+	UtilDeleteDir(tempDir, true);
+
+	UtilDeletePath(tempFile);
+}
+#endif

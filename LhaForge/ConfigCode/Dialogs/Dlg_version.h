@@ -24,40 +24,41 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../../resource.h"
-#include "../../Utilities/Utility.h"
+#include "resource.h"
 
-//====================================
-// バージョン情報
-//====================================
-class CConfigDlgVersion : public CDialogImpl<CConfigDlgVersion>,public CMessageFilter,public IConfigDlgBase
+const char g_commit_hash[] = 
+#include "commit-hash"
+;
+
+class CConfigDlgVersion : public LFConfigDialogBase<CConfigDlgVersion>
 {
 protected:
 	CHyperLink link_url;
 	CHyperLink link_mailto;
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
-
 public:
+	CConfigDlgVersion() {}
+	virtual ~CConfigDlgVersion() {}
 	enum { IDD = IDD_PROPPAGE_VERSION };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgVersion)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	LRESULT OnApply(){return TRUE;}
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		link_url.SetHyperLinkExtendedStyle(HLINK_USETAGS);
+		link_url.SubclassWindow(GetDlgItem(IDC_URL));
+		link_url.SetHyperLink(L"https://claybird.sakura.ne.jp/");
 
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
+		link_mailto.SetHyperLinkExtendedStyle(HLINK_USETAGS);
+		link_mailto.SubclassWindow(GetDlgItem(IDC_GITHUB));
+		link_mailto.SetHyperLink(L"https://github.com/Claybird/");
 
+		::SetWindowTextA(GetDlgItem(IDC_STATIC_HASH), g_commit_hash);
 		return TRUE;
 	}
-	void LoadConfig(CConfigManager& Config){}
-	void StoreConfig(CConfigManager& Config){}
+	LRESULT OnApply(){return TRUE;}
+
+	void LoadConfig(CConfigFile& Config){}
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){}
 };
 

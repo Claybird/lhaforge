@@ -24,11 +24,27 @@
 
 #pragma once
 
-class CConfigManager;
-class IConfigDlgBase{
+#include "ConfigCode/ConfigFile.h"
+
+class IConfigDlgBase {
 public:
-	virtual ~IConfigDlgBase(){}
-	virtual LRESULT OnApply()=0;
-	virtual void LoadConfig(CConfigManager&)=0;
-	virtual void StoreConfig(CConfigManager&)=0;
+	virtual ~IConfigDlgBase() {}
+	virtual LRESULT OnApply() = 0;
+	virtual void LoadConfig(CConfigFile&) = 0;
+	virtual void StoreConfig(CConfigFile&, CConfigFile& assistant) = 0;
+
+	virtual HWND GetDialogHandle() = 0;
+	virtual HWND Create(HWND hWndParent, LPARAM dwInitParam = NULL) = 0;
+};
+
+
+template <typename T>
+class LFConfigDialogBase : public CDialogImpl<T>, public LFWinDataExchange<T>, public IConfigDlgBase
+{
+public:
+	virtual ~LFConfigDialogBase() {}
+	virtual HWND GetDialogHandle()override { return m_hWnd; }
+	virtual HWND Create(HWND hWndParent, LPARAM dwInitParam = NULL) override {
+		return CDialogImpl<T>::Create(hWndParent, dwInitParam);
+	}
 };

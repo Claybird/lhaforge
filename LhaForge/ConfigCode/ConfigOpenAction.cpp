@@ -23,32 +23,34 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigOpenAction.h"
 
-// 関連付け動作設定
-void CConfigOpenAction::load(CONFIG_SECTION &Config)
+void CConfigOpenAction::load(const CConfigFile &Config)
 {
-	//動作選択
-	OpenAction=(OPENACTION)Config.Data[_T("OpenAction")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_EXTRACT);
-	OpenAction_Shift=(OPENACTION)Config.Data[_T("OpenAction_Shift")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_LIST);
-	OpenAction_Ctrl=(OPENACTION)Config.Data[_T("OpenAction_Ctrl")].GetNParam(0,OPENACTION_LAST_ITEM,OPENACTION_TEST);
+	const auto section = L"OpenAction";
+	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
+	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
+	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
 }
 
-void CConfigOpenAction::store(CONFIG_SECTION &Config)const
+void CConfigOpenAction::store(CConfigFile &Config)const
 {
-	//動作選択
-	Config.Data[_T("OpenAction")]=OpenAction;
-	Config.Data[_T("OpenAction_Shift")]=OpenAction_Shift;
-	Config.Data[_T("OpenAction_Ctrl")]=OpenAction_Ctrl;
+	const auto section = L"OpenAction";
+	Config.setValue(section, L"OpenAction", OpenAction);
+	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
+	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
 }
 
-void CConfigOpenAction::load(CConfigManager &ConfMan)
+#ifdef UNIT_TEST
+TEST(config, CConfigOpenAction)
 {
-	load(ConfMan.GetSection(_T("OpenAction")));
-}
+	CConfigFile emptyFile;
+	CConfigOpenAction conf;
+	conf.load(emptyFile);
 
-void CConfigOpenAction::store(CConfigManager &ConfMan)const
-{
-	store(ConfMan.GetSection(_T("OpenAction")));
+	EXPECT_EQ((int)OPENACTION::EXTRACT, conf.OpenAction);
+	EXPECT_EQ((int)OPENACTION::LIST, conf.OpenAction_Shift);
+	EXPECT_EQ((int)OPENACTION::TEST, conf.OpenAction_Ctrl);
 }
+#endif

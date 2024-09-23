@@ -25,121 +25,69 @@
 #include "stdafx.h"
 
 #include "Association.h"
+#include "Utilities/OSUtil.h"
 
-//関連付けを取得
-//Extの情報を元に、FileTypeとそのIconについて調べる
-bool AssocGetAssociation(ASSOCINFO &AssocInfo)
+const wchar_t* DEFAULT_ICON_FILENAME = L"icons\\archive.ico";
+const wchar_t* ASSOC_PREFIX = L"LhaForge2Archive_";
+
+bool getDefaultRegKeyValue(const std::wstring& key, std::wstring& value)
 {
-	if(AssocInfo.Ext.IsEmpty()){
-		TRACE(_T("AssocGetAssociation():Ext is Empty\n"));
+	CRegKey hKey;
+	auto Ret = hKey.Open(HKEY_CLASSES_ROOT, key.c_str(), KEY_READ);
+	if (ERROR_SUCCESS != Ret) {
 		return false;
 	}
-	HKEY hKey;
-	LONG Ret = ::RegOpenKeyEx(HKEY_CLASSES_ROOT, AssocInfo.Ext, NULL, KEY_READ, &hKey);
-	if(ERROR_SUCCESS!=Ret){
-		TRACE(_T("AssocGetAssociation():Failed to Open '%s'\n"),AssocInfo.Ext);
-		return false;
-	}
-	//拡張子を小文字で統一する
-	AssocInfo.Ext.MakeLower();
-	//拡張子に対応するFileType取得
-	std::vector<BYTE> Buffer;
-	DWORD dwRead=0;
-	::RegQueryValueEx(hKey, NULL, NULL, NULL, NULL,&dwRead);
-	Buffer.assign(dwRead+1,0);
-	Ret = ::RegQueryValueEx(hKey, NULL, NULL, NULL, &Buffer.at(0),&dwRead);
-	if(ERROR_SUCCESS!=Ret){
-		::RegCloseKey(hKey);
-		TRACE(_T("AssocGetAssociation():Failed to Get FileType\n"));
-		return false;
-	}
-	CString FileType=(TCHAR*)&Buffer.at(0);
 
-	//オリジナルのFileType
-	/*
-	1.FileTypeが無いとき、OrgFIleType=.???\OrgFileType(NULLにもなりうる)
-	2.FileTypeがLhaForgeArchive_*以外の時、OrgFileType=.???\(Default)
-	3.FileTypeがLhaForgeArchive_*のとき、OrgFileType=.???\OrgFileType
-	*/
-	//1.と3.のとき
-	if(0==FileType.Left(_tcslen(ASSOC_PREFIX)).CompareNoCase(ASSOC_PREFIX)){
-		AssocInfo.bOrgStatus=true;
+	DWORD dwSize = 0;
+	hKey.QueryStringValue(nullptr, nullptr, &dwSize);
+	value.resize(dwSize + 1, L'\0');
+	Ret = hKey.QueryStringValue(nullptr, &value[0], &dwSize);
+	if (ERROR_SUCCESS != Ret) {
+		return false;
 	}
-	else{
-		AssocInfo.bOrgStatus=false;
+	value = value.c_str();
+	return true;
+}
+
+bool AssocGetAssociation(const std::wstring &ext, ASSOCINFO& AssocInfo)
+{
+	if(ext.empty()){
+		return false;
 	}
-	if(FileType.IsEmpty()||(0==FileType.Left(_tcslen(ASSOC_PREFIX)).CompareNoCase(ASSOC_PREFIX))){
-		::RegQueryValueEx(hKey, _T("LhaForgeOrgFileType"), NULL, NULL, NULL,&dwRead);
-		Buffer.assign(dwRead+1,0);
-		Ret = ::RegQueryValueEx(hKey, _T("LhaForgeOrgFileType"), NULL, NULL, &Buffer.at(0),&dwRead);
-		::RegCloseKey(hKey);
-		if(ERROR_SUCCESS!=Ret){
-			AssocInfo.OrgFileType.Empty();
-			TRACE(_T("AssocGetAssociation():Failed to Get OrgFileType\n"));
-		}
-		else{
-			AssocInfo.OrgFileType=(TCHAR*)&Buffer.at(0);
+	AssocInfo.Ext = toLower(ext);
+	std::wstring fileType;
+	if (!getDefaultRegKeyValue(AssocInfo.Ext, fileType)) {
+		return false;
+	}
+	{
+		if (0 == toLower(fileType).find(toLower(ASSOC_PREFIX))) {
+			AssocInfo.isAssociated = true;
+		} else {
+			AssocInfo.isAssociated = false;
 		}
 	}
-	else{	//2.のとき
-		AssocInfo.OrgFileType=FileType;
-		::RegCloseKey(hKey);
+
+	//---icons
+	{
+		std::wstring iconDefs;
+		if (!getDefaultRegKeyValue(fileType + L"\\DefaultIcon", iconDefs)) {
+			return false;
+		}
+
+		auto path_and_index = UtilPathParseIconLocation(iconDefs);
+		AssocInfo.IconFile = path_and_index.first.c_str();
+		AssocInfo.IconIndex = path_and_index.second;
+
+		AssocInfo.prevIconFile = AssocInfo.IconFile;
+		AssocInfo.prevIconIndex = AssocInfo.IconIndex;
 	}
 
-	//------------------------------
-	// FileTypeからアイコン情報取得
-	//------------------------------
-	CString KeyNameBuffer=FileType;
-	KeyNameBuffer+=_T("\\DefaultIcon");
-	Ret = ::RegOpenKeyEx(HKEY_CLASSES_ROOT, KeyNameBuffer, NULL, KEY_READ, &hKey);
-	if(ERROR_SUCCESS!=Ret){
-		TRACE(_T("AssocGetAssociation('%s'):Failed to Open '%s' for Default Icon\n"),AssocInfo.Ext,KeyNameBuffer);
-		return false;
+	//---commands for Shell\Open
+	if (AssocInfo.isAssociated) {
+		if (!getDefaultRegKeyValue(fileType + L"\\shell\\open\\command", AssocInfo.ShellOpenCommand)) {
+			return false;
+		}
 	}
-
-	dwRead=0;
-	::RegQueryValueEx(hKey, NULL, NULL, NULL, NULL,&dwRead);
-	Buffer.assign(dwRead+1,0);
-	Ret = ::RegQueryValueEx(hKey, NULL, NULL, NULL, &Buffer.at(0),&dwRead);
-	::RegCloseKey(hKey);
-	if(ERROR_SUCCESS!=Ret){
-		TRACE(_T("AssocGetAssociation():Failed to Get IconInfo\n"));
-		return false;
-	}
-	//アイコン情報の取得
-	AssocInfo.IconFile=(TCHAR*)&Buffer.at(0);
-	AssocInfo.IconIndex=PathParseIconLocation(AssocInfo.IconFile.GetBuffer(_MAX_PATH*2));
-	AssocInfo.IconFile.ReleaseBuffer();
-	TRACE(_T("***%d:::%s\n"),AssocInfo.IconIndex,AssocInfo.IconFile);
-
-	AssocInfo.OrgIconFile=AssocInfo.IconFile;
-	AssocInfo.OrgIconIndex=AssocInfo.IconIndex;
-
-	//----------------------------
-	// Shell\Openのコマンドを読む
-	//----------------------------
-	if(!AssocInfo.bOrgStatus){
-		//関連付けされていない
-		return true;
-	}
-	KeyNameBuffer=FileType;
-	KeyNameBuffer+=_T("\\shell\\open\\command");
-	Ret = ::RegOpenKeyEx(HKEY_CLASSES_ROOT, KeyNameBuffer, NULL, KEY_READ, &hKey);
-	if(ERROR_SUCCESS!=Ret){
-		TRACE(_T("AssocGetAssociation():Failed to Open '%s' for Open Command\n"),KeyNameBuffer);
-		return false;
-	}
-
-	dwRead=0;
-	::RegQueryValueEx(hKey, NULL, NULL, NULL, NULL,&dwRead);
-	Buffer.assign(dwRead+1,0);
-	Ret = ::RegQueryValueEx(hKey, NULL, NULL, /*&ValueType*/NULL, &Buffer.at(0),&dwRead);
-	::RegCloseKey(hKey);
-	if(ERROR_SUCCESS!=Ret){
-		TRACE(_T("AssocGetAssociation():Failed to Get ShellOpenCommand\n"));
-		return false;
-	}
-	AssocInfo.ShellOpenCommand=(TCHAR*)&Buffer.at(0);
 
 	return true;
 }

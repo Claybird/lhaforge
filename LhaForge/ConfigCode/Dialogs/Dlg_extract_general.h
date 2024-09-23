@@ -24,49 +24,33 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigManager.h"
-#include "../../resource.h"
-#include "../ConfigExtract.h"
-#include "../../ArchiverCode/arc_interface.h"
+#include "resource.h"
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigExtract.h"
+#include "ArchiverCode/archive.h"
 
-//====================================
-// 解凍一般設定
-//====================================
-class CConfigDlgExtractGeneral : public CDialogImpl<CConfigDlgExtractGeneral>,public CMessageFilter,public CWinDataExchange<CConfigDlgExtractGeneral>,public IConfigDlgBase
+class CConfigDlgExtractGeneral : public LFConfigDialogBase<CConfigDlgExtractGeneral>
 {
 protected:
 	CConfigExtract m_Config;
-	CButton Radio_ExtractTo[OUTPUT_TO_ITEM_COUNT];
-	CEdit Edit_ExtractOutputDirPath;
-	CButton Button_ExtractToFolder;
-	CButton Radio_CreateDir[CREATE_OUTPUT_DIR_ITEM_COUNT];
 	CUpDownCtrl UpDown_MaxExtractFileCount;
-	CButton Check_LimitExtractFileCount;
-	CButton Check_DeleteFileAfterExtract;
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_EXTRACT_GENERAL };
 
-	// DDXマップ
 	BEGIN_DDX_MAP(CConfigGeneral)
 		DDX_CHECK(IDC_CHECK_REMOVE_SYMBOL_AND_NUMBER, m_Config.RemoveSymbolAndNumber)
 		DDX_CHECK(IDC_CHECK_OPEN_FOLDER_AFTER_EXTRACT, m_Config.OpenDir)
 		DDX_CHECK(IDC_CHECK_FORCE_OVERWRITE, m_Config.ForceOverwrite)
-		DDX_CHECK(IDC_CHECK_CREATE_NO_FOLDER_IF_SINGLE_FILE_ONLY,m_Config.CreateNoFolderIfSingleFileOnly)
 		DDX_CHECK(IDC_CHECK_LIMIT_EXTRACT_FILECOUNT,m_Config.LimitExtractFileCount)
 		DDX_CHECK(IDC_CHECK_DELETE_ARCHIVE_AFTER_EXTRACT,m_Config.DeleteArchiveAfterExtract)
 		DDX_CHECK(IDC_CHECK_MOVETO_RECYCLE_BIN,m_Config.MoveToRecycleBin)
 		DDX_CHECK(IDC_CHECK_DELETE_NOCONFIRM,m_Config.DeleteNoConfirm)
-		DDX_CHECK(IDC_CHECK_FORCE_DELETE,m_Config.ForceDelete)
-		DDX_CHECK(IDC_CHECK_DELETE_MULTIVOLUME,m_Config.DeleteMultiVolume)
-		DDX_CHECK(IDC_CHECK_MINIMUM_PASSWORD_REQUEST,m_Config.MinimumPasswordRequest)
-		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT,m_Config.DenyExt)
+		DDX_TEXT(IDC_EDIT_EXTRACT_DENY_EXT, m_Config.DenyExt)
+		DDX_RADIO(IDC_RADIO_EXTRACT_TO_DESKTOP, m_Config.OutputDirType)
+		DDX_RADIO(IDC_RADIO_CREATE_FOLDER, m_Config.CreateDir)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgExtractGeneral)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_RANGE_HANDLER(IDC_RADIO_EXTRACT_TO_DESKTOP,IDC_RADIO_EXTRACT_TO_ALWAYS_ASK_WHERE, OnRadioExtractTo)
@@ -74,7 +58,6 @@ public:
 		COMMAND_ID_HANDLER(IDC_BUTTON_EXTRACT_BROWSE_FOLDER,OnBrowseFolder)
 		COMMAND_ID_HANDLER(IDC_CHECK_LIMIT_EXTRACT_FILECOUNT,OnCheckLimitExtractFileCount)
 		COMMAND_ID_HANDLER(IDC_CHECK_DELETE_ARCHIVE_AFTER_EXTRACT,OnCheckDeleteArchive)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
@@ -85,17 +68,10 @@ public:
 	LRESULT OnCheckLimitExtractFileCount(WORD,WORD,HWND,BOOL&);
 	LRESULT OnCheckDeleteArchive(WORD,WORD,HWND,BOOL&);
 
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
-
-	void LoadConfig(CConfigManager& Config){
+	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigManager& Config){
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
 	}
 };

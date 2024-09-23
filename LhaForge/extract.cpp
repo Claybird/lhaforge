@@ -24,447 +24,960 @@
 
 #include "stdafx.h"
 #include "extract.h"
-#include "ArchiverManager.h"
 #include "resource.h"
-#include "ConfigCode/ConfigManager.h"
-#include "ConfigCode/ConfigGeneral.h"
-#include "ConfigCode/ConfigExtract.h"
-#include "Utilities/Semaphore.h"
-#include "Dialogs/LogDialog.h"
 #include "Dialogs/LogListDialog.h"
-#include "Dialogs/ProgressDlg.h"
-#include "Dialogs/LFFolderDialog.h"
+#include "Utilities/Semaphore.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FileOperation.h"
 #include "Utilities/OSUtil.h"
+#include "Utilities/CustomControl.h"
+#include "Utilities/Utility.h"
 #include "CommonUtil.h"
 #include "CmdLineInfo.h"
 
-//削除対象の記号リスト
-const LPCWSTR g_szTable=L"0123456789./*-+{}[]@`:;!\"#$%&\'()_><=~^|,\\ 　";	//最後は半角空白,全角空白
 
-//strOpenDir:解凍先を開くとき、実際に開くパス
-bool ExtractOneArchive(CConfigManager &ConfMan,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,CArchiverDLL *lpArchiver,LPCTSTR lpArcFile,CPath &r_pathSpecificOutputDir,ARCLOG &r_ArcLog,CPath &r_pathOpenDir)
+std::filesystem::path trimArchiveName(bool RemoveSymbolAndNumber, const std::filesystem::path& archive_path)
 {
-	//ファイル名を記録
-	r_ArcLog.strFile=lpArcFile;
+	//Symbols to be deleted
+	//last two characters are "half-width space" and "full-width space"
+	const wchar_t* symbols = L"0123456789./*-+{}[]@`:;!\"#$%&\'()_><=~^|,\\ 　";
 
-	//安全なアーカイブかどうか、および
-	//二重にフォルダを作らないよう、先にフォルダが必要かどうかを判定する
-	bool bInFolder,bSafeArchive;
-	bool bSkipDirCheck=(CREATE_OUTPUT_DIR_SINGLE!=ConfExtract.CreateDir);
+	std::filesystem::path an = archive_path;
+	std::filesystem::path dirname = an.stem();	//pure filename; no directory path, no extensions
 
-	CString strBaseDir;	//二重フォルダチェックのときに得られる、全てのファイルを内包するフォルダの名前(もしあれば)
-	CString strExamErr;
-	if(!lpArchiver->ExamineArchive(lpArcFile,ConfMan,bSkipDirCheck,bInFolder,bSafeArchive,strBaseDir,strExamErr)){
-		//NOTE:B2E32.dllのために、エラーチェックを弱くしてある
-		ErrorMessage(strExamErr);
-		bInFolder=false;
-		bSafeArchive=false;
+	// trims trailing symbols
+	if (RemoveSymbolAndNumber) {
+		dirname = UtilTrimString(dirname, symbols);
+	} else {
+		dirname = UtilTrimString(dirname, L".\\ 　");
+	}
+	//if dirname become empty, restore original
+	if (dirname.empty()) {
+		dirname = an.stem();
 	}
 
-	//アーカイブ中のファイル・フォルダの数を調べる
-	int nItemCount=-1;
-	if(ConfExtract.CreateNoFolderIfSingleFileOnly){
-		//「ファイル・フォルダが一つだけの時フォルダを作成しない」設定の時にのみ調査する
-		nItemCount=lpArchiver->GetFileCount(lpArcFile);
-	}
+	return dirname;
+}
+#ifdef UNIT_TEST
 
-	bool bRet=false;
-	CPath pathOutputDir;
-	bool bUseForAll=false;	//今後も同じ出力フォルダを使うならtrue
-	CString strErr;
-	HRESULT hr=GetExtractDestDir(lpArcFile,ConfGeneral,ConfExtract,r_pathSpecificOutputDir,bInFolder,pathOutputDir,nItemCount,strBaseDir,r_pathOpenDir,bUseForAll,strErr);
-	if(FAILED(hr)){
-		if(E_ABORT == hr){
-			r_ArcLog.Result=EXTRACT_CANCELED;
-			r_ArcLog.strMsg.Format(IDS_ERROR_USERCANCEL);
-		}else{
-			r_ArcLog.Result=EXTRACT_NG;
-			r_ArcLog.strMsg=strErr;
+TEST(extract, trimArchiveName) {
+	EXPECT_EQ(L"", trimArchiveName(true, L""));
+
+	EXPECT_EQ(L"123", trimArchiveName(true, L"123"));	//restore original
+	EXPECT_EQ(L"123", trimArchiveName(false, L"123"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456"));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456[1]"));
+	EXPECT_EQ(L"123abc456[1]", trimArchiveName(false, L"123abc456[1]"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456."));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456."));
+
+	EXPECT_EQ(L"", trimArchiveName(true, L"123abc456\\"));
+	EXPECT_EQ(L"", trimArchiveName(false, L"123abc456\\"));
+
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456 "));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456 "));
+
+	//full-width space
+	EXPECT_EQ(L"123abc", trimArchiveName(true, L"123abc456　"));
+	EXPECT_EQ(L"123abc456", trimArchiveName(false, L"123abc456　"));
+}
+#endif
+
+//GUICallback(default directory)->output directory
+std::filesystem::path determineExtractBaseDir(
+	const std::filesystem::path& archive_path,
+	LF_EXTRACT_ARGS& args)
+{
+	args.output_dir_callback.setArchivePath(archive_path);
+	auto outputDir = LF_get_output_dir(
+		(OUTPUT_TO)args.extract.OutputDirType,
+		archive_path,
+		args.extract.OutputDirUserSpecified.c_str(),
+		args.output_dir_callback);
+
+	// Warn if output is on network or on a removable disk
+	for (;;) {
+		if (LF_confirm_output_dir_type(args.general, outputDir)) {
+			break;
+		} else {
+			// Need to change path
+			CLFShellFileOpenDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			if (IDOK == dlg.DoModal()) {
+				CString tmp;
+				dlg.GetFilePath(tmp);
+				std::filesystem::path pathOutputDir = tmp.operator LPCWSTR();
+				outputDir = pathOutputDir;
+				bool keepConfig = (GetKeyState(VK_SHIFT) < 0);	//TODO
+				if (keepConfig) {
+					args.extract.OutputDirType = (int)OUTPUT_TO::SpecificDir;
+					args.extract.OutputDirUserSpecified = pathOutputDir.c_str();
+				}
+			} else {
+				CANCEL_EXCEPTION();
+			}
 		}
-		return false;
 	}
-	if(bUseForAll){	//今後の設定を上書き
-		r_pathSpecificOutputDir=pathOutputDir;
-	}
+	// Confirm to make extract dir if it does not exist
+	LF_ask_and_make_sure_output_dir_exists(outputDir, (LOSTDIR)args.general.OnDirNotFound);
 
-	//出力先ディレクトリをカレントディレクトリに設定
-	if(!SetCurrentDirectory(pathOutputDir)){
-		r_ArcLog.Result=EXTRACT_NG;
-		r_ArcLog.strMsg.Format(IDS_ERROR_CANNOT_SET_CURRENT_DIR,(LPCTSTR)pathOutputDir);
-		return false;
-	}
-
-	TRACE(_T("Archive Handler 呼び出し\n"));
-	//------------
-	// 解凍を行う
-	//------------
-	if(!lpArchiver->IsUnicodeCapable() && !UtilCheckT2A(pathOutputDir)){
-		//UNICODEに対応していないのにUNICODEファイル名のフォルダに展開しようとした
-		bRet=false;
-		r_ArcLog.Result=EXTRACT_NG;
-		r_ArcLog.strMsg=CString(MAKEINTRESOURCE(IDS_ERROR_UNICODEPATH));
-	}else{
-		CString strLog;
-		bRet=lpArchiver->Extract(lpArcFile,ConfMan,ConfExtract,bSafeArchive,pathOutputDir,strLog);
-
-		//---ログデータ
-		r_ArcLog.Result=(bRet?EXTRACT_OK:EXTRACT_NG);
-		r_ArcLog.strMsg=strLog;
-	}
-	if(ConfGeneral.NotifyShellAfterProcess){
-		//解凍完了を通知
-		::SHChangeNotify(SHCNE_UPDATEDIR,SHCNF_PATH,pathOutputDir,NULL);
-	}
-	return bRet;
+	return outputDir;
 }
 
-bool DeleteOriginalArchives(const CConfigExtract &ConfExtract,LPCTSTR lpszArcFile)
+#ifdef UNIT_TEST
+
+TEST(extract, determineExtractBaseDir) {
+	LF_EXTRACT_ARGS fakeArg;
+	fakeArg.load(CConfigFile());
+	fakeArg.extract.OutputDirType = (int)OUTPUT_TO::SpecificDir;
+	fakeArg.extract.OutputDirUserSpecified = std::filesystem::current_path().c_str();
+	fakeArg.general.WarnNetwork = FALSE;
+	fakeArg.general.WarnRemovable = FALSE;
+	fakeArg.general.OnDirNotFound = (int)LOSTDIR::ForceCreate;
+
+	auto out = determineExtractBaseDir(L"path_to_archive/archive.ext", fakeArg);
+	EXPECT_EQ(std::filesystem::current_path(), out);
+}
+#endif
+
+enum class PRE_EXTRACT_CHECK :int {
+	unknown,
+	singleDir,	//all the contents are under one root directory
+	singleFile,
+	multipleEntries,
+};
+
+std::tuple<PRE_EXTRACT_CHECK, std::filesystem::path /*baseDirName*/>
+preExtractCheck(ILFArchiveFile &arc, ILFScanProgressHandler& progressHandler)
 {
-	std::list<CString> fileList;	//削除対象のファイル一覧
+	progressHandler.setArchive(arc.get_archive_path());
 
-	//---マルチボリュームならまとめて削除
-	CString strFindParam;
-	bool bMultiVolume=false;
-	if(ConfExtract.DeleteMultiVolume){	//マルチボリュームでの削除が有効か？
-		bMultiVolume=UtilIsMultiVolume(lpszArcFile,strFindParam);
+	std::filesystem::path baseDirName;
+	auto result = PRE_EXTRACT_CHECK::unknown;
+	bool bFirst = true;
+
+	for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		auto path = LF_sanitize_pathname(entry->path);
+		//to remove trailing '/'
+		path = UtilPathRemoveLastSeparator(path);
+		auto path_components = UtilSplitString(path, L"/");
+		if (path_components.empty())continue;
+
+		if (bFirst) {
+			if (entry->is_directory() || path_components.size() > 1) {
+				baseDirName = path_components.front();
+				result = PRE_EXTRACT_CHECK::singleDir;
+			} else {
+				result = PRE_EXTRACT_CHECK::singleFile;
+			}
+			bFirst = false;
+		} else {
+			if (PRE_EXTRACT_CHECK::singleFile == result) {
+				result = PRE_EXTRACT_CHECK::multipleEntries;
+				baseDirName.clear();
+				break;
+			} else if (PRE_EXTRACT_CHECK::singleDir == result) {
+				if (0 != _wcsicmp(baseDirName.c_str(), path_components.front().c_str())) {
+					//another root entry found
+					result = PRE_EXTRACT_CHECK::multipleEntries;
+					baseDirName.clear();
+					break;
+				}
+			}
+		}
+		//notifier
+		progressHandler.onNextEntry(entry->path);
 	}
+	return { result,baseDirName };
+}
 
-	CString strFiles;	//ファイル一覧
-
-	if(bMultiVolume){
-		UtilPathExpandWild(fileList,strFindParam);
-		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			strFiles+=_T("\n");
-			strFiles+=*ite;
-		}
-	}else{
-		fileList.push_back(lpszArcFile);
+#ifdef UNIT_TEST
+TEST(extract, preExtractCheck) {
+	{
+		auto [result, baseDirName] = preExtractCheck(CLFArchiveNULL(), CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::unknown, result);
 	}
-
-	//削除する
-	if(ConfExtract.MoveToRecycleBin){
-		//--------------
-		// ごみ箱に移動
-		//--------------
-		if(!ConfExtract.DeleteNoConfirm){	//削除確認する場合
-			CString Message;
-			if(bMultiVolume){
-				//マルチボリューム
-				Message.Format(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN_MANY);
-				Message+=strFiles;
-			}else{
-				//単一ファイル
-				Message.Format(IDS_ASK_MOVE_ARCHIVE_TO_RECYCLE_BIN,lpszArcFile);
-			}
-
-			//確認後ゴミ箱に移動
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
-		}
-
-		//削除実行
-		UtilMoveFileToRecycleBin(fileList);
-		return true;
-	}else{
-		//------
-		// 削除
-		//------
-		if(!ConfExtract.DeleteNoConfirm){	//確認する場合
-			CString Message;
-			if(bMultiVolume){
-				//マルチボリューム
-				Message.Format(IDS_ASK_DELETE_ARCHIVE_MANY);
-				Message+=strFiles;
-			}else{
-				//単一ファイル
-				Message.Format(IDS_ASK_DELETE_ARCHIVE,lpszArcFile);
-			}
-			if(IDYES!=MessageBox(NULL,Message,UtilGetMessageCaption(),MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2)){
-				return false;
-			}
-		}
-		//削除実行
-		for(std::list<CString>::iterator ite=fileList.begin();ite!=fileList.end();++ite){
-			DeleteFile(*ite);
-		}
-		return true;
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
+	}
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test_extract.zipx", pp);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::multipleEntries, result);
+	}
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test_gzip.gz", pp);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
+	}
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleFile, result);
+	}
+	{
+		CLFArchive a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
+		auto [result, baseDirName] = preExtractCheck(a, CLFScanProgressHandlerNULL());
+		EXPECT_EQ(PRE_EXTRACT_CHECK::singleDir, result);
+		EXPECT_EQ(L"test", baseDirName);
 	}
 }
 
+#endif
 
-// アーカイブ名からフォルダパスを作成する
-void GetArchiveDirectoryPath(const CConfigExtract &ConfExtract,LPCTSTR lpszArcName,CPath &pathDir)
+std::filesystem::path determineExtractDir(
+	ILFArchiveFile& arc,
+	ILFScanProgressHandler& progress,
+	const std::filesystem::path& archive_path,
+	const std::filesystem::path& output_base_dir,
+	const LF_EXTRACT_ARGS& args)
 {
-	pathDir=lpszArcName;
-	pathDir.StripPath();	//パス名からファイル名を取得
-	pathDir.RemoveExtension();//アーカイブファイル名から拡張子を削除
-
-	//フォルダ名末尾の数字と記号を取り除く
-	if(ConfExtract.RemoveSymbolAndNumber){
-		CPath pathOrg=pathDir;
-		UtilTrimString(pathDir,g_szTable);
-		//数字と記号を取り除いた結果、文字列が空になってしまっていたら元にもどす
-		if(_tcslen(pathDir)==0){
-			pathDir=pathOrg;
+	bool needToCreateDir = false;
+	switch ((EXTRACT_CREATE_DIR)args.extract.CreateDir) {
+	case EXTRACT_CREATE_DIR::Never:
+		needToCreateDir = false;
+		break;
+	case EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir:
+	{
+		auto [result, baseDirName] = preExtractCheck(arc, progress);
+		if (PRE_EXTRACT_CHECK::multipleEntries != result) {
+			needToCreateDir = false;
+		} else {
+			needToCreateDir = true;
 		}
+		break;
+	}
+	case EXTRACT_CREATE_DIR::SkipIfSingleDirectory:
+	{
+		auto [result, baseDirName] = preExtractCheck(arc, progress);
+		if (PRE_EXTRACT_CHECK::singleDir == result) {
+			needToCreateDir = false;
+		} else {
+			needToCreateDir = true;
+		}
+		break;
+	}
+	case EXTRACT_CREATE_DIR::Always:
+	default:
+		needToCreateDir = true;
+		break;
 	}
 
-	//空白を取り除く
-	UtilTrimString(pathDir,_T(".\\ 　"));
-
-	if(_tcslen(pathDir)>0){
-		pathDir.AddBackslash();
+	if (needToCreateDir) {
+		auto subdir = trimArchiveName(args.extract.RemoveSymbolAndNumber, archive_path);
+		return output_base_dir / subdir;
+	} else {
+		return output_base_dir;
 	}
 }
 
-/*************************************************************
-出力先フォルダを決定する
-出力先フォルダを二重に作成しないよう、bInFolder引数ですべて
-フォルダに入っているかどうか確認する
-*************************************************************/
-HRESULT GetExtractDestDir(LPCTSTR ArcFileName,const CConfigGeneral &ConfGeneral,const CConfigExtract &ConfExtract,LPCTSTR lpSpecificOutputDir,bool bInFolder,CPath &r_pathOutputDir,const int nItemCount,LPCTSTR lpszBaseDir,CPath &r_pathOpenDir,bool &r_bUseForAll/*以降もこのフォルダに解凍するならtrueが返る*/,CString &strErr)
+#ifdef UNIT_TEST
+TEST(extract, determineExtractDir) {
+	LF_EXTRACT_ARGS fakeArg;
+	fakeArg.load(CConfigFile());
+	{
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Never;
+		fakeArg.extract.RemoveSymbolAndNumber = false;
+		CLFArchiveNULL arc;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(L"path_to_archive/archive.ext", pp);
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+
+		arc.read_open(L"path_to_archive/archive  .ext", pp);
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive   .ext", L"path_to_output", fakeArg));
+	}
+
+	{
+		CLFArchiveNULL arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::Always;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(L"path_to_archive/archive.ext", pp);
+		EXPECT_EQ(L"path_to_output/archive",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive.ext", L"path_to_output", fakeArg));
+		arc.read_open(L"path_to_archive/archive  .ext", pp);
+		EXPECT_EQ(L"path_to_output/archive",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), L"path_to_archive/archive  .ext", L"path_to_output", fakeArg));
+	}
+
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.tar.gz", pp);
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.tar.gz", L"path_to_output", fakeArg));
+	}
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
+		EXPECT_EQ(L"path_to_output",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test.lzh", pp);
+		EXPECT_EQ(L"path_to_output/test",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test.lzh", L"path_to_output", fakeArg));
+	}
+	//---
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleFileOrDir;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
+		EXPECT_EQ(L"path_to_output/test_extract",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+	}
+	{
+		CLFArchive arc;
+		fakeArg.extract.CreateDir = (int)EXTRACT_CREATE_DIR::SkipIfSingleDirectory;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		arc.read_open(LF_PROJECT_DIR() / L"test/test_extract.zip", pp);
+		EXPECT_EQ(L"path_to_output/test_extract",
+			determineExtractDir(arc, CLFScanProgressHandlerNULL(), LF_PROJECT_DIR() / L"test/test_extract.zip", L"path_to_output", fakeArg));
+	}
+}
+#endif
+
+//load configuration from file, then overwrites with command line arguments.
+void parseExtractOption(LF_EXTRACT_ARGS& args, CConfigFile &mngr, const CMDLINEINFO* lpCmdLineInfo)
 {
-	CPath pathOutputDir;
+	args.load(mngr);
 
-	if(lpSpecificOutputDir && 0!=_tcslen(lpSpecificOutputDir)){
-		//特定ディレクトリを出力先として指定されていた場合
-		pathOutputDir=lpSpecificOutputDir;
-	}else{
-		//設定を元に出力先を決める
-		HRESULT hr=GetOutputDirPathFromConfig(ConfExtract.OutputDirType,ArcFileName,ConfExtract.OutputDir,pathOutputDir,r_bUseForAll,strErr);
-		if(FAILED(hr)){
-			return hr;
+	//overwrite with command line arguments
+	if (lpCmdLineInfo) {
+		if (OUTPUT_TO::NoOverride != lpCmdLineInfo->OutputToOverride) {
+			args.extract.OutputDirType = (int)lpCmdLineInfo->OutputToOverride;
+			args.extract.OutputDirUserSpecified = lpCmdLineInfo->OutputDir;
 		}
-	}
-	pathOutputDir.AddBackslash();
-
-	// 出力先がネットワークドライブ/リムーバブルディスクであるなら警告
-	// 出力先が存在しないなら、作成確認
-	HRESULT hStatus=ConfirmOutputDir(ConfGeneral,pathOutputDir,strErr);
-	if(FAILED(hStatus)){
-		//キャンセルなど
-		return hStatus;
-	}
-
-	//アーカイブ名からフォルダを作る
-	CPath pathArchiveNamedDir;	//アーカイブ名のフォルダ
-	bool bCreateArchiveDir=false;	//アーカイブ名のフォルダを作成する場合にはtrue
-	if(
-		(!ConfExtract.CreateNoFolderIfSingleFileOnly || nItemCount!=1)&&
-			(
-				((CREATE_OUTPUT_DIR_SINGLE==ConfExtract.CreateDir)&&!bInFolder)||
-				 (CREATE_OUTPUT_DIR_ALWAYS==ConfExtract.CreateDir)
-			)
-	){
-		GetArchiveDirectoryPath(ConfExtract,ArcFileName,pathArchiveNamedDir);
-		if(_tcslen(pathArchiveNamedDir)==0){
-			hStatus=S_FALSE;	//NG
-		}else{
-			pathOutputDir+=pathArchiveNamedDir;
-			bCreateArchiveDir=true;
+		if (EXTRACT_CREATE_DIR::NoOverride != lpCmdLineInfo->CreateDirOverride) {
+			args.extract.CreateDir = (int)lpCmdLineInfo->CreateDirOverride;
 		}
-	}
-
-	//パス名の長さチェック
-	if(S_OK==hStatus){
-		if(_tcslen(pathOutputDir)>=_MAX_PATH){
-			// パス名が長すぎたとき
-			//TODO
-			ErrorMessage(CString(MAKEINTRESOURCE(IDS_ERROR_MAX_PATH)));
-			hStatus=S_FALSE;
-		}
-	}
-
-	//そのままではフォルダ名を使えない場合
-	if(S_FALSE==hStatus){
-		// 名前を付けて保存
-		CString title(MAKEINTRESOURCE(IDS_INPUT_TARGET_FOLDER_WITH_SHIFT));
-		CLFFolderDialog dlg(NULL,title,BIF_RETURNONLYFSDIRS|BIF_NEWDIALOGSTYLE);
-		if(IDOK==dlg.DoModal()){
-			r_bUseForAll=(GetKeyState(VK_SHIFT)<0);	//TODO
-			pathOutputDir=dlg.GetFolderPath();
-			pathOutputDir.AddBackslash();
-			if(bCreateArchiveDir){
-				pathOutputDir+=pathArchiveNamedDir;
+		if (CMDLINEINFO::ACTION::Default != lpCmdLineInfo->DeleteAfterProcess) {
+			if (CMDLINEINFO::ACTION::False == lpCmdLineInfo->DeleteAfterProcess) {
+				args.extract.DeleteArchiveAfterExtract = false;
+			} else {
+				args.extract.DeleteArchiveAfterExtract = true;
 			}
-		}else{
-			//キャンセル
-			return E_ABORT;
 		}
 	}
-
-	//出力先の(アーカイブ名と同名のフォルダ名も含めた)フォルダが存在することを保証させる
-	if(!UtilMakeSureDirectoryPathExists(pathOutputDir)){
-		strErr.Format(IDS_ERROR_CANNOT_MAKE_DIR,(LPCTSTR)pathOutputDir);
-		return E_FAIL;
-	}
-
-	//出力先フォルダ名を返す
-	r_pathOutputDir=pathOutputDir;
-
-	//開くパスの組み立て
-	CPath pathToOpen=pathOutputDir;
-	if(!bCreateArchiveDir){	//アーカイブ名フォルダを作成しない場合
-		if(ConfExtract.CreateNoFolderIfSingleFileOnly && nItemCount==1){
-			//-ファイル・フォルダが一つだけであるためフォルダを作成しなかった
-			//Nothing to do
-		}else if(CREATE_OUTPUT_DIR_SINGLE==ConfExtract.CreateDir && bInFolder){
-			//-二重にフォルダを作らない設定に従い、フォルダを作成しなかった
-			//アーカイブ内フォルダを開く
-			pathToOpen.Append(lpszBaseDir);
-			pathToOpen.AddBackslash();
-		}
-	}
-	pathToOpen.QuoteSpaces();
-	//開くパスを返す
-	r_pathOpenDir=pathToOpen;
-	return true;
 }
 
-bool Extract(std::list<CString> &ParamList,CConfigManager &ConfigManager,DLL_ID ForceDLL,LPCTSTR lpSpecificOutputDir,const CMDLINEINFO* lpCmdLineInfo)
-{
-	TRACE(_T("Function ::Extract() started.\n"));
-	CConfigGeneral ConfGeneral;
-	CConfigExtract ConfExtract;
-
-	ConfGeneral.load(ConfigManager);
-	ConfExtract.load(ConfigManager);
-
-	//設定上書き
-	if(lpCmdLineInfo){
-		if(-1!=lpCmdLineInfo->OutputToOverride){
-			ConfExtract.OutputDirType=lpCmdLineInfo->OutputToOverride;
-		}
-		if(-1!=lpCmdLineInfo->CreateDirOverride){
-			ConfExtract.CreateDir=lpCmdLineInfo->CreateDirOverride;
-		}
-		if(-1!=lpCmdLineInfo->DeleteAfterProcess){
-			ConfExtract.DeleteArchiveAfterExtract=lpCmdLineInfo->DeleteAfterProcess;
-		}
+#ifdef UNIT_TEST
+TEST(extract, parseExtractOption) {
+	{
+		LF_EXTRACT_ARGS args;
+		parseExtractOption(args, CConfigFile(), nullptr);
+		EXPECT_EQ((int)OUTPUT_TO::Desktop, args.extract.OutputDirType);
+		EXPECT_EQ(L"", args.extract.OutputDirUserSpecified);
 	}
-
-	//セマフォによる排他処理
-	CSemaphoreLocker SemaphoreLock;
-	if(ConfExtract.LimitExtractFileCount){
-		SemaphoreLock.Lock(LHAFORGE_EXTRACT_SEMAPHORE_NAME,ConfExtract.MaxExtractFileCount);
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::NoOverride;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::Desktop, args.extract.OutputDirType);
+		EXPECT_EQ(L"", args.extract.OutputDirUserSpecified);
 	}
-
-	UINT uFiles=ParamList.size();	//引数にあるファイルの数
-
-	//プログレスバー
-	CProgressDialog dlg;
-	//メッセージループを回すためのタイマー
-	int timer=NULL;
-	if(uFiles>=2){	//ファイルが複数ある時に限定
-		dlg.Create(NULL);
-		dlg.SetTotalFileCount(uFiles);
-		dlg.ShowWindow(SW_SHOW);
-		timer=SetTimer(NULL,NULL,1000,UtilMessageLoopTimerProc);
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::SameDir;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::SameDir, args.extract.OutputDirType);
+		EXPECT_EQ(L"some_dir", args.extract.OutputDirUserSpecified);
 	}
+	{
+		LF_EXTRACT_ARGS args;
+		CMDLINEINFO cmdline;
+		cmdline.OutputToOverride = OUTPUT_TO::SpecificDir;
+		cmdline.OutputDir = L"some_dir";
+		parseExtractOption(args, CConfigFile(), &cmdline);
+		EXPECT_EQ((int)OUTPUT_TO::SpecificDir, args.extract.OutputDirType);
+		EXPECT_EQ(L"some_dir", args.extract.OutputDirUserSpecified);
+	}
+}
+#endif
 
-	//指定の出力先
-	CPath pathSpecificOutputDir(lpSpecificOutputDir ? lpSpecificOutputDir : _T(""));
+std::filesystem::path extractCurrentEntry(
+	ILFArchiveFile &arc,
+	const LF_ENTRY_STAT *entry,
+	const std::filesystem::path& output_dir,
+	ARCLOG &arcLog,
+	ILFOverwriteConfirm& preExtractHandler,
+	ILFProgressHandler& progressHandler
+) {
+	std::filesystem::path outputPath = output_dir / LF_sanitize_pathname(entry->path);
 
-	std::vector<ARCLOG> LogArray;	//処理結果を保持
-	bool bAllOK=true;	//すべて問題なく解凍されればtrue
+	//original file size (before compression)
+	progressHandler.onNextEntry(outputPath, entry->stat.st_size);
+	bool created = false;
+	try {
+		if (entry->is_directory()) {
+			try {
+				std::filesystem::create_directories(outputPath);
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_MKDIR));
+			} catch (std::filesystem::filesystem_error&) {
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_MKDIR_FAIL));
+				RAISE_EXCEPTION(Format(UtilLoadString(IDS_ERROR_MKDIR), outputPath.c_str()));
+			}
+		} else {
+			//overwrite?
+			auto decision = preExtractHandler(outputPath, entry);
+			switch (decision) {
+			case overwrite_options::overwrite:
+				//do nothing, keep going
+				break;
+			case overwrite_options::skip:
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_SKIP));
+				return {};
+			case overwrite_options::abort:
+				//abort
+				CANCEL_EXCEPTION();
+				break;
+			}
 
-	//解凍処理
-	for(std::list<CString>::iterator ite_param=ParamList.begin();ite_param!=ParamList.end();++ite_param){
-		//プログレスバーを進める
-		if(dlg.IsWindow())dlg.SetNextState(*ite_param);
+			{
+				auto parent = std::filesystem::path(outputPath).parent_path();
+				if (!std::filesystem::exists(parent)) {
+					//in case directory entry is not in archive
+					std::filesystem::create_directories(parent);
+					arcLog(parent, UtilLoadString(IDS_ARCLOG_MKDIR));
+				}
+			}
+
+			//go
+			CAutoFile fp;
+			fp.open(outputPath, L"wb");
+			if (!fp.is_opened()) {
+				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_ERROR_WRITE));
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), outputPath.c_str());
+			}
+			created = true;
+			for (bool bEOF = false;!bEOF;) {
+				arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+					if (!buf || data_size == 0) {
+						progressHandler.onEntryIO(entry->stat.st_size);
+						bEOF = true;
+					} else {
+						if (offset && _ftelli64(fp) != offset->offset) {
+							_fseeki64(fp, offset->offset, SEEK_SET);
+						}
+						auto written = fwrite(buf, 1, (size_t)data_size, fp);
+						if (written != data_size) {
+							RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_WRITE_FILE), outputPath.c_str());
+						}
+						progressHandler.onEntryIO(_ftelli64(fp));
+					}
+				});
+			}
+			arcLog(outputPath, UtilLoadString(IDS_ARCLOG_OK));
+			fp.close();
+		}
+
+		entry->write_stat(outputPath);
+		return outputPath;
+	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+		arcLog(outputPath, e.what());
+		if (created) {
+			UtilDeletePath(outputPath);
+		}
+		throw;
+	} catch (LF_EXCEPTION &e) {
+		arcLog(outputPath, e.what());
+		if (created) {
+			UtilDeletePath(outputPath);
+		}
+		throw;
+	}
+}
+
+#ifdef UNIT_TEST
+TEST(extract, extractCurrentEntry) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_extractCurrentEntry");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_extract.zip";
+	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+	EXPECT_NO_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
+
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+
+TEST(extract, extractCurrentEntry_broken_files) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	const std::vector<std::filesystem::path> files = { L"test_broken_file.zip" , L"test_broken_crc.zip" };
+
+	for (const auto& file : files) {
+		auto tempDir = std::filesystem::path(UtilGetTempPath()) / L"test_extractCurrentEntry";
+		UtilDeleteDir(tempDir, true);
+		EXPECT_FALSE(std::filesystem::exists(tempDir));
+		std::filesystem::create_directories(tempDir);
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
 
 		ARCLOG arcLog;
+		CLFArchive arc;
+		CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+		EXPECT_THROW(
+			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+					CLFProgressHandlerNULL());
+			}
+		, LF_EXCEPTION);
 
-		//メッセージループ
-		while(UtilDoMessageLoop())continue;
+		UtilDeleteDir(tempDir, true);
+		EXPECT_FALSE(std::filesystem::exists(tempDir));
+	}
+}
+#endif
 
-		//アーカイバハンドラ取得
-		//ここでUNICODE非対応DLLにユニコードファイル名を渡そうとした場合は弾かれる。そして、ここでは失敗の原因を解明できない
-		CArchiverDLL *lpArchiver=CArchiverDLLManager::GetInstance().GetArchiver(*ite_param,ConfExtract.DenyExt,ForceDLL);
-		if(!lpArchiver){
-			//対応するハンドラがなかった
-			arcLog.Result=EXTRACT_NOTARCHIVE;
-			arcLog.strMsg.Format(IDS_ERROR_ILLEGAL_HANDLER,(LPCTSTR)*ite_param);
-			arcLog.strFile=*ite_param;
-			bAllOK=false;
-			LogArray.push_back(arcLog);
+//enumerate archives to delete
+std::vector<std::filesystem::path> enumerateOriginalArchives(const std::filesystem::path& original_archive)
+{
+	ASSERT(!std::filesystem::is_directory(original_archive));
+	if (std::filesystem::is_directory(original_archive))return {};
+
+	//currently, only rar is supported
+	auto rar_pattern = std::wregex(LR"(\.part\d+.*\.rar$)", std::regex_constants::icase);
+	if (std::regex_search(original_archive.wstring(), rar_pattern)) {
+		//---RAR
+		auto path = std::filesystem::path(original_archive);
+		path.make_preferred();
+		auto stem = path.stem().stem();
+
+		std::vector<std::filesystem::path> files;
+		for (const auto& entry : std::filesystem::directory_iterator(path.parent_path())) {
+			auto p = entry.path();
+			p.make_preferred();
+			if (std::regex_search(p.wstring(), rar_pattern)) {
+				if (0==_wcsicmp(p.stem().stem().c_str(),stem.c_str())) {
+					files.push_back(p);
+				}
+			}
+		}
+		return files;
+	} else {
+		return { original_archive };
+	}
+}
+
+#ifdef UNIT_TEST
+TEST(extract, enumerateOriginalArchives)
+{
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_enumerateOriginalArchives");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+
+	//fake archives
+	for (int i = 0; i < 12; i++) {
+		if (i % 2 == 0) {
+			touchFile(tempDir / Format(L"TEST.PART%d.RAR", i + 1));
+		} else {
+			touchFile(tempDir / Format(L"test.part%d.rar", i + 1));
+		}
+	}
+	touchFile(tempDir / Format(L"do_not_detect_this.part1.rar"));
+	touchFile(tempDir / Format(L"test.part1.rar.txt"));
+	touchFile(tempDir / Format(L"test.part1.rar.rar"));
+	touchFile(tempDir / Format(L"test2.rar"));
+	touchFile(tempDir / Format(L"test3.zip"));
+
+	auto files = enumerateOriginalArchives(tempDir / L"test.part3.rar");
+	ASSERT_EQ(12, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART5.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part6.rar").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"TEST.PART11.RAR").make_preferred()));
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part12.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"do_not_detect_this.part1.rar").make_preferred()));
+	EXPECT_FALSE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test.part1.rar.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test.part1.rar.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test2.rar");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test2.rar").make_preferred()));
+
+	files = enumerateOriginalArchives(tempDir / L"test3.zip");
+	ASSERT_EQ(1, files.size());
+	EXPECT_TRUE(isIn(files, (tempDir / L"test3.zip").make_preferred()));
+
+	UtilDeleteDir(tempDir, true);
+}
+#endif
+
+bool GUI_extract_multiple_files(
+	const std::vector<std::filesystem::path> &archive_files,
+	ILFProgressHandler &progressHandler,
+	const CMDLINEINFO* lpCmdLineInfo
+)
+{
+	LF_EXTRACT_ARGS args;
+	CConfigFile mngr;
+	try {
+		mngr.load();
+		// load configuration, then override them with command line args
+		parseExtractOption(args, mngr, lpCmdLineInfo);
+	} catch (const LF_EXCEPTION& e) {
+		UtilMessageBox(NULL, e.what(), MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	UINT64 totalFiles = archive_files.size();
+	//TODO: queueDialog
+	std::vector<ARCLOG> logs;
+	for (const auto &archive_path : archive_files) {
+		progressHandler.reset();
+		progressHandler.setArchive(archive_path);
+		std::filesystem::path output_dir;
+		try {
+			//determine output base directory
+			auto output_base_dir = determineExtractBaseDir(archive_path, args);
+
+			CLFArchive arc;
+			arc.read_open(archive_path, std::make_shared<CLFPassphraseGUI>());
+
+			//output destination directory [could be same as the output base directory]
+			{
+				CLFScanProgressHandlerGUI progress(NULL);
+				output_dir = determineExtractDir(arc, progress, archive_path, output_base_dir, args);
+				progressHandler.setNumEntries(arc.get_num_entries());
+			}
+
+			//make sure output directory exists
+			try {
+				std::filesystem::create_directories(output_dir);
+			} catch (std::filesystem::filesystem_error&) {
+				RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_MKDIR).c_str(), output_dir.c_str());
+			}
+
+
+			logs.resize(logs.size() + 1);
+			ARCLOG& arcLog = logs.back();
+			// record archive filename
+			arcLog.setArchivePath(archive_path);
+			progressHandler.setArchive(archive_path);
+
+			// limit concurrent extractions
+			CSemaphoreLocker SemaphoreLock;
+			if (args.extract.LimitExtractFileCount) {
+				const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
+				SemaphoreLock.Create(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Lock(INFINITE);
+				//Wait for semaphore lock
+				//progress dialog shows waiting message
+				progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+				for (; !SemaphoreLock.Lock(20);) {
+					while (UtilDoMessageLoop())continue;
+					progressHandler.poll();	//needed to detect cancel
+					Sleep(20);
+				}
+			}
+
+			CLFOverwriteConfirmGUI preExtractHandler;
+			// loop for each entry
+			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+				extractCurrentEntry(arc, entry, output_dir, arcLog, preExtractHandler, progressHandler);
+			}
+			//end
+			arc.close();
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
+			break;
+		} catch (const ARCHIVE_EXCEPTION& e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
+			continue;
+		} catch (const LF_EXCEPTION& e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
 			continue;
 		}
 
-		CPath pathOpenDir;		//ファイラが開くべきフォルダ
-		//解凍実行
-		bool bRet=ExtractOneArchive(ConfigManager,ConfGeneral,ConfExtract,lpArchiver,*ite_param,pathSpecificOutputDir,arcLog,pathOpenDir);
-		//ログ保存
-		LogArray.push_back(arcLog);
+		// open output directory
+		if (args.extract.OpenDir) {
+			if (args.general.Filer.UseFiler) {
+				// expand environment
+				auto envInfo = LF_make_expand_information(output_dir.c_str(), nullptr);
 
-		if(!bRet){
-			bAllOK=false;
-		}else{
-			//出力先フォルダを開く
-			if(ConfExtract.OpenDir){
-				if(ConfGeneral.Filer.UseFiler){
-					//パラメータ展開に必要な情報
-					std::map<stdString,CString> envInfo;
-					MakeExpandInformationEx(envInfo,pathOpenDir,NULL);
-
-					//コマンド・パラメータ展開
-					CString strCmd,strParam;
-					UtilExpandTemplateString(strCmd,ConfGeneral.Filer.FilerPath,envInfo);	//コマンド
-					UtilExpandTemplateString(strParam,ConfGeneral.Filer.Param,envInfo);	//パラメータ
-					ShellExecute(NULL, _T("open"), strCmd,strParam, NULL, SW_SHOWNORMAL);
-				}else{
-					//Explorerで開く
-					UtilNavigateDirectory(pathOpenDir);
-				}
-			}
-
-			//正常に解凍できた圧縮ファイルを削除orごみ箱に移動
-			if(bRet && ConfExtract.DeleteArchiveAfterExtract){
-				if(!ConfExtract.ForceDelete && lpArchiver->IsWeakErrorCheck()){
-					//エラーチェック機構が貧弱なため、解凍失敗時にも正常と判断してしまうような
-					//DLLを使ったときには明示的に指定しない限り削除させない
-					MessageBox(NULL,CString(MAKEINTRESOURCE(IDS_MESSAGE_EXTRACT_DELETE_SKIPPED)),UtilGetMessageCaption(),MB_OK|MB_ICONINFORMATION);
-				}else{
-					//削除
-					DeleteOriginalArchives(ConfExtract,*ite_param);
-				}
+				// expand command parameter
+				auto strCmd = UtilExpandTemplateString(args.general.Filer.FilerPath, envInfo);
+				auto strParam = UtilExpandTemplateString(args.general.Filer.Param, envInfo);
+				ShellExecuteW(NULL, L"open", strCmd.c_str(), strParam.c_str(), NULL, SW_SHOWNORMAL);
+			} else {
+				//open with explorer
+				UtilNavigateDirectory(output_dir);
 			}
 		}
-	}
-	//プログレスバーを閉じる
-	if(dlg.IsWindow())dlg.DestroyWindow();
-	//タイマーを閉じる
-	if(timer)KillTimer(NULL,timer);
 
-	//---ログ表示
-	switch(ConfGeneral.LogViewEvent){
-	case LOGVIEW_ON_ERROR:
-		if(!bAllOK){
-			if(1==uFiles){
-				//ファイル一つだけの時はダイアログボックスで
-				if(EXTRACT_CANCELED!=LogArray[0].Result){
-					ErrorMessage(LogArray[0].strMsg);
-				}
-			}else{
-				//ログに表示
-				CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_EXTRACT)));
-				LogDlg.SetLogArray(LogArray);
-				LogDlg.DoModal(::GetDesktopWindow());
-			}
+		// delete archive or move it to recycle bin
+		if (args.extract.DeleteArchiveAfterExtract) {
+			auto original_files = enumerateOriginalArchives(archive_path);
+			LF_deleteOriginalArchives(args.extract.MoveToRecycleBin, args.extract.DeleteNoConfirm, original_files);
+		}
+		//notify shell that output is completed
+		::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_PATH, output_dir.c_str(), NULL);
+	}
+
+	bool bAllOK = true;
+	for (const auto& log : logs) {
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
+	}
+	//---display logs
+	bool displayLog = false;
+	switch ((LOGVIEW)args.general.LogViewEvent) {
+	case LOGVIEW::OnError:
+		if (!bAllOK) {
+			displayLog = true;
 		}
 		break;
-	case LOGVIEW_ALWAYS:
-		//ログに表示
+	case LOGVIEW::Always:
+		displayLog = true;
+		break;
+	}
+
+	progressHandler.end();
+
+	if (displayLog) {
 		CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_EXTRACT)));
-		LogDlg.SetLogArray(LogArray);
+		LogDlg.SetLogArray(logs);
 		LogDlg.DoModal(::GetDesktopWindow());
-		break;
 	}
 
-	TRACE(_T("Exit Extract()\n"));
 	return bAllOK;
 }
+
+//------
+
+//test an archive by reading whole archive
+void testOneArchive(
+	const std::filesystem::path& archive_path,
+	ARCLOG &arcLog,
+	ILFProgressHandler &progressHandler,
+	std::shared_ptr<ILFPassphrase> passphrase_callback
+) {
+	CLFArchive arc;
+	progressHandler.reset();
+	progressHandler.setArchive(archive_path);
+	arc.read_open(archive_path, passphrase_callback);
+	progressHandler.setNumEntries(arc.get_num_entries());
+	// loop for each entry
+	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		//original file name
+		auto originalPath = entry->path;
+		//original attributes
+		int nAttribute = entry->stat.st_mode;
+		//original file size (before compression)
+		progressHandler.onNextEntry(originalPath, entry->stat.st_size);
+
+		try {
+			if (entry->is_directory()) {
+				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_ENTRY_IS_DIR));
+			} else {
+				//go
+				int64_t global_offset = 0;
+				for (bool bEOF = false; !bEOF;) {
+					arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+						if (!buf || data_size == 0) {
+							progressHandler.onEntryIO(entry->stat.st_size);
+							bEOF = true;
+						} else {
+							global_offset += data_size;
+							if (offset && offset->offset != global_offset) {
+								global_offset = offset->offset;
+							}
+							progressHandler.onEntryIO(global_offset);
+						}
+					});
+				}
+				arcLog(originalPath, UtilLoadString(IDS_ARCLOG_OK));
+			}
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			arcLog(originalPath, e.what());
+			throw e;
+		} catch (LF_EXCEPTION &e) {
+			arcLog(originalPath, e.what());
+			throw e;
+		}
+	}
+	//end
+	arc.close();
+}
+
+#ifdef UNIT_TEST
+TEST(extract, testOneArchive) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto files = { L"test_extract.zip", L"test_extract.zipx", L"test_gzip.gz" };
+
+	for (const auto &file : files) {
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+		ARCLOG arcLog;
+		EXPECT_NO_THROW(
+			testOneArchive(archiveFile, arcLog,
+				CLFProgressHandlerNULL(),
+				std::make_shared<CLFPassphraseNULL>()
+			));
+	}
+}
+
+TEST(extract, testOneArchive_broken_files) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	const std::vector<std::filesystem::path> files = { L"test_broken_file.zip" , L"test_broken_crc.zip",__FILEW__ };
+
+	for (const auto& file : files) {
+		auto archiveFile = LF_PROJECT_DIR() / L"test" / file;
+		ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+		ARCLOG arcLog;
+		EXPECT_THROW(
+			testOneArchive(archiveFile, arcLog,
+				CLFProgressHandlerNULL(),
+				std::make_shared<CLFPassphraseNULL>()
+			), LF_EXCEPTION);
+	}
+}
+
+#endif
+
+
+
+bool GUI_test_multiple_files(
+	const std::vector<std::filesystem::path> &archive_files,
+	ILFProgressHandler &progressHandler,
+	const CMDLINEINFO* lpCmdLineInfo
+)
+{
+	LF_EXTRACT_ARGS args;
+	CConfigFile mngr;
+	try {
+		mngr.load();
+		// load configuration, then override them with command line args
+		parseExtractOption(args, mngr, lpCmdLineInfo);
+	} catch (const LF_EXCEPTION& e) {
+		UtilMessageBox(NULL, e.what(), MB_OK | MB_ICONERROR);
+		return false;
+	}
+
+	UINT64 totalFiles = archive_files.size();
+	std::vector<ARCLOG> logs;
+	for (const auto &archive_path : archive_files) {
+		try {
+			logs.resize(logs.size() + 1);
+			ARCLOG& arcLog = logs.back();
+			// record archive filename
+			arcLog.setArchivePath(archive_path);
+			progressHandler.setArchive(archive_path);
+
+			const wchar_t* LHAFORGE_EXTRACT_SEMAPHORE_NAME = L"LhaForgeExtractLimitSemaphore";
+			// limit concurrent extractions
+			CSemaphoreLocker SemaphoreLock;
+			if (args.extract.LimitExtractFileCount) {
+				SemaphoreLock.Create(LHAFORGE_EXTRACT_SEMAPHORE_NAME, args.extract.MaxExtractFileCount);
+				SemaphoreLock.Lock(INFINITE);
+				//Wait for semaphore lock
+				//progress dialog shows waiting message
+				progressHandler.setSpecialMessage(UtilLoadString(IDS_WAITING_FOR_SEMAPHORE));
+				for (; !SemaphoreLock.Lock(20);) {
+					while (UtilDoMessageLoop())continue;
+					progressHandler.poll();	//needed to detect cancel
+					Sleep(20);
+				}
+			}
+			testOneArchive(archive_path, arcLog, progressHandler, std::make_shared<CLFPassphraseGUI>());
+		} catch (const LF_USER_CANCEL_EXCEPTION &e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
+			break;
+		} catch (const ARCHIVE_EXCEPTION& e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
+			continue;
+		} catch (const LF_EXCEPTION &e) {
+			ARCLOG &arcLog = logs.back();
+			arcLog.logException(e);
+			continue;
+		}
+	}
+
+	bool bAllOK = true;
+	for (const auto& log : logs) {
+		bAllOK = bAllOK && (log._overallResult == LF_RESULT::OK);
+	}
+	progressHandler.end();
+
+	//---display logs
+	CLogListDialog LogDlg(CString(MAKEINTRESOURCE(IDS_LOGINFO_OPERATION_TESTARCHIVE)));
+	LogDlg.SetLogArray(logs);
+	LogDlg.DoModal(::GetDesktopWindow());
+
+	return bAllOK;
+}
+
 

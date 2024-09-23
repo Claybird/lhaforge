@@ -24,125 +24,124 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../../resource.h"
-#include "../../Utilities/FileOperation.h"
-//#include "../Association.h"
-#include "../AssocSettings.h"
+#include "resource.h"
+#include "Utilities/FileOperation.h"
+#include "Utilities/CustomControl.h"
+#include "Association.h"
 
-//====================================
-// 関連付け情報
-//====================================
 
-enum ASSOC_TYPE{
-	ASSOC_LZH,
-	ASSOC_LZS,
-	ASSOC_LHA,
-	ASSOC_ZIP,
-	ASSOC_JAR,
-	ASSOC_CAB,
-	ASSOC_7Z,
-	ASSOC_ARJ,
-	ASSOC_RAR,
-	ASSOC_JAK,
-	ASSOC_GCA,
-	ASSOC_YZ1,
-	ASSOC_IMP,
-	ASSOC_ACE,
-	ASSOC_HKI,
-	ASSOC_BZA,
-	ASSOC_GZA,
-	ASSOC_ISH,
-	ASSOC_UUE,
-	ASSOC_BEL,
-	ASSOC_TAR,
-	ASSOC_GZ,
-	ASSOC_TGZ,
-	ASSOC_BZ2,
-	ASSOC_TBZ,
-	ASSOC_XZ,
-	ASSOC_TAR_XZ,
-	ASSOC_LZMA,
-	ASSOC_TAR_LZMA,
-	ASSOC_Z,
-	ASSOC_TAZ,
-	ASSOC_CPIO,
-	ASSOC_A,
-	ASSOC_LIB,
-	ASSOC_RPM,
-	ASSOC_DEB,
-	ASSOC_ISO,
+class ASSOC_SETTINGS {
+public:
+	CIcon		Icon;
+	ASSOCINFO	AssocInfo;
+	bool		bChanged;
+	std::wstring formatName;
 
-	ENUM_COUNT_AND_LASTITEM(ASSOC_TYPE),
+	ASSOC_SETTINGS() :bChanged(false) {}
+	virtual ~ASSOC_SETTINGS() {}
+
+	void SetIconFromAssoc(){
+		if (AssocInfo.prevIconFile.empty()) {
+			//fall back to system default icon
+			auto nSize = GetSystemDirectoryW(nullptr, 0);
+			std::vector<wchar_t> buf(nSize);
+			GetSystemDirectoryW(&buf[0], nSize);
+			std::filesystem::path path = &buf[0];
+			path /= L"shell32.dll";
+
+			if (!Icon.IsNull())Icon.DestroyIcon();
+			Icon.ExtractIconW(path.make_preferred().c_str(), 0);
+		} else {
+			SetIcon(AssocInfo.prevIconFile.c_str(), AssocInfo.prevIconIndex);
+		}
+	}
+	void SetIcon(const std::filesystem::path& path, int idx) {
+		if (!Icon.IsNull())Icon.DestroyIcon();
+		Icon.ExtractIcon(path.c_str(), idx);
+	}
+
+	void CheckAssociation(const std::wstring& desiredCommand) {
+		bChanged = false;
+		if (AssocInfo.isAssociated) {	//not associated
+			//current association is same as desired one?
+			if (desiredCommand != AssocInfo.ShellOpenCommand) {
+				bChanged = true;
+			}
+		}
+	}
 };
 
-const int NO_DEFAULT_ASSOCS[]={
-	ASSOC_JAR,
-	ASSOC_A,
-	ASSOC_LIB,
-	ASSOC_ISO,
-};
+
 
 class CConfigDialog;
-class CConfigManager;
-class CConfigDlgAssociation : public CDialogImpl<CConfigDlgAssociation>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgAssociation : public LFConfigDialogBase<CConfigDlgAssociation>
 {
 protected:
-	ASSOC_SETTINGS AssocSettings[ASSOC_TYPE_ITEM_COUNT];
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
-	CString m_strAssocDesired;	//標準的な関連付けパス;これと異なっていた場合には関連付け情報の変更フラグをたてておく
+	enum {
+		COLUMN_STATE,
+		COLUMN_EXT,
+		COLUMN_FORMAT,
+	};
+	std::vector<ASSOC_SETTINGS> AssocSettings;
 
-	CIcon Icon_SystemDefault;	//関連付けがない時のアイコン
+	CListViewCtrl m_assocList;
+	CImageListManaged m_imageList;
+
+	//expected program path; if different, set flag to modify associated program
+	std::wstring m_assocDesired;
 
 	CConfigDialog	&mr_ConfigDlg;
+
+	struct KVPAIR {
+		std::wstring key, value;
+	};
+	std::map<std::wstring, std::vector<KVPAIR>> _assocRequests;
+
+	void updateImageList();
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_ASSOCIATION };
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgAssociation)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		COMMAND_RANGE_HANDLER(IDC_CHECK_ASSOCIATION_LZH,IDC_CHECK_ASSOCIATION_ISO, OnCheckAssoc)
-		COMMAND_RANGE_HANDLER(IDC_BUTTON_CHANGE_ICON_LZH,IDC_BUTTON_CHANGE_ICON_ISO, OnChangeIcon)
-		COMMAND_RANGE_HANDLER(IDC_BUTTON_ASSOC_CHECK_ALL,IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE, OnSetAssoc)
-		MSG_WM_DESTROY(OnDestroy)
+		MSG_WM_CONTEXTMENU(OnContextMenu)
+		COMMAND_ID_HANDLER(IDC_BUTTON_ASSOC_CHECK_TO_DEFAULT, OnSetAssoc)
+		COMMAND_ID_HANDLER(IDC_BUTTON_ASSOC_UNCHECK_ALL, OnSetAssoc)
+		COMMAND_ID_HANDLER(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON, OnSetIcon)
+		COMMAND_ID_HANDLER(IDC_BUTTON_ASSOC_SET_DEFAULT_ICON_SINGLE, OnSetIcon)
+		COMMAND_ID_HANDLER(IDC_BUTTON_ASSOC_SET_EXTERNAL_ICON_SINGLE, OnSetIcon)
+		NOTIFY_CODE_HANDLER_EX(LVN_ITEMCHANGED, OnAssocStateChanged)
+		NOTIFY_CODE_HANDLER_EX(NM_DBLCLK, OnChangeIcon)
+		NOTIFY_CODE_HANDLER_EX(NM_RETURN, OnChangeIcon)
 	END_MSG_MAP()
 
+	LRESULT OnAssocStateChanged(LPNMHDR pnmh);
+	LRESULT OnChangeIcon(LPNMHDR) { OnChangeIcon(); return 0; }
+	void OnChangeIcon();
+	void OnContextMenu(HWND hWndCtrl, CPoint& Point);
+
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	LRESULT OnCheckAssoc(WORD,WORD,HWND,BOOL&);
-	LRESULT OnChangeIcon(WORD,WORD,HWND,BOOL&);
-	LRESULT OnSetAssoc(WORD,WORD,HWND,BOOL&);
+	LRESULT OnSetAssoc(WORD, WORD, HWND, BOOL&);
+	LRESULT OnSetIcon(WORD, WORD, HWND, BOOL&);
 	LRESULT OnApply();
 
-	CConfigDlgAssociation(CConfigDialog &dlg):
-		mr_ConfigDlg(dlg)
-	{
-		TRACE(_T("CConfigDlgAssociation()\n"));
-	}
+	CConfigDlgAssociation(CConfigDialog& dlg);
 
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
-		return TRUE;
-	}
-	void LoadConfig(CConfigManager& Config){}
-	void StoreConfig(CConfigManager& Config){}
+	void LoadConfig(CConfigFile& Config){}
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant);
 };
 
-
-class CIconSelectDialog : public CDialogImpl<CIconSelectDialog>,public CWinDataExchange<CIconSelectDialog>,public CDialogResize<CIconSelectDialog>
+#include "Utilities/OSUtil.h"
+class CIconSelectDialog : public CDialogImpl<CIconSelectDialog>,public LFWinDataExchange<CIconSelectDialog>,public CDialogResize<CIconSelectDialog>
 {
 protected:
 	ASSOCINFO *AssocInfo;
 	CIconSelectDialog();
 	CImageList	IconList;
 	CListViewCtrl ListView;
-	CString IconPath;
+	std::wstring IconPath;
 public:
 	enum {IDD = IDD_DIALOG_ICON_SELECT};
 
-	// ダイアログリサイズマップ
 	BEGIN_DLGRESIZE_MAP(CIconSelectDialog)
 		DLGRESIZE_CONTROL(IDC_BUTTON_BROWSE_DEFAULT_ICON,	DLSZ_MOVE_X)
 		DLGRESIZE_CONTROL(IDC_EDIT_ICON_PATH,				DLSZ_SIZE_X)
@@ -152,28 +151,101 @@ public:
 		DLGRESIZE_CONTROL(IDCANCEL,							DLSZ_MOVE_X | DLSZ_MOVE_Y)
 	END_DLGRESIZE_MAP()
 
-	// DDXマップ
 	BEGIN_DDX_MAP(CIconSelectDialog)
 		DDX_TEXT(IDC_EDIT_ICON_PATH,IconPath)
 	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CIconSelectDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_BROWSE_ICON, OnBrowse)
 		COMMAND_ID_HANDLER_EX(IDC_BUTTON_BROWSE_DEFAULT_ICON, OnBrowseDefault)
 		COMMAND_ID_HANDLER_EX(IDOK, OnOK)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
-		CHAIN_MSG_MAP(CDialogResize<CIconSelectDialog>)    // CDialogResizeクラスへのチェーン
+		CHAIN_MSG_MAP(CDialogResize<CIconSelectDialog>)
 	END_MSG_MAP()
 
-	CIconSelectDialog(ASSOCINFO&);
-	bool UpdateIcon();
+	CIconSelectDialog(ASSOCINFO &ai){
+		AssocInfo = &ai;
+		if (AssocInfo->IconFile.empty()) {
+			auto strResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
+			IconPath = strResourcePath.make_preferred();
+		} else {
+			IconPath = AssocInfo->IconFile.make_preferred();
+		}
+	}
+	bool UpdateIcon() {
+		ListView.DeleteAllItems();
+		IconList.Destroy();
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	void OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl);
-	void OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl);
-	void OnOK(UINT uNotifyCode, int nID, HWND hWndCtl);
+		//number of icons
+		auto IconCount = (INT_PTR)ExtractIconW(GetModuleHandleW(nullptr), IconPath.c_str(), -1);
+		if (0 == IconCount) {
+			ListView.EnableWindow(false);
+			return false;
+		}
+		ListView.EnableWindow(true);
+		IconList.Create(32, 32, ILC_COLOR32 | ILC_MASK, (int)IconCount, 1);
+		for (INT_PTR i = 0; i < IconCount; i++) {
+			CIcon Icon;
+			Icon.ExtractIcon(IconPath.c_str(), (int)i);
+			IconList.AddIcon(Icon);
+		}
+		ListView.SetImageList(IconList, LVSIL_NORMAL);
+		for (INT_PTR i = 0; i < IconCount; i++) {
+			ListView.AddItem((int)i, 0, L"", (int)i);
+		}
+		return true;
+	}
+
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		ASSERT(AssocInfo);
+		CenterWindow();
+		ListView = GetDlgItem(IDC_LIST_ICON);
+		DoDataExchange(FALSE);
+
+		UpdateIcon();
+		ListView.SetItemState(AssocInfo->IconIndex, LVIS_SELECTED, 1);
+
+		DlgResize_Init(true, true, WS_THICKFRAME | WS_CLIPCHILDREN);
+		return TRUE;
+	}
+	void OnBrowse(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		const COMDLG_FILTERSPEC filter[] = {
+			{ L"Icon File", L"*.dll;*.exe;*.ico;*.ocx;*.cpl;*.vbx;*.scr;*.icl" },
+			{ L"All Files", L"*.*" },
+		};
+
+		if (!DoDataExchange(TRUE))return;
+		CLFShellFileOpenDialog dlg(IconPath.c_str(),
+			FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST,
+			nullptr, filter, COUNTOF(filter));
+		if (IDCANCEL != dlg.DoModal()) {
+			CString tmp;
+			dlg.GetFilePath(tmp);
+			IconPath = tmp.operator LPCWSTR();
+			DoDataExchange(FALSE);
+			UpdateIcon();
+		}
+	}
+	void OnBrowseDefault(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		auto ResourcePath = UtilGetModuleDirectoryPath() / DEFAULT_ICON_FILENAME;
+		IconPath = ResourcePath.make_preferred().c_str();
+
+		DoDataExchange(FALSE);
+		UpdateIcon();
+	}
+	void OnOK(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		if (!DoDataExchange(TRUE))return;
+		AssocInfo->IconFile = IconPath;
+		const int ItemCount = ListView.GetItemCount();
+		for (int i = 0; i < ItemCount; i++) {
+			if (ListView.GetItemState(i, LVIS_SELECTED)) {
+				AssocInfo->IconIndex = i;
+				break;
+			}
+		}
+		EndDialog(nID);
+	}
 	void OnCancel(UINT uNotifyCode, int nID, HWND hWndCtl){
 		EndDialog(nID);
 	}

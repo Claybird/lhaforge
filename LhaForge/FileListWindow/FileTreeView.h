@@ -23,38 +23,37 @@
 */
 
 #pragma once
-#include "ArcFileContent.h"
-#include "FileListModel.h"
-#include "OLE/DropTarget.h"	//ドロップ受け入れ,IDropCommunicator
-#include "FileListMessages.h"
-#include "../resource.h"
+#include "FileViewBase.h"
 
-class CFileTreeView:public CWindowImpl<CFileTreeView,CTreeViewCtrl>,public IDropCommunicator//自前のインターフェイス
+struct ARCHIVE_ENTRY_INFO;
+class CFileTreeView:public CFileViewBase<CFileTreeView,CTreeViewCtrl>
 {
 protected:
 	CImageList	m_ImageList;
-	typedef std::map<ARCHIVE_ENTRY_INFO_TREE*,HTREEITEM> ITEMDICT;
-	ITEMDICT m_TreeItemMap;
-	CFileListModel &mr_Model;
-	bool m_bSelfAction;
-	HWND m_hFrameWnd;
+	std::map<const ARCHIVE_ENTRY_INFO*,HTREEITEM> m_TreeItemMap;
+	struct TREE_USER_DATA {
+		TREE_USER_DATA() :pFind(nullptr), pInfo(nullptr) {}
+		const ARCHIVE_FIND_CONDITION* pFind;
+		const ARCHIVE_ENTRY_INFO* pInfo;
+		bool isDirectory()const {
+			if (pInfo) {
+				if (!pInfo->_parent || pInfo->is_directory()) {
+					return true;
+				}
+			}
+			return false;
+		}
+	};
+	std::vector<std::shared_ptr<TREE_USER_DATA>> m_GC;
 protected:
-	//---ドロップ受け入れ
-	CDropTarget m_DropTarget;	//ドロップ受け入れに使う
-	HTREEITEM m_hDropHilight;	//ドロップハイライト状態にあるアイテムのハンドル
-	//IDropCommunicatorの実装
-	HRESULT DragEnter(IDataObject*,POINTL&,DWORD&);
-	HRESULT DragLeave();
-	HRESULT DragOver(IDataObject*,POINTL&,DWORD&);
-	HRESULT Drop(IDataObject*,POINTL&,DWORD&);
+	HTREEITEM m_hDropHilight;	//highlited item handle for drag-drop
 protected:
 	BEGIN_MSG_MAP_EX(CFileTreeView)
 		MSG_WM_CREATE(OnCreate)
 		MSG_WM_DESTROY(OnDestroy)
-		MSG_WM_CONTEXTMENU(OnContextMenu)	//右クリックメニュー
+		MSG_WM_CONTEXTMENU(OnContextMenu)
 		MESSAGE_HANDLER(WM_FILELIST_ARCHIVE_LOADED, OnFileListArchiveLoaded)
 		MESSAGE_HANDLER(WM_FILELIST_NEWCONTENT, OnFileListNewContent)
-		MESSAGE_HANDLER(WM_FILELIST_UPDATED, OnFileListUpdated)
 
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_DELETE_SELECTED,OnDelete)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_SELECTED,OnExtractItem)
@@ -62,7 +61,7 @@ protected:
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPEN_ASSOCIATION,OnOpenAssociation)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_OPEN_ASSOCIATION_OVERWRITE,OnOpenAssociation)
 		COMMAND_ID_HANDLER_EX(ID_MENUITEM_EXTRACT_TEMPORARY,OnExtractTemporary)
-		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetNumSendToCmd(),OnOpenWithUserApp)
+		COMMAND_RANGE_HANDLER_EX(ID_MENUITEM_USERAPP_BEGIN,ID_MENUITEM_USERAPP_END+MenuCommand_GetSendToCmdArray().size(),OnOpenWithUserApp)
 
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(NM_RCLICK, OnRClick)
 		REFLECTED_NOTIFY_CODE_HANDLER_EX(TVN_SELCHANGED, OnTreeSelect)
@@ -71,42 +70,246 @@ protected:
 
 protected:
 	//---internal functions
-	LRESULT OnCreate(LPCREATESTRUCT lpcs);
-	LRESULT OnDestroy();
-	void OnContextMenu(HWND,CPoint&);
+	LRESULT OnCreate(LPCREATESTRUCT lpcs) {
+		LRESULT lRes = DefWindowProc();
+		SetFont(AtlGetDefaultGuiFont());
 
-	LRESULT OnRClick(LPNMHDR);
-	LRESULT OnTreeSelect(LPNMHDR);
-	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	LRESULT OnFileListUpdated(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
-	bool UpdateCurrentNode();
+		mr_Model.addEventListener(m_hWnd);
 
-	bool IsSelfAction(){return m_bSelfAction;}
-	void BeginSelfAction(){m_bSelfAction=true;}
-	void EndSelfAction(){m_bSelfAction=false;}
+		m_ImageList.Create(::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CXSMICON), ILC_COLOR32 | ILC_MASK, 1, 1);
 
-	void OnDelete(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	void OnOpenWithUserApp(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	bool OnUserApp(const std::vector<CMenuCommandItem> &menuCommandArray,UINT nID);
-	bool OnSendToApp(UINT nID);
-	void OnExtractItem(UINT,int nID,HWND);
-	void GetSelectedItems(std::list<ARCHIVE_ENTRY_INFO_TREE*> &items);
-	void OnOpenAssociation(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	void OnExtractTemporary(UINT uNotifyCode,int nID,HWND hWndCtrl);
-	bool OpenAssociation(bool bOverwrite,bool bOpen);
-	void OpenAssociation(const std::list<CString> &filesList);
+		//directory icons
+		//-close
+		SHFILEINFO shfi = {};
+		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON);
+		m_ImageList.AddIcon(shfi.hIcon);
+		if (shfi.hIcon)DestroyIcon(shfi.hIcon);
+		//-open
+		SHGetFileInfoW(L"dummy", FILE_ATTRIBUTE_DIRECTORY, &shfi, sizeof(shfi), SHGFI_USEFILEATTRIBUTES | SHGFI_ICON | SHGFI_SMALLICON | SHGFI_OPENICON);
+		m_ImageList.AddIcon(shfi.hIcon);
+		DestroyIcon(shfi.hIcon);
 
+		//search icons
+		CIcon ico;
+		ico.LoadIcon(MAKEINTRESOURCE(IDI_ICON_SEARCH));
+		m_ImageList.AddIcon(ico);
+
+		SetImageList(m_ImageList, TVSIL_NORMAL);
+		return lRes;
+	}
+	LRESULT OnDestroy() {
+		mr_Model.removeEventListener(m_hWnd);
+		m_ImageList.Destroy();
+		return 0;
+	}
+
+	void AddSearchFolder() {
+		//root - search folder
+		HTREEITEM hParent = InsertItem(UtilLoadString(IDS_TREE_SEARCH_FOLDER).c_str(), TVI_ROOT, TVI_LAST);
+		SetItemImage(hParent, searchIconIndex, searchIconIndex);
+		SetItemData(hParent, NULL);
+		//search conditions
+		for (const auto& pair : mr_confFLW.view.searchFolderItems) {
+			const auto &name = pair.first;
+			const auto &cond = pair.second;
+
+			//title only, no icon
+			HTREEITEM hItem = InsertItem(name.c_str(), hParent, TVI_LAST);
+			auto p = std::make_shared<TREE_USER_DATA>();
+			p->pFind = &cond;
+			m_GC.push_back(p);
+			SetItemData(hItem, (DWORD_PTR)p.get());
+		}
+	}
+	const TREE_USER_DATA* GetTreeItemUserData(HTREEITEM hItem)const {
+		if (!hItem)return nullptr;
+		auto lpData = (const TREE_USER_DATA*)GetItemData(hItem);
+		return lpData;
+	}
+
+	LRESULT OnTreeSelect(LPNMHDR) {
+		auto lpCurrent = mr_Model.getCurrentDir();
+
+		HTREEITEM hItem = GetSelectedItem();
+		if (!hItem)return 0;
+
+		auto lpData = GetTreeItemUserData(hItem);
+		if (lpData) {
+			mr_Model.EndFindItem();
+			if (lpData->pInfo) {
+				if (lpData->pInfo != lpCurrent) {
+					mr_Model.setCurrentDir(lpData->pInfo);
+				}
+			} else if(lpData->pFind){
+				//find all elements
+				auto lpFound = mr_Model.FindItem(*(lpData->pFind));
+				mr_Model.setCurrentDir(lpFound);
+			}
+		}
+		return 0;
+	}
+	LRESULT OnFileListArchiveLoaded(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		Clear();
+		AddSearchFolder();
+		ConstructTree();
+
+		if (mr_confFLW.view.ExpandTree)ExpandTree();
+
+		EnableDropTarget(true);
+		return 0;
+	}
+	LRESULT OnFileListNewContent(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+		UpdateCurrentNode();
+		return 0;
+	}
+	bool UpdateCurrentNode() {
+		auto lpNode = mr_Model.getCurrentDir();
+		const auto ite = m_TreeItemMap.find(lpNode);
+		if (m_TreeItemMap.end() == ite) {
+			return false;
+		}
+		EnsureVisible((*ite).second);
+		SelectItem((*ite).second);
+		return true;
+	}
+
+	std::vector<const ARCHIVE_ENTRY_INFO*> GetSelectedItems()override {
+		std::vector<const ARCHIVE_ENTRY_INFO*> items;
+		HTREEITEM hItem = GetSelectedItem();
+		if (hItem) {
+			auto lpNode = GetTreeItemUserData(hItem);
+			if (lpNode && lpNode->pInfo) {
+				items.push_back(lpNode->pInfo);
+			}
+		}
+		//always one item maximum
+		ASSERT(items.size() <= 1);
+		return items;
+	}
+	LRESULT OnRClick(LPNMHDR lpNM) {
+		CPoint pt;
+		GetCursorPos(&pt);
+		CPoint ptClient = pt;
+		ScreenToClient(&ptClient);
+		SelectItem(HitTest(ptClient, nullptr));
+		OnContextMenu(m_hWnd, pt);
+		return 0;
+	}
+	enum :int {
+		dirIconClosed = 0,
+		dirIconOpened = 1,
+		searchIconIndex = 2,
+		archiveIconIndex = 3,
+	};
 public:
 	DECLARE_WND_SUPERCLASS(NULL, CTreeViewCtrl::GetWndClassName())
 	BOOL PreTranslateMessage(MSG* pMsg){return FALSE;}
 
-	CFileTreeView(CFileListModel&);
+	CFileTreeView(CFileListModel& rModel,const CConfigFileListWindow& r_confFLW):
+		CFileViewBase(rModel, r_confFLW),
+		m_hDropHilight(NULL)
+	{}
 	virtual ~CFileTreeView(){}
-	bool ConstructTree(HTREEITEM hParentItem=NULL,ARCHIVE_ENTRY_INFO_TREE* lpNode=NULL);
-	void Clear();
-	void ExpandTree();
+	bool ConstructTree(HTREEITEM hParentItem = nullptr, const ARCHIVE_ENTRY_INFO* lpNode = nullptr) {
+		HTREEITEM hItem;
+		if (hParentItem) {
+			//directory
+			hItem = InsertItem(lpNode->_entryName.c_str(), hParentItem, TVI_LAST);
+			SetItemImage(hItem, dirIconClosed, dirIconOpened);
+		} else {
+			//---root
+			//archive file icon
+			m_ImageList.Remove(archiveIconIndex);	//remove old icon
+			SHFILEINFO shfi = {};
+			::SHGetFileInfoW(mr_Model.GetArchiveFileName().c_str(),
+				0, &shfi, sizeof(shfi), SHGFI_ICON | SHGFI_SMALLICON);
+			m_ImageList.AddIcon(shfi.hIcon);
 
-	void EnableDropTarget(bool bEnable);
-	void SetFrameWnd(HWND hWnd){m_hFrameWnd=hWnd;}
+			lpNode = mr_Model.GetRootNode();
+			hItem = InsertItem(mr_Model.GetArchiveFileName().filename().c_str(), TVI_ROOT, TVI_LAST);
+			SetItemImage(hItem, archiveIconIndex, archiveIconIndex);
+		}
+
+		m_TreeItemMap.insert({ lpNode,hItem });
+		//set node pointer
+		auto p = std::make_shared<TREE_USER_DATA>();
+		p->pInfo = lpNode;
+		m_GC.push_back(p);
+		SetItemData(hItem, (DWORD_PTR)p.get());
+
+		//process children
+		size_t numItems = lpNode->getNumChildren();
+		for (size_t i = 0; i < numItems; i++) {
+			const auto* lpChild = lpNode->getChild(i);
+			if (lpChild->is_directory()) {
+				ConstructTree(hItem, lpChild);
+			}
+		}
+
+		return true;
+	}
+	void Clear() {
+		DeleteAllItems();
+		m_TreeItemMap.clear();
+		m_GC.clear();
+	}
+	void ExpandTree() {
+		for (const auto &item : m_TreeItemMap) {
+			Expand(item.second);
+		}
+	}
+	void ApplyUpdatedConfig() {
+		Clear();
+		AddSearchFolder();
+		ConstructTree();
+
+		if (mr_confFLW.view.ExpandTree)ExpandTree();
+
+		EnableDropTarget(true);
+	}
+
+	bool IsValidDropTarget(const HIGHLIGHT& hl)const override {
+		if (hl.isValid()) {
+			auto lpNode = GetTreeItemUserData(hl.itemTree);
+			if (lpNode) {
+				if (lpNode->isDirectory())return true;
+				//cannot be dropped into a search folder
+				else return false;
+			}else{
+				return false;
+			}
+		}
+		return false;
+	}
+
+	//dropped
+	virtual HRESULT Drop(IDataObject *lpDataObject, POINTL &pt, DWORD &dwEffect)override {
+		if (m_dropHighlight.isValid()) {
+			//disable drop highlight
+			SetItemState(m_dropHighlight, ~LVIS_DROPHILITED, LVIS_DROPHILITED);
+		}
+		m_dropHighlight.invalidate();
+
+		auto[hr, files] = m_DropTarget.GetDroppedFiles(lpDataObject);
+		if (S_OK == hr) {
+			//files dropped
+			dwEffect = DROPEFFECT_COPY;
+
+			//---destination
+			CPoint ptTemp(pt.x, pt.y);
+			ScreenToClient(&ptTemp);
+			auto target = HitTest(ptTemp, nullptr);
+
+			auto lpNode = GetTreeItemUserData(target);
+			if (lpNode && lpNode->isDirectory()) {
+				return AddItemsToDirectory(lpNode->pInfo, files);
+			} else {
+				return E_HANDLE;
+			}
+		} else {
+			//not acceptable
+			dwEffect = DROPEFFECT_NONE;
+			return S_FALSE;
+		}
+	}
 };

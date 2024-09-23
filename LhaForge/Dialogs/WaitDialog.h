@@ -23,19 +23,18 @@
 */
 
 #pragma once
-#include "../resource.h"
+#include "resource.h"
 
-class CWaitDialog : public CDialogImpl<CWaitDialog>,public CMessageFilter, public CIdleHandler
+class CWaitDialog : 
+	public CDialogImpl<CWaitDialog>,
+	public CMessageFilter,
+	public CIdleHandler
 {
 protected:
 	CStatic	Static_MessageString;
-	CStatic Static_Icon;
-	std::vector<CIcon> m_IconArray;
-	int m_CurrentIconNumber;
-	DWORD m_LastTime;
+	DWORD m_ActiveAfter;	//delay timer
 	bool m_bAborted;
 protected:
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CMainDlg)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
@@ -43,8 +42,23 @@ protected:
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
 	END_MSG_MAP()
 
-    LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	void OnDestroy();
+    LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		m_bAborted = false;
+		Static_MessageString = GetDlgItem(IDC_STATIC_WAIT_MESSAGE);
+
+		CenterWindow();
+
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->AddMessageFilter(this);
+		pLoop->AddIdleHandler(this);
+		return TRUE;
+	}
+
+	void OnDestroy() {
+		CMessageLoop* pLoop = _Module.GetMessageLoop();
+		pLoop->RemoveMessageFilter(this);
+		pLoop->RemoveIdleHandler(this);
+	}
 
 	BOOL PreTranslateMessage(MSG* pMsg){
 		return IsDialogMessage(pMsg);
@@ -59,9 +73,26 @@ protected:
 	}
 public:
 	enum {IDD = IDD_DIALOG_WAIT};
-	void SetMessageString(LPCTSTR t){Static_MessageString.SetWindowText(t);}
-	void AnimationCall();
+	void SetMessageString(const std::wstring& t){Static_MessageString.SetWindowTextW(t.c_str());}
 
-	void Prepare(HWND,LPCTSTR);
-	bool IsAborted(){return m_bAborted;}
+	void Prepare(HWND hWndParent, DWORD delay_in_ms) {
+		m_ActiveAfter = timeGetTime() + delay_in_ms;
+		Create(hWndParent);
+		if (m_ActiveAfter > timeGetTime()) {
+			ShowWindow(SW_HIDE);
+		} else {
+			ShowWindow(SW_SHOW);
+		}
+		UpdateWindow();
+	}
+	void setEntry(const std::wstring &entryPath) {
+		if (m_ActiveAfter <= timeGetTime()) {
+			ShowWindow(SW_SHOW);
+		}
+		SetMessageString(entryPath);
+	}
+	bool isAborted(){
+		return m_bAborted;
+	}
 };
+

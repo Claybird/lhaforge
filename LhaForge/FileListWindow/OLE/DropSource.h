@@ -23,36 +23,99 @@
 */
 
 #pragma once
-//#include "DataObject.h"
 //Original code from http://hp.vector.co.jp/authors/VA016117/
-//Modified by Claybird http://claybird.sakura.ne.jp/
+#include "ArchiverCode/archive.h"
+#include "extract.h"
+#include "FileListWindow/FileListModel.h"
 
-struct ARCHIVE_ENTRY_INFO_TREE;
 class CFileListModel;
-class CDropSource : public IDropSource
+class CLFDropSource : public IDropSource
 {
 protected:
 	LONG _RefCount;
 	CFileListModel& _rModel;
-	std::list<ARCHIVE_ENTRY_INFO_TREE*> _items;
-	CString _strOutputDir;
-	ARCHIVE_ENTRY_INFO_TREE* _lpBase;
+	std::vector<const ARCHIVE_ENTRY_INFO*> _items;
+	std::wstring _outputDir;
+	const ARCHIVE_ENTRY_INFO* _lpBase;
 	DWORD _dwEffect;
+	HWND _hParent;
 public:
-	CDropSource(CFileListModel &rModel,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpOutputDir,ARCHIVE_ENTRY_INFO_TREE* lpBase)
-		:_RefCount(1),_rModel(rModel),_items(items),_strOutputDir(lpOutputDir),_lpBase(lpBase),_dwEffect(0),_bRet(true)
-	{}
-	virtual ~CDropSource(){};
-
-	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv);
-	virtual ULONG __stdcall AddRef(void);
-	virtual ULONG __stdcall Release(void);
-
-	virtual HRESULT __stdcall QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState);
-	virtual HRESULT __stdcall GiveFeedback(DWORD dwEffect);
-
-public:
-	CString _strLog;
+	ARCLOG _arcLog;
 	bool _bRet;
+public:
+	CLFDropSource(CFileListModel &rModel,
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		const std::wstring &outputDir,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		HWND hParent) :
+		_RefCount(1),
+		_rModel(rModel),
+		_items(items),
+		_outputDir(outputDir),
+		_lpBase(lpBase),
+		_dwEffect(0),
+		_hParent(hParent),
+		_bRet(true)
+	{}
+	virtual ~CLFDropSource(){};
+
+	virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ppv)override {
+		HRESULT hr;
+
+		if (iid == IID_IDropSource || iid == IID_IUnknown) {
+			hr = S_OK;
+			*ppv = (void*)this;
+			AddRef();
+		} else {
+			hr = E_NOINTERFACE;
+			*ppv = 0;
+		}
+		return hr;
+	}
+	virtual ULONG __stdcall AddRef(void)override {
+		InterlockedIncrement(&_RefCount);
+		return (ULONG)_RefCount;
+	}
+	virtual ULONG __stdcall Release(void)override {
+		ULONG ret = (ULONG)InterlockedDecrement(&_RefCount);
+		if (ret == 0) {
+			delete this;
+		}
+		return (ULONG)_RefCount;
+	}
+
+	virtual HRESULT __stdcall QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState)override {
+		// [Escape key pressed] or [right & left mouse buttons are pressed]
+		if (fEscapePressed || (MK_LBUTTON | MK_RBUTTON) == (grfKeyState & (MK_LBUTTON | MK_RBUTTON))) {
+			return DRAGDROP_S_CANCEL;
+		}else if ((grfKeyState & (MK_LBUTTON | MK_RBUTTON)) == 0) {
+			// dropped, then extract
+			if (DROPEFFECT_NONE != _dwEffect) {
+				try {
+					auto extractedFiles = _rModel.MakeSureItemsExtracted(
+						_items,
+						_outputDir,
+						_lpBase,
+						CLFProgressHandlerGUI(_hParent),
+						overwrite_options::overwrite,
+						_arcLog);
+					_bRet = true;
+				} catch (const LF_USER_CANCEL_EXCEPTION&) {
+					_bRet = false;
+					return DRAGDROP_S_CANCEL;
+				} catch (...) {
+					_bRet = true;
+					return DRAGDROP_S_CANCEL;
+				}
+			}
+			return DRAGDROP_S_DROP;
+		}
+		return S_OK;
+	}
+	virtual HRESULT __stdcall GiveFeedback(DWORD dwEffect)override {
+		_dwEffect = dwEffect;
+		//default mouse cursor
+		return DRAGDROP_S_USEDEFAULTCURSORS;
+	}
 };
 

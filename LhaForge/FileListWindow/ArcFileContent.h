@@ -23,79 +23,274 @@
 */
 
 #pragma once
-#include "../ArchiverCode/ArcEntryInfo.h"
-#include "../ConfigCode/ConfigManager.h"
-#include "../Utilities/PtrCollection.h"
+#include "ArchiverCode/archive.h"
+#include "CommonUtil.h"
 
-struct IArchiveContentUpdateHandler{
-	virtual ~IArchiveContentUpdateHandler(){}
-	virtual void onUpdated(ARCHIVE_ENTRY_INFO&)=0;
-	virtual bool isAborted()=0;
+//reconstructed archive content structure
+struct ARCHIVE_ENTRY_INFO {
+	LF_ENTRY_STAT _entry;
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > _children;
+	ARCHIVE_ENTRY_INFO*	_parent;
+
+	std::wstring _entryName;
+
+	//for file, original file size. for directory, sum of children file size
+	UINT64		_originalSize;
+
+	//---
+	ARCHIVE_ENTRY_INFO() { clear(); }
+	virtual ~ARCHIVE_ENTRY_INFO() {}
+
+	static const wchar_t* dirDummyExt() {
+		const wchar_t* FOLDER_EXTENSION_STRING = L"***directory/dummy/extension***";
+		return FOLDER_EXTENSION_STRING;
+	}
+	bool is_directory()const{
+		//in case the directory is just a ghost entry that is not stored in the archive
+		//ex. in zip, dirA/fileA.txt, does not include dirA as an entry
+		return _entry.is_directory() || !_children.empty();
+	}
+	double compress_ratio()const {
+		return double(_entry.compressed_size) / std::max((__int64)1, _entry.stat.st_size);
+	}
+
+	std::wstring getExt()const {
+		if (is_directory()) {
+			return dirDummyExt();
+		} else {
+			auto fname = _entry.path.filename();
+			if (!fname.empty() && fname.wstring()[0]==L'.') {
+				//ex. ".gitignore"
+				return fname;
+			} else {
+				auto ext = fname.extension();
+				if (ext.empty()) {
+					return L"file_without_extension";
+				} else {
+					return ext;
+				}
+			}
+		}
+	}
+
+	size_t getNumChildren()const { return _children.size(); }
+	ARCHIVE_ENTRY_INFO* getChild(size_t idx)const {
+		if (0 <= idx && idx < getNumChildren()) {
+			return _children[idx].get();
+		} else {
+			return nullptr;
+		}
+	}
+	ARCHIVE_ENTRY_INFO* getChild(const std::wstring &name)const {
+		for(const auto& entry: _children){
+			if (0 == _wcsicmp(entry->_entryName.c_str(), name.c_str())) {
+				return entry.get();
+			}
+		}
+		return nullptr;
+	}
+	ARCHIVE_ENTRY_INFO* makeSureItemExists(const std::wstring& entryName) {
+		auto p = getChild(entryName);
+		if (p)return p;
+		auto s = std::make_shared<ARCHIVE_ENTRY_INFO>();
+		s->_entryName = entryName;
+		s->_parent = this;
+		_children.push_back(s);
+		return s.get();
+	}
+	ARCHIVE_ENTRY_INFO& addEntry(const std::vector<std::wstring> &pathElements) {
+		if (pathElements.empty()) {
+			return *this;
+		} else {
+			const auto entryName = pathElements.front();
+			auto p = makeSureItemExists(entryName);
+			auto sub = std::vector<std::wstring>(std::next(pathElements.begin()), pathElements.end());
+			if (!sub.empty()) {
+				p->_entry.stat.st_mode &= S_IFDIR;
+			}
+			return p->addEntry(sub);
+		}
+	}
+	void clear() {
+		_children.clear();
+		_parent = nullptr;
+		_entryName.clear();
+
+		_originalSize = -1;
+	}
+
+	std::wstring calcFullpath()const {
+		if (_parent) {
+			auto parent_name = _parent->calcFullpath();
+			if (parent_name.empty()) {
+				return _entryName;
+			} else {
+				return parent_name + L"/" + _entryName;
+			}
+		} else {
+			return L"";
+		}
+	}
+	//returns pathname from base to this
+	std::wstring getRelativePath(const ARCHIVE_ENTRY_INFO* base)const {
+		if (_parent && base != this) {
+			auto parent_name = _parent->getRelativePath(base);
+			if (parent_name.empty()) {
+				return _entryName;
+			} else {
+				return parent_name + L"/" + _entryName;
+			}
+		} else {
+			return L"";
+		}
+	}
+	//enumerate myself and children
+	std::vector<const ARCHIVE_ENTRY_INFO*> enumChildren()const {
+		std::vector<const ARCHIVE_ENTRY_INFO*> children;
+		if (!_parent || is_directory()) {
+			for (const auto &entry: _children) {
+				auto subFiles = entry->enumChildren();
+				children.insert(children.end(), subFiles.begin(), subFiles.end());
+			}
+		}
+		if (_parent) {
+			//when _parent is nullptr, it is the virtual root
+			children.push_back(this);
+		}
+		return children;
+	}
 };
 
 
-/*
- * アーカイブ内のファイル構造を保持
- */
-class CArchiverDLL;
-enum DLL_ID;
+struct ARCHIVE_FIND_CONDITION {
+	enum class KEY :int {
+		filename,
+		fullpath,
+		originalSize,
+		mdate,
+		mode,	//directory or file
+		//compressedSize,
+		//ratio,
+		ENUM_COUNT_AND_LASTITEM
+	};
+
+	enum class COMPARE :int {	//valid on size and date
+		equal,
+		equalOrGreater,
+		equalOrLess,
+		ENUM_COUNT_AND_LASTITEM
+	};
+
+	KEY key;
+	std::wstring patternStr;	//pattern = replace(name_or_pattern, L"\\", L"/");
+	int64_t st_size;
+	SYSTEMTIME mdate;
+	unsigned short st_mode_mask;
+
+	COMPARE compare;
+	void setFindByFilename(const std::wstring& pattern) {
+		key = KEY::filename;
+		patternStr = pattern;
+	}
+	void setFindByFullpath(const std::wstring& pattern) {
+		key = KEY::fullpath;
+		patternStr = pattern;
+	}
+	void setFindByOriginalSize(uint64_t size, COMPARE compMode) {
+		key = KEY::originalSize;
+		st_size = size;
+		compare = compMode;
+	}
+	void setFindByMDate(SYSTEMTIME m, COMPARE compMode) {
+		key = KEY::mdate;
+		mdate = m;
+		compare = compMode;
+	}
+	void setFindByMode(unsigned short mode) {
+		key = KEY::mode;
+		st_mode_mask = mode;
+	}
+	bool matchItem(const ARCHIVE_ENTRY_INFO& p)const;	//true if item matches condition
+	std::wstring toString()const;
+};
+
 class CArchiveFileContent{
 protected:
-	//ファイル情報
-	ARCHIVE_ENTRY_INFO_TREE m_Root;
+	std::shared_ptr<ARCHIVE_ENTRY_INFO> m_pRoot;
+	std::shared_ptr<ILFPassphrase> m_passphrase;
 
-	//Semi-Auto Garbage Collector
-	CSmartPtrCollection<ARCHIVE_ENTRY_INFO> m_GC;
-
-	CArchiverDLL*	m_lpArchiver;
-	CString			m_pathArcFileName;
-	bool			m_bExtractEachSupported;
-	bool			m_bReadOnly;
-
-	bool			m_bEncrypted;	//少なくとも一つのファイルが暗号化されているならtrue
-
+	std::filesystem::path m_pathArchive;
+	int64_t m_numFiles;
+	bool m_bModifySupported;
+	bool m_bEncrypted;	//true if at least one entry is encrypted
 protected:
 	//---internal functions
-	ARCHIVE_ENTRY_INFO_TREE* ForceFindEntry(ARCHIVE_ENTRY_INFO_TREE* lpParent,LPCTSTR lpName);
+	void postScanArchive(ARCHIVE_ENTRY_INFO*);
 
-	//bMatchPath:trueならパスも含め検索、falseならファイル名のみ検索
-	void FindSubItem(LPCTSTR lpszMask,bool bMatchPath,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
-
-	void PostProcess(bool bUnicode,ARCHIVE_ENTRY_INFO_TREE*);
-	HRESULT InspectArchiveStruct(LPCTSTR lpFile,CConfigManager&,CArchiverDLL*,std::vector<ARCHIVE_ENTRY_INFO>&,IArchiveContentUpdateHandler*);
-	void CollectUnextractedFiles(LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const ARCHIVE_ENTRY_INFO_TREE* lpParent,std::map<const ARCHIVE_ENTRY_INFO_TREE*,std::list<ARCHIVE_ENTRY_INFO_TREE*> > &toExtractList);
-
+	std::tuple<std::filesystem::path, std::unique_ptr<ILFArchiveFile>, std::vector<std::filesystem::path>>
+	subDeleteEntries(
+		const LF_COMPRESS_ARGS& args,
+		const std::vector<std::pair<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/>>& items_to_delete,
+		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
+		ARCLOG &arcLog);
 public:
-	CArchiveFileContent();
-	virtual ~CArchiveFileContent();
+	CArchiveFileContent(std::shared_ptr<ILFPassphrase> pp) :
+		m_passphrase(pp),
+		m_bModifySupported(false),
+		m_bEncrypted(false)
+	{
+		clear();
+	}
+	virtual ~CArchiveFileContent() {}
+	void clear() {
+		m_pRoot.reset();
+		m_bModifySupported = false;
+		m_pathArchive.clear();
+		m_bEncrypted = false;
+		m_numFiles = 0;
+	}
+	std::filesystem::path getArchivePath()const { return m_pathArchive; }
+	bool isArchiveEncrypted()const { return m_bEncrypted; }
+	bool isModifySupported()const { return m_bModifySupported; }
+	bool isMultipleContentAllowed()const;
+	bool checkArchiveExists()const { return std::filesystem::exists(m_pathArchive); }
+	bool isOK()const { return m_pRoot.get() != nullptr; }
 
-	//処理対象アーカイブ名を取得
-	void SetArchiveFileName(LPCTSTR lpFile){m_pathArcFileName=lpFile;}
-	LPCTSTR GetArchiveFileName()const{return m_pathArcFileName;}
-	const CArchiverDLL* GetArchiver()const{return m_lpArchiver;}
+	const ARCHIVE_ENTRY_INFO* getRootNode()const { return m_pRoot.get(); }
+	ARCHIVE_ENTRY_INFO* getRootNode() { return m_pRoot.get(); }
+	std::vector<std::shared_ptr<ARCHIVE_ENTRY_INFO> > findItem(
+		const ARCHIVE_FIND_CONDITION& condition,
+		const ARCHIVE_ENTRY_INFO* parent = nullptr
+	)const;
 
-	ARCHIVE_ENTRY_INFO_TREE* GetRootNode(){return &m_Root;}
-	const ARCHIVE_ENTRY_INFO_TREE* GetRootNode()const{return &m_Root;}
+	void scanArchiveStruct(const std::filesystem::path& archiveName, ILFScanProgressHandler& progressHandler);
 
-	HRESULT ConstructFlat(LPCTSTR lpFile,CConfigManager&,DLL_ID idForce,LPCTSTR lpDenyExt,bool bFilesOnly,CString &strErr,IArchiveContentUpdateHandler*);
-	HRESULT ConstructTree(LPCTSTR lpFile,CConfigManager&,DLL_ID idForce,LPCTSTR lpDenyExt,bool bSkipMeaningless,CString &strErr,IArchiveContentUpdateHandler*);
-	void Clear();
+	std::vector<std::filesystem::path> extractEntries(
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		const std::filesystem::path& outputDir,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		ILFProgressHandler& progressHandler,
+		ARCLOG &arcLog);
+	void addEntries(
+		const LF_COMPRESS_ARGS& args,
+		const std::vector<std::filesystem::path> &files,
+		const ARCHIVE_ENTRY_INFO* lpParent,
+		ILFProgressHandler& progressHandler,
+		ILFOverwriteInArchiveConfirm& confirmHandler,
+		ARCLOG &arcLog);
+	void deleteEntries(
+		const LF_COMPRESS_ARGS& args,
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		ILFProgressHandler& progressHandler,
+		ARCLOG &arcLog);
 
-	bool ReloadArchiverIfLost(CConfigManager &ConfigManager,CString &strErr);
-
-	bool IsExtractEachSupported()const{return m_bExtractEachSupported;}
-	bool IsDeleteItemsSupported()const;
-	bool IsAddItemsSupported()const;
-	bool IsUnicodeCapable()const;
-	bool IsArchiveEncrypted()const{return m_bEncrypted;}
-	BOOL CheckArchiveExists()const{return PathFileExists(m_pathArcFileName);}
-
-	//lpTop以下のファイルを検索
-	void FindItem(LPCTSTR lpszMask,const ARCHIVE_ENTRY_INFO_TREE *lpTop,std::vector<ARCHIVE_ENTRY_INFO_TREE*> &founds)const;
-
-	HRESULT AddItem(const std::list<CString>&,LPCTSTR lpDestDir,CConfigManager& rConfig,CString&);	//ファイルを追加圧縮
-	bool ExtractItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,LPCTSTR lpszDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,bool bCollapseDir,CString &strLog);
-	//bOverwrite:trueなら存在するテンポラリファイルを削除してから解凍する
-	bool MakeSureItemsExtracted(CConfigManager&,LPCTSTR lpOutputDir,const ARCHIVE_ENTRY_INFO_TREE* lpBase,const std::list<ARCHIVE_ENTRY_INFO_TREE*> &items,std::list<CString> &r_filesList,bool bOverwrite,CString &strLog);
-	bool DeleteItems(CConfigManager&,const std::list<ARCHIVE_ENTRY_INFO_TREE*>&,CString&);
+	std::vector<std::filesystem::path> makeSureItemsExtracted(	//returns list of extracted files
+		const std::vector<const ARCHIVE_ENTRY_INFO*> &items,
+		const std::filesystem::path &outputDir,
+		const ARCHIVE_ENTRY_INFO* lpBase,
+		ILFProgressHandler& progressHandler,
+		enum class overwrite_options options,
+		ARCLOG &arcLog);
 };
+

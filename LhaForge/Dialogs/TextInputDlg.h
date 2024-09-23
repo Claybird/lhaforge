@@ -24,39 +24,61 @@
 
 #pragma once
 
-class CInputDialog : public CDialogImpl<CInputDialog>,public CWinDataExchange<CInputDialog>
+class CTextInputDialog : public CDialogImpl<CTextInputDialog>,public LFWinDataExchange<CTextInputDialog>
 {
 protected:
-	CString &strInput;
-	CString strMessage;
+	std::wstring strInput;
+	const std::wstring strMessage;
+	const bool _isPassphraseBox;
+	const wchar_t hideChar;
 public:
 	enum {IDD = IDD_DIALOG_INPUT};
-	CInputDialog(LPCTSTR lpszMessage,CString &str):strInput(str),strMessage(lpszMessage){}
+	CTextInputDialog(const std::wstring & message, bool isPassphraseBox)
+		:strMessage(message), _isPassphraseBox(isPassphraseBox), hideChar(L'\u26AB'){}
 
-	// DDXマップ
-	BEGIN_DDX_MAP(CInputDialog)
+	BEGIN_DDX_MAP(CTextInputDialog)
 		DDX_TEXT(IDC_EDIT_INPUT,strInput)
 	END_DDX_MAP()
 
-	// メッセージマップ
-	BEGIN_MSG_MAP_EX(CInputDialog)
+	BEGIN_MSG_MAP_EX(CTextInputDialog)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		COMMAND_ID_HANDLER_EX(IDOK, OnButton)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnButton)
+		COMMAND_ID_HANDLER_EX(IDC_CHECK_SHOW, OnShowPassphrase)
 	END_MSG_MAP()
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam){
-		//メッセージ設定
-		CStatic cStatic=GetDlgItem(IDC_STATIC_MESSAGE);
-		cStatic.SetWindowText(strMessage);
+		SetDlgItemText(IDC_STATIC_MESSAGE, strMessage.c_str());
 
-		//DDX情報設定
+		if (_isPassphraseBox) {
+			::ShowWindow(GetDlgItem(IDC_CHECK_SHOW), SW_SHOW);
+			CEdit hEdit = GetDlgItem(IDC_EDIT_INPUT);
+			hEdit.SetPasswordChar(hideChar);
+			hEdit.Invalidate();
+		} else {
+			::ShowWindow(GetDlgItem(IDC_CHECK_SHOW), SW_HIDE);
+		}
+
 		DoDataExchange(FALSE);
 		return TRUE;
 	}
 	void OnButton(UINT uNotifyCode, int nID, HWND hWndCtl){
-		//DDX情報設定
 		DoDataExchange(TRUE);
 		EndDialog(nID);
 	}
+	void OnShowPassphrase(UINT uNotifyCode, int nID, HWND hWndCtl) {
+		if (_isPassphraseBox) {
+			CEdit hEdit = GetDlgItem(IDC_EDIT_INPUT);
+			if (BST_CHECKED==Button_GetCheck(GetDlgItem(IDC_CHECK_SHOW))) {
+				hEdit.SetPasswordChar(L'\0');
+			} else {
+				hEdit.SetPasswordChar(hideChar);
+			}
+			hEdit.Invalidate();
+		}
+	}
+
+	std::wstring GetInputText()const { return strInput; }
+	void SetInputText(const std::wstring &input) { strInput = input; }
 };
+

@@ -23,26 +23,24 @@
 */
 
 #pragma once
+#include "ConfigFile.h"
 
-enum OPENACTION{
-	OPENACTION_EXTRACT,
-	OPENACTION_LIST,
-	OPENACTION_TEST,
-	OPENACTION_ASK,
+enum class OPENACTION:int{
+	EXTRACT,
+	LIST,
+	TEST,
+	ASK,
 
-	ENUM_COUNT_AND_LASTITEM(OPENACTION),
+	ENUM_COUNT_AND_LASTITEM
 };
 
-struct CConfigOpenAction:public IConfigConverter{	//関連付けで開いた場合(/m)のデフォルト動作
+struct CConfigOpenAction:public IConfigIO{
 public:
-	OPENACTION OpenAction;
-	OPENACTION OpenAction_Shift;
-	OPENACTION OpenAction_Ctrl;
-protected:
-	virtual void load(CONFIG_SECTION&);	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const;	//設定をCONFIG_SECTIONに書き込む
+	int/*OPENACTION*/ OpenAction;
+	int/*OPENACTION*/ OpenAction_Shift;
+	int/*OPENACTION*/ OpenAction_Ctrl;
 public:
 	virtual ~CConfigOpenAction(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile&);
+	virtual void store(CConfigFile&)const;
 };

@@ -24,15 +24,58 @@
 
 #pragma once
 
-enum DLL_ID;
-class CConfigManager;
-struct CConfigGeneral;
-struct CConfigExtract;
-enum OUTPUT_TO;
-class CMDLINEINFO;
-//解凍を行う
-bool Extract(std::list<CString>&,CConfigManager&,DLL_ID,LPCTSTR lpSpecificOutputDir=NULL,const CMDLINEINFO* lpCmdLineInfo=NULL);
-//出力先のディレクトリを取得し、カレントディレクトリにセットする。
-HRESULT GetExtractDestDir(LPCTSTR,const CConfigGeneral&,const CConfigExtract&,LPCTSTR,bool,CPath&,const int,LPCTSTR,CPath&,bool &r_bUseForAll,CString &strErr);
+#include "CommonUtil.h"
 
-const LPCTSTR LHAFORGE_EXTRACT_SEMAPHORE_NAME=_T("LhaForgeExtractLimitSemaphore");
+#include "ConfigCode/ConfigFile.h"
+#include "ConfigCode/ConfigGeneral.h"
+#include "ConfigCode/ConfigExtract.h"
+
+enum class EXTRACT_CREATE_DIR :int {
+	NoOverride = -1,	//do not override configured behavior
+	Always,	//always create archive-named-directory
+	Never,	//never create archive-named-directory, just its contents
+	SkipIfSingleFileOrDir,	//skip archive-named-directory, if its root contains single *directory or file*
+	SkipIfSingleDirectory,	//skip archive-named-directory, if its root contains single *directory*
+
+	ENUM_COUNT_AND_LASTITEM
+};
+
+struct LF_EXTRACT_ARGS {
+	//	std::wstring outputPath;
+	//	std::wstring pathToOpen;
+	CConfigGeneral general;
+	CConfigExtract extract;
+	LF_GET_OUTPUT_DIR_DEFAULT_CALLBACK output_dir_callback;
+	void load(const CConfigFile& mngr) {
+		general.load(mngr);
+		extract.load(mngr);
+	}
+};
+
+
+struct CMDLINEINFO;
+std::filesystem::path extractCurrentEntry(
+	ILFArchiveFile &arc,
+	const LF_ENTRY_STAT *entry,
+	const std::filesystem::path& output_dir,
+	ARCLOG &arcLog,
+	ILFOverwriteConfirm& preExtractHandler,
+	ILFProgressHandler& progressHandler
+);
+
+bool GUI_extract_multiple_files(
+	const std::vector<std::filesystem::path> &archive_files,
+	ILFProgressHandler &progressHandler,
+	const CMDLINEINFO* lpCmdLineInfo
+);
+void testOneArchive(
+	const std::filesystem::path& archive_path,
+	ARCLOG &arcLog,
+	ILFProgressHandler &progressHandler,
+	std::shared_ptr<ILFPassphrase> passphrase_callback
+);
+bool GUI_test_multiple_files(
+	const std::vector<std::filesystem::path> &archive_files,
+	ILFProgressHandler &progressHandler,
+	const CMDLINEINFO* lpCmdLineInfo
+);

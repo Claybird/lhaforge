@@ -24,49 +24,44 @@
 
 #pragma once
 #include "Dlg_Base.h"
-#include "../ConfigManager.h"
-#include "../../resource.h"
-#include "../../Utilities/Utility.h"
-#include "../ConfigOpenAction.h"
+#include "ConfigCode/ConfigFile.h"
+#include "resource.h"
+#include "Utilities/Utility.h"
+#include "ConfigCode/ConfigOpenAction.h"
 
-//======================================
-// 関連付けでファイルを開いたときの動作
-//======================================
-
-class CConfigDlgOpenAction : public CDialogImpl<CConfigDlgOpenAction>,public CMessageFilter,public IConfigDlgBase
+class CConfigDlgOpenAction : public LFConfigDialogBase<CConfigDlgOpenAction>
 {
 protected:
-	virtual BOOL PreTranslateMessage(MSG* pMsg){
-		return IsDialogMessage(pMsg);
-	}
 	CConfigOpenAction	m_Config;
-
-	CButton Radio_OpenAction[OPENACTION_ITEM_COUNT];
-	CButton Radio_OpenAction_Shift[OPENACTION_ITEM_COUNT];
-	CButton Radio_OpenAction_Ctrl[OPENACTION_ITEM_COUNT];
 public:
 	enum { IDD = IDD_PROPPAGE_CONFIG_OPENACTION };
+	BEGIN_DDX_MAP(CConfigDlgOpenAction)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT, m_Config.OpenAction)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT_SHIFT, m_Config.OpenAction_Shift)
+		DDX_RADIO(IDC_RADIO_OPENACTION_EXTRACT_CTRL, m_Config.OpenAction_Ctrl)
+	END_DDX_MAP()
 
-	// メッセージマップ
 	BEGIN_MSG_MAP_EX(CConfigDlgOpenAction)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		MSG_WM_DESTROY(OnDestroy)
 	END_MSG_MAP()
 
-	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam);
-	LRESULT OnApply();
-
-	LRESULT OnDestroy(){
-		CMessageLoop* pLoop = _Module.GetMessageLoop();
-		pLoop->RemoveMessageFilter(this);
-
+	CConfigDlgOpenAction() {}
+	virtual ~CConfigDlgOpenAction() {}
+	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		DoDataExchange(FALSE);
+		return TRUE;
+	}
+	LRESULT OnApply() {
+		if (!DoDataExchange(TRUE)) {
+			return FALSE;
+		}
 		return TRUE;
 	}
 
-	void LoadConfig(CConfigManager& Config){
+	void LoadConfig(CConfigFile& Config){
 		m_Config.load(Config);
 	}
-	void StoreConfig(CConfigManager& Config){
+	void StoreConfig(CConfigFile& Config, CConfigFile& assistant){
 		m_Config.store(Config);
 	}
 };

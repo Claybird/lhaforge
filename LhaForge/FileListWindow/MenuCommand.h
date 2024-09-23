@@ -23,26 +23,26 @@
 */
 
 #pragma once
-//ファイル一覧モードの右クリックメニュー「プログラムで開く」のメニューID定義
+#include "Utilities/OSUtil.h"
+
+//Menu ID for "Open With" in file list window
 #define USERAPP_MAX_NUM				200
 #define ID_MENUITEM_USERAPP_BEGIN	4000
 #define ID_MENUITEM_USERAPP_END		(ID_MENUITEM_USERAPP_BEGIN+USERAPP_MAX_NUM-1)
 
-struct CMenuCommandItem{
-	virtual ~CMenuCommandItem(){}
-	CString Caption;
-	CString Path;
-	CString Param;
-	CString Dir;
+struct CLFMenuCommandItem {
+	virtual ~CLFMenuCommandItem() {}
+	std::wstring Caption;
+	std::wstring Path;
+	std::wstring Param;
+	std::wstring Dir;
 };
 
 
 struct CConfigFileListWindow;
-struct SHORTCUTINFO;
 void MenuCommand_MakeUserAppMenu(HMENU hMenu);
 void MenuCommand_MakeSendToMenu(HMENU hMenu);
 void MenuCommand_UpdateUserAppCommands(const CConfigFileListWindow &ConfFLW);
-UINT MenuCommand_GetNumSendToCmd();
 void MenuCommand_MakeSendToCommands();
-const std::vector<CMenuCommandItem>& MenuCommand_GetCmdArray();
-const std::vector<SHORTCUTINFO>& MenuCommand_GetSendToCmdArray();
+const std::vector<CLFMenuCommandItem>& MenuCommand_GetCmdArray();
+const std::vector<UTIL_SHORTCUTINFO>& MenuCommand_GetSendToCmdArray();

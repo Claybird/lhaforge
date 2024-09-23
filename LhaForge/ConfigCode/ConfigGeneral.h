@@ -23,51 +23,44 @@
 */
 
 #pragma once
+#include "ConfigFile.h"
 
-enum LOSTDIR;
-enum LOGVIEW;
-enum LFPROCESS_PRIORITY{
-	LFPRIOTITY_DEFAULT=0,
-	LFPRIOTITY_LOW=1,
-	LFPRIOTITY_LOWER=2,
-	LFPRIOTITY_NORMAL=3,
-	LFPRIOTITY_HIGHER=4,
-	LFPRIOTITY_HIGH=5,
-	LFPRIOTITY_MAX_NUM=LFPRIOTITY_HIGH,
-};
-
-struct CConfigGeneral:public IConfigConverter{
+struct CConfigGeneral:public IConfigIO{
 public:
 	struct tagFiler{
-		virtual ~tagFiler(){}
-		CString FilerPath;
-		CString Param;
-		BOOL UseFiler;
+		std::wstring FilerPath;
+		std::wstring Param;
+		bool UseFiler;
 	}Filer;
 
-	BOOL WarnNetwork;
-	BOOL WarnRemovable;
-	BOOL NotifyShellAfterProcess;	//SHChangeNotifyを処理後に呼ぶならtrue
-	LOSTDIR OnDirNotFound;
-	LOGVIEW LogViewEvent;
-	int/*LFPROCESS_PRIORITY*/ ProcessPriority;
+	bool WarnNetwork;
+	bool WarnRemovable;
+	int/*LOSTDIR*/ OnDirNotFound;
+	int/*LOGVIEW*/ LogViewEvent;
 
-	CString TempPath;
+	std::wstring TempPath;
 protected:
-	virtual void load(CONFIG_SECTION&){ASSERT(!"This code cannot be run");}	//設定をCONFIG_SECTIONから読み込む
-	virtual void store(CONFIG_SECTION&)const{ASSERT(!"This code cannot be run");}	//設定をCONFIG_SECTIONに書き込む
-
-	void loadOutput(CONFIG_SECTION&);
-	void storeOutput(CONFIG_SECTION&)const;
-	void loadFiler(CONFIG_SECTION&);
-	void storeFiler(CONFIG_SECTION&)const;
-	void loadLogView(CONFIG_SECTION&);
-	void storeLogView(CONFIG_SECTION&)const;
-	void loadGeneral(CONFIG_SECTION&);
-	void storeGeneral(CONFIG_SECTION&)const;
+	void loadOutput(const CConfigFile&);
+	void storeOutput(CConfigFile&)const;
+	void loadFiler(const CConfigFile&);
+	void storeFiler(CConfigFile&)const;
+	void loadLogView(const CConfigFile&);
+	void storeLogView(CConfigFile&)const;
+	void loadGeneral(const CConfigFile&);
+	void storeGeneral(CConfigFile&)const;
 public:
 	virtual ~CConfigGeneral(){}
-	virtual void load(CConfigManager&);
-	virtual void store(CConfigManager&)const;
+	virtual void load(const CConfigFile& Config) {
+		loadOutput(Config);
+		loadLogView(Config);
+		loadFiler(Config);
+		loadGeneral(Config);
+	}
+	virtual void store(CConfigFile& Config)const {
+		storeOutput(Config);
+		storeLogView(Config);
+		storeFiler(Config);
+		storeGeneral(Config);
+	}
 };
 

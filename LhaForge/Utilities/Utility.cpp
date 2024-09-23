@@ -23,343 +23,386 @@
 */
 
 #include "stdafx.h"
-#include "../resource.h"
-#include "Utility.h"
-#include "StringUtil.h"
-#include "FileOperation.h"
-#include "../Dialogs/TextInputDlg.h"
+#include "resource.h"
+#include "Utilities/Utility.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FileOperation.h"
+#include "Dialogs/TextInputDlg.h"
 
-#if !defined(_UNICODE)&&!defined(UNICODE)
- #include <imagehlp.h> //MakeSureDirectoryPathExists()
-#endif
-
-#if defined(DEBUG) || defined(_DEBUG)
-void UtilDebugTrace(LPCTSTR pszFormat, ...)
+int ErrorMessage(const std::wstring& message)
 {
-	va_list	args;
-
-	va_start(args, pszFormat);
-	CString str;
-	str.FormatV(pszFormat,args);
-	va_end(args);
-
-	OutputDebugString(str);
+	TRACE(L"ErrorMessage:%s\n", message.c_str());
+	return UtilMessageBox(NULL, message, MB_OK | MB_ICONSTOP);
 }
 
-void TraceLastError()
+int UtilMessageBox(HWND hWnd, const std::wstring& message, UINT uType)
+{
+	const auto strCaption = UtilLoadString(IDS_MESSAGE_CAPTION);
+	return MessageBoxW(
+		hWnd,
+		message.c_str(),
+		strCaption.c_str(),
+		uType);
+}
+
+std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 {
 	LPVOID lpMsgBuf;
-	FormatMessage(
+	FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // デフォルト言語
-		(LPTSTR)&lpMsgBuf, 0, NULL);
-	TRACE(_T("API Error : %s"),lpMsgBuf);
+		NULL, errorCode,
+		langID,
+		(wchar_t*)&lpMsgBuf, 0, NULL);
+
+	std::wstring out=(const wchar_t*)lpMsgBuf;
 	LocalFree(lpMsgBuf);
+	return out;
 }
 
+#ifdef UNIT_TEST
+TEST(Utility, UtilGetLastErrorMessage) {
+	EXPECT_EQ(L"The system cannot find the path specified.\r\n",
+		UtilGetLastErrorMessage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), ERROR_PATH_NOT_FOUND));
+}
 #endif
 
-//エラーメッセージ表示
-int ErrorMessage(LPCTSTR msg)
+std::vector<std::wstring> UtilReadFromResponseFile(const std::filesystem::path& respFile, UTIL_CODEPAGE uSrcCodePage)
 {
-	TRACE(_T("ErrorMessage:")),TRACE(msg),TRACE(_T("\n"));
-	return MessageBox(NULL,msg,UtilGetMessageCaption(),MB_OK|MB_ICONSTOP);
-}
+	std::vector<BYTE> cReadBuffer = UtilReadFile(respFile);
 
-//メッセージキャプションを取得
-LPCTSTR UtilGetMessageCaption()
-{
-	const static CString strCaption(MAKEINTRESOURCE(IDS_MESSAGE_CAPTION));
-	return strCaption;
-}
+	//adding \0 to end
+	cReadBuffer.push_back('\0');
+	cReadBuffer.push_back('\0');
 
-void UtilGetLastErrorMessage(CString &strMsg)
-{
-	//実行エラー
-	LPVOID lpMsgBuf;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)&lpMsgBuf, 0, NULL);
+	//encoding
+	auto content = UtilToUNICODE((const char*)&cReadBuffer[0], cReadBuffer.size(), uSrcCodePage);
 
-	strMsg=(LPCTSTR)lpMsgBuf;
-	LocalFree(lpMsgBuf);
-}
-
-
-//配列の中に指定された数字が有ればその位置を返す
-int UtilCheckNumberArray(const int *lpcArray,int size,int c)
-{
-	for(int i=0;i<size;i++){
-		if(lpcArray[i]==c)return i;
-	}
-	return -1;
-}
-
-//ファイル名が指定したパターンに当てはまればtrue
-bool UtilExtMatchSpec(LPCTSTR lpszPath,LPCTSTR lpPattern)
-{
-	const CString strBuf=lpPattern;
-	int Index=0,CopyFrom=0;
-
-	while(true){
-		Index=strBuf.Find(_T(';'),Index);
-		CString strMatchSpec;
-		if(-1==Index){
-			strMatchSpec=strBuf.Mid(CopyFrom);
-		}else{
-			strMatchSpec=strBuf.Mid(CopyFrom,Index-CopyFrom);
-		}
-		if(!strMatchSpec.IsEmpty()){	//拡張子確認
-			if(strMatchSpec[0]!=L'.')strMatchSpec=L'.'+strMatchSpec;	//.から始まるように補う
-			strMatchSpec.Insert(0,_T("*"));	//.ext->*.ext
-			if(PathMatchSpec(lpszPath,strMatchSpec)){
-				return true;
+	std::wstring line;
+	std::vector<std::wstring> files;
+	for (const auto& c: content) {
+		if (c == L'\n' || c == L'\r' || c == L'\0') {
+			if (!line.empty()) {
+				if (line.front() == L'"' && line[line.length() - 1] == L'"') {
+					//unquote
+					line = std::wstring(&line[1], &line[line.length() - 1]);
+				}
+				files.push_back(line);
 			}
-		}
-		if(-1==Index){	//検索終了
-			break;
-		}else{
-			Index++;
-			CopyFrom=Index;
+			line.clear();
+		} else {
+			line += c;
 		}
 	}
-	return false;
+	return files;
 }
 
-//ファイル名が指定した2つの条件で[許可]されるかどうか;拒否が優先
-bool UtilPathAcceptSpec(LPCTSTR lpszPath,LPCTSTR lpDeny,LPCTSTR lpAccept,bool bDenyOnly)
+#ifdef UNIT_TEST
+
+TEST(Utility, UtilReadFromResponseFile) {
+	auto file = std::filesystem::path(__FILEW__).parent_path() / L"test/test_utility_response1.txt";
+	auto files = UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8);
+	EXPECT_EQ(size_t(4), files.size());
+	EXPECT_EQ(L"ファイル1.txt", files[0]);
+	EXPECT_EQ(L"C:\\program files\\b.txt", files[1]);
+	EXPECT_EQ(L"ファイル3.doc", files[2]);
+	EXPECT_EQ(L"#d.exe", files[3]);
+
+	file = std::filesystem::path(__FILEW__).parent_path() / L"test/path_that_does_not_exist.txt";
+	EXPECT_THROW(UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8), LF_EXCEPTION);
+}
+#endif
+
+//checks if path extension matches specific patterns
+//pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
+bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string)
 {
-	if(UtilExtMatchSpec(lpszPath,lpDeny)){
-		return false;
+	if (pattern_string.empty())return false;
+	//characters to be escaped
+	const std::wstring escapeSubjects = L".(){}[]\\+^$|";
+
+	//compatibility
+	auto pattern = pattern_string;
+	if (pattern.find(L"*.") == 0) {
+		pattern = pattern.substr(1);
 	}
-	if(bDenyOnly){
-		return true;
-	}else{
-		if(UtilExtMatchSpec(lpszPath,lpAccept)){
-			return true;
+
+	std::wstring regex_str;
+	if (pattern[0] != L'.') {
+		regex_str += L"\\.";
+	}
+	for (const auto& p : pattern) {
+		if (isIn(escapeSubjects, p)) {
+			regex_str += L"\\";
+			regex_str += p;
+		} else if (p == L'*') {
+			regex_str += L".*?";
+		} else if (p == L'?') {
+			regex_str += L".";
+		} else {
+			regex_str += p;
 		}
 	}
-	return false;
+
+	if (regex_str.empty())return false;
+	regex_str += L"$";
+
+	std::wregex re(regex_str, std::regex_constants::icase);
+	return std::regex_search(path.wstring(), re);
 }
 
-//レスポンスファイルを読み取る
-bool UtilReadFromResponceFile(LPCTSTR lpszRespFile,UTIL_CODEPAGE uSrcCodePage,std::list<CString> &FileList)
-{
-	ASSERT(lpszRespFile);
-	if(!lpszRespFile)return false;
-	if(!PathFileExists(lpszRespFile))return false;
+#ifdef UNIT_TEST
+TEST(Utility, UtilExtMatchSpec) {
+	//---single
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*.*"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L".*"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"", L""));
+	EXPECT_FALSE(UtilExtMatchSpec(L"", L"*.abc"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*.abc"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L".abc"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.ABC", L"abc"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"ab"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L".ab"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.ABC", L"ab"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test.abc"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"*.test"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"ab*"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc*"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"??c"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"?c"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"??d"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"test.tar.gz", L"tar.gz"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.tar.gz", L""));
 
-	HANDLE hFile=CreateFile(lpszRespFile,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-	if(INVALID_HANDLE_VALUE==hFile)return false;
+	//---possible regex
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"(.*)"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"[a-Z]*"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"\\"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"$"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"^"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"txt|abc"));
 
-	//4GB越えファイルは扱わない
-	const DWORD dwSize=GetFileSize(hFile,NULL);
-	std::vector<BYTE> cReadBuffer;
-	cReadBuffer.resize(dwSize+2);
-	DWORD dwRead;
-	//---読み込み
-	if(!ReadFile(hFile,&cReadBuffer[0],dwSize,&dwRead,NULL)||dwSize!=dwRead){
-		CloseHandle(hFile);
-		return false;
-	}
-	CloseHandle(hFile);
-
-	//---文字コード変換
-	//終端文字追加
-	switch(uSrcCodePage){
-	case UTILCP_SJIS:
-	case UTILCP_UTF8:	//FALLTHROUGH
-		cReadBuffer[dwSize]='\0';
-		break;
-	case UTILCP_UTF16:
-		*((LPWSTR)&cReadBuffer[dwSize])=L'\0';
-		break;
-	default:
-		ASSERT(!"This code canno be run");
-		return false;
-	}
-	//文字コード変換
-	CString strBuffer;
-	if(!UtilToUNICODE(strBuffer,&cReadBuffer[0],cReadBuffer.size(),uSrcCodePage))return false;
-
-	LPCTSTR p=strBuffer;
-	const LPCTSTR end=p+strBuffer.GetLength()+1;
-	//解釈
-	CString strLine;
-	for(;p!=end;p++){
-		if(*p==_T('\n')||*p==_T('\r')||*p==_T('\0')){
-			if(!strLine.IsEmpty()){
-				CPath tmpPath(strLine);
-				tmpPath.UnquoteSpaces();	//""を外す
-				FileList.push_back(tmpPath);
-			}
-			strLine.Empty();
-		}
-		else 
-			strLine+=*p;
-	}
-	return true;
+	//---no name part or no exts
+	EXPECT_TRUE(UtilExtMatchSpec(L".gitignore", L".gitignore"));
+	EXPECT_TRUE(UtilExtMatchSpec(L"abc.gitignore", L".gitignore"));
+	EXPECT_FALSE(UtilExtMatchSpec(L"test", L"test"));
 }
+#endif
 
-//INIに数字を文字列として書き込む
-BOOL UtilWritePrivateProfileInt(LPCTSTR lpAppName,LPCTSTR lpKeyName,LONG nData,LPCTSTR lpFileName)
+//checks if path matches specific patterns
+//pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
+bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string)
 {
-	TCHAR Buffer[32]={0};
-	wsprintf(Buffer,_T("%ld"),nData);
-	return ::WritePrivateProfileString(lpAppName,lpKeyName,Buffer,lpFileName);
-}
+	if (pattern_string.empty())return false;
+	//characters to be escaped
+	const std::wstring escapeSubjects = L".(){}[]+^$|";
 
-
-//INIに指定されたセクションがあるならtrueを返す
-bool UtilCheckINISectionExists(LPCTSTR lpAppName,LPCTSTR lpFileName)
-{
-	TCHAR szBuffer[10];
-	DWORD dwRead=GetPrivateProfileSection(lpAppName,szBuffer,9,lpFileName);
-	return dwRead>0;
-}
-
-//文字列を入力させる
-bool UtilInputText(LPCTSTR lpszMessage,CString &strInput)
-{
-	CInputDialog dlg(lpszMessage,strInput);
-	return IDOK==dlg.DoModal();
-}
-
-
-//与えられたファイル名がマルチボリューム書庫と見なせるならtrueを返す
-bool UtilIsMultiVolume(LPCTSTR lpszPath,CString &r_strFindParam)
-{
-	//初期化
-	r_strFindParam.Empty();
-
-	CPath strPath(lpszPath);
-	if(strPath.IsDirectory())return false;	//ディレクトリなら無条件に返る
-
-	strPath.StripPath();	//ファイル名のみに
-	int nExt=strPath.FindExtension();	//拡張子の.の位置
-	if(-1==nExt)return false;	//拡張子は見つからず
-
-	CString strExt((LPCTSTR)strPath+nExt);
-	strExt.MakeLower();	//小文字に
-	if(strExt==_T(".rar")){
-		//---RAR
-		if(strPath.MatchSpec(_T("*.part*.rar"))){
-			//検索文字列の作成
-			CPath tempPath(lpszPath);
-			tempPath.RemoveExtension();	//.rarの削除
-			tempPath.RemoveExtension();	//.part??の削除
-			tempPath.AddExtension(_T(".part*.rar"));
-
-			r_strFindParam=(CString)tempPath;
-			return true;
-		}else{
-			return false;
+	auto pattern = replace(pattern_string, L"*.*", L"*");	//compatibility
+	std::wstring regex_str;
+	for (const auto& p : pattern) {
+		if (isIn(escapeSubjects, p)) {
+			regex_str += L"\\";
+			regex_str += p;
+		} else if (p == L'/' || p=='\\') {
+			regex_str += L"[/\\\\]";
+		} else if (p == L'*') {
+			regex_str += L".*?";
+		} else if (p == L'?') {
+			regex_str += L".";
+		} else {
+			regex_str += p;
 		}
 	}
-	//TODO:使用頻度と実装の簡便さを考えてrarのみ対応とする
-	return false;
+
+	if (regex_str.empty())return false;
+
+	std::wregex re(toLower(regex_str));
+	return std::regex_search(toLower(path), re);
 }
 
+#ifdef UNIT_TEST
+TEST(Utility, UtilPathMatchSpec) {
+	//---single
+	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"", L""));
+	EXPECT_FALSE(UtilPathMatchSpec(L"", L"*.abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"abc"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"ab"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test.abc"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"*.test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"??c"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"?c"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"??d"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar.gz"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.tar.gz", L""));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar"));
 
-//強制的にメッセージループを回す
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc/*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*/def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc\\*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*\\def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc/*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*/def"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc\\*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*\\def"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc/*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*/def"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc\\*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*\\def"));
+
+	//---possible regex
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"(.*)"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"[a-Z]*"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"\\"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"$"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"^"));
+	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"txt|abc"));
+
+	//---no name part or no exts
+	EXPECT_TRUE(UtilPathMatchSpec(L".gitignore", L".gitignore"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"abc.gitignore", L".gitignore"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"test"));
+
+	//---non ascii strings
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお/*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお\\*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/かきくけこ.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\かきくけこ.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.txt"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*.*"));
+	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*"));
+}
+#endif
+
 bool UtilDoMessageLoop()
 {
-	MSG msg;
-	if(PeekMessage (&msg,NULL,0,0,PM_NOREMOVE)){
-		if(!GetMessage (&msg,NULL,0,0)){
-			return false;
-		}
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-		return true;
+	if (_Module.m_pMsgLoopMap) {
+		CCustomMessageLoop* pLoop = (CCustomMessageLoop*)_Module.GetMessageLoop();
+		return FALSE != pLoop->OneRun();
+	} else {
+		return false;
 	}
-	return false;
 }
 
-VOID CALLBACK UtilMessageLoopTimerProc(HWND,UINT,UINT,DWORD)
+
+#ifdef UNIT_TEST
+
+TEST(Utility, has_key) {
+	std::map<std::wstring, std::wstring> m;
+	m[L"abc"] = L"abc";
+	m[L"あいう"] = L"あいう";
+	EXPECT_TRUE(has_key(m, L"abc"));
+	EXPECT_TRUE(has_key(m, L"あいう"));
+	EXPECT_FALSE(has_key(m, L"cde"));
+}
+TEST(Utility, index_of) {
+	std::vector<int> a = { 2,4,6,8,10 };
+	EXPECT_EQ(1, index_of(a, 4));
+	EXPECT_EQ(4, index_of(a, 10));
+	EXPECT_EQ(-1, index_of(a, 1));
+	EXPECT_EQ(-1, index_of(a, 11));
+
+	EXPECT_EQ(1, index_of(&a[0], a.size(), 4));
+	EXPECT_EQ(4, index_of(&a[0], a.size(), 10));
+	EXPECT_EQ(-1, index_of(&a[0], a.size(), 1));
+	EXPECT_EQ(-1, index_of(&a[0], a.size(), 11));
+}
+TEST(Utility, remove_item) {
+	std::vector<int> a = { 2,4,6,6,6,10 };
+	EXPECT_NE(-1, index_of(a, 6));
+	remove_item(a, 6);
+	EXPECT_EQ(-1, index_of(a, 6));
+}
+TEST(Utility, remove_item_if) {
+	std::vector<int> a = { 2,4,6,6,6,10 };
+	EXPECT_NE(-1, index_of(a, 6));
+	remove_item_if(a, [](int value) {return value / 2 == 3; });
+	EXPECT_EQ(-1, index_of(a, 6));
+}
+TEST(Utility, isIn) {
+	std::vector<int> a = { 2,4,6,8,10 };
+	EXPECT_TRUE(isIn(a, 4));
+	EXPECT_FALSE(isIn(a, 3));
+}
+TEST(Utility, merge_map) {
+	std::map<std::string, std::string> a = {
+		{"a","a"},
+		{"b","b"},
+		{"c","c"},
+	}, b = {
+		{"a","A"},
+		{"b","B"},
+		{"d","D"},
+	};
+	merge_map(a, b);
+	EXPECT_EQ(a["a"], "A");
+	EXPECT_EQ(a["b"], "B");
+	EXPECT_EQ(a["c"], "c");
+	EXPECT_EQ(a["d"], "D");
+}
+
+
+#endif
+
+
+FILETIME UtilUnixTimeToFileTime(__time64_t t)
 {
-	while(UtilDoMessageLoop())continue;
+	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
+	FILETIME ft;
+	ft.dwLowDateTime = (DWORD)ll;
+	ft.dwHighDateTime = ll >> 32;
+	return ft;
 }
 
-
-//標準の設定ファイルのパスを取得
-//bUserCommonはユーザー間で共通設定を使う場合にtrueが代入される
-//lpszDirはApplicationDataに入れるときに必要なディレクトリ名
-//lpszFileは探すファイル名
-void UtilGetDefaultFilePath(CString &strPath,LPCTSTR lpszDir,LPCTSTR lpszFile,bool &bUserCommon)
+#ifdef UNIT_TEST
+TEST(Utility, UtilUnixTimeToFileTimeime)
 {
-	//---ユーザー間で共通の設定を用いる
-	//LhaForgeフォルダと同じ場所にINIがあれば使用する
-	{
-		TCHAR szCommonIniPath[_MAX_PATH+1]={0};
-		_tcsncpy_s(szCommonIniPath,UtilGetModuleDirectoryPath(),_MAX_PATH);
-		PathAppend(szCommonIniPath,lpszFile);
-		if(PathFileExists(szCommonIniPath)){
-			//共通設定
-			bUserCommon=true;
-			strPath=szCommonIniPath;
-			TRACE(_T("Common INI(Old Style) '%s' found.\n"),strPath);
-			return;
-		}
-	}
-	//CSIDL_COMMON_APPDATAにINIがあれば使用する
-	{
-		TCHAR szCommonIniPath[_MAX_PATH+1]={0};
-		SHGetFolderPath(NULL,CSIDL_COMMON_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szCommonIniPath);
-		PathAppend(szCommonIniPath,lpszDir);
-		PathAppend(szCommonIniPath,lpszFile);
-		if(PathFileExists(szCommonIniPath)){
-			//共通設定
-			bUserCommon=true;
-			strPath=szCommonIniPath;
-			TRACE(_T("Common INI '%s' found.\n"),strPath);
-			return;
-		}
-	}
+	auto ft = UtilUnixTimeToFileTime(946730096);	//2000-01-01T12:34:56
+	SYSTEMTIME systime;
+	FileTimeToSystemTime(&ft, &systime);
 
-	//--------------------
+	EXPECT_EQ(2000, systime.wYear);
+	EXPECT_EQ(1, systime.wMonth);
+	EXPECT_EQ(1, systime.wDay);
+	EXPECT_EQ(12, systime.wHour);
+	EXPECT_EQ(34, systime.wMinute);
+	EXPECT_EQ(56, systime.wSecond);
+}
+#endif
 
-	//---ユーザー別設定を用いる
-	//LhaForgeインストールフォルダ以下にファイルが存在する場合、それを使用
-	{
-		//ユーザー名取得
-		TCHAR UserName[UNLEN+1]={0};
-		DWORD Length=UNLEN;
-		GetUserName(UserName,&Length);
+__time64_t UtilFileTimeToUnixTime(FILETIME ft)
+{
+	int64_t ll = ((int64_t)ft.dwLowDateTime) + (((int64_t)ft.dwHighDateTime) << 32);
 
-		TCHAR szIniPath[_MAX_PATH+1];
-		_tcsncpy_s(szIniPath,UtilGetModuleDirectoryPath(),_MAX_PATH);
-		PathAppend(szIniPath,UserName);
-		PathAddBackslash(szIniPath);
-		//MakeSureDirectoryPathExists(szIniPath);
-
-		PathAppend(szIniPath,lpszFile);
-
-		if(PathFileExists(szIniPath)){
-			bUserCommon=false;
-			strPath=szIniPath;
-			TRACE(_T("Personal INI(Old Style) '%s' found.\n"),strPath);
-			return;
-		}
-	}
-	//---デフォルト
-	//CSIDL_APPDATAにINIがあれば使用する:Vistaではこれ以外はアクセス権限不足になる可能性がある
-	TCHAR szIniPath[_MAX_PATH+1]={0};
-	SHGetFolderPath(NULL,CSIDL_APPDATA|CSIDL_FLAG_CREATE,NULL,SHGFP_TYPE_CURRENT,szIniPath);
-	PathAppend(szIniPath,lpszDir);
-	PathAddBackslash(szIniPath);
-	UtilMakeSureDirectoryPathExists(szIniPath);
-	PathAppend(szIniPath,lpszFile);
-	bUserCommon=false;
-	strPath=szIniPath;
-	TRACE(_T("Personal INI '%s' found.\n"),strPath);
-	return;
+	__time64_t ut = ll / 10000000L - 11644473600;
+	return ut;
 }
 
+#ifdef UNIT_TEST
+TEST(Utility, UtilFileTimeToUnixTime)
+{
+	FILETIME ft = UtilUnixTimeToFileTime(946730096);
 
-
+	EXPECT_EQ(946730096, UtilFileTimeToUnixTime(ft));
+}
+#endif
 

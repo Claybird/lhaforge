@@ -23,110 +23,85 @@
 */
 
 #include "stdafx.h"
-#include "../ArchiverCode/arc_interface.h"
-#include "ConfigManager.h"
+#include "ArchiverCode/archive.h"
+#include "ConfigFile.h"
+#include "Compress.h"
 #include "ConfigCompress.h"
-#include "../Utilities/FileOperation.h"
+#include "Utilities/FileOperation.h"
 
-void CConfigCompress::load(CONFIG_SECTION &Config)
+void CConfigCompress::load(const CConfigFile &Config)
 {
-	//出力先の種類
-	OutputDirType=(OUTPUT_TO)Config.Data[_T("OutputDirType")].GetNParam(0,OUTPUT_TO_LAST_ITEM,OUTPUT_TO_DESKTOP);
-	//出力先のパス
-	CString Buffer=Config.Data[_T("OutputDir")];
-	if(!Buffer.IsEmpty()){
-		UtilGetCompletePathName(OutputDir,Buffer);
-	}else{
-		OutputDir=_T("");
+	const auto section = L"Compress";
+	OutputDirType = Config.getIntRange(section, L"OutputDirType", 0, (int)OUTPUT_TO::LastItem, (int)OUTPUT_TO::Desktop);
+	auto value=Config.getText(section, L"OutputDir", L"");
+	if (value.empty()) {
+		OutputDirUserSpecified = L"";
+	} else {
+		try {
+			OutputDirUserSpecified = UtilGetCompletePathName(value);
+		} catch (const LF_EXCEPTION&) {
+			OutputDirUserSpecified = L"";
+		}
 	}
-	//圧縮後フォルダを開くかどうか
-	OpenDir=Config.Data[_T("OpenFolder")].GetNParam(TRUE);
+	OpenDir=Config.getBool(section, L"OpenFolder", true);
 
-	//出力ファイル名を指定するかどうか
-	SpecifyOutputFilename=Config.Data[_T("SpecifyName")].GetNParam(FALSE);
+	SpecifyOutputFilename=Config.getBool(section, L"SpecifyName", false);
+	LimitCompressFileCount=Config.getBool(section, L"LimitCompressFileCount", false);
+	MaxCompressFileCount = std::max(1, Config.getInt(section, L"MaxCompressFileCount", 0));
 
-	//同時に圧縮するファイル数を制限する
-	LimitCompressFileCount=Config.Data[_T("LimitCompressFileCount")].GetNParam(FALSE);
+	UseDefaultParameter=Config.getBool(section, L"UseDefaultParameter", false);
+	DefaultType = (LF_ARCHIVE_FORMAT)Config.getIntRange(section,
+		L"DefaultType", (int)LF_ARCHIVE_FORMAT::INVALID, (int)LF_ARCHIVE_FORMAT::LastItem, (int)LF_ARCHIVE_FORMAT::INVALID);
+	DefaultOptions=Config.getInt(section, L"DefaultOptions", 0);
 
-	//同時に圧縮するファイル数の上限
-	MaxCompressFileCount=max(1,(int)Config.Data[_T("MaxCompressFileCount")]);
+	DeleteAfterCompress=Config.getBool(section, L"DeleteAfterCompress", false);
+	MoveToRecycleBin=Config.getBool(section, L"MoveToRecycleBin", true);
+	DeleteNoConfirm=Config.getBool(section, L"DeleteNoConfirm", false);
 
-	//デフォルト圧縮パラメータを使用するならtrue
-	UseDefaultParameter=Config.Data[_T("UseDefaultParameter")].GetNParam(FALSE);
-
-	//デフォルト圧縮パラメータ(形式指定)
-	DefaultType=(PARAMETER_TYPE)Config.Data[_T("DefaultType")].GetNParam(0,PARAMETER_LAST_ITEM,PARAMETER_UNDEFINED);
-
-	//デフォルト圧縮パラメータのオプション
-	DefaultOptions=Config.Data[_T("DefaultOptions")].GetNParam(0);
-
-	//B2E圧縮の情報
-	DefaultB2EFormat=Config.Data[_T("DefaultB2EFormat")];
-	DefaultB2EMethod=Config.Data[_T("DefaultB2EMethod")];
-
-	//正常に圧縮できたファイルを削除
-	DeleteAfterCompress=Config.Data[_T("DeleteAfterCompress")].GetNParam(FALSE);
-	//圧縮後ファイルをごみ箱に移動
-	MoveToRecycleBin=Config.Data[_T("MoveToRecycleBin")].GetNParam(TRUE);
-	//確認せずに削除/ごみ箱に移動
-	DeleteNoConfirm=Config.Data[_T("DeleteNoConfirm")].GetNParam(FALSE);
-	//正常処理を確認できない形式でも削除
-	ForceDelete=Config.Data[_T("ForceDelete")].GetNParam(FALSE);
-
-	//「フォルダより下のファイルを圧縮」
-	IgnoreTopDirectory=Config.Data[_T("IgnoreTopDirectory")].GetNParam(FALSE);
+	IgnoreTopDirectory = Config.getIntRange(section,
+		L"IgnoreTopDirectory", 0, (int)COMPRESS_IGNORE_TOP_DIR::LastItem, (int)COMPRESS_IGNORE_TOP_DIR::None);
 }
 
-void CConfigCompress::store(CONFIG_SECTION &Config)const
+void CConfigCompress::store(CConfigFile &Config)const
 {
-	//出力先の種類
-	Config.Data[_T("OutputDirType")]=OutputDirType;
-	//出力先のパス
-	Config.Data[_T("OutputDir")]=OutputDir;
-	//圧縮後フォルダを開くかどうか
-	Config.Data[_T("OpenFolder")]=OpenDir;
+	const auto section = L"Compress";
+	Config.setValue(section, L"OutputDirType", OutputDirType);
+	Config.setValue(section, L"OutputDir", OutputDirUserSpecified);
+	Config.setValue(section, L"OpenFolder", OpenDir);
 
-	//出力ファイル名を指定するかどうか
-	Config.Data[_T("SpecifyName")]=SpecifyOutputFilename;
-
-	//同時に圧縮するファイル数を制限する
-	Config.Data[_T("LimitCompressFileCount")]=LimitCompressFileCount;
-
-	//同時に圧縮するファイル数の上限
-	Config.Data[_T("MaxCompressFileCount")]=MaxCompressFileCount;
-
-	//デフォルト圧縮パラメータを使用するならtrue
-	Config.Data[_T("UseDefaultParameter")]=UseDefaultParameter;
-
-	//デフォルト圧縮パラメータ(形式指定)
-	Config.Data[_T("DefaultType")]=DefaultType;
-
-	//デフォルト圧縮パラメータのオプション
-	Config.Data[_T("DefaultOptions")]=DefaultOptions;
-
-	//B2E圧縮の情報
-	Config.Data[_T("DefaultB2EFormat")]=DefaultB2EFormat;
-	Config.Data[_T("DefaultB2EMethod")]=DefaultB2EMethod;
-
-	//正常に圧縮できたファイルを削除
-	Config.Data[_T("DeleteAfterCompress")]=DeleteAfterCompress;
-	//圧縮後ファイルをごみ箱に移動
-	Config.Data[_T("MoveToRecycleBin")]=MoveToRecycleBin;
-	//確認せずに削除/ごみ箱に移動
-	Config.Data[_T("DeleteNoConfirm")]=DeleteNoConfirm;
-	//正常処理を確認できない形式でも削除
-	Config.Data[_T("ForceDelete")]=ForceDelete;
-
-	//「フォルダより下のファイルを圧縮」
-	Config.Data[_T("IgnoreTopDirectory")]=IgnoreTopDirectory;
+	Config.setValue(section, L"SpecifyName", SpecifyOutputFilename);
+	Config.setValue(section, L"LimitCompressFileCount", LimitCompressFileCount);
+	Config.setValue(section, L"MaxCompressFileCount", MaxCompressFileCount);
+	Config.setValue(section, L"UseDefaultParameter", UseDefaultParameter);
+	Config.setValue(section, L"DefaultType", (int)DefaultType);
+	Config.setValue(section, L"DefaultOptions", DefaultOptions);
+	Config.setValue(section, L"DeleteAfterCompress", DeleteAfterCompress);
+	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
+	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
+	Config.setValue(section, L"IgnoreTopDirectory", (int)IgnoreTopDirectory);
 }
 
-void CConfigCompress::load(CConfigManager &ConfMan)
+#ifdef UNIT_TEST
+TEST(config, CConfigCompress)
 {
-	load(ConfMan.GetSection(_T("Compress")));
-}
+	CConfigFile emptyFile;
+	CConfigCompress conf;
+	conf.load(emptyFile);
 
-void CConfigCompress::store(CConfigManager &ConfMan)const
-{
-	store(ConfMan.GetSection(_T("Compress")));
+	EXPECT_EQ((int)OUTPUT_TO::Desktop, conf.OutputDirType);
+	EXPECT_TRUE(conf.OutputDirUserSpecified.empty());
+	EXPECT_TRUE(conf.OpenDir);
+	EXPECT_FALSE(conf.SpecifyOutputFilename);
+	EXPECT_FALSE(conf.LimitCompressFileCount);
+	EXPECT_EQ(1, conf.MaxCompressFileCount);
+	EXPECT_FALSE(conf.UseDefaultParameter);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::INVALID, conf.DefaultType);
+	EXPECT_EQ(0, conf.DefaultOptions);
+
+	EXPECT_FALSE(conf.DeleteAfterCompress);
+	EXPECT_TRUE(conf.MoveToRecycleBin);
+	EXPECT_FALSE(conf.DeleteNoConfirm);
+
+	EXPECT_EQ((int)COMPRESS_IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
 }
+#endif

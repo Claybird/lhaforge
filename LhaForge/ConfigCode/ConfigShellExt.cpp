@@ -23,91 +23,79 @@
 */
 
 #include "stdafx.h"
-#include "ConfigManager.h"
+#include "ConfigFile.h"
 #include "ConfigShellExt.h"
 
-void CConfigShellExt::load(CONFIG_SECTION&){ASSERT(!"This code cannot be run");}
-
-void CConfigShellExt::store(CONFIG_SECTION&)const{ASSERT(!"This code cannot be run");}
-
-void CConfigShellExt::loadShellMenu(CONFIG_SECTION &Config)
+void CConfigShellExt::loadShellMenu(const CConfigFile &Config)
 {
-	// 右クリックメニューの表示・非表示
-	ShellMenuCompress=Config.Data[_T("Compress")].GetNParam(TRUE);
-	ShellMenuExtract=Config.Data[_T("Extract")].GetNParam(TRUE);
-	ShellMenuList=Config.Data[_T("List")].GetNParam(TRUE);
-	ShellMenuTest=Config.Data[_T("Test")].GetNParam(TRUE);
+	const auto section = L"ShellMenu";
+	// enable/disable context menu
+	ShellMenuCompress=Config.getBool(section, L"Compress", true);
+	ShellMenuExtract=Config.getBool(section, L"Extract", true);
+	ShellMenuList=Config.getBool(section, L"List", true);
+	ShellMenuTest=Config.getBool(section, L"Test", true);
 
-	// サブメニュー以下に放り込む
-	ShellMenuUnderSubMenu=Config.Data[_T("UnderSubMenu")].GetNParam(FALSE);
+	// push under submenu
+	ShellMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
-void CConfigShellExt::storeShellMenu(CONFIG_SECTION &Config)const
+void CConfigShellExt::storeShellMenu(CConfigFile &Config)const
 {
-	// 右クリックメニューの表示・非表示
-	Config.Data[_T("Compress")]=ShellMenuCompress;
-	Config.Data[_T("Extract")]=ShellMenuExtract;
-	Config.Data[_T("List")]=ShellMenuList;
-	Config.Data[_T("Test")]=ShellMenuTest;
+	const auto section = L"ShellMenu";
+	// enable/disable context menu
+	Config.setValue(section, L"Compress", ShellMenuCompress);
+	Config.setValue(section, L"Extract", ShellMenuExtract);
+	Config.setValue(section, L"List", ShellMenuList);
+	Config.setValue(section, L"Test", ShellMenuTest);
 
-	// サブメニュー以下に放り込む
-	Config.Data[_T("UnderSubMenu")]=ShellMenuUnderSubMenu;
+	// push under submenu
+	Config.setValue(section, L"UnderSubMenu", ShellMenuUnderSubMenu);
 }
 
-void CConfigShellExt::loadDragMenu(CONFIG_SECTION &Config)
+void CConfigShellExt::loadDragMenu(const CConfigFile &Config)
 {
-	// 右ドラッグメニューの表示・非表示
-	DragMenuCompress=Config.Data[_T("Compress")].GetNParam(TRUE);
-	DragMenuExtract=Config.Data[_T("Extract")].GetNParam(TRUE);
-	// サブメニュー以下に放り込む
-	DragMenuUnderSubMenu=Config.Data[_T("UnderSubMenu")].GetNParam(FALSE);
+	const auto section = L"DragMenu";
+	DragMenuCompress=Config.getBool(section, L"Compress", true);
+	DragMenuExtract=Config.getBool(section, L"Extract", true);
+	DragMenuUnderSubMenu=Config.getBool(section, L"UnderSubMenu", false);
 }
 
-void CConfigShellExt::storeDragMenu(CONFIG_SECTION &Config)const
+void CConfigShellExt::storeDragMenu(CConfigFile &Config)const
 {
-	// 右ドラッグメニューの表示・非表示
-	Config.Data[_T("Compress")]=DragMenuCompress;
-	Config.Data[_T("Extract")]=DragMenuExtract;
-	// サブメニュー以下に放り込む
-	Config.Data[_T("UnderSubMenu")]=DragMenuUnderSubMenu;
+	const auto section = L"DragMenu";
+	Config.setValue(section, L"Compress", DragMenuCompress);
+	Config.setValue(section, L"Extract", DragMenuExtract);
+	Config.setValue(section, L"UnderSubMenu", DragMenuUnderSubMenu);
 }
 
-void CConfigShellExt::loadExtraMenu(CONFIG_SECTION &Config)
+void CConfigShellExt::loadExtraMenu(const CConfigFile &Config)
 {
-	// 拡張メニューの表示
-	ForceExtraMenu=Config.Data[_T("ForceExtraMenu")].GetNParam(FALSE);
+	const auto section = L"ExtraMenu";
+	ForceExtraMenu=Config.getBool(section, L"ForceExtraMenu", false);
 }
 
-void CConfigShellExt::storeExtraMenu(CONFIG_SECTION &Config)const
+void CConfigShellExt::storeExtraMenu(CConfigFile &Config)const
 {
-	// 拡張メニューの表示
-	Config.Data[_T("ForceExtraMenu")]=ForceExtraMenu;
+	const auto section = L"ExtraMenu";
+	Config.setValue(section, L"ForceExtraMenu", ForceExtraMenu);
 }
 
-void CConfigShellExt::loadCustomMenu(CONFIG_SECTION &Config)
-{
-	// カスタマイズメニューの使用
-	UseCustomMenu=Config.Data[_T("UseCustom")].GetNParam(TRUE);
-}
 
-void CConfigShellExt::storeCustomMenu(CONFIG_SECTION &Config)const
+#ifdef UNIT_TEST
+TEST(config, CConfigShellExt)
 {
-	// カスタマイズメニューの使用
-	Config.Data[_T("UseCustom")]=UseCustomMenu;
-}
+	CConfigFile emptyFile;
+	CConfigShellExt conf;
+	conf.load(emptyFile);
 
-void CConfigShellExt::load(CConfigManager &ConfMan)
-{
-	loadShellMenu(ConfMan.GetSection(_T("ShellMenu")));
-	loadDragMenu(ConfMan.GetSection(_T("DragMenu")));
-	loadExtraMenu(ConfMan.GetSection(_T("ExtraMenu")));
-	loadCustomMenu(ConfMan.GetSection(_T("CustomMenu")));
+	EXPECT_TRUE(conf.ShellMenuCompress);
+	EXPECT_TRUE(conf.ShellMenuExtract);
+	EXPECT_TRUE(conf.ShellMenuList);
+	EXPECT_TRUE(conf.ShellMenuTest);
+	EXPECT_FALSE(conf.ShellMenuUnderSubMenu);
+	EXPECT_TRUE(conf.DragMenuCompress);
+	EXPECT_TRUE(conf.DragMenuExtract);
+	EXPECT_FALSE(conf.DragMenuUnderSubMenu);
+	EXPECT_FALSE(conf.ForceExtraMenu);
 }
-
-void CConfigShellExt::store(CConfigManager &ConfMan)const
-{
-	storeShellMenu(ConfMan.GetSection(_T("ShellMenu")));
-	storeDragMenu(ConfMan.GetSection(_T("DragMenu")));
-	storeExtraMenu(ConfMan.GetSection(_T("ExtraMenu")));
-	storeCustomMenu(ConfMan.GetSection(_T("CustomMenu")));
-}
+#endif
