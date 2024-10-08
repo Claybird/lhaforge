@@ -446,7 +446,7 @@ std::filesystem::path extractCurrentEntry(
 	progressHandler.onNextEntry(outputPath, entry->stat.st_size);
 	bool created = false;
 	try {
-		if (entry->is_directory()) {
+		if (entry->is_directory() || !entry->path.has_filename()) {
 			try {
 				std::filesystem::create_directories(outputPath);
 				arcLog(outputPath, UtilLoadString(IDS_ARCLOG_MKDIR));
