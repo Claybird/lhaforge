@@ -280,7 +280,7 @@ std::pair<PROCESS_MODE, CMDLINEINFO> ParseCommandLine(
 		}
 		cli.FileList = tmp;
 	}
-	if (cli.FileList.empty()) {
+	if (cli.FileList.empty() && ProcessMode != PROCESS_MODE::LIST) {
 		//no files, then go to configuration
 		return std::make_pair(PROCESS_MODE::CONFIGURE, cli);
 	}
