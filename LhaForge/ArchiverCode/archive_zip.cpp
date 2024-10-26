@@ -302,9 +302,9 @@ struct CLFArchiveZIP::INTERNAL {
 				{"aes128", MZ_AES_STRENGTH_128},
 				{"zipcrypto", 0},
 			};
-			auto cryptoStr = toLower(param["crypto"]);
+			auto cryptoStr = toLower(param["encryption"]);
 			if (cryptoStr.empty()) {
-				cryptoStr = "aes256";
+				cryptoStr = "zipcrypto";
 			}
 			auto iter = cryptoMap.find(cryptoStr);
 			if (cryptoMap.end() == iter) {
