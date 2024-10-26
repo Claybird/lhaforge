@@ -30,7 +30,7 @@
 void CConfigFile::setDefaultPath()
 {
 	const wchar_t* INI_FILE_NAME = L"LhaForge.ini";
-	const wchar_t* PROGRAMDIR_NAME = L"LhaForge";	//directory name in ApplicationData
+	const wchar_t* PROGRAMDIR_NAME = L"LhaForge2";	//directory name in ApplicationData
 
 	//user common configuration
 	{
