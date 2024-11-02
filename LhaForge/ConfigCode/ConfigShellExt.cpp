@@ -80,22 +80,3 @@ void CConfigShellExt::storeExtraMenu(CConfigFile &Config)const
 	Config.setValue(section, L"ForceExtraMenu", ForceExtraMenu);
 }
 
-
-#ifdef UNIT_TEST
-TEST(config, CConfigShellExt)
-{
-	CConfigFile emptyFile;
-	CConfigShellExt conf;
-	conf.load(emptyFile);
-
-	EXPECT_TRUE(conf.ShellMenuCompress);
-	EXPECT_TRUE(conf.ShellMenuExtract);
-	EXPECT_TRUE(conf.ShellMenuList);
-	EXPECT_TRUE(conf.ShellMenuTest);
-	EXPECT_FALSE(conf.ShellMenuUnderSubMenu);
-	EXPECT_TRUE(conf.DragMenuCompress);
-	EXPECT_TRUE(conf.DragMenuExtract);
-	EXPECT_FALSE(conf.DragMenuUnderSubMenu);
-	EXPECT_FALSE(conf.ForceExtraMenu);
-}
-#endif

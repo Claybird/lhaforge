@@ -23,21 +23,21 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "ArchiverCode/archive.h"
+#include "Utilities/OSUtil.h"
+#include "../ConfigFile.h"
+#include "../ConfigGeneral.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
+TEST(config, CConfigGeneral)
 {
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
+	CConfigFile emptyFile;
+	CConfigGeneral conf;
+	conf.load(emptyFile);
 
-void CConfigOpenAction::store(CConfigFile &Config)const
-{
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	EXPECT_FALSE(conf.Filer.UseFiler);
+	EXPECT_FALSE(conf.WarnNetwork);
+	EXPECT_FALSE(conf.WarnRemovable);
+	EXPECT_EQ((int)LOSTDIR::Error, conf.OnDirNotFound);
+	EXPECT_EQ((int)LOGVIEW::OnError, conf.LogViewEvent);
+	EXPECT_TRUE(conf.TempPath.empty());
 }

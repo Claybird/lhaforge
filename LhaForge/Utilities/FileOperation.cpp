@@ -42,11 +42,7 @@ std::filesystem::path UtilGetDesktopPath()
 		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
 	}
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetDesktopPath) {
-	EXPECT_TRUE(std::filesystem::exists(UtilGetDesktopPath()));
-}
-#endif
+
 
 std::filesystem::path UtilGetSendToPath()
 {
@@ -61,11 +57,6 @@ std::filesystem::path UtilGetSendToPath()
 		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED).c_str(), UtilLoadString(IDS_ERROR_GET_DESKTOP).c_str());
 	}
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetSendToPath) {
-	EXPECT_TRUE(std::filesystem::exists(UtilGetSendToPath()));
-}
-#endif
 
 //returns a temp dir exclusive use of lhaforge
 std::filesystem::path UtilGetTempPath()
@@ -74,11 +65,7 @@ std::filesystem::path UtilGetTempPath()
 	std::filesystem::create_directories(tempDir);
 	return UtilPathAddLastSeparator(tempDir);
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetTempPath) {
-	EXPECT_TRUE(std::filesystem::exists(UtilGetTempPath()));
-}
-#endif
+
 
 std::filesystem::path UtilGetTemporaryFileName()
 {
@@ -90,13 +77,6 @@ std::filesystem::path UtilGetTemporaryFileName()
 		}
 	}
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetTemporaryFileName) {
-	auto path = UtilGetTemporaryFileName();
-	EXPECT_TRUE(std::filesystem::exists(path));
-	EXPECT_TRUE(UtilDeletePath(path));
-}
-#endif
 
 bool UtilDeletePath(const std::filesystem::path& path)
 {
@@ -111,31 +91,7 @@ bool UtilDeletePath(const std::filesystem::path& path)
 	}
 	return false;
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilDeletePath) {
-	//delete file
-	auto path = UtilGetTemporaryFileName();
-	EXPECT_TRUE(std::filesystem::exists(path));
-	EXPECT_TRUE(UtilDeletePath(path));
-	EXPECT_FALSE(std::filesystem::exists(path));
-	EXPECT_FALSE(UtilDeletePath(path));
 
-	//delete directory
-	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilDeletePath";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-	for (int i = 0; i < 100; i++) {
-		touchFile(dir / Format(L"a%03d.txt", i));
-	}
-	std::filesystem::create_directories(dir / L"testDir");
-	for (int i = 0; i < 100; i++) {
-		touchFile(dir / Format(L"testDir/b%03d.txt", i));
-	}
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-#endif
 
 //bDeleteParent=true: delete Path itself
 //bDeleteParent=false: delete only children of Path
@@ -169,19 +125,7 @@ bool UtilDeleteDir(const std::filesystem::path& path, bool bDeleteParent)
 
 	return bRet;
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilDeleteDir) {
-	//delete file
-	auto path = UtilGetTempPath() / L"test_UtilDeleteDir";
-	EXPECT_FALSE(std::filesystem::exists(path));
-	std::filesystem::create_directories(path);
-	EXPECT_TRUE(std::filesystem::exists(path));
 
-	touchFile(path / L"test.txt");
-	EXPECT_TRUE(UtilDeleteDir(path, true));
-	EXPECT_FALSE(std::filesystem::exists(path));
-}
-#endif
 
 bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList)
 {
@@ -206,24 +150,36 @@ bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList
 		FOF_NOCONFIRMATION;	//no confirm window
 	return 0 == SHFileOperationW(&shfo);
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilMoveFileToRecycleBin) {
-	std::vector<std::filesystem::path> fileList;
-	//delete directory
-	auto dir = UtilGetTempPath() / L"lhaforge_test/UtilMoveFileToRecycleBin";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-	for (int i = 0; i < 3; i++) {
-		fileList.push_back(dir / Format(L"a%03d.txt", i));
-		touchFile(dir / Format(L"a%03d.txt", i));
-	}
-	EXPECT_TRUE(UtilMoveFileToRecycleBin(fileList));
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-#endif
 
+
+
+//enumerates files, removes directory
+std::vector<std::filesystem::path> UtilEnumerateFiles(const std::vector<std::filesystem::path>& input, const std::vector<std::wstring>& denyExts)
+{
+	std::vector<std::filesystem::path> out;
+	for (const auto& item : input) {
+		std::vector<std::filesystem::path> children;
+		if (std::filesystem::is_directory(item)) {
+			children = UtilRecursiveEnumFile(item);
+		} else {
+			children = { item };
+		}
+		for (const auto& subItem : children) {
+			bool bDenied = false;
+			for (const auto& deny : denyExts) {
+				if (UtilExtMatchSpec(subItem, deny)) {
+					bDenied = true;
+					break;
+				}
+			}
+			//finally
+			if (!bDenied) {
+				out.push_back(subItem);
+			}
+		}
+	}
+	return out;
+}
 
 //recursively enumerates files (no directories) in specified directory
 std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root)
@@ -300,87 +256,8 @@ std::vector<std::filesystem::path> UtilPathExpandWild(const std::filesystem::pat
 	}
 	return out;
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilRecursiveEnumXXX_UtilPathExpandWild) {
-	//prepare files
-	std::vector<std::filesystem::path> fileList, fileAndDir;
-	auto dir = std::filesystem::path(UtilGetTempPath()) / L"lhaforge_test/UtilRecursiveEnumXXX_UtilPathExpandWild";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-	for (int i = 0; i < 3; i++) {
-		auto fname = dir / Format(L"a%03d.txt", i);
-		fileList.push_back(fname);
-		fileAndDir.push_back(fname);
-		touchFile(fname);
-	}
 
-	std::filesystem::create_directories(dir / L"b");
-	fileAndDir.push_back(dir / L"b");
-	for (int i = 0; i < 3; i++) {
-		auto fname = dir / Format(L"b/a%03d.txt", i);
-		fileList.push_back(fname);
-		fileAndDir.push_back(fname);
-		touchFile(fname);
-	}
 
-	//enumerate
-	{
-		auto enumerated = UtilRecursiveEnumFile(dir);
-		EXPECT_EQ(fileList.size(), enumerated.size());
-		if (fileList.size() == enumerated.size()) {
-			for (size_t i = 0; i < fileList.size(); i++) {
-				EXPECT_EQ(
-					std::filesystem::path(fileList[i]).make_preferred().wstring(),
-					std::filesystem::path(enumerated[i]).make_preferred().wstring());
-			}
-		}
-	}
-	{
-		auto enumerated = UtilRecursiveEnumFileAndDirectory(dir);
-		EXPECT_EQ(fileAndDir.size(), enumerated.size());
-		if (fileAndDir.size() == enumerated.size()) {
-			for (size_t i = 0; i < fileAndDir.size(); i++) {
-				EXPECT_EQ(
-					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
-					std::filesystem::path(enumerated[i]).make_preferred().wstring());
-			}
-		}
-	}
-	{
-		auto enumerated = UtilEnumSubFileAndDirectory(dir);
-		EXPECT_EQ(4, enumerated.size());
-		if (4 == enumerated.size()) {
-			for (size_t i = 0; i < enumerated.size(); i++) {
-				EXPECT_EQ(
-					std::filesystem::path(fileAndDir[i]).make_preferred().wstring(),
-					std::filesystem::path(enumerated[i]).make_preferred().wstring());
-			}
-		}
-	}
-
-	//expand wild
-	{
-		auto enumerated = UtilPathExpandWild(dir);
-		EXPECT_EQ(size_t(1), enumerated.size());
-		EXPECT_EQ(enumerated[0], dir.make_preferred());
-
-		auto pdir = std::filesystem::path(dir);
-		enumerated = UtilPathExpandWild(pdir / L"*.txt");
-		EXPECT_EQ(size_t(3), enumerated.size());
-		EXPECT_TRUE(isIn(enumerated, pdir / L"a000.txt"));
-		EXPECT_TRUE(isIn(enumerated, pdir / L"a001.txt"));
-		EXPECT_TRUE(isIn(enumerated, pdir / L"a002.txt"));
-
-		enumerated = UtilPathExpandWild(pdir / L"*.exe");
-		EXPECT_TRUE(enumerated.empty());
-	}
-
-	//cleanup
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-#endif
 
 bool UtilPathIsRoot(const std::filesystem::path& path)
 {
@@ -389,15 +266,7 @@ bool UtilPathIsRoot(const std::filesystem::path& path)
 	if (p == p.root_path() || p == p.root_name())return true;
 	return false;
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilPathIsRoot) {
-	EXPECT_TRUE(UtilPathIsRoot(L"c:/"));
-	EXPECT_TRUE(UtilPathIsRoot(L"c:\\"));
-	EXPECT_TRUE(UtilPathIsRoot(L"c:"));
-	EXPECT_FALSE(UtilPathIsRoot(L"c:/windows/"));
-	EXPECT_FALSE(UtilPathIsRoot(L"c:\\windows\\"));
-}
-#endif
+
 
 std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path)
 {
@@ -407,19 +276,8 @@ std::filesystem::path UtilPathAddLastSeparator(const std::filesystem::path& path
 	}
 	return p;
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilPathAddLastSeparator) {
-	std::wstring sep;
-	sep = std::filesystem::path::preferred_separator;
-	EXPECT_EQ(sep, UtilPathAddLastSeparator(L""));
-	EXPECT_EQ(L"C:" + sep, UtilPathAddLastSeparator(L"C:"));
-	EXPECT_EQ(L"C:\\", UtilPathAddLastSeparator(L"C:\\"));
-	EXPECT_EQ(L"C:/", UtilPathAddLastSeparator(L"C:/"));
-	EXPECT_EQ(std::wstring(L"/tmp") + sep, UtilPathAddLastSeparator(L"/tmp"));
-	EXPECT_EQ(L"/tmp\\", UtilPathAddLastSeparator(L"/tmp\\"));
-	EXPECT_EQ(L"/tmp/", UtilPathAddLastSeparator(L"/tmp/"));
-}
-#endif
+
+
 
 std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& path)
 {
@@ -429,19 +287,7 @@ std::filesystem::path UtilPathRemoveLastSeparator(const std::filesystem::path& p
 	}
 	return p.c_str();
 }
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilPathRemoveLastSeparator) {
-	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L""));
-	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"/"));
-	EXPECT_EQ(L"", UtilPathRemoveLastSeparator(L"\\"));
-	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:/"));
-	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:\\"));
-	EXPECT_EQ(L"C:", UtilPathRemoveLastSeparator(L"C:"));
-	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp\\"));
-	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp/"));
-	EXPECT_EQ(L"/tmp", UtilPathRemoveLastSeparator(L"/tmp"));
-}
-#endif
+
 
 
 //get full & absolute path
@@ -475,25 +321,6 @@ std::filesystem::path UtilGetCompletePathName(const std::filesystem::path& fileP
 	return abs_path.make_preferred().wstring();
 }
 
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetCompletePathName) {
-	EXPECT_THROW(UtilGetCompletePathName(L""), LF_EXCEPTION);
-	EXPECT_TRUE(UtilPathIsRoot(L"C:\\"));
-	EXPECT_TRUE(UtilPathIsRoot(UtilGetCompletePathName(L"C:")));
-	EXPECT_TRUE(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\")));
-	EXPECT_FALSE(UtilPathIsRoot(UtilGetCompletePathName(L"C:\\Windows")));
-	auto tempDir = std::filesystem::temp_directory_path();
-	EXPECT_FALSE(UtilPathIsRoot(UtilGetCompletePathName(tempDir)));
-	{
-		CCurrentDirManager mngr(tempDir);
-		auto dest = L"C:\\Windows";
-		auto relpath = std::filesystem::relative(dest);
-		auto expected = toLower(std::filesystem::path(dest).make_preferred());
-		auto actual = toLower(std::filesystem::path(UtilGetCompletePathName(relpath)));
-		EXPECT_EQ(expected, actual);
-	}
-}
-#endif
 
 //executable name
 std::filesystem::path UtilGetModulePath()
@@ -517,15 +344,6 @@ std::filesystem::path UtilGetModuleDirectoryPath()
 	return std::filesystem::path(UtilGetModulePath()).parent_path();
 }
 
-
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilGetModulePath_UtilGetModuleDirectoryPath) {
-	//TODO: is there any better test?
-	EXPECT_FALSE(UtilGetModulePath().empty());
-	EXPECT_TRUE(std::filesystem::exists(UtilGetModulePath()));
-	EXPECT_TRUE(std::filesystem::exists(UtilGetModuleDirectoryPath()));
-}
-#endif
 
 //read whole file
 std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t maxSize)
@@ -554,31 +372,6 @@ std::vector<BYTE> UtilReadFile(const std::filesystem::path& filePath, size_t max
 	return cReadBuffer;
 }
 
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilReadFile) {
-	//prepare
-	auto fname = UtilGetTempPath() / L"lhaforge_test_file.tmp";
-	{
-		CAutoFile fp;
-		fp.open(fname, L"w");
-		fprintf(fp, "test file content");
-	}
-	{
-		auto read = UtilReadFile(fname);
-		EXPECT_EQ(size_t(17), read.size());
-		read.push_back('\0');
-		EXPECT_EQ("test file content", std::string((const char*)&read[0]));
-	}
-	{
-		auto read = UtilReadFile(fname, 5);
-		EXPECT_EQ(size_t(5), read.size());
-		read.push_back('\0');
-		EXPECT_EQ("test ", std::string((const char*)&read[0]));
-	}
-	std::filesystem::remove(fname);
-}
-
-#endif
 
 bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::filesystem::path& directory)
 {
@@ -588,17 +381,6 @@ bool UtilPathIsInSubDirectory(const std::filesystem::path& subject, const std::f
 	);
 }
 
-#ifdef UNIT_TEST
-TEST(FileOperation, UtilPathIsInSubDirectory) {
-	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
-	EXPECT_TRUE(UtilPathIsInSubDirectory(L"/a/b/c", L"/a"));
-	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b"));
-	EXPECT_TRUE(UtilPathIsInSubDirectory(L"\\a\\b\\c", L"\\a\\b\\"));
-	EXPECT_TRUE(UtilPathIsInSubDirectory(L"a/b/c", L"a"));
-	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a", L"/a/b/c"));
-	EXPECT_FALSE(UtilPathIsInSubDirectory(L"/a/b/cd", L"/a/b/c"));
-}
-#endif
 
 void touchFile(const std::filesystem::path& path)
 {
@@ -606,35 +388,6 @@ void touchFile(const std::filesystem::path& path)
 	fp.open(path, L"w");
 }
 
-
-#ifdef UNIT_TEST
-TEST(FileOperation, touchFile_CAutoFile)
-{
-	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/touchFile";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-
-	{
-		CAutoFile fp;
-		auto filename = dir / L"a.txt";
-		EXPECT_FALSE(std::filesystem::exists(filename));
-		fp.open(filename);
-		EXPECT_FALSE(fp.is_opened());
-
-		touchFile(filename);
-
-		EXPECT_TRUE(std::filesystem::exists(filename));
-		fp.open(filename);
-		EXPECT_TRUE(fp.is_opened());
-		EXPECT_EQ(filename, fp.get_path());
-	}
-
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-
-#endif
 
 CTemporaryDirectoryManager::CTemporaryDirectoryManager()
 {
@@ -656,18 +409,6 @@ CTemporaryDirectoryManager::CTemporaryDirectoryManager()
 }
 
 
-#ifdef UNIT_TEST
-TEST(FileOperation, CTemporaryDirectoryManager) {
-	std::filesystem::path path;
-	{
-		CTemporaryDirectoryManager tmpMngr;
-		path = tmpMngr.path();
-		EXPECT_TRUE(std::filesystem::exists(path));
-	}
-	EXPECT_FALSE(std::filesystem::exists(path));
-}
-
-#endif
 
 size_t CContinuousFile::read(void* buffer, size_t toRead)
 {
@@ -703,104 +444,3 @@ size_t CContinuousFile::read(void* buffer, size_t toRead)
 		}
 	}
 }
-
-#ifdef UNIT_TEST
-
-TEST(FileOperation, CContinuousFile) {
-	//create test files
-	std::filesystem::path dir = UtilGetTempPath() / L"lhaforge_test/continuousFile";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir);
-
-	std::vector<std::filesystem::path> files;
-	for (int i = 0; i < 10; i++) {
-		CAutoFile fp;
-		auto fname = dir / Format(L"file%02d.txt", i);
-		files.push_back(fname);
-		fp.open(fname, L"w");
-		for (int j = 0; j < 5; j++) {
-			fputc('a' + i, fp);
-		}
-	}
-
-	//test subject
-	CContinuousFile cfp;
-	EXPECT_FALSE(cfp.is_opened());
-	cfp.openFiles(files);
-	EXPECT_TRUE(cfp.is_opened());
-	EXPECT_EQ(0, cfp.tell());
-
-	char buffer[256];	// 256 > 5*10
-	memset(buffer, 0, sizeof(buffer));
-	EXPECT_EQ(10, cfp.read(buffer, 10));
-	EXPECT_STREQ("aaaaabbbbb", buffer);
-	EXPECT_EQ(10, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	EXPECT_EQ(1, cfp.read(buffer, 1));
-	EXPECT_STREQ("c", buffer);
-	EXPECT_EQ(11, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	EXPECT_EQ(1, cfp.read(buffer, 1));
-	EXPECT_STREQ("c", buffer);
-	EXPECT_EQ(12, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	EXPECT_EQ(50-12, cfp.read(buffer, 50));
-	EXPECT_STREQ("cccdddddeeeeefffffggggghhhhhiiiiijjjjj", buffer);
-	EXPECT_EQ(50, cfp.tell());
-
-	//---seek
-	memset(buffer, 0, sizeof(buffer));
-	cfp.seek(0, SEEK_SET);
-	EXPECT_EQ(0, cfp.tell());
-	EXPECT_EQ(10, cfp.read(buffer, 10));
-	EXPECT_STREQ("aaaaabbbbb", buffer);
-	EXPECT_EQ(10, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	cfp.seek(20, SEEK_CUR);
-	EXPECT_EQ(30, cfp.tell());
-	EXPECT_EQ(10, cfp.read(buffer, 10));
-	EXPECT_STREQ("ggggghhhhh", buffer);
-	EXPECT_EQ(40, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	cfp.seek(-20, SEEK_CUR);
-	EXPECT_EQ(20, cfp.tell());
-	EXPECT_EQ(10, cfp.read(buffer, 10));
-	EXPECT_STREQ("eeeeefffff", buffer);
-	EXPECT_EQ(30, cfp.tell());
-
-	memset(buffer, 0, sizeof(buffer));
-	cfp.seek(-20, SEEK_END);
-	EXPECT_EQ(30, cfp.tell());
-	EXPECT_EQ(10, cfp.read(buffer, 10));
-	EXPECT_STREQ("ggggghhhhh", buffer);
-	EXPECT_EQ(40, cfp.tell());
-
-	cfp.close();
-
-	//cleanup
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-
-TEST(FileOperation, CContinuousFile_fail) {
-	//create test files
-	std::filesystem::path fname = UtilGetTempPath() / L"lhaforge_test/some_non_existing_file";
-	EXPECT_FALSE(std::filesystem::exists(fname));
-
-	std::vector<std::filesystem::path> files;
-	files.push_back(fname);
-
-	//test subject
-	CContinuousFile cfp;
-	EXPECT_FALSE(cfp.openFiles(files));
-	EXPECT_THROW(cfp.read(nullptr, 0), LF_EXCEPTION);
-}
-
-#endif
-

@@ -23,9 +23,9 @@
 */
 
 #include "stdafx.h"
-#include "CustomControl.h"
+#include "../CustomControl.h"
 
-#ifdef UNIT_TEST
+
 TEST(CLFBytesEdit, ParseSize) {
 	EXPECT_EQ(-1LL, CLFBytesEdit::ParseSize(L"aaa"));
 	EXPECT_EQ(-1LL, CLFBytesEdit::ParseSize(L"b"));
@@ -64,4 +64,4 @@ TEST(CLFBytesEdit, ParseSize) {
 
 	EXPECT_EQ(1024LL * 1024LL * 1024LL * 1024LL * 1024LL * 1024LL, CLFBytesEdit::ParseSize(L"1024p"));
 }
-#endif
+

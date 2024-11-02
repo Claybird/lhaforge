@@ -57,6 +57,9 @@ public:
 
 bool UtilMoveFileToRecycleBin(const std::vector<std::filesystem::path>& fileList);
 
+//enumerates files, removes directory
+std::vector<std::filesystem::path> UtilEnumerateFiles(const std::vector<std::filesystem::path>& input, const std::vector<std::wstring>& denyExts);
+
 //recursively enumerates files (no directories) in specified directory
 std::vector<std::filesystem::path> UtilRecursiveEnumFile(const std::filesystem::path& root);
 

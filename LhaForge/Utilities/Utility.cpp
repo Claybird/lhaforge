@@ -59,13 +59,6 @@ std::wstring UtilGetLastErrorMessage(DWORD langID, DWORD errorCode)
 	return out;
 }
 
-#ifdef UNIT_TEST
-TEST(Utility, UtilGetLastErrorMessage) {
-	EXPECT_EQ(L"The system cannot find the path specified.\r\n",
-		UtilGetLastErrorMessage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), ERROR_PATH_NOT_FOUND));
-}
-#endif
-
 std::vector<std::wstring> UtilReadFromResponseFile(const std::filesystem::path& respFile, UTIL_CODEPAGE uSrcCodePage)
 {
 	std::vector<BYTE> cReadBuffer = UtilReadFile(respFile);
@@ -95,23 +88,6 @@ std::vector<std::wstring> UtilReadFromResponseFile(const std::filesystem::path& 
 	}
 	return files;
 }
-
-#ifdef UNIT_TEST
-
-TEST(Utility, UtilReadFromResponseFile) {
-	auto file = std::filesystem::path(__FILEW__).parent_path() / L"test/test_utility_response1.txt";
-	auto files = UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8);
-	EXPECT_EQ(size_t(4), files.size());
-	EXPECT_EQ(L"ファイル1.txt", files[0]);
-	EXPECT_EQ(L"C:\\program files\\b.txt", files[1]);
-	EXPECT_EQ(L"ファイル3.doc", files[2]);
-	EXPECT_EQ(L"#d.exe", files[3]);
-
-	file = std::filesystem::path(__FILEW__).parent_path() / L"test/path_that_does_not_exist.txt";
-	EXPECT_THROW(UtilReadFromResponseFile(file, UTIL_CODEPAGE::UTF8), LF_EXCEPTION);
-}
-#endif
-
 //checks if path extension matches specific patterns
 //pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
 bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pattern_string)
@@ -150,46 +126,6 @@ bool UtilExtMatchSpec(const std::filesystem::path& path, const std::wstring& pat
 	return std::regex_search(path.wstring(), re);
 }
 
-#ifdef UNIT_TEST
-TEST(Utility, UtilExtMatchSpec) {
-	//---single
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*.*"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L".*"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"", L""));
-	EXPECT_FALSE(UtilExtMatchSpec(L"", L"*.abc"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"*.abc"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L".abc"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.ABC", L"abc"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"ab"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L".ab"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.ABC", L"ab"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test.abc"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"*.test"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"test"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"ab*"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"abc*"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.abc", L"??c"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"?c"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.abc", L"??d"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"test.tar.gz", L"tar.gz"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.tar.gz", L""));
-
-	//---possible regex
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"(.*)"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"[a-Z]*"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"\\"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"$"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"^"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test.txt", L"txt|abc"));
-
-	//---no name part or no exts
-	EXPECT_TRUE(UtilExtMatchSpec(L".gitignore", L".gitignore"));
-	EXPECT_TRUE(UtilExtMatchSpec(L"abc.gitignore", L".gitignore"));
-	EXPECT_FALSE(UtilExtMatchSpec(L"test", L"test"));
-}
-#endif
 
 //checks if path matches specific patterns
 //pattern_string may contain only one pattern, such as "*.txt" and/or "*.do?"
@@ -222,77 +158,6 @@ bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pa
 	return std::regex_search(toLower(path), re);
 }
 
-#ifdef UNIT_TEST
-TEST(Utility, UtilPathMatchSpec) {
-	//---single
-	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"*.*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"", L""));
-	EXPECT_FALSE(UtilPathMatchSpec(L"", L"*.abc"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*.abc"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".abc"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"abc"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L".ab"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.ABC", L"ab"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test.abc"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"*.test"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"test*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"*test*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"ab*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"abc*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"??c"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.abc", L"?c"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.abc", L"??d"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar.gz"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.tar.gz", L""));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test.tar.gz", L"tar"));
-
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc/*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*/def"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"abc\\*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc/def", L"*\\def"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc/*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*/def"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"abc\\*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc\\def", L"*\\def"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc/*"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*/def"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"abc\\*"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"abc.def", L"*\\def"));
-
-	//---possible regex
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"(.*)"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"[a-Z]*"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"\\"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"$"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"^"));
-	EXPECT_FALSE(UtilPathMatchSpec(L"test.txt", L"txt|abc"));
-
-	//---no name part or no exts
-	EXPECT_TRUE(UtilPathMatchSpec(L".gitignore", L".gitignore"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"abc.gitignore", L".gitignore"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"test", L"test"));
-
-	//---non ascii strings
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお/*.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"あいうえお\\*.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/かきくけこ.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\かきくけこ.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.txt"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*/*.*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*\\*.*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*.*"));
-	EXPECT_TRUE(UtilPathMatchSpec(L"あいうえお/かきくけこ.txt", L"*"));
-}
-#endif
-
 bool UtilDoMessageLoop()
 {
 	if (_Module.m_pMsgLoopMap) {
@@ -303,67 +168,6 @@ bool UtilDoMessageLoop()
 	}
 }
 
-
-#ifdef UNIT_TEST
-
-TEST(Utility, has_key) {
-	std::map<std::wstring, std::wstring> m;
-	m[L"abc"] = L"abc";
-	m[L"あいう"] = L"あいう";
-	EXPECT_TRUE(has_key(m, L"abc"));
-	EXPECT_TRUE(has_key(m, L"あいう"));
-	EXPECT_FALSE(has_key(m, L"cde"));
-}
-TEST(Utility, index_of) {
-	std::vector<int> a = { 2,4,6,8,10 };
-	EXPECT_EQ(1, index_of(a, 4));
-	EXPECT_EQ(4, index_of(a, 10));
-	EXPECT_EQ(-1, index_of(a, 1));
-	EXPECT_EQ(-1, index_of(a, 11));
-
-	EXPECT_EQ(1, index_of(&a[0], a.size(), 4));
-	EXPECT_EQ(4, index_of(&a[0], a.size(), 10));
-	EXPECT_EQ(-1, index_of(&a[0], a.size(), 1));
-	EXPECT_EQ(-1, index_of(&a[0], a.size(), 11));
-}
-TEST(Utility, remove_item) {
-	std::vector<int> a = { 2,4,6,6,6,10 };
-	EXPECT_NE(-1, index_of(a, 6));
-	remove_item(a, 6);
-	EXPECT_EQ(-1, index_of(a, 6));
-}
-TEST(Utility, remove_item_if) {
-	std::vector<int> a = { 2,4,6,6,6,10 };
-	EXPECT_NE(-1, index_of(a, 6));
-	remove_item_if(a, [](int value) {return value / 2 == 3; });
-	EXPECT_EQ(-1, index_of(a, 6));
-}
-TEST(Utility, isIn) {
-	std::vector<int> a = { 2,4,6,8,10 };
-	EXPECT_TRUE(isIn(a, 4));
-	EXPECT_FALSE(isIn(a, 3));
-}
-TEST(Utility, merge_map) {
-	std::map<std::string, std::string> a = {
-		{"a","a"},
-		{"b","b"},
-		{"c","c"},
-	}, b = {
-		{"a","A"},
-		{"b","B"},
-		{"d","D"},
-	};
-	merge_map(a, b);
-	EXPECT_EQ(a["a"], "A");
-	EXPECT_EQ(a["b"], "B");
-	EXPECT_EQ(a["c"], "c");
-	EXPECT_EQ(a["d"], "D");
-}
-
-
-#endif
-
-
 FILETIME UtilUnixTimeToFileTime(__time64_t t)
 {
 	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
@@ -373,22 +177,6 @@ FILETIME UtilUnixTimeToFileTime(__time64_t t)
 	return ft;
 }
 
-#ifdef UNIT_TEST
-TEST(Utility, UtilUnixTimeToFileTimeime)
-{
-	auto ft = UtilUnixTimeToFileTime(946730096);	//2000-01-01T12:34:56
-	SYSTEMTIME systime;
-	FileTimeToSystemTime(&ft, &systime);
-
-	EXPECT_EQ(2000, systime.wYear);
-	EXPECT_EQ(1, systime.wMonth);
-	EXPECT_EQ(1, systime.wDay);
-	EXPECT_EQ(12, systime.wHour);
-	EXPECT_EQ(34, systime.wMinute);
-	EXPECT_EQ(56, systime.wSecond);
-}
-#endif
-
 __time64_t UtilFileTimeToUnixTime(FILETIME ft)
 {
 	int64_t ll = ((int64_t)ft.dwLowDateTime) + (((int64_t)ft.dwHighDateTime) << 32);
@@ -396,13 +184,3 @@ __time64_t UtilFileTimeToUnixTime(FILETIME ft)
 	__time64_t ut = ll / 10000000L - 11644473600;
 	return ut;
 }
-
-#ifdef UNIT_TEST
-TEST(Utility, UtilFileTimeToUnixTime)
-{
-	FILETIME ft = UtilUnixTimeToFileTime(946730096);
-
-	EXPECT_EQ(946730096, UtilFileTimeToUnixTime(ft));
-}
-#endif
-

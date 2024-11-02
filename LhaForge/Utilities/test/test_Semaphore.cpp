@@ -1,5 +1,4 @@
 ﻿#include "stdafx.h"
-#ifdef UNIT_TEST
 #include "Utilities/Semaphore.h"
 
 TEST(semaphore, semaphore) {
@@ -16,4 +15,3 @@ TEST(semaphore, semaphore) {
 	EXPECT_TRUE(lock3.Lock(10));
 }
 
-#endif

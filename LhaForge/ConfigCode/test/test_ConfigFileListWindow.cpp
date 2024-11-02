@@ -23,21 +23,30 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "../ConfigFile.h"
+#include "FileListWindow/FileListModel.h"
+#include "FileListWindow/FileListFrame.h"
+#include "FileListWindow/FileListTabClient.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/Utility.h"
+#include "../ConfigFileListWindow.h"
+#include "resource.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
+TEST(config, CConfigFileListWindow)
 {
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
+	CConfigFile emptyFile;
+	CConfigFileListWindow conf;
+	conf.load(emptyFile);
+	conf.view.OpenAssoc.Deny = L".exe;.bat";
+	conf.view.OpenAssoc.Accept = L".txt";
 
-void CConfigOpenAction::store(CConfigFile &Config)const
-{
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", true));
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", true));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", true));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", true));
+
+	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", false));
+	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", false));
 }

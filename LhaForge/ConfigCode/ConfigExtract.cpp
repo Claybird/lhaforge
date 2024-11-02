@@ -96,18 +96,3 @@ bool CConfigExtract::isPathAcceptableToExtract(const std::filesystem::path& path
 	return true;
 }
 
-#ifdef UNIT_TEST
-TEST(config, CConfigExtract)
-{
-	CConfigFile emptyFile;
-	CConfigExtract conf;
-	conf.load(emptyFile);
-
-	conf.DenyExt = L".docx;;.exe;.zipx";
-
-	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.txt"));
-	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.docx"));
-	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.zip"));
-	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.zipx"));
-}
-#endif

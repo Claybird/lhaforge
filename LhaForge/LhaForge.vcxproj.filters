@@ -16,24 +16,6 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigCompress.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigExtract.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigGeneral.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigOpenAction.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClCompile>
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <Filter>Dialogs</Filter>
     </ClCompile>
@@ -97,23 +79,11 @@
     <ClCompile Include="CommonUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\Semaphore.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="ConfigCode\ConfigFile.cpp">
-      <Filter>Configs\Other</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp">
       <Filter>Configs\Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ConfigCode\Dialogs\Configwnd.cpp">
       <Filter>Configs\Dialogs</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\CustomControl.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Dialogs\FindDlg.cpp">
-      <Filter>Dialogs</Filter>
     </ClCompile>
     <ClCompile Include="ArchiverCode\archive_bga.cpp">
       <Filter>ArchiverCode</Filter>
@@ -130,6 +100,102 @@
     <ClCompile Include="ArchiverCode\archive_rar.cpp">
       <Filter>ArchiverCode</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\test\test_CustomControl.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_FileOperation.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_OSUtil.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Semaphore.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_StringUtil.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_utility.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_arj.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_bga.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_libarchive.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_rar.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_zip.cpp">
+      <Filter>ArchiverCode\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigCompress.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigExtract.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigFileListWindow.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigGeneral.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigOpenAction.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigShellExt.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\ConfigFile.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigCompress.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigExtract.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigFile.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigFileListWindow.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigGeneral.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigOpenAction.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigShellExt.cpp">
+      <Filter>Configs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_CommonUtil.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_compress.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_CmdLineInfo.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs\test\test_FindDlg.cpp">
+      <Filter>Dialogs\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\test_extract.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
+      <Filter>FileListWindow\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -141,14 +207,8 @@
     <Filter Include="Configs">
       <UniqueIdentifier>{af5df1ea-27c6-4389-848c-2787bdc38e46}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Configs\Other">
-      <UniqueIdentifier>{f01c2b13-faaf-453e-99bb-1befa1c0861c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Configs\Dialogs">
       <UniqueIdentifier>{e97a000f-93fd-4e94-8e9a-7fcfa1eaae8a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Configs\ConfigStruct">
-      <UniqueIdentifier>{075126cd-09f9-47ed-9488-33fa983864e6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Dialogs">
       <UniqueIdentifier>{6bc9c884-90de-4427-96fb-d273e9957aa2}</UniqueIdentifier>
@@ -164,6 +224,24 @@
     </Filter>
     <Filter Include="Utilities">
       <UniqueIdentifier>{89593b09-a73c-44c4-bb8d-0f1b2169dc38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities\test">
+      <UniqueIdentifier>{b1d4f889-3a1d-4cad-9510-3b00c85172dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ArchiverCode\test">
+      <UniqueIdentifier>{1a580371-6efc-4820-81a6-8fbb5209c499}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\test">
+      <UniqueIdentifier>{3d1b6762-78b7-4637-8978-079aa77ef278}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\test">
+      <UniqueIdentifier>{c2739cb6-abc5-48ac-9339-9ad674660826}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialogs\test">
+      <UniqueIdentifier>{5eb032e8-d717-4ea0-a265-b56b84d73ed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FileListWindow\test">
+      <UniqueIdentifier>{dd2e3bde-690b-4a43-8aa6-27925e4a6035}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -196,24 +274,6 @@
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_version.h">
       <Filter>Configs\Dialogs</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigCompress.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigExtract.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigFileListWindow.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigGeneral.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigOpenAction.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigShellExt.h">
-      <Filter>Configs\ConfigStruct</Filter>
     </ClInclude>
     <ClInclude Include="Dialogs\ConfirmOverwriteDlg.h">
       <Filter>Dialogs</Filter>
@@ -317,9 +377,6 @@
     <ClInclude Include="FileListWindow\EventDispatcher.h">
       <Filter>FileListWindow</Filter>
     </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigCompressFormat.h">
-      <Filter>Configs\ConfigStruct</Filter>
-    </ClInclude>
     <ClInclude Include="ArchiverCode\archive.h">
       <Filter>ArchiverCode</Filter>
     </ClInclude>
@@ -328,9 +385,6 @@
     </ClInclude>
     <ClInclude Include="FileListWindow\FileViewBase.h">
       <Filter>FileListWindow</Filter>
-    </ClInclude>
-    <ClInclude Include="ConfigCode\ConfigFile.h">
-      <Filter>Configs\Other</Filter>
     </ClInclude>
     <ClInclude Include="ConfigCode\Dialogs\Dlg_format.h">
       <Filter>Configs\Dialogs</Filter>
@@ -361,6 +415,33 @@
     </ClInclude>
     <ClInclude Include="Dialogs\ConfirmOverwriteInArchiveDlg.h">
       <Filter>Dialogs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigCompress.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigCompressFormat.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigExtract.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigFileListWindow.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigGeneral.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigOpenAction.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigShellExt.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCode\ConfigFile.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiverCode\archive_libarchive_impl.h">
+      <Filter>ArchiverCode</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

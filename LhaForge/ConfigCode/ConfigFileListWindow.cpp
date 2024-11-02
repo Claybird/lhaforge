@@ -131,7 +131,7 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 				auto ft = UtilUnixTimeToFileTime(Config.getInt64(section, Format(L"SearchItemMdate%d", i), 0));
 				FileTimeToSystemTime(&ft, &cond.mdate);
 			}
-				break;
+			break;
 			case ARCHIVE_FIND_CONDITION::KEY::mode:
 				cond.st_mode_mask = Config.getInt(section, Format(L"SearchItemModeMask%d", i), 0);
 				break;
@@ -146,7 +146,7 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 	}
 }
 
-void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
+void CConfigFileListWindow::loadMenuCommand(const CConfigFile& Config)
 {
 	view.MenuCommandArray.clear();
 	for (int iIndex = 0; iIndex < USERAPP_MAX_NUM; iIndex++) {
@@ -166,11 +166,11 @@ void CConfigFileListWindow::loadMenuCommand(const CConfigFile &Config)
 	}
 }
 
-void CConfigFileListWindow::store_sub(CConfigFile &Config)const
+void CConfigFileListWindow::store_sub(CConfigFile& Config)const
 {
 	const auto section = L"FileListWindow";
 	Config.setValue(section, L"StoreSetting", general.StoreSetting);
-	if(general.StoreSetting){
+	if (general.StoreSetting) {
 		Config.setValue(section, L"Width", dimensions.Width);
 		Config.setValue(section, L"Height", dimensions.Height);
 		Config.setValue(section, L"TreeWidth", dimensions.TreeWidth);
@@ -240,7 +240,7 @@ void CConfigFileListWindow::store_sub(CConfigFile &Config)const
 	}
 }
 
-void CConfigFileListWindow::storeMenuCommand(CConfigFile &Config)const
+void CConfigFileListWindow::storeMenuCommand(CConfigFile& Config)const
 {
 	//---delete old sections
 	for (int iIndex = 0; iIndex < USERAPP_MAX_NUM; iIndex++) {
@@ -290,24 +290,3 @@ bool CConfigFileListWindow::isPathAcceptableToOpenAssoc(const std::filesystem::p
 	}
 	return false;
 }
-
-#ifdef UNIT_TEST
-TEST(config, CConfigFileListWindow)
-{
-	CConfigFile emptyFile;
-	CConfigFileListWindow conf;
-	conf.load(emptyFile);
-	conf.view.OpenAssoc.Deny = L".exe;.bat";
-	conf.view.OpenAssoc.Accept = L".txt";
-
-	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", true));
-	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", true));
-	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", true));
-	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", true));
-
-	EXPECT_TRUE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.txt", false));
-	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bmp", false));
-	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.exe", false));
-	EXPECT_FALSE(conf.isPathAcceptableToOpenAssoc(L"path/to/file.bat", false));
-}
-#endif

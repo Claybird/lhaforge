@@ -23,21 +23,16 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "../ConfigFile.h"
+#include "../ConfigOpenAction.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
+TEST(config, CConfigOpenAction)
 {
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
+	CConfigFile emptyFile;
+	CConfigOpenAction conf;
+	conf.load(emptyFile);
 
-void CConfigOpenAction::store(CConfigFile &Config)const
-{
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	EXPECT_EQ((int)OPENACTION::EXTRACT, conf.OpenAction);
+	EXPECT_EQ((int)OPENACTION::LIST, conf.OpenAction_Shift);
+	EXPECT_EQ((int)OPENACTION::TEST, conf.OpenAction_Ctrl);
 }

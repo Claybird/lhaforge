@@ -81,27 +81,3 @@ void CConfigCompress::store(CConfigFile &Config)const
 	Config.setValue(section, L"IgnoreTopDirectory", (int)IgnoreTopDirectory);
 }
 
-#ifdef UNIT_TEST
-TEST(config, CConfigCompress)
-{
-	CConfigFile emptyFile;
-	CConfigCompress conf;
-	conf.load(emptyFile);
-
-	EXPECT_EQ((int)OUTPUT_TO::Desktop, conf.OutputDirType);
-	EXPECT_TRUE(conf.OutputDirUserSpecified.empty());
-	EXPECT_TRUE(conf.OpenDir);
-	EXPECT_FALSE(conf.SpecifyOutputFilename);
-	EXPECT_FALSE(conf.LimitCompressFileCount);
-	EXPECT_EQ(1, conf.MaxCompressFileCount);
-	EXPECT_FALSE(conf.UseDefaultParameter);
-	EXPECT_EQ(LF_ARCHIVE_FORMAT::INVALID, conf.DefaultType);
-	EXPECT_EQ(0, conf.DefaultOptions);
-
-	EXPECT_FALSE(conf.DeleteAfterCompress);
-	EXPECT_TRUE(conf.MoveToRecycleBin);
-	EXPECT_FALSE(conf.DeleteNoConfirm);
-
-	EXPECT_EQ((int)COMPRESS_IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
-}
-#endif

@@ -23,21 +23,32 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "ArchiverCode/archive.h"
+#include "../ConfigFile.h"
+#include "Compress.h"
+#include "../ConfigCompress.h"
+#include "Utilities/FileOperation.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
-{
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
 
-void CConfigOpenAction::store(CConfigFile &Config)const
+TEST(config, CConfigCompress)
 {
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	CConfigFile emptyFile;
+	CConfigCompress conf;
+	conf.load(emptyFile);
+
+	EXPECT_EQ((int)OUTPUT_TO::Desktop, conf.OutputDirType);
+	EXPECT_TRUE(conf.OutputDirUserSpecified.empty());
+	EXPECT_TRUE(conf.OpenDir);
+	EXPECT_FALSE(conf.SpecifyOutputFilename);
+	EXPECT_FALSE(conf.LimitCompressFileCount);
+	EXPECT_EQ(1, conf.MaxCompressFileCount);
+	EXPECT_FALSE(conf.UseDefaultParameter);
+	EXPECT_EQ(LF_ARCHIVE_FORMAT::INVALID, conf.DefaultType);
+	EXPECT_EQ(0, conf.DefaultOptions);
+
+	EXPECT_FALSE(conf.DeleteAfterCompress);
+	EXPECT_TRUE(conf.MoveToRecycleBin);
+	EXPECT_FALSE(conf.DeleteNoConfirm);
+
+	EXPECT_EQ((int)COMPRESS_IGNORE_TOP_DIR::None, conf.IgnoreTopDirectory);
 }

@@ -1,8 +1,6 @@
 #include "stdafx.h"
-#include "FindDlg.h"
+#include "../FindDlg.h"
 
-
-#ifdef UNIT_TEST
 
 TEST(CLFFindDialog, getCondition)
 {
@@ -200,6 +198,4 @@ TEST(CLFFindDialog, setCondition)
 		EXPECT_EQ((int)FIND_CONDITION::all_files, dlg._condition);
 	}
 }
-
-#endif
 

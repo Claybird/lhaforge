@@ -79,3 +79,11 @@ bool GUI_test_multiple_files(
 	ILFProgressHandler &progressHandler,
 	const CMDLINEINFO* lpCmdLineInfo
 );
+
+enum class PRE_EXTRACT_CHECK :int {
+	unknown,
+	singleDir,	//all the contents are under one root directory
+	singleFile,
+	multipleEntries,
+};
+

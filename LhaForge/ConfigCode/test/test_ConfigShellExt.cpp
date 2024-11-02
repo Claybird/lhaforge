@@ -23,21 +23,22 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "../ConfigFile.h"
+#include "../ConfigShellExt.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
+TEST(config, CConfigShellExt)
 {
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
+	CConfigFile emptyFile;
+	CConfigShellExt conf;
+	conf.load(emptyFile);
 
-void CConfigOpenAction::store(CConfigFile &Config)const
-{
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	EXPECT_TRUE(conf.ShellMenuCompress);
+	EXPECT_TRUE(conf.ShellMenuExtract);
+	EXPECT_TRUE(conf.ShellMenuList);
+	EXPECT_TRUE(conf.ShellMenuTest);
+	EXPECT_FALSE(conf.ShellMenuUnderSubMenu);
+	EXPECT_TRUE(conf.DragMenuCompress);
+	EXPECT_TRUE(conf.DragMenuExtract);
+	EXPECT_FALSE(conf.DragMenuUnderSubMenu);
+	EXPECT_FALSE(conf.ForceExtraMenu);
 }

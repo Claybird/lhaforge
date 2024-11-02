@@ -41,58 +41,6 @@
 CAppModule _Module;
 
 
-
-//enumerates files, removes directory
-std::vector<std::filesystem::path> enumerateFiles(const std::vector<std::filesystem::path>& input, const std::vector<std::wstring>& denyExts)
-{
-	std::vector<std::filesystem::path> out;
-	for (const auto &item: input) {
-		std::vector<std::filesystem::path> children;
-		if (std::filesystem::is_directory(item)) {
-			children = UtilRecursiveEnumFile(item);
-		} else {
-			children = { item };
-		}
-		for (const auto &subItem : children) {
-			bool bDenied = false;
-			for (const auto& deny : denyExts) {
-				if (UtilExtMatchSpec(subItem, deny)) {
-					bDenied = true;
-					break;
-				}
-			}
-			//finally
-			if (!bDenied) {
-				out.push_back(subItem);
-			}
-		}
-	}
-	return out;
-}
-#ifdef UNIT_TEST
-TEST(main, enumerateFiles)
-{
-	auto dir = UtilGetTempPath() / L"lhaforge_test/enumerateFiles";
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-	std::filesystem::create_directories(dir / L"abc");
-	touchFile(dir / L"abc/ghi.txt");
-	std::filesystem::create_directories(dir / L"def");
-	touchFile(dir / L"def/test.exe");
-	touchFile(dir / L"def/test.bat");
-
-	auto out = enumerateFiles({ dir / L"abc", dir / L"def" }, { L".exe", L".bat" });
-	EXPECT_EQ(1, out.size());
-	if (out.size() > 0) {
-		EXPECT_EQ(dir / L"abc/ghi.txt", out[0]);
-	}
-
-	UtilDeletePath(dir);
-	EXPECT_FALSE(std::filesystem::exists(dir));
-}
-
-#endif
-
 PROCESS_MODE selectOpenAction()
 {
 	class COpenActionDialog : public CDialogImpl<COpenActionDialog> {
@@ -169,7 +117,7 @@ bool DoExtract(CConfigFile &config,CMDLINEINFO &cli)
 	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
-	auto tmp = enumerateFiles(cli.FileList, denyList);
+	auto tmp = UtilEnumerateFiles(cli.FileList, denyList);
 	remove_item_if(tmp, [](const std::wstring& file) {return !CLFArchive::is_known_format(file); });
 
 	if(tmp.empty()){
@@ -185,7 +133,7 @@ bool DoList(CConfigFile &config,CMDLINEINFO &cli)
 	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
-	auto tmp = enumerateFiles(cli.FileList, denyList);
+	auto tmp = UtilEnumerateFiles(cli.FileList, denyList);
 	remove_item_if(tmp, [](const std::wstring& file) {return !CLFArchive::is_known_format(file); });
 
 	if(!cli.FileList.empty() && tmp.empty()){
@@ -219,7 +167,7 @@ bool DoTest(CConfigFile &config,CMDLINEINFO &cli)
 	ConfExtract.load(config);
 	const auto denyList = UtilSplitString(ConfExtract.DenyExt, L";");
 
-	auto tmp = enumerateFiles(cli.FileList, denyList);
+	auto tmp = UtilEnumerateFiles(cli.FileList, denyList);
 
 	if(tmp.empty()){
 		ErrorMessage(UtilLoadString(IDS_ERROR_FILE_NOT_SPECIFIED));

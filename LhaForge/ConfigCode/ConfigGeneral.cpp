@@ -90,19 +90,3 @@ void CConfigGeneral::storeGeneral(CConfigFile &Config)const
 	Config.setValue(section, L"TempPath", TempPath);
 }
 
-#ifdef UNIT_TEST
-TEST(config, CConfigGeneral)
-{
-	CConfigFile emptyFile;
-	CConfigGeneral conf;
-	conf.load(emptyFile);
-
-	EXPECT_FALSE(conf.Filer.UseFiler);
-	EXPECT_FALSE(conf.WarnNetwork);
-	EXPECT_FALSE(conf.WarnRemovable);
-	EXPECT_EQ((int)LOSTDIR::Error, conf.OnDirNotFound);
-	EXPECT_EQ((int)LOGVIEW::OnError, conf.LogViewEvent);
-	EXPECT_TRUE(conf.TempPath.empty());
-}
-#endif
-

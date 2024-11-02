@@ -23,21 +23,25 @@
 */
 
 #include "stdafx.h"
-#include "ConfigFile.h"
-#include "ConfigOpenAction.h"
+#include "ArchiverCode/archive.h"
+#include "../ConfigFile.h"
+#include "../ConfigExtract.h"
+#include "Extract.h"
+#include "Utilities/FileOperation.h"
+#include "Utilities/Utility.h"
+#include "resource.h"
 
-void CConfigOpenAction::load(const CConfigFile &Config)
-{
-	const auto section = L"OpenAction";
-	OpenAction = Config.getIntRange(section, L"OpenAction", 0, (int)OPENACTION::LastItem, (int)OPENACTION::EXTRACT);
-	OpenAction_Shift = Config.getIntRange(section, L"OpenAction_Shift", 0, (int)OPENACTION::LastItem, (int)OPENACTION::LIST);
-	OpenAction_Ctrl = Config.getIntRange(section, L"OpenAction_Ctrl", 0, (int)OPENACTION::LastItem, (int)OPENACTION::TEST);
-}
 
-void CConfigOpenAction::store(CConfigFile &Config)const
+TEST(config, CConfigExtract)
 {
-	const auto section = L"OpenAction";
-	Config.setValue(section, L"OpenAction", OpenAction);
-	Config.setValue(section, L"OpenAction_Shift", OpenAction_Shift);
-	Config.setValue(section, L"OpenAction_Ctrl", OpenAction_Ctrl);
+	CConfigFile emptyFile;
+	CConfigExtract conf;
+	conf.load(emptyFile);
+
+	conf.DenyExt = L".docx;;.exe;.zipx";
+
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.txt"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.docx"));
+	EXPECT_TRUE(conf.isPathAcceptableToExtract(L"/path/ext/file.zip"));
+	EXPECT_FALSE(conf.isPathAcceptableToExtract(L"/path/ext/file.zipx"));
 }
