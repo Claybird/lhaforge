@@ -243,14 +243,19 @@ struct LA_FILE_TO_READ
 		const void* buf;
 		size_t size;
 		la_int64_t offset = 0;
-		int r = archive_read_data_block(_arc, &buf, &size, &offset);
-		if (ARCHIVE_EOF == r) {
-			data_receiver(nullptr, 0, 0);
-		} else if (r < ARCHIVE_OK) {
-			throw LA_EXCEPTION(r);
-		} else {
-			offset_info oi = { (uint64_t)offset };
-			data_receiver(buf, size, &oi);
+		while (true) {
+			int r = archive_read_data_block(_arc, &buf, &size, &offset);
+			if (ARCHIVE_EOF == r) {
+				data_receiver(nullptr, 0, 0);
+				break;
+			} else if (r < ARCHIVE_OK) {
+				throw LA_EXCEPTION(r);
+				break;
+			} else if(buf){
+				offset_info oi = { (uint64_t)offset };
+				data_receiver(buf, size, &oi);
+				break;
+			}
 		}
 	}
 	static LF_ARCHIVE_FORMAT check_format(const std::filesystem::path& arcname) {
