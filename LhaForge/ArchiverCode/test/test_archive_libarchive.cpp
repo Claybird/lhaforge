@@ -443,6 +443,9 @@ TEST(CLFArchiveLA, is_known_format)
 
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(__FILEW__));
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(L"some_non_existing_file"));
+	EXPECT_FALSE(CLFArchiveLA::is_known_format(dir / L"smile.png"));
+	EXPECT_FALSE(CLFArchiveLA::is_known_format(dir / L"smile.gif"));
+	EXPECT_FALSE(CLFArchiveLA::is_known_format(dir / L"smile.jpg"));
 }
 
 TEST(CLFArchiveLA, read_enum_2099_zstd)

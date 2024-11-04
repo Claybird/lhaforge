@@ -71,6 +71,9 @@ TEST(CLFArchiveRAR, is_known_format)
 
 		EXPECT_FALSE(CLFArchiveRAR::is_known_format(__FILEW__));
 		EXPECT_FALSE(CLFArchiveRAR::is_known_format(L"some_non_existing_file"));
+		EXPECT_FALSE(CLFArchiveRAR::is_known_format(dir / L"smile.png"));
+		EXPECT_FALSE(CLFArchiveRAR::is_known_format(dir / L"smile.gif"));
+		EXPECT_FALSE(CLFArchiveRAR::is_known_format(dir / L"smile.jpg"));
 	}
 	{
 		const auto dir = LF_PROJECT_DIR() / L"test";

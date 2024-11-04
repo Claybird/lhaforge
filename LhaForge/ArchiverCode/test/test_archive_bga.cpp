@@ -222,3 +222,42 @@ TEST(CLFArchiveBGA, read_bza_sfx)
 		}
 	}
 }
+
+TEST(CLFArchiveBGA, is_known_format)
+{
+	{
+		const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"empty.gz"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"empty.bz2"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"empty.xz"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"empty.lzma"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"empty.zst"));
+
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"abcde.gz"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"abcde.bz2"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"abcde.xz"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"abcde.lzma"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"abcde.zst"));
+
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(__FILEW__));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(L"some_non_existing_file"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"smile.png"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"smile.gif"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"smile.jpg"));
+	}
+	{
+		const auto dir = LF_PROJECT_DIR() / L"test";
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_broken_file.zip"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_broken_crc.zip"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_extract.zip"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_extract.zipx"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_password_abcde.zip"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_unicode_control.zip"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"test_zip_sfx.dat"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"smile.zip.001"));
+		EXPECT_FALSE(CLFArchiveBGA::is_known_format(dir / L"image_method0.arj"));
+
+		EXPECT_TRUE(CLFArchiveBGA::is_known_format(dir / L"test.bza"));
+		EXPECT_TRUE(CLFArchiveBGA::is_known_format(dir / L"test.gza"));
+	}
+}
