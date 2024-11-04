@@ -263,7 +263,7 @@ struct LA_FILE_TO_READ
 		CAutoFile fp;
 		fp.open(arcname);
 		if (!fp.is_opened())return LF_ARCHIVE_FORMAT::INVALID;
-		const size_t bufSize = 10;
+		const size_t bufSize = 14;
 		std::vector<unsigned char> header(bufSize);
 		size_t read = fread(&header[0], 1, bufSize, fp);
 		if (read < 1) {
@@ -291,6 +291,17 @@ struct LA_FILE_TO_READ
 			) {
 			return LF_ARCHIVE_FORMAT::BZ2;
 		}
+		//cab
+		if (read >= 4 &&
+			header[0] == 'M' && header[1] == 'S' && header[2] == 'C' && header[3] == 'F'){
+			return LF_ARCHIVE_FORMAT::READONLY;// CAB;
+		}
+		//lzh
+		if (read >= 7 &&
+			header[2] == '-' && header[3] == 'l' && header[4] == 'h' && header[6] == '-') {
+			return LF_ARCHIVE_FORMAT::READONLY;// lzh;
+		}
+
 		//zstd: https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md
 		if (read > 4 &&
 			header[0] == 0x28 && header[1] == 0xB5 && header[2] == 0x2F && header[3] == 0xFD) {
@@ -312,9 +323,14 @@ struct LA_FILE_TO_READ
 		}
 		//lzma: lzma-file-format.txt in XZ Utils[https://tukaani.org/xz/]
 		{
-			uint8_t prop = header[0];
-			if (prop <= (4 * 5 + 4) * 9 + 8) {
-				return LF_ARCHIVE_FORMAT::LZMA;
+			if (read > 13) {
+				uint8_t prop = header[0];
+				if (prop <= (4 * 5 + 4) * 9 + 8) {
+					uint32_t dictsize = (header[1] | header[2] << 8) << 8 | (header[3] | header[4] << 8);
+					if (dictsize != 0 && __popcnt(dictsize) <= 2) {
+						return LF_ARCHIVE_FORMAT::LZMA;
+					}
+				}
 			}
 		}
 
