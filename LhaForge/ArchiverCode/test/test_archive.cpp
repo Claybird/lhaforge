@@ -7,6 +7,7 @@
 #include "../archive_rar.h"
 #include "resource.h"
 #include "CommonUtil.h"
+#include "extract.h"
 
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(LF_ARCHIVE_FORMAT format);
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path);
@@ -343,6 +344,11 @@ TEST(CLFArchive, make_empty_archive)
 			//skip all
 			auto out = a.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return false; });
 		}
+		EXPECT_NO_THROW({
+			ARCLOG arcLog;
+			CLFProgressHandlerNULL progressHandler;
+			testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+			});
 		return temp;
 	};
 

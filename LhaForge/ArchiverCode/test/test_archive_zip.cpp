@@ -6,6 +6,7 @@
 #include "mz_strm_os.h"
 #include "mz_os.h"
 #include "compress.h"
+#include "extract.h"
 #include "CommonUtil.h"
 
 TEST(CLFArchiveZIP, read_enum)
@@ -251,6 +252,12 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 			}
 			}, LF_EXCEPTION);
 	}
+
+	EXPECT_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(LF_PROJECT_DIR() / L"test/test_broken_file.zip", arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		}, LF_EXCEPTION);
 }
 
 TEST(CLFArchiveZIP, read_enum_non_existing)
@@ -469,6 +476,9 @@ TEST(CLFArchiveZIP, is_known_format)
 
 		EXPECT_FALSE(CLFArchiveZIP::is_known_format(__FILEW__));
 		EXPECT_FALSE(CLFArchiveZIP::is_known_format(L"some_non_existing_file"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"smile.png"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"smile.gif"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"smile.jpg"));
 	}
 	{
 		const auto dir = LF_PROJECT_DIR() / L"test";
@@ -481,6 +491,10 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));
 
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"smile.zip.001"));
+
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"image_method0.arj"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test.bza"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test.gza"));
 	}
 }
 
@@ -538,6 +552,12 @@ TEST(CLFArchiveZIP, add_file_entry)
 		EXPECT_EQ(L"test/file.txt", entry->path.wstring());
 		EXPECT_EQ(1000, entry->stat.st_size);
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 	UtilDeletePath(src);
@@ -566,6 +586,12 @@ TEST(CLFArchiveZIP, add_directory_entry)
 		EXPECT_NE(nullptr, entry);
 		EXPECT_EQ(L"test/", entry->path.wstring());
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
@@ -646,6 +672,12 @@ TEST(CLFArchiveZIP, add_file_entry_with_password)
 		}
 
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"password"));
+		});
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 	UtilDeletePath(src);
@@ -705,6 +737,12 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 				EXPECT_EQ(method.second, entry->method_name);
 				//EXPECT_EQ(level, ); no way to get compression level; checking creation errors only
 			}
+			//test file consistency
+			EXPECT_NO_THROW({
+				ARCLOG arcLog;
+				CLFProgressHandlerNULL progressHandler;
+				testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+				});
 			UtilDeletePath(temp);
 			EXPECT_FALSE(std::filesystem::exists(temp));
 		}
@@ -754,6 +792,12 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			EXPECT_EQ(L"test/file.txt", entry->path.wstring());
 			EXPECT_TRUE(entry->is_encrypted);
 		}
+		//test file consistency
+		EXPECT_NO_THROW({
+			ARCLOG arcLog;
+			CLFProgressHandlerNULL progressHandler;
+			testOneArchive(temp, arcLog, progressHandler, pp);
+			});
 		UtilDeletePath(temp);
 		EXPECT_FALSE(std::filesystem::exists(temp));
 	}
@@ -800,6 +844,12 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 			});
 			a->close();
 		}
+		//test file consistency
+		EXPECT_NO_THROW({
+			ARCLOG arcLog;
+			CLFProgressHandlerNULL progressHandler;
+			testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+			});
 		{
 			CLFArchiveZIP modified;
 			CLFArchiveZIP original;
@@ -852,6 +902,12 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip)
 		});
 		a->close();
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 	{
 		CLFArchiveZIP modified;
 		CLFArchiveZIP original;
@@ -898,6 +954,12 @@ TEST(CLFArchiveZIP, remove_directory_from_existing_zip)
 		});
 		a->close();
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 	{
 		CLFArchiveZIP modified;
 		auto pp = std::make_shared<CLFPassphraseNULL>();

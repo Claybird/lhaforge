@@ -574,6 +574,12 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 
 	EXPECT_TRUE(CLFArchive::is_known_format(tempFile));
 
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(tempFile, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+
 	auto tempDir = UtilGetTempPath() / L"test_copyArchive";
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));

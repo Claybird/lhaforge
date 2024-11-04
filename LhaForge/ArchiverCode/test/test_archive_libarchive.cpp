@@ -4,6 +4,7 @@
 
 #include "CommonUtil.h"
 #include "compress.h"
+#include "extract.h"
 
 TEST(CLFArchiveLA, mimic_archive_property)
 {
@@ -385,6 +386,11 @@ TEST(CLFArchiveLA, make_copy_archive)
 			entry = a.read_entry_next();
 			EXPECT_EQ(nullptr, entry);
 		}
+		EXPECT_NO_THROW({
+			ARCLOG arcLog;
+			CLFProgressHandlerNULL progressHandler;
+			testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+			});
 		UtilDeletePath(temp);
 		EXPECT_FALSE(std::filesystem::exists(temp));
 	}
@@ -408,6 +414,11 @@ TEST(CLFArchiveLA, make_copy_archive)
 			entry = a.read_entry_next();
 			EXPECT_EQ(nullptr, entry);
 		}
+		EXPECT_NO_THROW({
+			ARCLOG arcLog;
+			CLFProgressHandlerNULL progressHandler;
+			testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+			});
 		UtilDeletePath(temp);
 		EXPECT_FALSE(std::filesystem::exists(temp));
 	}
