@@ -296,6 +296,14 @@ struct LA_FILE_TO_READ
 			) {
 			return LF_ARCHIVE_FORMAT::BZ2;
 		}
+		//zip, zipx: https://en.wikipedia.org/wiki/ZIP_(file_format)
+		if (read > 4 && header[0] == 'P' && header[1] == 'K' && (
+			(header[2] == 0x03 && header[3] == 0x04) ||
+			(header[2] == 0x05 && header[3] == 0x06) ||
+			(header[2] == 0x07 && header[3] == 0x08)
+			)) {
+			return LF_ARCHIVE_FORMAT::ZIP;
+		}
 		//cab
 		if (read >= 4 &&
 			header[0] == 'M' && header[1] == 'S' && header[2] == 'C' && header[3] == 'F'){
@@ -338,7 +346,77 @@ struct LA_FILE_TO_READ
 				}
 			}
 		}
-
+		//7z
+		{
+			if (read > 6 &&
+				header[0] == '7' && header[1] == 'z' && header[2] == 0xbc &&
+				header[3] == 0xaf && header[4] == 0x27 && header[5] == 0x1c) {
+				return LF_ARCHIVE_FORMAT::_7Z;
+			}
+		}
+		//iso9660: https://en.wikipedia.org/wiki/List_of_file_signatures
+		{
+			size_t offsets[] = { 0x8001,0x8801,0x9001 };
+			for (const auto& offset : offsets) {
+				if (0 == _fseeki64(fp, offset, SEEK_SET)) {
+					std::vector<unsigned char> h(bufSize);	//local header
+					size_t local_read = fread(&h[0], 1, bufSize, fp);
+					if (local_read > 5 &&
+						h[0] == 'C' && h[1] == 'D' && h[2] == '0' && h[3] == '0' && h[4] == '1')
+						return LF_ARCHIVE_FORMAT::READONLY;	//iso9600
+				}
+			}
+		}
+		//cpio: https://github.com/libyal/dtformats/blob/main/documentation/Copy%20in%20and%20out%20(CPIO)%20archive%20format.asciidoc
+		{
+			if (read > 2 && header[0] == 0x71 && header[1] == 0xc7) {
+				return LF_ARCHIVE_FORMAT::READONLY;	//cpio
+			}
+			if (read > 2 && header[0] == 0xc7 && header[1] == 0x71) {
+				return LF_ARCHIVE_FORMAT::READONLY;	//cpio
+			}
+			if (read > 6 && header[0] == '0' && header[1] == '7' && header[2] == '0' && header[3] == '7' && header[4] == '0' && header[5] == '7') {
+				return LF_ARCHIVE_FORMAT::READONLY;	//cpio
+			}
+			if (read > 6 && header[0] == '0' && header[1] == '7' && header[2] == '0' && header[3] == '7' && header[4] == '0' && header[5] == '1') {
+				return LF_ARCHIVE_FORMAT::READONLY;	//cpio
+			}
+			if (read > 6 && header[0] == '0' && header[1] == '7' && header[2] == '0' && header[3] == '7' && header[4] == '0' && header[5] == '2') {
+				return LF_ARCHIVE_FORMAT::READONLY;	//cpio
+			}
+		}
+		//z: https://ja.wikipedia.org/wiki/UNIX_Compress
+		{
+			if (read > 2 && header[0] == 0x1f && header[1] == 0x9d) {
+				return LF_ARCHIVE_FORMAT::READONLY;
+			}
+		}
+		//uuencode: https://en.wikipedia.org/wiki/Uuencoding
+		{
+			if (read > 10) {
+				std::regex re("begin \\d\\d\\d ");
+				std::cmatch results;
+				if (std::regex_search((const char*)&header[0], (const char*)&header[0] + bufSize, results, re)) {
+					return LF_ARCHIVE_FORMAT::READONLY; //uuencode
+				}
+			}
+		}
+		//tar: https://www.gnu.org/software/tar/manual/html_node/Standard.html
+		{
+			if (0 == fseek(fp, 257, SEEK_SET)) {
+				std::vector<unsigned char> h(bufSize);	//local header
+				size_t local_read = fread(&h[0], 1, bufSize, fp);
+				if (local_read > 8 &&
+					h[0] == 'u' && h[1] == 's' && h[2] == 't' && h[3] == 'a' && h[4] == 'r' &&
+					(
+						(h[5] == ' ' && h[6] == ' ' && h[7] == '\0') ||	//OLDGNU_MAGIC
+						(h[5] == '\0')		//TMAGIC
+						)
+					) {
+					return LF_ARCHIVE_FORMAT::TAR;
+				}
+			}
+		}
 
 		return LF_ARCHIVE_FORMAT::INVALID;
 	}

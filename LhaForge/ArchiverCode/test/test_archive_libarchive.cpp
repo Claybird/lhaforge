@@ -424,7 +424,37 @@ TEST(CLFArchiveLA, make_copy_archive)
 	}
 }
 
-
+std::filesystem::path extract_for_tmp(const std::filesystem::path &in)
+{
+	auto tmp = UtilGetTemporaryFileName();
+	{
+		//extract iso to temporary
+		CLFArchiveLA a;
+		a.read_open(in, std::make_shared<CLFPassphraseNULL>());
+		a.read_entry_begin();
+		CAutoFile fp;
+		fp.open(tmp, L"wb");
+		for (;;) {
+			bool bEOF = false;
+			a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+				if (offset && _ftelli64(fp) != offset->offset) {
+					_fseeki64(fp, offset->offset, SEEK_SET);
+				}
+				if (buf) {
+					fwrite(buf, data_size, 1, fp);
+				} else {
+					bEOF = true;
+				}
+			});
+			if (bEOF) {
+				break;
+			}
+		}
+		a.read_entry_end();
+		a.close();
+	}
+	return tmp;
+}
 TEST(CLFArchiveLA, is_known_format)
 {
 	const auto dir = LF_PROJECT_DIR() / L"ArchiverCode/test";
@@ -443,6 +473,24 @@ TEST(CLFArchiveLA, is_known_format)
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"smile.cab"));
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"smile2.cab"));
 	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.lzh"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.7z"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.tar"));
+
+	{
+		auto tmp = extract_for_tmp(dir / L"test_2099.iso9660.zip");
+		EXPECT_TRUE(CLFArchiveLA::is_known_format(tmp));	//iso
+		UtilDeletePath(tmp);
+	}
+	{
+		auto tmp = extract_for_tmp(dir / L"test_2099.udf.zip");
+		EXPECT_FALSE(CLFArchiveLA::is_known_format(tmp));	//universal disk format
+		UtilDeletePath(tmp);
+	}
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.zip"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.zipx"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.cpio"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test_2099.tar.Z"));
+	EXPECT_TRUE(CLFArchiveLA::is_known_format(dir / L"test.uue"));
 
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(__FILEW__));
 	EXPECT_FALSE(CLFArchiveLA::is_known_format(L"some_non_existing_file"));
