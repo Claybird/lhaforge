@@ -488,13 +488,13 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_password_abcde.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
-		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));
 
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"smile.zip.001"));
 
 		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"image_method0.arj"));
 		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test.bza"));
 		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test.gza"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test_zip_sfx.dat"));	//true if checked inside content
 	}
 }
 

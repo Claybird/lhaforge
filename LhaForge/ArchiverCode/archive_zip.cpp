@@ -738,13 +738,22 @@ void CLFArchiveZIP::add_directory_entry(const LF_ENTRY_STAT& stat)
 #include "CommonUtil.h"
 bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 {
-	try {
-		CLFArchiveZIP zip;
-		auto pp = std::make_shared<CLFPassphraseNULL>();
-		zip.read_open(arcname, pp);
-		//zip.read_entry_begin();
-		return true;
-	} catch (...) {
+	CAutoFile fp;
+	fp.open(arcname);
+	if (!fp.is_opened())return false;
+	const size_t bufSize = 4;
+	std::vector<unsigned char> header(bufSize);
+	size_t read = fread(&header[0], 1, bufSize, fp);
+	if (read < 4) {
 		return false;
 	}
+	//zip, zipx: https://en.wikipedia.org/wiki/ZIP_(file_format)
+	if (header[0] == 'P' && header[1] == 'K' && (
+		(header[2] == 0x03 && header[3] == 0x04) ||
+		(header[2] == 0x05 && header[3] == 0x06) ||
+		(header[2] == 0x07 && header[3] == 0x08)
+		)) {
+		return true;
+	}
+	return false;
 }
