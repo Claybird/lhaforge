@@ -133,7 +133,13 @@ struct LF_LA_ENTRY {
 				clear_entry_stat();
 			}
 			_lf_stat.compressed_size = -1;
-			_lf_stat.path = archive_entry_pathname_w(_entry);
+			auto p = archive_entry_pathname_w(_entry);
+			if (p) {
+				_lf_stat.path = p;
+			} else {
+				auto mbs = archive_entry_pathname(_entry);
+				_lf_stat.path = UtilToUNICODE(mbs, strlen(mbs), UtilGuessCodepage(mbs, strlen(mbs)));
+			}
 			_lf_stat.method_name = L"---";
 			_lf_stat.is_encrypted = archive_entry_is_encrypted(_entry);
 			return true;
