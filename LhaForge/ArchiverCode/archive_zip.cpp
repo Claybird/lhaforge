@@ -741,19 +741,35 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 	CAutoFile fp;
 	fp.open(arcname);
 	if (!fp.is_opened())return false;
-	const size_t bufSize = 4;
+	const size_t bufSize = 64 * 1024;
 	std::vector<unsigned char> header(bufSize);
 	size_t read = fread(&header[0], 1, bufSize, fp);
 	if (read < 4) {
 		return false;
 	}
+	header.resize(read);
 	//zip, zipx: https://en.wikipedia.org/wiki/ZIP_(file_format)
-	if (header[0] == 'P' && header[1] == 'K' && (
-		(header[2] == 0x03 && header[3] == 0x04) ||
-		(header[2] == 0x05 && header[3] == 0x06) ||
-		(header[2] == 0x07 && header[3] == 0x08)
-		)) {
-		return true;
+	//if (header[0] == 'P' && header[1] == 'K' && (
+	//	(header[2] == 0x03 && header[3] == 0x04) ||
+	//	(header[2] == 0x05 && header[3] == 0x06) ||
+	//	(header[2] == 0x07 && header[3] == 0x08)
+	//	)) {
+	//	return true;
+	//}
+
+	//skipping self extracting archive header
+	for (auto ite = header.begin(); ite != header.end(); ++ite) {
+		ite = std::find(ite, header.end(), 'P');
+		if (ite == header.end()) {
+			break;
+		} else {
+			if (std::next(ite, 1) == header.end() || *std::next(ite, 1) != 'K')continue;
+			if (std::next(ite, 2) == header.end() || std::next(ite, 3) == header.end())break;
+			if (*std::next(ite, 2) == 0x03 && *std::next(ite, 3) == 0x04)return true;
+			if (*std::next(ite, 2) == 0x05 && *std::next(ite, 3) == 0x06)return true;
+			if (*std::next(ite, 2) == 0x07 && *std::next(ite, 3) == 0x08)return true;
+		}
 	}
+
 	return false;
 }
