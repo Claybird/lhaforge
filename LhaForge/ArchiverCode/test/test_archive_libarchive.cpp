@@ -323,6 +323,12 @@ TEST(CLFArchiveLA, add_entry)
 			return data;
 		});
 	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 	{
 		CLFArchiveLA a;
 		auto pp = std::make_shared<CLFPassphraseNULL>();
