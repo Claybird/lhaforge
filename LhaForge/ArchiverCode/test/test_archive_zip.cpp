@@ -907,17 +907,9 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
-TEST(CLFArchiveZIP, add_file_to_existing_zip)
+void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
 {
-	const auto dir = LF_PROJECT_DIR() / L"test";
-	std::vector<std::filesystem::path> zip_files = {
-		dir / L"test_extract.zip",
-		dir / L"test_extract.zipx",
-		dir / L"test_password_abcde.zip",
-		dir / L"test_unicode_control.zip",
-		dir / L"test_zip_sfx.dat",
-	};
-
+	ASSERT_TRUE(std::filesystem::exists(zip_file));
 	auto src = UtilGetTemporaryFileName();
 	{
 		CAutoFile f;
@@ -926,65 +918,93 @@ TEST(CLFArchiveZIP, add_file_to_existing_zip)
 			fputs("abcde12345", f);
 		}
 	}
-	for (const auto& zip_file : zip_files) {
-		auto temp = UtilGetTemporaryFileName();
-		{
-			CLFArchiveZIP r;
-			LF_COMPRESS_ARGS args;
-			args.load(CConfigFile());
-			auto pp = std::make_shared<CLFPassphraseConst>(L"password");
-			r.read_open(zip_file, pp);
-			auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
+		r.read_open(zip_file, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 
-			LF_ENTRY_STAT e;
-			RAW_FILE_READER provider;
-			provider.open(src);
-			e.read_stat(src, L"test/added_file.txt");
-			a->add_file_entry(e, [&]() {
-				auto data = provider();
-				return data;
-			});
-			a->close();
-		}
-		//test file consistency
-		EXPECT_NO_THROW({
-			ARCLOG arcLog;
-			CLFProgressHandlerNULL progressHandler;
-			testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
-			});
-		{
-			CLFArchiveZIP modified;
-			CLFArchiveZIP original;
-			auto pp = std::make_shared<CLFPassphraseNULL>();
-			modified.read_open(temp, pp);
-			original.read_open(zip_file, pp);
-
-			EXPECT_EQ(modified.contains_encryted_entry(), original.contains_encryted_entry());
-
-			auto entry_mod = modified.read_entry_begin();
-			auto entry_org = original.read_entry_begin();
-			for (; entry_org;) {
-				ASSERT_NE(nullptr, entry_org);
-				ASSERT_NE(nullptr, entry_mod);
-				EXPECT_EQ(entry_org->path.wstring(), entry_mod->path.wstring());
-				EXPECT_EQ(entry_org->stat.st_size, entry_mod->stat.st_size);
-				EXPECT_EQ(entry_org->stat.st_mtime, entry_mod->stat.st_mtime);
-
-				entry_org = original.read_entry_next();
-				entry_mod = modified.read_entry_next();
-			}
-			EXPECT_NE(nullptr, entry_mod);
-			EXPECT_EQ(L"test/added_file.txt", entry_mod->path.wstring());
-			EXPECT_EQ(1000, entry_mod->stat.st_size);
-
-			//entry will be encrypted if zip is encrypted with my implementation
-			EXPECT_EQ(entry_mod->is_encrypted, original.contains_encryted_entry());
-		}
-		UtilDeletePath(temp);
-		EXPECT_FALSE(std::filesystem::exists(temp));
+		LF_ENTRY_STAT e;
+		RAW_FILE_READER provider;
+		provider.open(src);
+		e.read_stat(src, L"test/added_file.txt");
+		a->add_file_entry(e, [&]() {
+			auto data = provider();
+			return data;
+		});
+		a->close();
 	}
+	//test file consistency
+	ASSERT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+	{
+		CLFArchiveZIP modified;
+		CLFArchiveZIP original;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		modified.read_open(temp, pp);
+		original.read_open(zip_file, pp);
+
+		EXPECT_EQ(modified.contains_encryted_entry(), original.contains_encryted_entry());
+
+		auto entry_mod = modified.read_entry_begin();
+		auto entry_org = original.read_entry_begin();
+		for (; entry_org;) {
+			ASSERT_NE(nullptr, entry_org);
+			ASSERT_NE(nullptr, entry_mod);
+			EXPECT_EQ(entry_org->path.wstring(), entry_mod->path.wstring());
+			EXPECT_EQ(entry_org->stat.st_size, entry_mod->stat.st_size);
+			EXPECT_EQ(entry_org->stat.st_mtime, entry_mod->stat.st_mtime);
+
+			entry_org = original.read_entry_next();
+			entry_mod = modified.read_entry_next();
+		}
+		EXPECT_NE(nullptr, entry_mod);
+		EXPECT_EQ(L"test/added_file.txt", entry_mod->path.wstring());
+		EXPECT_EQ(1000, entry_mod->stat.st_size);
+
+		//entry will be encrypted if zip is encrypted with my implementation
+		EXPECT_EQ(entry_mod->is_encrypted, original.contains_encryted_entry());
+	}
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+
 	UtilDeletePath(src);
 	EXPECT_FALSE(std::filesystem::exists(src));
+}
+TEST(CLFArchiveZIP, add_file_to_existing_zip)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_extract.zip");
+}
+
+TEST(CLFArchiveZIP, add_file_to_existing_zip_2099)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"ArchiverCode/test/test_2099.zip");
+}
+
+TEST(CLFArchiveZIP, add_file_to_existing_zipx)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_extract.zipx");
+}
+
+TEST(CLFArchiveZIP, add_file_to_existing_encrypted_zip)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip");
+}
+
+TEST(CLFArchiveZIP, add_file_to_existing_another_zip)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_unicode_control.zip");
+}
+
+TEST(CLFArchiveZIP, add_file_to_existing_self_extracting_zip)
+{
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_zip_sfx.dat");
 }
 
 TEST(CLFArchiveZIP, remove_file_from_existing_zip)
