@@ -1106,3 +1106,57 @@ TEST(CLFArchiveZIP, remove_directory_from_existing_zip)
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
+
+TEST(CLFArchiveZIP, remove_file_from_existing_zip_2099)
+{
+	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099.zip";
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			if (entry.path.filename().wstring().find(L"ccd.txt")!=-1)return false;
+			return true;
+		});
+		a->close();
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+
+TEST(CLFArchiveZIP, make_copy_archive_2099)
+{
+	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099.zip";
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			return true;
+		});
+		a->close();
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
