@@ -666,6 +666,55 @@ TEST(CLFArchiveZIP, add_file_entry)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
+TEST(CLFArchiveZIP, add_file_entry_non_ascii_archive)
+{
+	auto temp = UtilGetTempPath() / L"テスト_ソ_表.zip";
+	auto src = UtilGetTemporaryFileName();
+	{
+		CAutoFile f;
+		f.open(src, L"w");
+		for (int i = 0; i < 100; i++) {
+			fputs("abcde12345", f);
+		}
+	}
+	{
+		CLFArchiveZIP a;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
+		LF_ENTRY_STAT e;
+
+		RAW_FILE_READER provider;
+		provider.open(src);
+		e.read_stat(src, L"test/file.txt");
+		a.add_file_entry(e, [&]() {
+			auto data = provider();
+			return data;
+		});
+		a.close();
+	}
+	{
+		CLFArchiveZIP a;
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		a.read_open(temp, pp);
+		auto entry = a.read_entry_begin();
+		EXPECT_NE(nullptr, entry);
+		EXPECT_EQ(L"test/file.txt", entry->path.wstring());
+		EXPECT_EQ(1000, entry->stat.st_size);
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+	UtilDeletePath(src);
+	EXPECT_FALSE(std::filesystem::exists(src));
+}
+
 TEST(CLFArchiveZIP, add_directory_entry)
 {
 	auto temp = UtilGetTemporaryFileName();
