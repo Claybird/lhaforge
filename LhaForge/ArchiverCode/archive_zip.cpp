@@ -310,19 +310,21 @@ struct MINIZIP_WRITER {
 
 		writer = mz_zip_writer_create();
 		if (!writer)RAISE_EXCEPTION(L"Failed to create zip writer");
+		auto err = mz_zip_writer_open_file(writer, path.u8string().c_str(), 0, append);
+		if (err != MZ_OK) {
+			RAISE_EXCEPTION(L"Failed to open file %s: %s", path.c_str(), mzError2Text(err).c_str());
+		}
+
 		if (use_encryption) {
 			_aes_encryption = aes_enc;
 			_password_cb->update_passphrase();
 			if (!_password_cb->passphrase.get()) {
 				CANCEL_EXCEPTION();
 			}
+			_flag |= MZ_ZIP_FLAG_ENCRYPTED;
 			mz_zip_writer_set_password(writer, _password_cb->passphrase->c_str());
 		}
 
-		auto err = mz_zip_writer_open_file(writer, path.u8string().c_str(), 0, append);
-		if (err != MZ_OK) {
-			RAISE_EXCEPTION(L"Failed to open file %s: %s", path.c_str(), mzError2Text(err).c_str());
-		}
 	}
 
 	struct DATA_BRIDGE{
