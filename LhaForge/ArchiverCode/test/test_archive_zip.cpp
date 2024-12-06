@@ -1187,6 +1187,12 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip_2099)
 TEST(CLFArchiveZIP, make_copy_archive_2099)
 {
 	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099.zip";
+	//test file consistency
+	ASSERT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(src, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 
 	auto temp = UtilGetTemporaryFileName();
 	{
