@@ -29,6 +29,7 @@
 #include "resource.h"
 
 TEST(OSUtil, UtilCreateShortcut_UtilGetShortcutInfo) {
+	::CoInitialize(NULL);
 	auto temp_dir = std::filesystem::temp_directory_path();
 	auto link_file = temp_dir / "test.lnk";
 	const wchar_t* target = LR"(C:\Windows\notepad.exe)";
@@ -53,6 +54,7 @@ TEST(OSUtil, UtilCreateShortcut_UtilGetShortcutInfo) {
 	EXPECT_EQ(args, info.param);
 	EXPECT_EQ(L"", info.workingDir);
 	std::filesystem::remove(link_file);
+	::CoUninitialize();
 }
 
 TEST(OSUtil, UtilGetEnvInfo) {
