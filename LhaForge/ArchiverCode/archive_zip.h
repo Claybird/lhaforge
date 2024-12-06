@@ -6,10 +6,9 @@ class CLFArchiveZIP :public ILFArchiveFile
 	DISALLOW_COPY_AND_ASSIGN(CLFArchiveZIP);
 protected:
 	struct INTERNAL;
-	INTERNAL* _internal;
+	std::shared_ptr<INTERNAL> _internal;
 	LF_ENTRY_STAT _entry;
 	LF_ENTRY_STAT* read_entry_attrib();
-	LF_ENTRY_STAT* read_entry_internal(std::function<int32_t(void*)>);
 
 	std::filesystem::path _path;
 public:
@@ -30,11 +29,21 @@ public:
 	//archive property
 	LF_ARCHIVE_FORMAT get_format()override { return LF_ARCHIVE_FORMAT::ZIP; }
 	std::wstring get_format_name()override { return L"ZIP"; }
-	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override;
+	std::vector<LF_COMPRESS_CAPABILITY> get_compression_capability()const override {
+		return { {
+			LF_ARCHIVE_FORMAT::ZIP,
+			L".zip",
+			true,
+			{
+				LF_WOPT_STANDARD,
+				LF_WOPT_DATA_ENCRYPTION
+			}
+		} };
+	}
 
 	//entry seek; returns null if it reached EOF
-	LF_ENTRY_STAT* read_entry_begin()override;
-	LF_ENTRY_STAT* read_entry_next()override;
+	LF_ENTRY_STAT* read_entry_begin() override;
+	LF_ENTRY_STAT* read_entry_next() override;
 	void read_entry_end()override;
 
 	//read entry
