@@ -239,19 +239,12 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 			continue;
 			}
 			});
-
-		EXPECT_THROW({
-			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
-				for (bool bEOF = false; !bEOF;) {
-					a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
-						if (!buf || data_size == 0) {
-							bEOF = true;
-						}
-					});
-				}
-			}
-			}, LF_EXCEPTION);
 	}
+	EXPECT_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		}, LF_EXCEPTION);
 
 	EXPECT_THROW({
 		ARCLOG arcLog;
@@ -413,6 +406,8 @@ TEST(CLFArchiveZIP, read_enum_2099_zip)
 	EXPECT_EQ(numDir, 0);
 }
 
+#if 0
+zipx support is disabled
 TEST(CLFArchiveZIP, read_enum_2099_zipx)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -463,7 +458,7 @@ TEST(CLFArchiveZIP, read_enum_2099_zipx)
 	EXPECT_EQ(count, 2099 + 1);
 	EXPECT_EQ(numDir, 1);
 }
-
+#endif
 TEST(CLFArchiveZIP, read_passphrase)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -587,7 +582,7 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_file.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_crc.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zip"));
-		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));	//rejected by extension
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_password_abcde.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
 
