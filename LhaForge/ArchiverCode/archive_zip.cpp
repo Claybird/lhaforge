@@ -249,8 +249,17 @@ struct MINIZIP_READER {
 				RAISE_EXCEPTION(mzError2Text(err));
 			}
 		}
-		~auto_entry() {
-			mz_zip_reader_entry_close(_reader);
+		int32_t close() {
+			if (_reader) {
+				auto err = mz_zip_reader_entry_close(_reader);
+				_reader = nullptr;
+				return err;
+			} else {
+				return MZ_OK;
+			}
+		}
+		virtual ~auto_entry() {
+			close();
 		}
 	};
 	void read_entry(std::function<void(const void*, size_t, const offset_info*)> data_receiver) {
@@ -260,6 +269,14 @@ struct MINIZIP_READER {
 		for (;;) {
 			auto read = mz_zip_reader_entry_read(reader, &buffer[0], (int32_t)buffer.size());
 			if (read == 0) {
+				auto err = ae.close();
+				if (MZ_OK != err) {
+					RAISE_EXCEPTION(
+						L"Error while reading zip entry from %s: %s",
+						_path.c_str(),
+						mzError2Text(err).c_str()
+					);
+				}
 				//end of entry
 				data_receiver(nullptr, 0, nullptr);
 				break;
@@ -557,13 +574,13 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 			return false_to_skip(mz_to_LF_ENTRY_STAT(entry));
 		};
 		_internal->_reader.raw_copy_into_file(dest_path, keep_check);
-		bool encryoted = _internal->_reader.is_any_encrypted();
+		bool encrypted = _internal->_reader.is_any_encrypted();
 
 		std::unique_ptr<CLFArchiveZIP> dest = std::make_unique<CLFArchiveZIP>();
 
 		dest->close();
 		dest->_internal = std::make_shared<INTERNAL>(_internal->_reader._password_cb);
-		dest->_internal->write_open(dest_path, true, encryoted ? LF_WOPT_DATA_ENCRYPTION : LF_WOPT_STANDARD, args);
+		dest->_internal->write_open(dest_path, true, encrypted ? LF_WOPT_DATA_ENCRYPTION : LF_WOPT_STANDARD, args);
 		dest->_path = dest_path;
 
 		//- copy finished. now the caller can add extra files
@@ -620,6 +637,9 @@ void CLFArchiveZIP::add_directory_entry(const LF_ENTRY_STAT& stat)
 #include "CommonUtil.h"
 bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 {
+	//some zipx archives use methods that minizip-ng does not support
+	if (toLower(arcname.extension()) == L".zipx")return false;
+
 	CAutoFile fp;
 	fp.open(arcname);
 	if (!fp.is_opened())return false;
