@@ -55,4 +55,8 @@ public:
 	static bool is_known_format(const std::filesystem::path& arcname);
 
 	bool contains_encryted_entry();
+
+#ifdef UNIT_TEST
+	std::pair<int, int> test_sub_get_encryption()const;
+#endif
 };

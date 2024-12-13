@@ -333,12 +333,15 @@ struct MINIZIP_WRITER {
 		}
 
 		if (use_encryption) {
+			_flag |= MZ_ZIP_FLAG_ENCRYPTED;
 			_aes_encryption = aes_enc;
-			_password_cb->update_passphrase();
+			mz_zip_writer_set_aes(writer, aes_enc);
+			if (!_password_cb->passphrase.get()) {
+				_password_cb->update_passphrase();
+			}
 			if (!_password_cb->passphrase.get()) {
 				CANCEL_EXCEPTION();
 			}
-			_flag |= MZ_ZIP_FLAG_ENCRYPTED;
 			mz_zip_writer_set_password(writer, _password_cb->passphrase->c_str());
 		}
 
@@ -675,3 +678,11 @@ bool CLFArchiveZIP::is_known_format(const std::filesystem::path& arcname)
 
 	return false;
 }
+
+#ifdef UNIT_TEST
+std::pair<int, int> CLFArchiveZIP::test_sub_get_encryption()const
+{
+	auto info = _internal->_reader.get_entry_info();
+	return { info->aes_version,info->aes_strength };
+}
+#endif

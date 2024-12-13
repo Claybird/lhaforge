@@ -908,16 +908,24 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			fputs("abcde12345", f);
 		}
 	}
-	std::vector<std::string> codes = {
-		"aes256", "aes192", "aes128", "zipcrypto"
+	struct CRYPTO_CODE{
+		const char* method;
+		int aes_version;
+		int aes_strength;
 	};
-	for (const auto& code : codes) {
+	std::vector<CRYPTO_CODE> codes = {
+		{"aes256", MZ_AES_VERSION, MZ_AES_STRENGTH_256},
+		{"aes192", MZ_AES_VERSION, MZ_AES_STRENGTH_192},
+		{"aes128", MZ_AES_VERSION, MZ_AES_STRENGTH_128},
+		{"zipcrypto", 0, 0},
+	};
+	for (const auto [code, aes_version, aes_strength] : codes) {
 		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		{
 			CLFArchiveZIP a;
 			LF_COMPRESS_ARGS args;
 			args.load(CConfigFile());
-			args.formats.zip.params["crypto"] = code;
+			args.formats.zip.params["encryption"] = code;
 			a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
 			LF_ENTRY_STAT e;
 
@@ -937,6 +945,9 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			EXPECT_NE(nullptr, entry);
 			EXPECT_EQ(L"test/file.txt", entry->path.wstring());
 			EXPECT_TRUE(entry->is_encrypted);
+			auto [entry_aes_version, entry_aes_strength] = a.test_sub_get_encryption();
+			EXPECT_EQ(entry_aes_version, aes_version);
+			EXPECT_EQ(entry_aes_strength, aes_strength);
 		}
 		//test file consistency
 		EXPECT_NO_THROW({
@@ -951,7 +962,7 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
-void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
+void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::shared_ptr<ILFPassphrase> pp = std::make_shared<CLFPassphraseNULL>())
 {
 	ASSERT_TRUE(std::filesystem::exists(zip_file));
 	auto src = UtilGetTemporaryFileName();
@@ -967,7 +978,6 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
 		CLFArchiveZIP r;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		r.read_open(zip_file, pp);
 		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 
@@ -985,7 +995,7 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
 	ASSERT_NO_THROW({
 		ARCLOG arcLog;
 		CLFProgressHandlerNULL progressHandler;
-		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		testOneArchive(temp, arcLog, progressHandler, pp);
 		});
 	{
 		CLFArchiveZIP modified;
@@ -1038,7 +1048,8 @@ TEST(CLFArchiveZIP, add_file_to_existing_zipx)
 
 TEST(CLFArchiveZIP, add_file_to_existing_encrypted_zip)
 {
-	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip");
+	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 }
 
 TEST(CLFArchiveZIP, add_file_to_existing_another_zip)
