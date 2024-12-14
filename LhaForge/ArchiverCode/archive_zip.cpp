@@ -139,7 +139,7 @@ struct MINIZIP_PASSPHRASE_BASE {
 			//cancelled
 			CANCEL_EXCEPTION();
 		}
-		strncpy(password, base->passphrase.get()->c_str(), max_password);
+		strncpy_s(password, max_password, base->passphrase.get()->c_str(), base->passphrase.get()->length());
 		return 0;
 	}
 };
@@ -336,15 +336,8 @@ struct MINIZIP_WRITER {
 			_flag |= MZ_ZIP_FLAG_ENCRYPTED;
 			_aes_encryption = aes_enc;
 			mz_zip_writer_set_aes(writer, aes_enc);
-			if (!_password_cb->passphrase.get()) {
-				_password_cb->update_passphrase();
-			}
-			if (!_password_cb->passphrase.get()) {
-				CANCEL_EXCEPTION();
-			}
-			mz_zip_writer_set_password(writer, _password_cb->passphrase->c_str());
+			mz_zip_writer_set_password_cb(writer, _password_cb.get(), MINIZIP_PASSPHRASE_BASE::password_cb);
 		}
-
 	}
 
 	struct DATA_BRIDGE{
