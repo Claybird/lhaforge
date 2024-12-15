@@ -239,19 +239,12 @@ TEST(CLFArchiveZIP, read_enum_broken2)
 			continue;
 			}
 			});
-
-		EXPECT_THROW({
-			for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
-				for (bool bEOF = false; !bEOF;) {
-					a.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
-						if (!buf || data_size == 0) {
-							bEOF = true;
-						}
-					});
-				}
-			}
-			}, LF_EXCEPTION);
 	}
+	EXPECT_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(LF_PROJECT_DIR() / L"test/test_broken_crc.zip", arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		}, LF_EXCEPTION);
 
 	EXPECT_THROW({
 		ARCLOG arcLog;
@@ -413,6 +406,8 @@ TEST(CLFArchiveZIP, read_enum_2099_zip)
 	EXPECT_EQ(numDir, 0);
 }
 
+#if 0
+zipx support is disabled
 TEST(CLFArchiveZIP, read_enum_2099_zipx)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -463,7 +458,7 @@ TEST(CLFArchiveZIP, read_enum_2099_zipx)
 	EXPECT_EQ(count, 2099 + 1);
 	EXPECT_EQ(numDir, 1);
 }
-
+#endif
 TEST(CLFArchiveZIP, read_passphrase)
 {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -587,7 +582,7 @@ TEST(CLFArchiveZIP, is_known_format)
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_file.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_broken_crc.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zip"));
-		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));
+		EXPECT_FALSE(CLFArchiveZIP::is_known_format(dir / L"test_extract.zipx"));	//rejected by extension
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_password_abcde.zip"));
 		EXPECT_TRUE(CLFArchiveZIP::is_known_format(dir / L"test_unicode_control.zip"));
 
@@ -913,16 +908,24 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			fputs("abcde12345", f);
 		}
 	}
-	std::vector<std::string> codes = {
-		"aes256", "aes192", "aes128", "zipcrypto"
+	struct CRYPTO_CODE{
+		const char* method;
+		int aes_version;
+		int aes_strength;
 	};
-	for (const auto& code : codes) {
+	std::vector<CRYPTO_CODE> codes = {
+		{"aes256", MZ_AES_VERSION, MZ_AES_STRENGTH_256},
+		{"aes192", MZ_AES_VERSION, MZ_AES_STRENGTH_192},
+		{"aes128", MZ_AES_VERSION, MZ_AES_STRENGTH_128},
+		{"zipcrypto", 0, 0},
+	};
+	for (const auto [code, aes_version, aes_strength] : codes) {
 		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		{
 			CLFArchiveZIP a;
 			LF_COMPRESS_ARGS args;
 			args.load(CConfigFile());
-			args.formats.zip.params["crypto"] = code;
+			args.formats.zip.params["encryption"] = code;
 			a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
 			LF_ENTRY_STAT e;
 
@@ -942,6 +945,9 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			EXPECT_NE(nullptr, entry);
 			EXPECT_EQ(L"test/file.txt", entry->path.wstring());
 			EXPECT_TRUE(entry->is_encrypted);
+			auto [entry_aes_version, entry_aes_strength] = a.test_sub_get_encryption();
+			EXPECT_EQ(entry_aes_version, aes_version);
+			EXPECT_EQ(entry_aes_strength, aes_strength);
 		}
 		//test file consistency
 		EXPECT_NO_THROW({
@@ -956,42 +962,95 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
-void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
+#include "../archive_libarchive.h"
+
+void sub_test_archive_LA(const std::filesystem::path& archive_path, std::shared_ptr<ILFPassphrase> passphrase_callback)
 {
-	ASSERT_TRUE(std::filesystem::exists(zip_file));
-	auto src = UtilGetTemporaryFileName();
-	{
-		CAutoFile f;
-		f.open(src, L"w");
-		for (int i = 0; i < 100; i++) {
-			fputs("abcde12345", f);
+	CLFArchiveLA arc;
+	arc.read_open(archive_path, passphrase_callback);
+	// loop for each entry
+	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		//original file name
+		auto originalPath = entry->path;
+		//original attributes
+		int nAttribute = entry->stat.st_mode;
+
+		try {
+			if (!entry->is_directory()) {
+				//go
+				int64_t global_offset = 0;
+				for (bool bEOF = false; !bEOF;) {
+					arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+						if (!buf || data_size == 0) {
+							bEOF = true;
+						} else {
+							global_offset += data_size;
+							if (offset && offset->offset != global_offset) {
+								global_offset = offset->offset;
+							}
+						}
+					});
+				}
+				//arcLog(originalPath, UtilLoadString(IDS_ARCLOG_OK));
+			}
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			throw e;
+		} catch (const LF_EXCEPTION& e) {
+			throw e;
 		}
 	}
+	//end
+	arc.close();
+}
+
+void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::shared_ptr<ILFPassphrase> pp = std::make_shared<CLFPassphraseNULL>())
+{
+	ASSERT_TRUE(std::filesystem::exists(zip_file));
+	ASSERT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(zip_file, arcLog, progressHandler, pp);
+	});
+
 	auto temp = UtilGetTemporaryFileName();
 	{
 		CLFArchiveZIP r;
 		LF_COMPRESS_ARGS args;
 		args.load(CConfigFile());
-		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 		r.read_open(zip_file, pp);
 		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT&) {return true; });
 
-		LF_ENTRY_STAT e;
-		RAW_FILE_READER provider;
-		provider.open(src);
-		e.read_stat(src, L"test/added_file.txt");
-		a->add_file_entry(e, [&]() {
-			auto data = provider();
-			return data;
-		});
+		{
+			auto src = UtilGetTemporaryFileName();
+			{
+				CAutoFile f;
+				f.open(src, L"w");
+				for (int i = 0; i < 100; i++) {
+					fputs("abcde12345", f);
+				}
+			}
+			RAW_FILE_READER provider;
+			provider.open(src);
+			LF_ENTRY_STAT e;
+			e.read_stat(src, L"test/added_file.txt");
+			a->add_file_entry(e, [&]() {
+				auto data = provider();
+				return data;
+			});
+			provider.close();
+			UtilDeletePath(src);
+			EXPECT_FALSE(std::filesystem::exists(src));
+		}
 		a->close();
 	}
+
+	ASSERT_NO_THROW(sub_test_archive_LA(temp, pp));
 	//test file consistency
 	ASSERT_NO_THROW({
 		ARCLOG arcLog;
 		CLFProgressHandlerNULL progressHandler;
-		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
-		});
+		testOneArchive(temp, arcLog, progressHandler, pp);
+	});
 	{
 		CLFArchiveZIP modified;
 		CLFArchiveZIP original;
@@ -1022,9 +1081,6 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file)
 	}
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
-
-	UtilDeletePath(src);
-	EXPECT_FALSE(std::filesystem::exists(src));
 }
 TEST(CLFArchiveZIP, add_file_to_existing_zip)
 {
@@ -1041,9 +1097,18 @@ TEST(CLFArchiveZIP, add_file_to_existing_zipx)
 	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_extract.zipx");
 }
 
+TEST(CLFArchiveZIP, add_file_to_existing_encrypted_2099)
+{
+	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099_password_abcde.zip";
+	sub_add_file_to_existing_zip(src, pp);
+}
+
 TEST(CLFArchiveZIP, add_file_to_existing_encrypted_zip)
 {
-	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip");
+	//This test fails. It seems like a bug of minizip-ng, but not confirmed yet
+	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 }
 
 TEST(CLFArchiveZIP, add_file_to_existing_another_zip)
@@ -1183,10 +1248,47 @@ TEST(CLFArchiveZIP, remove_file_from_existing_zip_2099)
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
 
+TEST(CLFArchiveZIP, remove_file_from_existing_encrypted_2099)
+{
+	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099_password_abcde.zip";
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(src, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+	});
 
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			if (entry.path.filename().wstring().find(L"ccd.txt") != -1)return false;
+			return true;
+		});
+		a->close();
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+	});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
 TEST(CLFArchiveZIP, make_copy_archive_2099)
 {
 	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099.zip";
+	//test file consistency
+	ASSERT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(src, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
 
 	auto temp = UtilGetTemporaryFileName();
 	{
@@ -1205,6 +1307,38 @@ TEST(CLFArchiveZIP, make_copy_archive_2099)
 		ARCLOG arcLog;
 		CLFProgressHandlerNULL progressHandler;
 		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseNULL>());
+		});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
+TEST(CLFArchiveZIP, make_copy_archive_encrypted_2099)
+{
+	const auto src = std::filesystem::path(__FILEW__).parent_path() / L"test_2099_password_abcde.zip";
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(src, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+		});
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			return true;
+		});
+		a->close();
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
 		});
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
