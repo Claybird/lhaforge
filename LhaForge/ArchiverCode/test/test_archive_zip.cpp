@@ -962,6 +962,47 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 	EXPECT_FALSE(std::filesystem::exists(src));
 }
 
+#include "../archive_libarchive.h"
+
+void sub_test_archive_LA(const std::filesystem::path& archive_path, std::shared_ptr<ILFPassphrase> passphrase_callback)
+{
+	CLFArchiveLA arc;
+	arc.read_open(archive_path, passphrase_callback);
+	// loop for each entry
+	for (auto* entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+		//original file name
+		auto originalPath = entry->path;
+		//original attributes
+		int nAttribute = entry->stat.st_mode;
+
+		try {
+			if (!entry->is_directory()) {
+				//go
+				int64_t global_offset = 0;
+				for (bool bEOF = false; !bEOF;) {
+					arc.read_file_entry_block([&](const void* buf, int64_t data_size, const offset_info* offset) {
+						if (!buf || data_size == 0) {
+							bEOF = true;
+						} else {
+							global_offset += data_size;
+							if (offset && offset->offset != global_offset) {
+								global_offset = offset->offset;
+							}
+						}
+					});
+				}
+				//arcLog(originalPath, UtilLoadString(IDS_ARCLOG_OK));
+			}
+		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
+			throw e;
+		} catch (const LF_EXCEPTION& e) {
+			throw e;
+		}
+	}
+	//end
+	arc.close();
+}
+
 void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::shared_ptr<ILFPassphrase> pp = std::make_shared<CLFPassphraseNULL>())
 {
 	ASSERT_TRUE(std::filesystem::exists(zip_file));
@@ -1003,6 +1044,7 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::sh
 		a->close();
 	}
 
+	ASSERT_NO_THROW(sub_test_archive_LA(temp, pp));
 	//test file consistency
 	ASSERT_NO_THROW({
 		ARCLOG arcLog;
@@ -1064,6 +1106,7 @@ TEST(CLFArchiveZIP, add_file_to_existing_encrypted_2099)
 
 TEST(CLFArchiveZIP, add_file_to_existing_encrypted_zip)
 {
+	//This test fails. It seems like a bug of minizip-ng, but not confirmed yet
 	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
 	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 }
