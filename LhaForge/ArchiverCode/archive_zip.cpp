@@ -498,11 +498,7 @@ void CLFArchiveZIP::close()
 
 bool CLFArchiveZIP::is_modify_supported()const
 {
-	//if (_internal) {
-	//	return !_internal->isMultipartFile();
-	//}
-	//TODO
-	return true;
+	return !isMultiPartZip(_path);
 }
 
 bool CLFArchiveZIP::contains_encryted_entry()
