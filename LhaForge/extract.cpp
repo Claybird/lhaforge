@@ -526,7 +526,7 @@ void testOneArchive(
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 			arcLog(originalPath, e.what());
 			throw e;
-		} catch (LF_EXCEPTION &e) {
+		} catch (const LF_EXCEPTION &e) {
 			arcLog(originalPath, e.what());
 			throw e;
 		}
