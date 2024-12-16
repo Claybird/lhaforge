@@ -94,8 +94,9 @@ protected:
 	std::filesystem::path _path;
 	CAutoFile(const CAutoFile&) = delete;
 	const CAutoFile& operator=(const CAutoFile&) = delete;
+	const size_t _bufsize;
 public:
-	CAutoFile() :_fp(NULL){}
+	CAutoFile() :_fp(NULL), _bufsize(1024 * 1024 * 32){}
 	virtual ~CAutoFile() {
 		close();
 	}
@@ -114,141 +115,10 @@ public:
 		auto err = _wfopen_s(&_fp, fname.c_str(), mode.c_str());
 		if (err==0 && _fp) {
 			//set buffer size
-			setvbuf(_fp, NULL, _IOFBF, 1024 * 1024 * 32);
+			setvbuf(_fp, NULL, _IOFBF, _bufsize);
 		}
 	}
 	const std::filesystem::path &get_path()const { return _path; }
 };
 
 void touchFile(const std::filesystem::path& path);
-
-
-
-//read only
-class CContinuousFile
-{
-protected:
-	std::vector<std::filesystem::path> _files;
-	CAutoFile _fp;
-	size_t _currentFile;
-	int64_t _curPos;
-protected:
-	bool nextFile() {
-		//_fp.close();
-		_currentFile++;
-		//reached end of file list
-		if (_currentFile >= _files.size()) return false;
-
-		_fp.open(_files[_currentFile]);
-		if (!_fp.is_opened()) return false;
-		return true;
-	}
-	bool seek_forward(int64_t offset) {
-		if (_files.empty()) return false;
-		if(!_fp.is_opened()) return false;
-		for (;;) {
-			int64_t remain = std::filesystem::file_size(_files[_currentFile]) - _ftelli64(_fp);
-			if (offset < remain) {
-				_curPos += offset;
-				_fseeki64(_fp, offset, SEEK_CUR);
-				return true;
-			} else {
-				offset -= remain;
-				_curPos += remain;
-				if (!nextFile()) {
-					return false;
-				}
-			}
-		}
-	}
-	bool seek_backward(int64_t offset/*negative value*/) {
-		if (_files.empty())return false;
-		if (!_fp.is_opened())return false;
-		for (;;) {
-			int64_t capacity = _ftelli64(_fp);
-			if (offset + capacity > 0) {
-				_curPos += offset;
-				_fseeki64(_fp, offset, SEEK_CUR);
-				return true;
-			} else {
-				offset += capacity;
-				_curPos -= capacity;
-
-				_fp.close();
-				_currentFile--;
-				//reached end of file list
-				if (_currentFile < 0) return false;
-
-				_fp.open(_files[_currentFile]);
-				if (!_fp.is_opened()) return false;
-				_fseeki64(_fp, 0, SEEK_END);
-			}
-		}
-	}
-	bool seek_to_end() {
-		if (_files.empty())return false;
-		_currentFile = _files.size() - 1;
-		_fp.open(_files[_currentFile]);
-		_fseeki64(_fp, 0, SEEK_END);
-		_curPos = 0;
-		for (const auto& fname : _files) {
-			_curPos += std::filesystem::file_size(fname);
-		}
-		return true;
-	}
-	bool seek_to_begin() {
-		if (_files.empty())return false;
-		_currentFile = 0;
-		_curPos = 0;
-		_fp.open(_files[_currentFile]);
-		return _fp.is_opened();
-	}
-public:
-	CContinuousFile() :_currentFile(0), _curPos(0){}
-	virtual ~CContinuousFile() { close(); }
-	void close() {
-		_fp.close();
-		_files.clear();
-		_currentFile = 0;
-		_curPos = 0;
-	}
-	bool is_opened()const { return _fp.is_opened(); }
-	size_t getNumFiles()const { return _files.size(); }
-	int64_t tell()const { return _curPos; }
-	bool seek(int64_t offset, int32_t origin) {
-		switch (origin) {
-		case SEEK_CUR:
-			if (offset >= 0)return seek_forward(offset);
-			else return seek_backward(offset);
-			break;
-		case SEEK_END:
-			if (offset > 0){
-				return false;
-			} else {
-				if(!seek_to_end())return false;
-				return seek_backward(offset);
-			}
-			break;
-		case SEEK_SET:
-			if (offset >= 0) {
-				if(!seek_to_begin())return false;
-				return seek_forward(offset);
-			} else {
-				return false;
-			}
-			break;
-		default:
-			return false;
-		}
-	}
-	size_t read(void* buffer, size_t toRead);
-	bool openFiles(const std::vector<std::filesystem::path>& files) {
-		close();
-		_files = files;
-		if (files.empty())return false;
-		_currentFile = 0;
-		_fp.open(files[0]);
-		return _fp.is_opened();
-	}
-};
-

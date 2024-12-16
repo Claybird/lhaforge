@@ -196,6 +196,9 @@
     <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
       <Filter>FileListWindow\test</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\test\test_ContinuousFile.cpp">
+      <Filter>Utilities\test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Resource Files">
@@ -442,6 +445,9 @@
     </ClInclude>
     <ClInclude Include="ArchiverCode\archive_libarchive_impl.h">
       <Filter>ArchiverCode</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ContinuousFile.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

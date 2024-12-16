@@ -409,38 +409,3 @@ CTemporaryDirectoryManager::CTemporaryDirectoryManager()
 }
 
 
-
-size_t CContinuousFile::read(void* buffer, size_t toRead)
-{
-	if (_currentFile >= _files.size()) {
-		if (_files.empty()) {
-			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF));
-		} else {
-			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNEXPECTED_EOF) + L": " + _files.back().c_str());
-		}
-	}
-	if (!_fp.is_opened()) {
-		RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
-	}
-	size_t actualRead = 0;
-	for (;;) {
-		actualRead += fread(((unsigned char*)buffer) + actualRead, 1, toRead - actualRead, _fp);
-		if (actualRead >= toRead) {
-			_curPos += actualRead;
-			return actualRead;
-		} else if (feof(_fp)) {
-			if (!nextFile()) {
-				if (_currentFile >= _files.size()) {
-					//reached end of file list
-					_curPos += actualRead;
-					return actualRead;
-				} else if (!_fp.is_opened()) {
-					RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_OPEN_FILE), _files[_currentFile].c_str());
-				}
-			}
-			continue;
-		} else if (ferror(_fp)) {
-			RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_READ_FILE), _files[_currentFile].c_str());
-		}
-	}
-}

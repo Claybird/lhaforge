@@ -84,6 +84,7 @@
     <ClCompile Include="Utilities\OSUtil.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
+    <ClCompile Include="Utilities\test\test_ContinuousFile.cpp" />
     <ClCompile Include="Utilities\test\test_CustomControl.cpp" />
     <ClCompile Include="Utilities\test\test_FileOperation.cpp" />
     <ClCompile Include="Utilities\test\test_OSUtil.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="FileListWindow\ShellDataManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Utilities\ContinuousFile.h" />
     <ClInclude Include="Utilities\CustomControl.h" />
     <ClInclude Include="Utilities\FileOperation.h" />
     <ClInclude Include="Utilities\OSUtil.h" />
