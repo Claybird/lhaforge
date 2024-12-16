@@ -9,6 +9,7 @@
 //#include "mz_crypt.h"
 #include "mz_zip_rw.h"
 #include "compress.h"
+#include "Utilities/ContinuousFile.h"
 
 static std::wstring mzError2Text(int code)
 {
@@ -52,6 +53,163 @@ static std::wstring mzMethodName(int method)
 	case MZ_COMPRESS_METHOD_ZSTD: return L"ZSTD";
 	case MZ_COMPRESS_METHOD_XZ: return L"XZ";
 	default:return L"Unknown";
+	}
+}
+
+int32_t mz_stream_LF_is_open(void* stream);
+int32_t mz_stream_LF_open(void* stream, const char* path, int32_t mode);
+int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size);
+int64_t mz_stream_LF_tell(void* stream);
+int32_t mz_stream_LF_seek(void* stream, int64_t offset, int32_t origin);
+int32_t mz_stream_LF_close(void* stream);
+int32_t mz_stream_LF_error(void* stream);
+void* mz_stream_LF_create(void);
+void mz_stream_LF_delete(void** stream);
+
+typedef struct mz_stream_LF_s {
+	mz_stream       stream;
+	CContinuousFile handle;
+} mz_stream_LF;
+
+static mz_stream_vtbl mz_stream_LF_vtbl = {
+	mz_stream_LF_open,
+	mz_stream_LF_is_open,
+	mz_stream_LF_read,
+	NULL,
+	mz_stream_LF_tell,
+	mz_stream_LF_seek,
+	mz_stream_LF_close,
+	mz_stream_LF_error,
+	mz_stream_LF_create,
+	mz_stream_LF_delete,
+	NULL,
+	NULL
+};
+
+int32_t mz_stream_LF_is_open(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+	if (!lff->handle.is_opened())
+		return MZ_OPEN_ERROR;
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_open(void* stream, const char* path_utf8, int32_t mode) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (!path_utf8)return MZ_PARAM_ERROR;
+
+	if ((mode & MZ_OPEN_MODE_READWRITE) != MZ_OPEN_MODE_READ) {
+		return MZ_PARAM_ERROR;
+	}
+
+	std::filesystem::path path;
+	{
+		wchar_t* path_wide = mz_os_unicode_string_create(path_utf8, MZ_ENCODING_UTF8);
+		if (!path_wide)return MZ_PARAM_ERROR;
+		path = path_wide;
+		mz_os_unicode_string_delete(&path_wide);
+	}
+
+	std::vector<std::filesystem::path> files;
+	std::wregex re_splittedA(L"\\.[zZ]\\d\\d");
+	std::wregex re_splittedB(L"\\.\\d\\d\\d");
+	if (std::regex_search(path.extension().wstring(), re_splittedA)) {
+		//.zXX
+		for (int i = 0; i < 99; i++) {
+			auto p = path;
+			p.replace_extension(Format(L".z%02d", i));
+			if (std::filesystem::exists(p)) {
+				files.push_back(p);
+			} else {
+				if (i != 0)break;
+			}
+		}
+	} else if (std::regex_search(path.extension().wstring(), re_splittedB)) {
+		//.XXX
+		for (int i = 0; i < 99; i++) {
+			auto p = path;
+			p.replace_extension(Format(L".%03d", i));
+			if (std::filesystem::exists(p)) {
+				files.push_back(p);
+			} else {
+				if (i != 0)break;
+			}
+		}
+	} else {
+		files.push_back(path);
+	}
+
+	lff->handle.openFiles(files);
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK) {
+		return MZ_OPEN_ERROR;
+	}
+
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_read(void* stream, void* buf, int32_t size) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+
+	try {
+		size_t read = lff->handle.read(buf, size);
+		return (int32_t)read;
+	} catch (const LF_EXCEPTION&) {
+		return MZ_READ_ERROR;
+	}
+}
+
+int64_t mz_stream_LF_tell(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+	return lff->handle.tell();
+}
+
+int32_t mz_stream_LF_seek(void* stream, int64_t offset, int32_t origin) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+
+	if (mz_stream_LF_is_open(stream) != MZ_OK)return MZ_OPEN_ERROR;
+
+	switch (origin) {
+	case MZ_SEEK_CUR:
+		if (lff->handle.seek(offset, SEEK_CUR))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	case MZ_SEEK_END:
+		if (lff->handle.seek(offset, SEEK_END))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	case MZ_SEEK_SET:
+		if (lff->handle.seek(offset, SEEK_SET))return MZ_OK;
+		else return MZ_SEEK_ERROR;
+	default:
+		return MZ_SEEK_ERROR;
+	}
+}
+
+int32_t mz_stream_LF_close(void* stream) {
+	mz_stream_LF* lff = (mz_stream_LF*)stream;
+	lff->handle.close();
+	return MZ_OK;
+}
+
+int32_t mz_stream_LF_error(void* stream) {
+	return MZ_OK;
+}
+
+void* mz_stream_LF_create() {
+	mz_stream_LF* lff = new mz_stream_LF;
+	lff->stream.vtbl = &mz_stream_LF_vtbl;
+
+	return lff;
+}
+
+void mz_stream_LF_delete(void** stream) {
+	if (stream) {
+		mz_stream_LF* lff = (mz_stream_LF*)*stream;
+		if (lff)delete lff;
+		*stream = NULL;
 	}
 }
 
@@ -146,10 +304,11 @@ struct MINIZIP_PASSPHRASE_BASE {
 
 struct MINIZIP_READER {
 	void* reader;
+	void* stream;
 	std::filesystem::path _path;
 	std::shared_ptr<MINIZIP_PASSPHRASE_BASE> _password_cb;
 
-	MINIZIP_READER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb):reader(nullptr),_password_cb(pcb) {}
+	MINIZIP_READER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb):reader(nullptr),stream(nullptr),_password_cb(pcb) {}
 	virtual ~MINIZIP_READER() {
 		close();
 	}
@@ -158,6 +317,11 @@ struct MINIZIP_READER {
 			mz_zip_reader_close(reader);
 			mz_zip_reader_delete(&reader);
 			reader = nullptr;
+		}
+		if (stream) {
+			mz_stream_LF_close(stream);
+			mz_stream_LF_delete(&stream);
+			stream = nullptr;
 		}
 		_path.clear();
 	}
@@ -168,7 +332,11 @@ struct MINIZIP_READER {
 		reader = mz_zip_reader_create();
 		if (!reader)RAISE_EXCEPTION(L"Failed to create zip reader");
 		mz_zip_reader_set_password_cb(reader, _password_cb.get(), MINIZIP_PASSPHRASE_BASE::password_cb);
-		auto err = mz_zip_reader_open_file(reader, path.u8string().c_str());
+
+		//auto err = mz_zip_reader_open_file(reader, path.u8string().c_str());
+		stream = mz_stream_LF_create();
+		mz_stream_LF_open(stream, path.u8string().c_str(), MZ_OPEN_MODE_READ);
+		auto err = mz_zip_reader_open(reader, stream);
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(L"Failed to open file %s: %s", path.c_str(), mzError2Text(err).c_str());
 		}
