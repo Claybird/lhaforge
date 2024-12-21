@@ -45,7 +45,7 @@ protected:
 	}
 	struct USER_DATA{
 		CConfigCompressFormatBase* c;	//item in _configs
-		std::string key;
+		std::wstring key;
 	};
 public:
 	CConfigDlgFormat() {}
@@ -82,13 +82,12 @@ public:
 		for (auto& d : _data) {
 			if (d.userData) {
 				auto p = (USER_DATA*)d.userData;
-				const auto& k_v = p->c->key_and_valid_values;
 				int curSel = d.selection;
-				auto ite = k_v.find(UtilUTF8toUNICODE(p->key));
-
-				if (ite != k_v.end()) {
-					const auto& raw_options = (*ite).second;
-					p->c->params[p->key] = UtilToUTF8(raw_options[curSel]);
+				for (const auto& item : p->c->params()) {
+					if (item->key == p->key) {
+						const auto& raw_options = item->valid_values;
+						item->value = raw_options[curSel];
+					}
 				}
 			}
 		}

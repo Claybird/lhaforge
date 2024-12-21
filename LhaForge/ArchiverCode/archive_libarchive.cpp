@@ -78,7 +78,7 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	case ARCHIVE_FORMAT_ZIP:
 		//ZIP should be handled by minizip-ng
 	{
-		merge_map(params, args.formats.zip.params);
+		merge_map(params, args.formats.zip.as_dict());
 		if (encrypt) {
 			if (params["encryption"] == "zipcrypto") {
 				params["encryption"] = "ZipCrypt";
@@ -89,10 +89,10 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	}
 		break;
 	case ARCHIVE_FORMAT_7ZIP:
-		merge_map(params, args.formats.sevenzip.params);
+		merge_map(params, args.formats.sevenzip.as_dict());
 		break;
 	case ARCHIVE_FORMAT_TAR:
-		merge_map(params, args.formats.tar.params);
+		merge_map(params, args.formats.tar.as_dict());
 		break;
 	case ARCHIVE_FORMAT_RAW:
 		//nothing to do
@@ -103,22 +103,22 @@ std::map<std::string, std::string> getLAOptionsFromConfig(
 	for (auto la_filter : la_filters) {
 		switch (la_filter & ~ARCHIVE_FORMAT_BASE_MASK) {
 		case ARCHIVE_FILTER_GZIP:
-			merge_map(params, args.formats.gz.params);
+			merge_map(params, args.formats.gz.as_dict());
 			break;
 		case ARCHIVE_FILTER_BZIP2:
-			merge_map(params, args.formats.bz2.params);
+			merge_map(params, args.formats.bz2.as_dict());
 			break;
 		case ARCHIVE_FILTER_LZMA:
-			merge_map(params, args.formats.lzma.params);
+			merge_map(params, args.formats.lzma.as_dict());
 			break;
 		case ARCHIVE_FILTER_XZ:
-			merge_map(params, args.formats.xz.params);
+			merge_map(params, args.formats.xz.as_dict());
 			break;
 		case ARCHIVE_FILTER_ZSTD:
-			merge_map(params, args.formats.zstd.params);
+			merge_map(params, args.formats.zstd.as_dict());
 			break;
 		case ARCHIVE_FILTER_LZ4:
-			merge_map(params, args.formats.lz4.params);
+			merge_map(params, args.formats.lz4.as_dict());
 			break;
 		}
 	}

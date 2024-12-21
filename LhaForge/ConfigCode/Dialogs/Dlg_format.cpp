@@ -100,20 +100,20 @@ LRESULT CConfigDlgFormat::OnInitDialog(HWND hWnd, LPARAM lParam)
 			{},-1,nullptr };
 		_data.push_back(separator);
 
-		for (const auto& item : c->key_and_valid_values) {
-			auto key = UtilToUTF8(item.first);
-			const auto& options = item.second;
-			int curSel = index_of(options, UtilUTF8toUNICODE(c->params[key]));
+		for (const auto& item : c->params()) {
+			auto key = item->key;
+			const auto& options = item->valid_values;
+			int curSel = index_of(options, item->value);
 			curSel = std::max(0, curSel);
 
-			std::vector<std::wstring> mapped_options = item.second;
+			auto mapped_options = item->valid_values;
 			for (auto& mo : mapped_options) {
-				mo = mapConfigKeyToHumanReadableName(c->section_name, item.first.c_str(), mo.c_str());
+				mo = mapConfigKeyToHumanReadableName(c->section_name, item->key.c_str(), mo.c_str());
 			}
 
 			auto userData = new USER_DATA{ c,key };
 			CLFComboListViewCtrl::CONTENT_DATA d = {
-				mapConfigKeyToHumanReadableName(c->section_name,item.first.c_str(),nullptr),
+				mapConfigKeyToHumanReadableName(c->section_name, item->key.c_str(), nullptr),
 				mapped_options,
 				curSel,
 				userData

@@ -564,52 +564,43 @@ struct CLFArchiveZIP::INTERNAL {
 	) {
 		close();
 
-		auto param = args.formats.zip.params;
+		auto& param = args.formats.zip;
 		int method;
 		{
-			auto methodStr = toLower(param["compression"]);
-			if (methodStr.empty()) {
-				methodStr = "deflate";
-			}
-			std::map<std::string, int> methodMap = {
-				{"store", MZ_COMPRESS_METHOD_STORE},
-				{"deflate", MZ_COMPRESS_METHOD_DEFLATE},
-				{"bzip2", MZ_COMPRESS_METHOD_BZIP2},
-				{"lzma", MZ_COMPRESS_METHOD_LZMA},
-				{"zstd", MZ_COMPRESS_METHOD_ZSTD},
-				{"xz", MZ_COMPRESS_METHOD_XZ},
+			auto methodStr = toLower(param.compression());
+			std::map<std::wstring, int> methodMap = {
+				{L"store", MZ_COMPRESS_METHOD_STORE},
+				{L"deflate", MZ_COMPRESS_METHOD_DEFLATE},
+				{L"bzip2", MZ_COMPRESS_METHOD_BZIP2},
+				{L"lzma", MZ_COMPRESS_METHOD_LZMA},
+				{L"zstd", MZ_COMPRESS_METHOD_ZSTD},
+				{L"xz", MZ_COMPRESS_METHOD_XZ},
 			};
 			auto iter = methodMap.find(methodStr);
 			if (methodMap.end() == iter) {
-				RAISE_EXCEPTION(L"Invalid method name: %s", UtilUTF8toUNICODE(methodStr).c_str());
+				RAISE_EXCEPTION(L"Invalid method name: %s", methodStr.c_str());
 			} else {
 				method = (*iter).second;
 			}
 		}
 		{
-			if (param["level"].empty()) {
-				param["level"] = "6";	//default
-			}
-			int level = atoi(param["level"].c_str());
+			int level = _wtoi(param.compression_level().c_str());
 			if (level < 0 || level>9) {
-				RAISE_EXCEPTION(L"Invalid compression level: %s", UtilUTF8toUNICODE(param["level"]).c_str());
+				RAISE_EXCEPTION(L"Invalid compression level: %s", param.compression_level().c_str());
 			}
 		}
 		int aes_enc = 0;
 		{
-			std::map<std::string, int> cryptoMap = {
-				{"aes256", MZ_AES_STRENGTH_256},
-				{"aes192", MZ_AES_STRENGTH_192},
-				{"aes128", MZ_AES_STRENGTH_128},
-				{"zipcrypto", 0},
+			std::map<std::wstring, int> cryptoMap = {
+				{L"aes256", MZ_AES_STRENGTH_256},
+				{L"aes192", MZ_AES_STRENGTH_192},
+				{L"aes128", MZ_AES_STRENGTH_128},
+				{L"zipcrypto", 0},
 			};
-			auto cryptoStr = toLower(param["encryption"]);
-			if (cryptoStr.empty()) {
-				cryptoStr = "zipcrypto";
-			}
+			auto cryptoStr = toLower(param.encryption());
 			auto iter = cryptoMap.find(cryptoStr);
 			if (cryptoMap.end() == iter) {
-				RAISE_EXCEPTION(L"Invalid crypto name: %s", UtilUTF8toUNICODE(cryptoStr).c_str());
+				RAISE_EXCEPTION(L"Invalid crypto name: %s", cryptoStr.c_str());
 			} else {
 				aes_enc = (*iter).second;
 			}

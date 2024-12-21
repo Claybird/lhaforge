@@ -863,13 +863,13 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 		}
 	}
 	for (int level = 1; level <= 9; level++) {
-		std::map<std::string, std::wstring> methods = {
-			{"store", L"Store"},
-			{"deflate", L"Deflate"},
-			{"bzip2", L"Bzip2"},
-			{"lzma", L"LZMA1"},
-			{"zstd", L"ZSTD"},
-			{"xz", L"XZ"},
+		std::map<std::wstring, std::wstring> methods = {
+			{L"store", L"Store"},
+			{L"deflate", L"Deflate"},
+			{L"bzip2", L"Bzip2"},
+			{L"lzma", L"LZMA1"},
+			{L"zstd", L"ZSTD"},
+			{L"xz", L"XZ"},
 			//{"lz4", L"LZ4"},
 		};
 		for (const auto& method : methods) {
@@ -877,8 +877,8 @@ TEST(CLFArchiveZIP, add_file_entry_methods_and_levels)
 				CLFArchiveZIP a;
 				LF_COMPRESS_ARGS args;
 				args.load(CConfigFile());
-				args.formats.zip.params["compression"] = method.first;
-				args.formats.zip.params["level"] = UtilToUTF8(Format(L"%d", level));
+				args.formats.zip.compression.value = method.first;
+				args.formats.zip.compression_level.value = Format(L"%d", level);
 				auto pp = std::make_shared<CLFPassphraseNULL>();
 				a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_STANDARD, args, pp);
 				LF_ENTRY_STAT e;
@@ -930,15 +930,15 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 		}
 	}
 	struct CRYPTO_CODE{
-		const char* method;
+		const wchar_t* method;
 		int aes_version;
 		int aes_strength;
 	};
 	std::vector<CRYPTO_CODE> codes = {
-		{"aes256", MZ_AES_VERSION, MZ_AES_STRENGTH_256},
-		{"aes192", MZ_AES_VERSION, MZ_AES_STRENGTH_192},
-		{"aes128", MZ_AES_VERSION, MZ_AES_STRENGTH_128},
-		{"zipcrypto", 0, 0},
+		{L"aes256", MZ_AES_VERSION, MZ_AES_STRENGTH_256},
+		{L"aes192", MZ_AES_VERSION, MZ_AES_STRENGTH_192},
+		{L"aes128", MZ_AES_VERSION, MZ_AES_STRENGTH_128},
+		{L"zipcrypto", 0, 0},
 	};
 	for (const auto [code, aes_version, aes_strength] : codes) {
 		auto pp = std::make_shared<CLFPassphraseConst>(L"password");
@@ -946,7 +946,7 @@ TEST(CLFArchiveZIP, add_file_entry_crypto_level)
 			CLFArchiveZIP a;
 			LF_COMPRESS_ARGS args;
 			args.load(CConfigFile());
-			args.formats.zip.params["encryption"] = code;
+			args.formats.zip.encryption.value = code;
 			a.write_open(temp, LF_ARCHIVE_FORMAT::ZIP, LF_WOPT_DATA_ENCRYPTION, args, pp);
 			LF_ENTRY_STAT e;
 

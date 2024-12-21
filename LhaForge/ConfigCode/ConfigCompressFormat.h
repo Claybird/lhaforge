@@ -28,131 +28,188 @@
 
 struct CConfigCompressFormatBase :public IConfigIO {
 public:
-	const std::wstring section_name;
-	//stores key values; default is the first item
-	const std::map<std::wstring, std::vector<std::wstring>> key_and_valid_values;
-
 	//params from config
-	std::map<std::string, std::string> params;
+	struct ELEMENT {
+		const std::wstring key;
+		const std::vector<std::wstring> valid_values;
+		std::wstring value;
+		std::wstring operator()()const {
+			if (value.empty()) {
+				return valid_values.front();
+			} else {
+				return value;
+			}
+		}
+	};
+	virtual std::vector<const ELEMENT*> params()const = 0;
+	virtual std::vector<ELEMENT*> params() = 0;
+public:
+	const std::wstring section_name;
 public:
 	CConfigCompressFormatBase(
-		const std::wstring &_section_name,
-		const std::map<std::wstring, std::vector<std::wstring>>& _knd
-	) :section_name(_section_name), key_and_valid_values(_knd) {}
+		const std::wstring &_section_name
+	) :section_name(_section_name) {}
 	virtual ~CConfigCompressFormatBase() {}
-	virtual void load(const CConfigFile& Config) override{
-		for (const auto& ite : key_and_valid_values) {
-			const auto &key = ite.first;
-			auto key_utf8 = UtilToUTF8(key);
 
-			const auto &valid_values = ite.second;
+	virtual void load(const CConfigFile& Config) override{
+		for (auto& p : params()) {
+			const auto &key = p->key;
+
+			const auto &valid_values = p->valid_values;
 			const auto &defaultValue = valid_values.front();
 			auto value = Config.getText(section_name, key, defaultValue);
 			if (isIn(valid_values, value)) {
 				//valid
-				params[key_utf8] = UtilToUTF8(value);
+				p->value = value;
 			} else {
 				//use default value
-				params[key_utf8] = UtilToUTF8(defaultValue);
+				p->value = defaultValue;
 			}
 		}
 	}
 	virtual void store(CConfigFile& Config)const override {
-		for (const auto& ite : params) {
-			auto key = UtilUTF8toUNICODE(ite.first);
-			auto value = UtilUTF8toUNICODE(ite.second);
+		for (const auto& p : params()) {
+			auto key = p->key;
+			auto value = p->value;
 			Config.setValue(section_name, key, value);
 		}
+	}
+	virtual std::map<std::string, std::string> as_dict()const {	//for libarchive
+		std::map<std::string, std::string> dict;
+		for (const auto& p : params()) {
+			dict[UtilToUTF8(p->key)] = UtilToUTF8((*p)());
+		}
+		return dict;
 	}
 };
 
 
 class CConfigCompressFormatZIP :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatZIP() :CConfigCompressFormatBase(L"format_zip", {
-		{L"compression",{
-			L"deflate",L"bzip2",L"lzma",L"zstd",L"xz",L"store"}},
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		{L"encryption",{
-			L"zipcrypto",L"aes256",L"aes192",L"aes128"}},
-	}) {}
+	ELEMENT compression;
+	ELEMENT compression_level;
+	ELEMENT encryption;
+public:
+	CConfigCompressFormatZIP() :CConfigCompressFormatBase(L"format_zip"),
+		compression{ L"compression", {
+			L"deflate",L"bzip2",L"lzma",L"zstd",L"xz",L"store" } },
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} },
+		encryption{ L"encryption",{
+			L"zipcrypto",L"aes256",L"aes192",L"aes128"} }
+	{}
 	virtual ~CConfigCompressFormatZIP() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression, &compression_level, &encryption }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression, &compression_level, &encryption }; }
 };
 
 class CConfigCompressFormat7Z :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormat7Z() :CConfigCompressFormatBase(L"format_7z", {
-		{L"compression",{
-			L"deflate",L"store",L"bzip2",L"lzma1",L"lzma2",L"PPMd",}},
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		}) {}
+	ELEMENT compression;
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormat7Z() :CConfigCompressFormatBase(L"format_7z"),
+		compression{ L"compression",{
+			L"deflate",L"store",L"bzip2",L"lzma1",L"lzma2",L"PPMd",} },
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} }
+	{}
 	virtual ~CConfigCompressFormat7Z() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression, &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression, &compression_level }; }
 };
 
 class CConfigCompressFormatTAR :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatTAR() :CConfigCompressFormatBase(L"format_tar", {
-		{L"hdrcharset",{
-			L"UTF-8",L"CP_ACP"}},
-		}) {}
+	ELEMENT hdrcharset;
+public:
+	CConfigCompressFormatTAR() :CConfigCompressFormatBase(L"format_tar"),
+		hdrcharset{ L"hdrcharset",{L"UTF-8",L"CP_ACP"} }
+	{}
 	virtual ~CConfigCompressFormatTAR() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &hdrcharset }; }
+	virtual std::vector<ELEMENT*> params()override { return { &hdrcharset }; }
 };
 
 class CConfigCompressFormatGZ :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatGZ() :CConfigCompressFormatBase(L"format_gz", {
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		}) {}
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormatGZ() :CConfigCompressFormatBase(L"format_gz"),
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} }
+	{}
 	virtual ~CConfigCompressFormatGZ() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level }; }
 };
 
 class CConfigCompressFormatBZ2 :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatBZ2() :CConfigCompressFormatBase(L"format_bz2", {
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		}) {}
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormatBZ2() :CConfigCompressFormatBase(L"format_bz2"),
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} }
+	{}
 	virtual ~CConfigCompressFormatBZ2() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level }; }
 };
 
 class CConfigCompressFormatXZ :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatXZ() :CConfigCompressFormatBase(L"format_xz", {
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		{L"threads",{
-			L"0"/*full cpu cores*/,L"1"/*single*/}},	//can take arbitrary integer, but might not be necessary
-		}) {}
+	ELEMENT compression_level;
+	ELEMENT threads;
+public:
+	CConfigCompressFormatXZ() :CConfigCompressFormatBase(L"format_xz"),
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} },
+		threads{ L"threads",{
+			L"0"/*full cpu cores*/,L"1"/*single*/},	//can take arbitrary integer, but might not be necessary
+	}
+	{}
 	virtual ~CConfigCompressFormatXZ() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level,&threads }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level,&threads }; }
 };
 
 class CConfigCompressFormatLZMA :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatLZMA() :CConfigCompressFormatBase(L"format_lzma", {
-		{L"compression-level",{
-			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"}},
-		}) {}
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormatLZMA() :CConfigCompressFormatBase(L"format_lzma"),
+		compression_level{ L"compression-level",{
+			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} }
+	{}
 	virtual ~CConfigCompressFormatLZMA() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level }; }
 };
 
 class CConfigCompressFormatZSTD :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatZSTD() :CConfigCompressFormatBase(L"format_zstd", {
-		{L"compression-level",{
-			L"3"/*default*/,L"1"/*fastest*/,L"9"/*high*/,L"15"/*even higher*/,L"22"/*ultra*/}},
-		}) {}
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormatZSTD() :CConfigCompressFormatBase(L"format_zstd"),
+		compression_level{ L"compression-level",{
+			L"3"/*default*/,L"1"/*fastest*/,L"9"/*high*/,L"15"/*even higher*/,L"22"/*ultra*/} }
+	{}
 	virtual ~CConfigCompressFormatZSTD() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level }; }
 };
 
 class CConfigCompressFormatLZ4 :public CConfigCompressFormatBase {
 public:
-	CConfigCompressFormatLZ4() :CConfigCompressFormatBase(L"format_lz4", {
-		{L"compression-level",{
-			L"1",L"2",L"3",L"4",L"5",L"6",L"7",L"8",L"9"}},
-		}) {}
+	ELEMENT compression_level;
+public:
+	CConfigCompressFormatLZ4() :CConfigCompressFormatBase(L"format_lz4"),
+		compression_level{ L"compression-level",{
+			L"1",L"2",L"3",L"4",L"5",L"6",L"7",L"8",L"9"} }
+	{}
 	virtual ~CConfigCompressFormatLZ4() {}
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression_level }; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression_level }; }
 };
 
