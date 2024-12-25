@@ -22,12 +22,30 @@
     <ClCompile Include="ArchiverCode\archive_rar.cpp" />
     <ClCompile Include="ArchiverCode\archive_zip.cpp" />
     <ClCompile Include="ArchiverCode\mini_lzh_decoder.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive_arj.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive_bga.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive_libarchive.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive_rar.cpp" />
-    <ClCompile Include="ArchiverCode\test\test_archive_zip.cpp" />
+    <ClCompile Include="ArchiverCode\test\test_archive.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_arj.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_bga.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_libarchive.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_rar.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArchiverCode\test\test_archive_zip.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Association.cpp" />
     <ClCompile Include="CmdLineInfo.cpp" />
     <ClCompile Include="CommonUtil.cpp" />
@@ -46,13 +64,34 @@
     <ClCompile Include="ConfigCode\Dialogs\Dlg_filelistwindow.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_shortcut.cpp" />
     <ClCompile Include="ConfigCode\Dialogs\Dlg_format.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigCompress.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigExtract.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigFile.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigFileListWindow.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigGeneral.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigOpenAction.cpp" />
-    <ClCompile Include="ConfigCode\test\test_ConfigShellExt.cpp" />
+    <ClCompile Include="ConfigCode\test\test_ConfigCompress.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigExtract.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigFile.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigFileListWindow.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigGeneral.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigOpenAction.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ConfigCode\test\test_ConfigShellExt.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Dialogs\SelectDlg.cpp">
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
       <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">$(IntDir)%(Filename)1.obj</ObjectFileName>
@@ -61,7 +100,10 @@
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="Dialogs\test\test_FindDlg.cpp" />
+    <ClCompile Include="Dialogs\test\test_FindDlg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="extract.cpp" />
     <ClCompile Include="FileListWindow\ArcFileContent.cpp" />
     <ClCompile Include="FileListWindow\FileListFrame.cpp" />
@@ -69,28 +111,64 @@
     <ClCompile Include="FileListWindow\FileListTabClient.cpp" />
     <ClCompile Include="FileListWindow\FileListView.cpp" />
     <ClCompile Include="FileListWindow\MenuCommand.cpp" />
-    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp" />
+    <ClCompile Include="FileListWindow\test\test_ArcFileContent.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="test\test_CmdLineInfo.cpp" />
-    <ClCompile Include="test\test_CommonUtil.cpp" />
-    <ClCompile Include="test\test_compress.cpp" />
-    <ClCompile Include="test\test_extract.cpp" />
+    <ClCompile Include="test\test_CmdLineInfo.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="test\test_CommonUtil.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="test\test_compress.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="test\test_extract.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Utilities\FileOperation.cpp" />
     <ClCompile Include="Utilities\OSUtil.cpp" />
     <ClCompile Include="Utilities\shellmanager.cpp" />
     <ClCompile Include="Utilities\StringUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_ContinuousFile.cpp" />
-    <ClCompile Include="Utilities\test\test_CustomControl.cpp" />
-    <ClCompile Include="Utilities\test\test_FileOperation.cpp" />
-    <ClCompile Include="Utilities\test\test_OSUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_Semaphore.cpp" />
-    <ClCompile Include="Utilities\test\test_StringUtil.cpp" />
-    <ClCompile Include="Utilities\test\test_utility.cpp" />
+    <ClCompile Include="Utilities\test\test_ContinuousFile.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_CustomControl.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_FileOperation.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_OSUtil.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_Semaphore.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_StringUtil.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Utilities\test\test_utility.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Utilities\Utility.cpp" />
   </ItemGroup>
   <ItemGroup>
