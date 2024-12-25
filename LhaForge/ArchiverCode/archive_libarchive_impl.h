@@ -315,9 +315,9 @@ struct LA_FILE_TO_READ
 			header[0] == 'M' && header[1] == 'S' && header[2] == 'C' && header[3] == 'F'){
 			return LF_ARCHIVE_FORMAT::READONLY;// CAB;
 		}
-		//lzh
+		//lzh/lzs
 		if (read >= 7 &&
-			header[2] == '-' && header[3] == 'l' && header[4] == 'h' && header[6] == '-') {
+			header[2] == '-' && header[3] == 'l' && (header[4] == 'h' || header[4] == 'z') && header[6] == '-') {
 			return LF_ARCHIVE_FORMAT::READONLY;// lzh;
 		}
 
