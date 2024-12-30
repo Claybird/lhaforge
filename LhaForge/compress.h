@@ -77,7 +77,11 @@ struct RAW_FILE_READER {
 	CAutoFile fp;
 	std::vector<unsigned char> buffer;
 	RAW_FILE_READER() {
+#if defined(UNIT_TEST) || defined(DEBUG)
+		buffer.resize(2);	//2byte cache
+#else
 		buffer.resize(1024 * 1024 * 32);	//32MB cache
+#endif
 	}
 	virtual ~RAW_FILE_READER() {}
 	LF_BUFFER_INFO operator()() {

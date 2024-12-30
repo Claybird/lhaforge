@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "archive_zip.h"
-#include "zip.h"
+#include "mz.h"
 #include "mz_strm.h"
 #include "mz_strm_split.h"
 #include "mz_strm_os.h"
@@ -511,19 +511,20 @@ struct MINIZIP_WRITER {
 	struct DATA_BRIDGE{
 		std::function<LF_BUFFER_INFO()> dataProvider;
 		LF_BUFFER_INFO info;
-		size_t written;
+		size_t consumed;
 	};
 
 	static int32_t read_cb(void* stream, void* buf, int32_t size) {
 		auto bridge = (DATA_BRIDGE*)stream;
 		while (true) {
-			if (bridge->info.buffer && bridge->written < bridge->info.size) {
-				auto toWrite = std::min(size, int32_t(bridge->info.size - bridge->written));
-				memcpy(buf, (unsigned char*)bridge->info.buffer + bridge->written, toWrite);
-				bridge->written += toWrite;
+			if (bridge->info.buffer && bridge->consumed < bridge->info.size) {
+				auto toWrite = std::min(size, int32_t(bridge->info.size - bridge->consumed));
+				memcpy(buf, (unsigned char*)bridge->info.buffer + bridge->consumed, toWrite);
+				bridge->consumed += toWrite;
 				return toWrite;
 			} else {
 				bridge->info = bridge->dataProvider();
+				bridge->consumed = 0;
 				if (!bridge->info.buffer)return 0;
 			}
 		}
