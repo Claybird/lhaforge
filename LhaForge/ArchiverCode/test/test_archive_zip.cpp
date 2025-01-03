@@ -1,6 +1,15 @@
 ﻿#include "stdafx.h"
 #include "../archive_zip.h"
-#include "zip.h"
+#define HAVE_ZLIB 1
+#define ZLIB_COMPAT 1
+#define HAVE_BZIP2 1
+#define HAVE_LZMA 1
+#define LZMA_API_STATIC 1
+#define HAVE_ZSTD 1
+#define HAVE_PKCRYPT 1
+#define HAVE_WZAES 1
+
+#include "mz.h"
 #include "mz_zip.h"
 #include "mz_strm.h"
 #include "mz_strm_os.h"
@@ -1054,10 +1063,13 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::sh
 			provider.open(src);
 			LF_ENTRY_STAT e;
 			e.read_stat(src, L"test/added_file.txt");
+			size_t sum = 0;
 			a->add_file_entry(e, [&]() {
 				auto data = provider();
+				sum += data.size;
 				return data;
 			});
+			EXPECT_EQ(sum, 10 * 100);
 			provider.close();
 			UtilDeletePath(src);
 			EXPECT_FALSE(std::filesystem::exists(src));
@@ -1065,9 +1077,9 @@ void sub_add_file_to_existing_zip(const std::filesystem::path& zip_file, std::sh
 		a->close();
 	}
 
-	ASSERT_NO_THROW(sub_test_archive_LA(temp, pp));
+	EXPECT_NO_THROW(sub_test_archive_LA(temp, pp));
 	//test file consistency
-	ASSERT_NO_THROW({
+	EXPECT_NO_THROW({
 		ARCLOG arcLog;
 		CLFProgressHandlerNULL progressHandler;
 		testOneArchive(temp, arcLog, progressHandler, pp);
@@ -1364,3 +1376,36 @@ TEST(CLFArchiveZIP, make_copy_archive_encrypted_2099)
 	UtilDeletePath(temp);
 	EXPECT_FALSE(std::filesystem::exists(temp));
 }
+
+TEST(CLFArchiveZIP, make_copy_archive_encrypted)
+{
+	const auto src = LF_PROJECT_DIR() / L"test/test_password_abcde.zip";
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(src, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+		});
+
+	auto temp = UtilGetTemporaryFileName();
+	{
+		CLFArchiveZIP r;
+		LF_COMPRESS_ARGS args;
+		args.load(CConfigFile());
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		r.read_open(src, pp);
+		auto a = r.make_copy_archive(temp, args, [](const LF_ENTRY_STAT& entry) {
+			return true;
+		});
+		a->close();
+	}
+	//test file consistency
+	EXPECT_NO_THROW({
+		ARCLOG arcLog;
+		CLFProgressHandlerNULL progressHandler;
+		testOneArchive(temp, arcLog, progressHandler, std::make_shared<CLFPassphraseConst>(L"abcde"));
+		});
+	UtilDeletePath(temp);
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
+
