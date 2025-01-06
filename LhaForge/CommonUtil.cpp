@@ -429,6 +429,7 @@ CLFScanProgressHandlerGUI::CLFScanProgressHandlerGUI(HWND hWndParent)
 	dlg = std::make_unique<CWaitDialog>();
 	dlg->Prepare(hWndParent, 5000);
 	dlg->ShowWindow(SW_SHOW);
+	count = 0;
 }
 
 CLFScanProgressHandlerGUI::~CLFScanProgressHandlerGUI()
@@ -456,11 +457,14 @@ void CLFScanProgressHandlerGUI::setArchive(const std::filesystem::path& path)
 void CLFScanProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path)
 {
 	if (dlg) {
-		dlg->setEntry(entry_path);
 		while (UtilDoMessageLoop())continue;
-		if (dlg->isAborted()) {
-			CANCEL_EXCEPTION();
+		if (count % 100 == 0) {
+			dlg->setEntry(entry_path);
+			if (dlg->isAborted()) {
+				CANCEL_EXCEPTION();
+			}
 		}
+		count++;
 	}
 }
 

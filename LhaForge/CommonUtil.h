@@ -132,6 +132,8 @@ struct CLFScanProgressHandlerGUI :public ILFScanProgressHandler
 
 	std::unique_ptr<CWaitDialog> dlg;
 
+	size_t count;
+
 	CLFScanProgressHandlerGUI(HWND hWndParent);
 	virtual ~CLFScanProgressHandlerGUI();
 	void end()override;
