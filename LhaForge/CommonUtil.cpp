@@ -336,7 +336,7 @@ const char* CLFPassphraseGUI::operator()()
 #include "Dialogs/ProgressDlg.h"
 
 CLFProgressHandlerGUI::CLFProgressHandlerGUI(HWND hParentWnd):
-	idxEntry(0)
+	idxEntry(0), lastTime(0)
 {
 	//progress bar
 	dlg = std::make_unique<CProgressDialog>();
@@ -380,7 +380,8 @@ void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path,
 			numEntries,
 			entry_path.lexically_normal(),
 			entry_size);
-		while (UtilDoMessageLoop())continue;
+		dlg->SetEntryProgress(0);
+		//while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}
@@ -394,8 +395,12 @@ void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path,
 void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
 {
 	if (dlg) {
-		dlg->SetEntryProgress(current_size);
-		while (UtilDoMessageLoop())continue;
+		constexpr DWORD interval = 100;
+		if (timeGetTime() - interval > lastTime) {
+			dlg->SetEntryProgress(current_size);
+			lastTime = timeGetTime();
+			while (UtilDoMessageLoop())continue;
+		}
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}

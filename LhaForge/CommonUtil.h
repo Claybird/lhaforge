@@ -102,12 +102,14 @@ struct CLFProgressHandlerGUI :public ILFProgressHandler {
 
 	int64_t idxEntry;
 	std::unique_ptr<CProgressDialog> dlg;
+	DWORD lastTime;
 
 	CLFProgressHandlerGUI(HWND hParentWnd);
 	virtual ~CLFProgressHandlerGUI();
 	void reset()override {
 		__super::reset();
 		idxEntry = 0;
+		lastTime = 0;
 	}
 	void end()override;
 	void setArchive(const std::filesystem::path& path)override;
