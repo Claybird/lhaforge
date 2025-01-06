@@ -1,5 +1,14 @@
 ﻿#include "stdafx.h"
 #include "archive_zip.h"
+#define HAVE_ZLIB 1
+#define ZLIB_COMPAT 1
+#define HAVE_BZIP2 1
+#define HAVE_LZMA 1
+#define LZMA_API_STATIC 1
+#define HAVE_ZSTD 1
+#define HAVE_PKCRYPT 1
+#define HAVE_WZAES 1
+
 #include "mz.h"
 #include "mz_strm.h"
 #include "mz_strm_split.h"
@@ -213,6 +222,33 @@ void mz_stream_LF_delete(void** stream) {
 	}
 }
 
+struct auto_mz_reader {
+	void* handle;
+	auto_mz_reader() :handle(mz_zip_reader_create()) {}
+	virtual ~auto_mz_reader() { mz_zip_reader_delete(&handle); }
+	virtual void close() { mz_zip_reader_close(handle); }
+	DISALLOW_COPY_AND_ASSIGN(auto_mz_reader);
+	operator void* ()const { return handle; }
+};
+struct auto_mz_writer {
+	void* handle;
+	auto_mz_writer() :handle(mz_zip_writer_create()) {}
+	virtual ~auto_mz_writer() { mz_zip_writer_delete(&handle); }
+	virtual void close() { mz_zip_writer_close(handle); }
+	DISALLOW_COPY_AND_ASSIGN(auto_mz_writer);
+	operator void* ()const { return handle; }
+};
+
+struct auto_mz_stream_LF {
+	void* handle;
+	auto_mz_stream_LF() :handle(mz_stream_LF_create()) {}
+	virtual ~auto_mz_stream_LF() { mz_stream_LF_delete(&handle); }
+	virtual void close() { mz_stream_LF_close(handle); }
+	DISALLOW_COPY_AND_ASSIGN(auto_mz_stream_LF);
+	operator void* ()const { return handle; }
+};
+
+
 static bool isMultiPartZip(const std::filesystem::path& path)
 {
 	std::vector<std::filesystem::path> files;
@@ -303,38 +339,27 @@ struct MINIZIP_PASSPHRASE_BASE {
 };
 
 struct MINIZIP_READER {
-	void* reader;
-	void* stream;
+	auto_mz_reader reader;
+	auto_mz_stream_LF stream;
 	std::filesystem::path _path;
 	std::shared_ptr<MINIZIP_PASSPHRASE_BASE> _password_cb;
 
-	MINIZIP_READER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb):reader(nullptr),stream(nullptr),_password_cb(pcb) {}
+	MINIZIP_READER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb):_password_cb(pcb) {}
 	virtual ~MINIZIP_READER() {
 		close();
 	}
 	void close() {
-		if (reader) {
-			mz_zip_reader_close(reader);
-			mz_zip_reader_delete(&reader);
-			reader = nullptr;
-		}
-		if (stream) {
-			mz_stream_LF_close(stream);
-			mz_stream_LF_delete(&stream);
-			stream = nullptr;
-		}
+		reader.close();
+		stream.close();
 		_path.clear();
 	}
-	bool is_open()const { return reader != nullptr; }
+	bool is_open()const { return !_path.empty(); }
 	void open(const std::filesystem::path& path) {
 		close();
 		_path = path;
-		reader = mz_zip_reader_create();
-		if (!reader)RAISE_EXCEPTION(L"Failed to create zip reader");
 		mz_zip_reader_set_password_cb(reader, _password_cb.get(), MINIZIP_PASSPHRASE_BASE::password_cb);
 
 		//auto err = mz_zip_reader_open_file(reader, path.u8string().c_str());
-		stream = mz_stream_LF_create();
 		mz_stream_LF_open(stream, path.u8string().c_str(), MZ_OPEN_MODE_READ);
 		auto err = mz_zip_reader_open(reader, stream);
 		if (err != MZ_OK) {
@@ -375,11 +400,21 @@ struct MINIZIP_READER {
 		}
 		return false;
 	}
-	void raw_copy_into_file(std::filesystem::path dest, std::function<bool(mz_zip_file*)> keep_check) {
-		void* writer = mz_zip_writer_create();
-		auto err = mz_zip_writer_open_file(writer, dest.u8string().c_str(), 0, 0);
+	static void raw_copy_into_file(const std::filesystem::path& src, const std::filesystem::path &dest, std::function<bool(mz_zip_file*)> keep_check) {
+		auto_mz_reader reader;
+		auto_mz_stream_LF stream;
+		auto err = mz_stream_LF_open(stream, src.u8string().c_str(), MZ_OPEN_MODE_READ);
 		if (err != MZ_OK) {
-			mz_zip_writer_delete(&writer);
+			RAISE_EXCEPTION(L"Failed to open file %s: %s", src.c_str(), mzError2Text(err).c_str());
+		}
+		err = mz_zip_reader_open(reader, stream);
+		if (err != MZ_OK) {
+			RAISE_EXCEPTION(L"Failed to open file %s: %s", src.c_str(), mzError2Text(err).c_str());
+		}
+
+		auto_mz_writer writer;
+		err = mz_zip_writer_open_file(writer, dest.u8string().c_str(), 0, 0);
+		if (err != MZ_OK) {
 			RAISE_EXCEPTION(
 				L"Failed to open copy dest file %s: %s",
 				dest.c_str(),
@@ -387,26 +422,46 @@ struct MINIZIP_READER {
 			);
 		}
 
-		for (auto entry = rewind(); entry; entry = next()) {
-			if (keep_check(entry)) {
+		err = mz_zip_reader_goto_first_entry(reader);
+		if (err != MZ_OK && err != MZ_END_OF_LIST) {
+			RAISE_EXCEPTION(
+				L"Failed to read source file %s: %s",
+				src.c_str(),
+				mzError2Text(err).c_str()
+			);
+		}
+
+		while (err == MZ_OK) {
+			mz_zip_file* file_info = NULL;
+			err = mz_zip_reader_entry_get_info(reader, &file_info);
+			if (keep_check(file_info)) {
 				err = mz_zip_writer_copy_from_reader(writer, reader);
 				if (err != MZ_OK) {
-					mz_zip_writer_delete(&writer);
 					RAISE_EXCEPTION(
 						L"Failed to copy zip entry %s from %s: %s",
-						UtilUTF8toUNICODE(entry->filename).c_str(),
-						_path.c_str(),
+						UtilUTF8toUNICODE(file_info->filename).c_str(),
+						src.c_str(),
 						mzError2Text(err).c_str()
 					);
 				}
+			}
+			err = mz_zip_reader_goto_next_entry(reader);
+
+			if (err != MZ_OK && err != MZ_END_OF_LIST) {
+				RAISE_EXCEPTION(
+					L"Failed to read entry %s from %s: %s",
+					UtilUTF8toUNICODE(file_info->filename).c_str(),
+					src.c_str(),
+					mzError2Text(err).c_str()
+				);
 			}
 		}
 
 		uint8_t zip_cd = 0;
 		mz_zip_reader_get_zip_cd(reader, &zip_cd);
 		mz_zip_writer_set_zip_cd(writer, zip_cd);
-		mz_zip_writer_close(writer);
-		mz_zip_writer_delete(&writer);
+		reader.close();
+		writer.close();
 	}
 
 	struct auto_entry {
@@ -459,7 +514,7 @@ struct MINIZIP_READER {
 
 
 struct MINIZIP_WRITER {
-	void* writer;
+	auto_mz_writer writer;
 	std::filesystem::path _path;
 	std::shared_ptr<MINIZIP_PASSPHRASE_BASE> _password_cb;
 	int _aes_encryption;
@@ -467,7 +522,6 @@ struct MINIZIP_WRITER {
 	int _flag;
 
 	MINIZIP_WRITER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb) :
-		writer(nullptr),
 		_password_cb(pcb),
 		_aes_encryption(0) {}
 	virtual ~MINIZIP_WRITER() {
@@ -475,13 +529,11 @@ struct MINIZIP_WRITER {
 	}
 	void close() {
 		if (writer) {
-			mz_zip_writer_close(writer);
-			mz_zip_writer_delete(&writer);
-			writer = nullptr;
+			writer.close();
 		}
 		_path.clear();
 	}
-	bool is_open()const { return writer != nullptr; }
+	bool is_open()const { return !_path.empty(); }
 	void open(const std::filesystem::path& path,
 		bool append,	//true if adding to existing file
 		int method,
@@ -493,8 +545,6 @@ struct MINIZIP_WRITER {
 		_method = method;
 		_flag = 0;
 
-		writer = mz_zip_writer_create();
-		if (!writer)RAISE_EXCEPTION(L"Failed to create zip writer");
 		auto err = mz_zip_writer_open_file(writer, path.u8string().c_str(), 0, append);
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(L"Failed to open file %s: %s", path.c_str(), mzError2Text(err).c_str());
@@ -725,7 +775,7 @@ std::unique_ptr<ILFArchiveFile> CLFArchiveZIP::make_copy_archive(
 		auto keep_check = [&](mz_zip_file* entry)->bool {
 			return false_to_skip(mz_to_LF_ENTRY_STAT(entry));
 		};
-		_internal->_reader.raw_copy_into_file(dest_path, keep_check);
+		MINIZIP_READER::raw_copy_into_file(_internal->_reader._path, dest_path, keep_check);
 		bool encrypted = _internal->_reader.is_any_encrypted();
 
 		std::unique_ptr<CLFArchiveZIP> dest = std::make_unique<CLFArchiveZIP>();
