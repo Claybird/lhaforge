@@ -77,7 +77,7 @@ std::filesystem::path determineExtractBaseDir(
 			break;
 		} else {
 			// Need to change path
-			CLFShellFileOpenDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+			CLFShellFileSaveDialog dlg(outputDir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
 			if (IDOK == dlg.DoModal()) {
 				CString tmp;
 				dlg.GetFilePath(tmp);
@@ -374,6 +374,17 @@ bool GUI_extract_multiple_files(
 				progressHandler.setNumEntries(arc.get_num_entries());
 			}
 
+			if (std::filesystem::exists(output_dir) && std::filesystem::is_regular_file(output_dir)) {
+				CLFShellFileSaveDialog dlg(output_dir.c_str(), FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_PICKFOLDERS);
+				if (IDOK == dlg.DoModal()) {
+					CString tmp;
+					dlg.GetFilePath(tmp);
+					std::filesystem::path pathOutputDir = tmp.operator LPCWSTR();
+					output_dir = pathOutputDir;
+				} else {
+					CANCEL_EXCEPTION();
+				}
+			}
 			//make sure output directory exists
 			try {
 				std::filesystem::create_directories(output_dir);
