@@ -463,7 +463,11 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			if (lpNode->_entry.compressed_size == -1) {
 				info = L"---";
 			} else {
-				info = Format(L"%llu", lpNode->_entry.compressed_size);
+				if (m_bDisplayFileSizeInByte) {
+					info = Format(L"%llu", lpNode->_entry.compressed_size);
+				} else {
+					info = UtilFormatSize(lpNode->_entry.compressed_size);
+				}
 			}
 		}
 		break;
