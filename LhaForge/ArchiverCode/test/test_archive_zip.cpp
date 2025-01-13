@@ -519,7 +519,6 @@ TEST(CLFArchiveZIP, read_passphrase)
 	}
 
 	{
-		//---content listing does not require passphrase
 		auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		std::vector<char> data;
@@ -541,6 +540,30 @@ TEST(CLFArchiveZIP, read_passphrase)
 		}
 		EXPECT_EQ(data.size(), 7);
 		EXPECT_EQ(std::string(data.begin(), data.end()), std::string("abcde\r\n"));
+	}
+
+	//what if wrong password?
+	{
+		auto pp = std::make_shared<CLFPassphraseConst>(L"abc");
+		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
+		std::vector<char> data;
+		data.clear();
+		auto entry = a.read_entry_begin();
+		EXPECT_THROW(
+		for (;;) {
+			bool bEOF = false;
+			a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+				EXPECT_EQ(nullptr, offset);
+				if (buf) {
+					data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+				} else {
+					bEOF = true;
+				}
+			});
+			if (bEOF) {
+				break;
+			}
+		}, LF_EXCEPTION);
 	}
 }
 
