@@ -243,6 +243,106 @@ TEST(ArcFileContent, extractEntries)
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 }
 
+TEST(ArcFileContent, addEntries_file_in_directory)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	auto temp = UtilGetTemporaryFileName();
+	LF_COMPRESS_ARGS args;
+	args.load(CConfigFile());
+	//copy
+	{
+		CAutoFile fout, fin;
+		fout.open(temp, L"wb");
+		fin.open(LF_PROJECT_DIR() / L"test/test_extract.zip", L"rb");
+
+		const int bufsize = 256;
+		std::vector<char> buf(bufsize);
+		for (;;) {
+			auto size = fread(&buf[0], 1, bufsize, fin);
+			fwrite(&buf[0], 1, bufsize, fout);
+			if (size < bufsize)break;
+		}
+	}
+	auto src0 = UtilGetTempPath() / "arcfilecontent/added_file3.txt";
+	{
+		std::filesystem::create_directories(src0.parent_path());
+		CAutoFile f;
+		f.open(src0, L"w");
+		fputs("abcde12345", f);
+	}
+	auto src1 = UtilGetTempPath() / "added_file4.txt";
+	{
+		CAutoFile f;
+		f.open(src1, L"w");
+		fputs("ABCDE1234567890", f);
+	}
+	{
+		//keep previous
+		auto pp = std::make_shared<CLFPassphraseNULL>();
+		CArchiveFileContent content(pp);
+		ARCLOG arcLog;
+
+		content.scanArchiveStruct(temp, CLFScanProgressHandlerNULL());
+		content.addEntries(
+			args,
+			{ src1, src0.parent_path(), src1 },	//duplicated entry contained
+			content.getRootNode()->getChild(L"かきくけこ"),
+			CLFProgressHandlerNULL(),
+			CLFOverwriteInArchiveConfirmFORCED(overwrite_options::skip),
+			arcLog);
+
+		CLFArchive a;
+		a.read_open(temp, pp);
+		auto e = a.read_entry_begin();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/", e->path.wstring());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/", e->path.wstring());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/dirC/file1.txt", e->path.wstring());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"dirA/dirB/file2.txt", e->path.wstring());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"あいうえお.txt", e->path.wstring());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
+		EXPECT_EQ(5, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/added_file4.txt", e->path.wstring());
+		EXPECT_EQ(15, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/arcfilecontent/", e->path.wstring());
+		EXPECT_TRUE(e->is_directory());
+
+		e = a.read_entry_next();
+		EXPECT_NE(nullptr, e);
+		EXPECT_EQ(L"かきくけこ/arcfilecontent/added_file3.txt", e->path.wstring());
+		EXPECT_EQ(10, e->stat.st_size);
+
+		e = a.read_entry_next();
+		EXPECT_EQ(nullptr, e);
+	}
+	UtilDeletePath(temp);
+	UtilDeletePath(src0);
+	UtilDeletePath(src1);
+	EXPECT_FALSE(std::filesystem::exists(src0));
+	EXPECT_FALSE(std::filesystem::exists(src1));
+	EXPECT_FALSE(std::filesystem::exists(temp));
+}
 
 TEST(ArcFileContent, addEntries_keep)
 {
@@ -268,7 +368,7 @@ TEST(ArcFileContent, addEntries_keep)
 	{
 		CAutoFile f;
 		f.open(src, L"w");
-		fputs("abcde12345", f);
+		fputs("abcde12345aaaaaaa", f);
 	}
 	{
 		//keep previous
@@ -310,7 +410,7 @@ TEST(ArcFileContent, addEntries_keep)
 		e = a.read_entry_next();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
-		EXPECT_NE(10, e->stat.st_size);
+		EXPECT_NE(17, e->stat.st_size);
 
 		e = a.read_entry_next();
 		EXPECT_EQ(nullptr, e);
@@ -424,7 +524,7 @@ TEST(ArcFileContent, addEntries_replace)
 	{
 		CAutoFile f;
 		f.open(src, L"w");
-		fputs("abcde12345", f);
+		fputs("abcde12345aaaaaaa", f);
 	}
 
 	{
@@ -467,7 +567,7 @@ TEST(ArcFileContent, addEntries_replace)
 		e = a.read_entry_next();
 		EXPECT_NE(nullptr, e);
 		EXPECT_EQ(L"かきくけこ/file3.txt", e->path);
-		EXPECT_EQ(10, e->stat.st_size);
+		EXPECT_EQ(17, e->stat.st_size);
 
 		e = a.read_entry_next();
 		EXPECT_EQ(nullptr, e);

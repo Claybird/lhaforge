@@ -279,7 +279,7 @@ std::tuple<std::filesystem::path,	//output file name
 	std::vector<std::filesystem::path>>	//files not removed
 CArchiveFileContent::subDeleteEntries(
 	const LF_COMPRESS_ARGS& args,
-	const std::vector<std::pair<std::filesystem::path/*path in archive*/, std::filesystem::path/*path on disk*/>> &items_to_delete,
+	const std::vector<COMPRESS_SOURCES::PATH_PAIR> &items_to_delete,
 	ILFProgressHandler& progressHandler,
 	ILFOverwriteInArchiveConfirm& confirmHandler,
 	ARCLOG &arcLog)
@@ -300,9 +300,9 @@ CArchiveFileContent::subDeleteEntries(
 		auto subject = std::filesystem::path(entry.path);
 
 		for (const auto& item : items_to_delete) {
-			if (subject == item.first || UtilPathIsInSubDirectory(subject, item.first)) {
+			if (subject == item.entryPath || UtilPathIsInSubDirectory(subject, item.entryPath)) {
 				//check overwrite, or just delete. depends on confirmHandler
-				auto decision = confirmHandler(item.second, entry);
+				auto decision = confirmHandler(item.originalFullPath, entry);
 				switch (decision) {
 				case overwrite_options::overwrite:
 					arcLog(entry.path, UtilLoadString(IDS_ARCLOG_REMOVED));
@@ -341,7 +341,7 @@ bool CArchiveFileContent::isMultipleContentAllowed()const
 
 void CArchiveFileContent::addEntries(
 	const LF_COMPRESS_ARGS& args,
-	const std::vector<std::filesystem::path> &files,
+	const std::vector<std::filesystem::path> &files_in,
 	const ARCHIVE_ENTRY_INFO* lpParent,
 	ILFProgressHandler& progressHandler,
 	ILFOverwriteInArchiveConfirm& confirmHandler,
@@ -360,37 +360,46 @@ void CArchiveFileContent::addEntries(
 	std::filesystem::path destDir;
 	if(lpParent)destDir = lpParent->calcFullpath();
 
-	auto get_path_in_archive = [&](const std::filesystem::path& file) {
-		return destDir / file.filename();
-	};
+	auto uniq_files = files_in;
+	std::sort(uniq_files.begin(), uniq_files.end());
+	uniq_files.erase(std::unique(uniq_files.begin(), uniq_files.end()), uniq_files.end());
 
-	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
-	for (const auto &file : files) {
-		auto entryPath = get_path_in_archive(file);
-		items_to_delete.push_back({ entryPath, file });
+	std::vector<COMPRESS_SOURCES::PATH_PAIR> sources;
+	for (const auto &entry : uniq_files) {
+		sources.push_back({ entry, destDir / entry.filename() });
+		if (std::filesystem::is_directory(entry)) {
+			auto sub = UtilRecursiveEnumFileAndDirectory(entry);
+			for (const auto& sub_entry : sub) {
+				COMPRESS_SOURCES::PATH_PAIR rp;
+				rp.originalFullPath = sub_entry;
+				rp.entryPath = std::filesystem::relative(sub_entry, entry.parent_path());
+				rp.entryPath = replace(destDir / rp.entryPath, L"\\", L"/");
+				sources.push_back(rp);
+			}
+		}
 	}
 
 	arcLog.setArchivePath(m_pathArchive);
 	progressHandler.setArchive(m_pathArchive);
-	progressHandler.setNumEntries(files.size() + m_numFiles);
+	progressHandler.setNumEntries(sources.size() + m_numFiles);
 
 	//read from source
-	auto [tempFile,dest,not_removed] = subDeleteEntries(args, items_to_delete, progressHandler, confirmHandler, arcLog);
+	auto [tempFile,dest,not_removed] = subDeleteEntries(args, sources, progressHandler, confirmHandler, arcLog);
 
 	//add
-	for (const auto &file : files) {
+	for (const auto &src : sources) {
 		//keep existing files if user wants to
-		if(isIn(not_removed, get_path_in_archive(file)))continue;
+		if(isIn(not_removed, src.entryPath))continue;
 
 		try {
 			LF_ENTRY_STAT entry;
-			auto entryPath = destDir / std::filesystem::path(file).filename();
-			entry.read_stat(file, entryPath);
+			auto entryPath = src.entryPath;
+			entry.read_stat(src.originalFullPath, entryPath);
 			progressHandler.onNextEntry(entry.path, entry.stat.st_size);
 
-			if (std::filesystem::is_regular_file(file)) {
+			if (std::filesystem::is_regular_file(src.originalFullPath)) {
 				RAW_FILE_READER provider;
-				provider.open(file);
+				provider.open(src.originalFullPath);
 				uint64_t size = 0;
 				dest->add_file_entry(entry, [&]() {
 					auto data = provider();
@@ -408,18 +417,18 @@ void CArchiveFileContent::addEntries(
 				dest->add_directory_entry(entry);
 				progressHandler.onEntryIO(entry.stat.st_size);
 			}
-			arcLog(file, UtilLoadString(IDS_ARCLOG_OK));
+			arcLog(src.originalFullPath, UtilLoadString(IDS_ARCLOG_OK));
 		} catch (const LF_USER_CANCEL_EXCEPTION& e) {	//need this to know that user cancel
-			arcLog(file, e.what());
+			arcLog(src.originalFullPath, e.what());
 			UtilDeletePath(m_pathArchive);
 			throw;
 		} catch (const LF_EXCEPTION& e) {
-			arcLog(file, e.what());
+			arcLog(src.originalFullPath, e.what());
 			UtilDeletePath(m_pathArchive);
 			throw;
 		} catch (const std::filesystem::filesystem_error& e) {
 			auto msg = UtilUTF8toUNICODE(e.what(), strlen(e.what()));
-			arcLog(file, msg);
+			arcLog(src.originalFullPath, msg);
 			UtilDeletePath(m_pathArchive);
 			throw LF_EXCEPTION(msg);
 		}
@@ -440,11 +449,11 @@ void CArchiveFileContent::deleteEntries(
 	* To delete items from archive,
 	* skip items while making a copy of existing archive
 	*/
-	std::vector<std::pair<std::filesystem::path, std::filesystem::path>> items_to_delete;
+	std::vector<COMPRESS_SOURCES::PATH_PAIR> items_to_delete;
 	for (const auto &item : items) {
 		items_to_delete.push_back({
-			std::filesystem::path(item->calcFullpath()).lexically_normal(),
-			L""
+			L"",
+			std::filesystem::path(item->calcFullpath()).lexically_normal()
 		});
 	}
 	arcLog.setArchivePath(m_pathArchive);
