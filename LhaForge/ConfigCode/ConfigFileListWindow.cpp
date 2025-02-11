@@ -43,6 +43,7 @@ void CConfigFileListWindow::load_sub(const CConfigFile& Config)
 	general.ExitWithEscape = Config.getBool(section, L"ExitWithEscape", false);
 	general.DisableTab = Config.getBool(section, L"DisableTab", false);
 	general.KeepSingleInstance = Config.getBool(section, L"KeepSingleInstance", false);
+	general.KeepArchiveTimeStamp = Config.getBool(section, L"KeepArchiveTimeStamp", false);
 
 	//---
 	dimensions.StoreWindowPosition = Config.getBool(section, L"StoreWindowPosition", false);
@@ -187,6 +188,7 @@ void CConfigFileListWindow::store_sub(CConfigFile& Config)const
 	Config.setValue(section, L"ExitWithEscape", general.ExitWithEscape);
 	Config.setValue(section, L"DisableTab", general.DisableTab);
 	Config.setValue(section, L"KeepSingleInstance", general.KeepSingleInstance);
+	Config.setValue(section, L"KeepArchiveTimeStamp", general.KeepArchiveTimeStamp);
 	//---------
 	Config.setValue(section, L"ExpandTree", view.ExpandTree);
 	Config.setValue(section, L"DisplayFileSizeInByte", view.DisplayFileSizeInByte);

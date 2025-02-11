@@ -183,6 +183,7 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	EnableEntryExtractOperationMenu(false);
 	EnableEntryDeleteOperationMenu(false);
 	EnableAddItemsMenu(false);
+	UISetCheck(ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP, m_ConfFLW.general.KeepArchiveTimeStamp);
 
 	// build commands on file list window
 	MenuCommand_MakeSendToCommands();
@@ -227,7 +228,12 @@ LRESULT CFileListFrame::OnDestroy(UINT, WPARAM, LPARAM, BOOL& bHandled)
 {
 	::RemovePropW(m_hWnd, g_strPropIdentifier.c_str());
 
-	m_ConfFLW.load(mr_Config);
+	{
+		auto keepTimestamp = m_ConfFLW.general.KeepArchiveTimeStamp;
+		//reset before save
+		m_ConfFLW.load(mr_Config);
+		m_ConfFLW.general.KeepArchiveTimeStamp = keepTimestamp;
+	}
 
 	bool bSave=false;
 	//store window settings
@@ -690,6 +696,12 @@ void CFileListFrame::OnNextTab(UINT uNotifyCode,int nID,HWND hWndCtrl)
 			m_TabClientWnd->SetActivePage((nActive+size-1)%size);
 		}
 	}
+}
+
+void CFileListFrame::OnKeepArchiveTimestamp(UINT, int, HWND)
+{
+	m_ConfFLW.general.KeepArchiveTimeStamp = !m_ConfFLW.general.KeepArchiveTimeStamp;
+	UISetCheck(ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP, m_ConfFLW.general.KeepArchiveTimeStamp);
 }
 
 LRESULT CFileListFrame::OnMouseWheel(UINT uCode,short delta,CPoint&)

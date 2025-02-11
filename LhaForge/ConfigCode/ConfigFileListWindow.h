@@ -34,6 +34,7 @@ public:
 		bool ExitWithEscape;
 		bool KeepSingleInstance;
 		bool DisableTab;	//trie if disable tab
+		bool KeepArchiveTimeStamp;	//Keep archive timestamp through add/delete
 	}general;
 
 	struct DIMENSIONS{

@@ -278,7 +278,14 @@ protected:
 		//::EnableWindow(m_hFrameWnd,FALSE);	TODO: is this necessary? modal dialog will disable the frame automatically
 		ARCLOG arcLog;
 		try {
+			std::filesystem::file_time_type last_time;
+			if (mr_confFLW.general.KeepArchiveTimeStamp) {
+				last_time = std::filesystem::last_write_time(mr_Model.GetArchiveFileName());
+			}
 			mr_Model.DeleteItems(items, CLFProgressHandlerGUI(m_hFrameWnd), arcLog);
+			if (mr_confFLW.general.KeepArchiveTimeStamp) {
+				std::filesystem::last_write_time(mr_Model.GetArchiveFileName(), last_time);
+			}
 		} catch (...) {
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs = { arcLog };
@@ -392,12 +399,19 @@ public:
 		//::EnableWindow(m_hFrameWnd,FALSE);	TODO: is this necessary? modal dialog will disable the frame automatically
 		ARCLOG arcLog;
 		try {
+			std::filesystem::file_time_type last_time;
+			if (mr_confFLW.general.KeepArchiveTimeStamp) {
+				last_time = std::filesystem::last_write_time(mr_Model.GetArchiveFileName());
+			}
 			mr_Model.AddItem(
 				files,
 				target,
 				CLFProgressHandlerGUI(m_hFrameWnd),
 				CLFOverwriteInArchiveConfirmGUI(),
 				arcLog);
+			if (mr_confFLW.general.KeepArchiveTimeStamp) {
+				std::filesystem::last_write_time(mr_Model.GetArchiveFileName(), last_time);
+			}
 		} catch (...) {
 			CLogListDialog LogDlg(L"Log");
 			std::vector<ARCLOG> logs = { arcLog };

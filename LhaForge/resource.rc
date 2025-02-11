@@ -815,6 +815,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Next tab\tCtrl+Tab,Ctrl+WheelDown", ID_MENUITEM_NEXTTAB
         MENUITEM "&Previous tab\tCtrl+Shift+Tab,Ctrl+WheelUp", ID_MENUITEM_PREVTAB
+        MENUITEM "Keep Archive &Timestamp",     ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP
     END
 END
 
@@ -1231,6 +1232,12 @@ BEGIN
     IDS_ERROR_UNEXPECTED_EOF "Unexpected end of file"
     IDS_ERROR_CHDIR         "Failed to go into '%s' "
     IDS_ARCLOG_ABORT        "Abort"
+END
+
+STRINGTABLE
+BEGIN
+    ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP 
+                            "Keep archive timestamp through add/delete\nKeep archive timestamp"
 END
 
 #endif    // ニュートラル (既定) resources
@@ -1924,6 +1931,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "次のタブ(&N)\tCtrl+Tab,Ctrl+WheelDown", ID_MENUITEM_NEXTTAB
         MENUITEM "前のタブ(&P)\tCtrl+Shift+Tab,Ctrl+WheelUp", ID_MENUITEM_PREVTAB
+        MENUITEM "アーカイブ更新日時の維持(&T)",            ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP
     END
 END
 
@@ -2544,6 +2552,12 @@ BEGIN
     IDS_ERROR_UNEXPECTED_EOF "ファイルが途中で終わっています"
     IDS_ERROR_CHDIR         "フォルダ '%s' に移動できません"
     IDS_ARCLOG_ABORT        "中止"
+END
+
+STRINGTABLE
+BEGIN
+    ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP 
+                            "ファイルを追加/削除しても元のアーカイブのタイムスタンプを維持します\nアーカイブのタイムスタンプを維持"
 END
 
 #endif    // 日本語 (日本) resources

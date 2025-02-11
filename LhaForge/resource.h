@@ -449,6 +449,7 @@
 #define ID_MENUITEM_COPY_COMPRESSION_RATIO 40153
 #define ID_MENUITEM_COPY_ALL            40155
 #define ID_MENUITEM_ASSOC_ICON          40159
+#define ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP 40164
 #define ATL_IDS_IDLEMESSAGE             0xE001
 
 // Next default values for new objects
@@ -456,7 +457,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        206
-#define _APS_NEXT_COMMAND_VALUE         40161
+#define _APS_NEXT_COMMAND_VALUE         40165
 #define _APS_NEXT_CONTROL_VALUE         1328
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
