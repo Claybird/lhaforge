@@ -714,7 +714,19 @@ BEGIN
         BEGIN
             MENUITEM "(なし)",                        ID_MENUITEM_DUMMY
         END
-        MENUITEM "&Copy information",           ID_MENUITEM_COPY_ALL
+        POPUP "Copy info(&G)"
+        BEGIN
+            MENUITEM "&File name",                  ID_MENUITEM_COPY_FILENAME
+            MENUITEM "&Path in archive",            ID_MENUITEM_COPY_PATH
+            MENUITEM "Original &size",              ID_MENUITEM_COPY_ORIGINAL_SIZE
+            MENUITEM "File &type",                  ID_MENUITEM_COPY_FILETYPE
+            MENUITEM "Mo&dified date",              ID_MENUITEM_COPY_FILETIME
+            MENUITEM "&Method",                     ID_MENUITEM_COPY_METHOD
+            MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
+            MENUITEM "&Compression ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM SEPARATOR
+            MENUITEM "&Everything",                 ID_MENUITEM_COPY_ALL
+        END
     END
 END
 
@@ -778,9 +790,8 @@ BEGIN
             MENUITEM "Original &size",              ID_MENUITEM_COPY_ORIGINAL_SIZE
             MENUITEM "File &type",                  ID_MENUITEM_COPY_FILETYPE
             MENUITEM "Mo&dified date",              ID_MENUITEM_COPY_FILETIME
-            MENUITEM "&Attributes",                 ID_MENUITEM_COPY_ATTRIBUTE
-            MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
             MENUITEM "&Method",                     ID_MENUITEM_COPY_METHOD
+            MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
             MENUITEM "&Compression ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
             MENUITEM SEPARATOR
             MENUITEM "&Everything",                 ID_MENUITEM_COPY_ALL
@@ -1894,9 +1905,8 @@ BEGIN
             MENUITEM "元サイズ(&S)",                    ID_MENUITEM_COPY_ORIGINAL_SIZE
             MENUITEM "ファイル種別(&T)",                  ID_MENUITEM_COPY_FILETYPE
             MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
-            MENUITEM "属性(&A)",                      ID_MENUITEM_COPY_ATTRIBUTE
-            MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
             MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
+            MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
             MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
             MENUITEM SEPARATOR
             MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
@@ -1969,7 +1979,19 @@ BEGIN
         BEGIN
             MENUITEM "(なし)",                        ID_MENUITEM_DUMMY
         END
-        MENUITEM "情報コピー(&G)",                   ID_MENUITEM_COPY_ALL
+        POPUP "情報コピー(&G)"
+        BEGIN
+            MENUITEM "ファイル名(&F)",                   ID_MENUITEM_COPY_FILENAME
+            MENUITEM "格納パス(&P)",                    ID_MENUITEM_COPY_PATH
+            MENUITEM "元サイズ(&S)",                    ID_MENUITEM_COPY_ORIGINAL_SIZE
+            MENUITEM "ファイル種別(&T)",                  ID_MENUITEM_COPY_FILETYPE
+            MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
+            MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
+            MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
+            MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM SEPARATOR
+            MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
+        END
     END
 END
 

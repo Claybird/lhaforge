@@ -624,23 +624,87 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 	auto items = GetSelectedItems();
 
 	std::wstring info;
-	info=L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tMethod\tCompressedSize\tCompressionRatio\n";
-	for (const auto &item : items) {
-		info += item->_entryName + L"\t" +
-			item->_entry.path.wstring() + L"\t" +
-			Format(L"%llu", item->_originalSize) + L"\t" +
-			m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\t" +
-			(item->_entry.stat.st_mtime == 0 ? L"---\t" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\t"))+
-			item->_entry.method_name + L"\t";
-		if (item->_entry.compressed_size == -1) {
-			info += std::wstring(L"---\t---\n");
-		} else {
-			info += Format(L"%llu", item->_entry.compressed_size) + L"\t" +
-				Format(L"%.2f%%", item->compress_ratio()) + L"\n";
+
+	switch (nID) {
+	case ID_MENUITEM_COPY_FILENAME:
+		info = L"FileName\n";
+		for (const auto& item : items) {
+			info += item->_entryName + L"\n";
 		}
+		break;
+	case ID_MENUITEM_COPY_PATH:
+		info = L"FullPath\n";
+		for (const auto& item : items) {
+			info += item->_entry.path.wstring() + L"\n";
+		}
+		break;
+	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
+		info = L"OriginalSize\n";
+		for (const auto& item : items) {
+			info += Format(L"%llu", item->_originalSize) + L"\n";
+		}
+		break;
+	case ID_MENUITEM_COPY_FILETYPE:
+		info = L"FileType\n";
+		for (const auto& item : items) {
+			info += m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\n";
+		}
+		break;
+	case ID_MENUITEM_COPY_FILETIME:
+		info = L"FileTime\n";
+		for (const auto& item : items) {
+			info += (item->_entry.stat.st_mtime == 0 ? L"---\n" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\n"));
+		}
+		break;
+	case ID_MENUITEM_COPY_METHOD:
+		info = L"Method\n";
+		for (const auto& item : items) {
+			info += item->_entry.method_name + L"\n";
+		}
+		break;
+	case ID_MENUITEM_COPY_COMPRESSED_SIZE:
+		info = L"CompressedSize\n";
+		for (const auto& item : items) {
+			if (item->_entry.compressed_size == -1) {
+				info += std::wstring(L"---\n");
+			} else {
+				info += Format(L"%llu", item->_entry.compressed_size) + L"\n";
+			}
+		}
+		break;
+	case ID_MENUITEM_COPY_COMPRESSION_RATIO:
+		info = L"CompressionRatio\n";
+		for (const auto& item : items) {
+			if (item->_entry.compressed_size == -1) {
+				info += std::wstring(L"---\n");
+			} else {
+				info += Format(L"%.2f%%", item->compress_ratio()) + L"\n";
+			}
+		}
+		break;
+	case ID_MENUITEM_COPY_ALL:
+	default:
+		info = L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tMethod\tCompressedSize\tCompressionRatio\n";
+		for (const auto& item : items) {
+			info += item->_entryName + L"\t" +
+				item->_entry.path.wstring() + L"\t" +
+				Format(L"%llu", item->_originalSize) + L"\t" +
+				m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\t" +
+				(item->_entry.stat.st_mtime == 0 ? L"---\t" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\t")) +
+				item->_entry.method_name + L"\t";
+			if (item->_entry.compressed_size == -1) {
+				info += std::wstring(L"---\t---\n");
+			} else {
+				info += Format(L"%llu", item->_entry.compressed_size) + L"\t" +
+					Format(L"%.2f%%", item->compress_ratio()) + L"\n";
+			}
+		}
+		break;
 	}
+
 	UtilSetTextOnClipboard(info);
 }
+
 #include "Dialogs/FindDlg.h"
 void CFileListView::OnFindItem(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
