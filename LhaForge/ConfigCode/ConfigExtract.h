@@ -38,6 +38,7 @@ public:
 	bool DeleteArchiveAfterExtract;
 	bool MoveToRecycleBin;
 	bool DeleteNoConfirm;
+	bool RestoreFileTime;
 
 	std::wstring DenyExt;
 public:

@@ -217,6 +217,7 @@ std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,
 	const std::filesystem::path& output_dir,
+	bool RestoreFileTime,
 	ARCLOG &arcLog,
 	ILFOverwriteConfirm& preExtractHandler,
 	ILFProgressHandler& progressHandler
@@ -289,7 +290,9 @@ std::filesystem::path extractCurrentEntry(
 			fp.close();
 		}
 
-		entry->write_stat(outputPath);
+		if (RestoreFileTime) {
+			entry->write_stat(outputPath);
+		}
 		return outputPath;
 	} catch (const LF_USER_CANCEL_EXCEPTION& e) {
 		arcLog(outputPath, e.what());
@@ -418,7 +421,7 @@ bool GUI_extract_multiple_files(
 			CLFOverwriteConfirmGUI preExtractHandler;
 			// loop for each entry
 			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-				extractCurrentEntry(arc, entry, output_dir, arcLog, preExtractHandler, progressHandler);
+				extractCurrentEntry(arc, entry, output_dir, args.extract.RestoreFileTime, arcLog, preExtractHandler, progressHandler);
 			}
 			//end
 			arc.close();

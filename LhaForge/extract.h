@@ -58,6 +58,7 @@ std::filesystem::path extractCurrentEntry(
 	ILFArchiveFile &arc,
 	const LF_ENTRY_STAT *entry,
 	const std::filesystem::path& output_dir,
+	bool RestoreFileTime,
 	ARCLOG &arcLog,
 	ILFOverwriteConfirm& preExtractHandler,
 	ILFProgressHandler& progressHandler

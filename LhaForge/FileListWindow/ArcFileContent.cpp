@@ -260,11 +260,22 @@ std::vector<std::filesystem::path> CArchiveFileContent::extractEntries(
 
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
 
+	CConfigFile mngr;
+	CConfigExtract conf;
+	try {
+		mngr.load();
+		conf.load(mngr);
+	} catch (const LF_EXCEPTION& e) {
+		UtilMessageBox(NULL, e.what(), MB_OK | MB_ICONERROR);
+	}
+
 	for (auto entry = arc.read_entry_begin(); entry && !unextracted.empty(); entry = arc.read_entry_next()) {
 		auto pathname = UtilPathRemoveLastSeparator(LF_sanitize_pathname(entry->path));
 		auto iter = unextracted.find(pathname);
 		if (iter != unextracted.end()) {
-			auto out = extractCurrentEntry(arc, entry, outputDir, arcLog, preExtractHandler, progressHandler);
+			auto out = extractCurrentEntry(arc, entry, outputDir,
+				conf.RestoreFileTime,
+				arcLog, preExtractHandler, progressHandler);
 			extracted.push_back(out);
 			unextracted.erase(iter);
 		}

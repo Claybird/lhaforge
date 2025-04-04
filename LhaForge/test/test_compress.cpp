@@ -591,7 +591,7 @@ TEST(compress, copyArchive)	//or maybe test for CLFArchive
 	EXPECT_NO_THROW(arc.read_open(tempFile, pp));
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+			extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
 				CLFProgressHandlerNULL());
 		}
 	);

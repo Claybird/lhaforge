@@ -63,6 +63,8 @@ void CConfigExtract::load(const CConfigFile &Config)
 	MoveToRecycleBin = Config.getBool(section, L"MoveToRecycleBin", true);
 	DeleteNoConfirm = Config.getBool(section, L"DeleteNoConfirm", false);
 	DenyExt = Config.getText(section, L"DenyExt", UtilLoadString(IDS_DENYEXT_DEFAULT));
+
+	RestoreFileTime = Config.getBool(section, L"RestoreFileTime", true);
 }
 
 void CConfigExtract::store(CConfigFile &Config)const
@@ -82,6 +84,7 @@ void CConfigExtract::store(CConfigFile &Config)const
 	Config.setValue(section, L"MoveToRecycleBin", MoveToRecycleBin);
 	Config.setValue(section, L"DeleteNoConfirm", DeleteNoConfirm);
 	Config.setValue(section, L"DenyExt", DenyExt);
+	Config.setValue(section, L"RestoreFileTime", RestoreFileTime);
 }
 
 //checks file extension

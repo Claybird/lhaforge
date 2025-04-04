@@ -271,7 +271,7 @@ TEST(extract, extractCurrentEntry) {
 	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 	EXPECT_NO_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-			extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+			extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
 				CLFProgressHandlerNULL());
 		}
 	);
@@ -285,9 +285,55 @@ TEST(extract, extractCurrentEntry) {
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
 
+	struct _stat64 stat;
+	int e = _wstat64((tempDir / L"あいうえお.txt").c_str(), &stat);
+	ASSERT_EQ(e, 0);
+	EXPECT_EQ(stat.st_mtime, 1589718912ul);
+
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
 }
+
+TEST(extract, extractCurrentEntry_no_restore_filetime) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_extractCurrentEntry");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_extract.zip";
+	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	auto pp = std::make_shared<CLFPassphraseNULL>();
+	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+	EXPECT_NO_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, false/* here! */, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/file2.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"dirA/dirB/dirC/file1.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"かきくけこ/file3.txt"));
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"あいうえお.txt"));
+
+	struct _stat64 stat;
+	int e = _wstat64((tempDir / L"あいうえお.txt").c_str(), &stat);
+	ASSERT_EQ(e, 0);
+	EXPECT_GT(stat.st_mtime, 1589718912ul);
+
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+
 
 TEST(extract, extractCurrentEntry_broken_files) {
 	_wsetlocale(LC_ALL, L"");	//default locale
@@ -309,7 +355,7 @@ TEST(extract, extractCurrentEntry_broken_files) {
 		EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 		EXPECT_THROW(
 			for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-				extractCurrentEntry(arc, entry, tempDir, arcLog, preExtractHandler,
+				extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
 					CLFProgressHandlerNULL());
 			}
 		, LF_EXCEPTION);

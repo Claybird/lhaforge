@@ -503,6 +503,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,181,92,10
     CONTROL         "Delete without confirm",IDC_CHECK_DELETE_NOCONFIRM,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,193,98,10
+    CONTROL         "Restore timestamp of extracted file ",IDC_CHECK_RESTORE_EXTRACTED_FILE_TIME,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,203,144,10
     GROUPBOX        "Extensions to avoid extract",IDC_STATIC,159,102,177,121
     LTEXT           "Wildcards (*, ?) are applicable, such as """".??_;.lzh;.zip""",IDC_STATIC,168,112,106,20
     EDITTEXT        IDC_EDIT_EXTRACT_DENY_EXT,168,137,160,78,ES_MULTILINE | ES_LOWERCASE | ES_AUTOVSCROLL | WS_VSCROLL
@@ -1529,6 +1531,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,168,136,10
     CONTROL         "ごみ箱に移動",IDC_CHECK_MOVETO_RECYCLE_BIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,181,60,10
     CONTROL         "確認ダイアログを出さない",IDC_CHECK_DELETE_NOCONFIRM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,21,193,98,10
+    CONTROL         "解凍されたファイルの更新日時を復元",IDC_CHECK_RESTORE_EXTRACTED_FILE_TIME,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,205,136,10
     GROUPBOX        "解凍しない拡張子",IDC_STATIC,159,102,177,121
     LTEXT           "ワイルドカード(*,?)が使用可能。\n例:「.??_;.lzh;.zip」",IDC_STATIC,168,112,106,20
     EDITTEXT        IDC_EDIT_EXTRACT_DENY_EXT,168,137,160,78,ES_MULTILINE | ES_LOWERCASE | ES_AUTOVSCROLL | WS_VSCROLL
