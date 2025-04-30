@@ -487,7 +487,7 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
     <None Include="commit-hash" />
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
