@@ -76,6 +76,11 @@ T const* Argument(std::basic_string<T> const& value) noexcept
 {
 	return value.c_str();
 }
+
+inline wchar_t const* Argument(std::filesystem::path const& value) noexcept
+{
+	return value.c_str();
+}
 template <typename ...Args>
 std::wstring Format(const std::wstring& fmt, Args && ...args)
 {

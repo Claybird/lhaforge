@@ -217,6 +217,7 @@ TEST(StringUtil, Format) {
 	EXPECT_EQ(L"12.35", Format(L"%.2f", 12.3456));
 	EXPECT_EQ(L"あいうえお", Format(L"%sえお", L"あいう"));
 	EXPECT_EQ(L"あいうえお", Format(L"%sえお", std::wstring(L"あいう")));
+	EXPECT_EQ(L"あいうえお", Format(L"%sえお", std::filesystem::path(L"あいう")));
 }
 
 TEST(StringUtil, replace) {
