@@ -365,6 +365,62 @@ TEST(extract, extractCurrentEntry_broken_files) {
 	}
 }
 
+TEST(extract, extract_password) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_password_abcde");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_password_abcde.zip";
+	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
+	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+	EXPECT_NO_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"test.txt"));
+
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
+
+
+TEST(extract, extract_wrong_password) {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
+	auto tempDir = std::filesystem::path(UtilGetTempPath() / L"test_password_abcde");
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+	std::filesystem::create_directories(tempDir);
+	auto archiveFile = LF_PROJECT_DIR() / L"test/test_password_abcde.zip";
+	ASSERT_TRUE(std::filesystem::exists(archiveFile));
+
+	ARCLOG arcLog;
+	CLFArchive arc;
+	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
+	auto pp = std::make_shared<CLFPassphraseConst>(L"some_wrong_password");
+	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+	EXPECT_ANY_THROW(
+		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
+			extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
+				CLFProgressHandlerNULL());
+		}
+	);
+
+	EXPECT_FALSE(std::filesystem::exists(tempDir / L"test.txt"));
+
+	UtilDeleteDir(tempDir, true);
+	EXPECT_FALSE(std::filesystem::exists(tempDir));
+}
 
 TEST(extract, enumerateOriginalArchives)
 {
