@@ -1163,7 +1163,6 @@ TEST(CLFArchiveZIP, add_file_to_existing_encrypted_2099)
 
 TEST(CLFArchiveZIP, add_file_to_existing_encrypted_zip)
 {
-	//This test fails. It seems like a bug of minizip-ng, but not confirmed yet
 	auto pp = std::make_shared<CLFPassphraseConst>(L"abcde");
 	sub_add_file_to_existing_zip(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 }

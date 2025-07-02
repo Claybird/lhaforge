@@ -448,8 +448,10 @@ TEST(extract, extract_multiple_passwords) {
 		}
 	);
 
-	EXPECT_TRUE(std::filesystem::exists(tempDir / L"test.txt"));
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"added_file.txt"));
+	EXPECT_EQ(std::filesystem::file_size(tempDir / L"added_file.txt"), 1000);
+	EXPECT_TRUE(std::filesystem::exists(tempDir / L"test.txt"));
+	EXPECT_EQ(std::filesystem::file_size(tempDir / L"test.txt"), 7);
 
 	UtilDeleteDir(tempDir, true);
 	EXPECT_FALSE(std::filesystem::exists(tempDir));
