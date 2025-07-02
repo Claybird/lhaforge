@@ -544,7 +544,8 @@ TEST(CLFArchiveZIP, read_passphrase)
 
 	//what if wrong password?
 	{
-		auto pp = std::make_shared<CLFPassphraseConst>(L"abc");
+		auto pp = std::make_shared<CLFPassphraseArray>();	//"abc" for first time, abort on second time
+		pp->passwords = { "abc" };
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		std::vector<char> data;
 		data.clear();

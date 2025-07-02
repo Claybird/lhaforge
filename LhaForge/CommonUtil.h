@@ -96,6 +96,19 @@ struct CLFProgressHandlerNULL :public ILFProgressHandler {
 	void poll()override {}
 };
 
+struct CLFPassphraseArray :public ILFPassphrase {
+	size_t count = 0;
+	std::vector<std::string> passwords;
+	virtual ~CLFPassphraseArray() {}
+	const char* operator()()override {
+		auto index = count++;
+		if (index >= passwords.size())return nullptr;
+		else return passwords[index].c_str();
+	}
+};
+
+
+
 class CProgressDialog;
 struct CLFProgressHandlerGUI :public ILFProgressHandler {
 	DISALLOW_COPY_AND_ASSIGN(CLFProgressHandlerGUI);

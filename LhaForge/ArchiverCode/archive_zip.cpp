@@ -325,9 +325,7 @@ struct MINIZIP_PASSPHRASE_BASE {
 	}
 	static int32_t password_cb(void* handle, void* userdata, mz_zip_file* file_info, char* password, int32_t max_password) {
 		MINIZIP_PASSPHRASE_BASE* base = (MINIZIP_PASSPHRASE_BASE*)userdata;
-		if (!base->passphrase.get()) {
-			base->update_passphrase();
-		}
+		base->update_passphrase();
 		//need passphrase
 		if (!base->passphrase.get()) {
 			//cancelled
@@ -467,9 +465,16 @@ struct MINIZIP_READER {
 	struct auto_entry {
 		void* _reader;
 		auto_entry(void* reader) :_reader(reader) {
-			auto err = mz_zip_reader_entry_open(_reader);
-			if (MZ_OK != err) {
-				RAISE_EXCEPTION(mzError2Text(err));
+			for (;;) {
+				auto err = mz_zip_reader_entry_open(_reader);
+				if (err == MZ_PASSWORD_ERROR) {
+					//ask password again
+					continue;
+				} else if (MZ_OK == err) {
+					break;
+				} else {
+					RAISE_EXCEPTION(mzError2Text(err));
+				}
 			}
 		}
 		int32_t close() {
