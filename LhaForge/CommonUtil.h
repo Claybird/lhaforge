@@ -72,17 +72,36 @@ void LF_setProcessTempPath(const std::filesystem::path&);
 struct CLFPassphraseGUI:public ILFPassphrase {
 	virtual ~CLFPassphraseGUI() {}
 	const char* operator()()override;
+	void request_renew()override {
+		raw.clear();
+	}
 };
 
 struct CLFPassphraseNULL:public ILFPassphrase {
 	virtual ~CLFPassphraseNULL() {}
 	const char* operator()()override { return nullptr; }
+	void request_renew()override {}	//do nothing
 };
 
 struct CLFPassphraseConst :public ILFPassphrase {
 	CLFPassphraseConst(const std::wstring& pwd) { set_passphrase(pwd); }
 	virtual ~CLFPassphraseConst() {}
 	const char* operator()()override { return utf8.c_str(); }
+	void request_renew()override {}	//do nothing
+};
+
+
+struct CLFPassphraseArray :public ILFPassphrase {
+	int index = -1;
+	std::vector<std::string> passwords;
+	virtual ~CLFPassphraseArray() {}
+	const char* operator()()override {
+		if (index< 0 || passwords.size() <= (size_t)index)return nullptr;
+		else return passwords[index].c_str();
+	}
+	void request_renew()override {
+		index++;
+	}
 };
 
 
@@ -95,18 +114,6 @@ struct CLFProgressHandlerNULL :public ILFProgressHandler {
 	void setSpecialMessage(const std::wstring& msg)override {}
 	void poll()override {}
 };
-
-struct CLFPassphraseArray :public ILFPassphrase {
-	size_t count = 0;
-	std::vector<std::string> passwords;
-	virtual ~CLFPassphraseArray() {}
-	const char* operator()()override {
-		auto index = count++;
-		if (index >= passwords.size())return nullptr;
-		else return passwords[index].c_str();
-	}
-};
-
 
 
 class CProgressDialog;

@@ -441,12 +441,21 @@ TEST(extract, extract_multiple_passwords) {
 	auto pp = std::make_shared<CLFPassphraseArray>();
 	pp->passwords = { "aaaaa", "abcde" };
 	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
+	LF_ENTRY_STAT* entry = nullptr;
+	ASSERT_NO_THROW(entry = arc.read_entry_begin(););
+	ASSERT_NE(entry, nullptr);
 	ASSERT_NO_THROW(
-		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
-			extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
-				CLFProgressHandlerNULL());
-		}
+		extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
+			CLFProgressHandlerNULL());
 	);
+	ASSERT_NO_THROW(entry = arc.read_entry_next(););
+	ASSERT_NE(entry, nullptr);
+	ASSERT_NO_THROW(
+		extractCurrentEntry(arc, entry, tempDir, true, arcLog, preExtractHandler,
+			CLFProgressHandlerNULL());
+	);
+	ASSERT_NO_THROW(entry = arc.read_entry_next(););
+	ASSERT_EQ(entry, nullptr);
 
 	EXPECT_TRUE(std::filesystem::exists(tempDir / L"added_file.txt"));
 	EXPECT_EQ(std::filesystem::file_size(tempDir / L"added_file.txt"), 1000);

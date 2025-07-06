@@ -145,6 +145,7 @@ struct ILFPassphrase {
 		raw = p;
 		utf8 = UtilToUTF8(raw);
 	}
+	virtual void request_renew() = 0;
 
 	std::wstring raw;
 	std::string utf8;

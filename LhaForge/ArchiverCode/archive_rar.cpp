@@ -320,6 +320,7 @@ bool CLFArchiveRAR::is_known_format(const std::filesystem::path& arcname)
 		CLFPassphraseRunCheck() :called(false) {}
 		virtual ~CLFPassphraseRunCheck() {}
 		const char* operator()()override { called = true; return nullptr; }
+		void request_renew()override {}	//do nothing
 	};
 
 	auto passphrase = std::make_shared<CLFPassphraseRunCheck>();

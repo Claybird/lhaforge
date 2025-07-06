@@ -315,6 +315,7 @@ struct MINIZIP_PASSPHRASE_BASE {
 	void update_passphrase() {
 		auto callback = passphrase_callback.get();
 		if (callback) {
+			callback->request_renew();
 			const char* p = (*callback)();
 			if (p) {
 				passphrase = std::make_shared<std::string>(p);
@@ -325,7 +326,9 @@ struct MINIZIP_PASSPHRASE_BASE {
 	}
 	static int32_t password_cb(void* handle, void* userdata, mz_zip_file* file_info, char* password, int32_t max_password) {
 		MINIZIP_PASSPHRASE_BASE* base = (MINIZIP_PASSPHRASE_BASE*)userdata;
-		base->update_passphrase();
+		if (!base->passphrase.get()) {
+			base->update_passphrase();
+		}
 		//need passphrase
 		if (!base->passphrase.get()) {
 			//cancelled
@@ -464,11 +467,16 @@ struct MINIZIP_READER {
 
 	struct auto_entry {
 		void* _reader;
-		auto_entry(void* reader) :_reader(reader) {
+		auto_entry(
+			void* reader,
+			std::shared_ptr<MINIZIP_PASSPHRASE_BASE> cb
+		) :_reader(reader)
+		{
 			for (;;) {
 				auto err = mz_zip_reader_entry_open(_reader);
 				if (err == MZ_PASSWORD_ERROR) {
 					//ask password again
+					cb->update_passphrase();
 					continue;
 				} else if (MZ_OK == err) {
 					break;
@@ -491,7 +499,7 @@ struct MINIZIP_READER {
 		}
 	};
 	void read_entry(std::function<void(const void*, size_t, const offset_info*)> data_receiver) {
-		auto_entry ae(reader);
+		auto_entry ae(reader, _password_cb);
 		std::vector<unsigned char> buffer;
 		buffer.resize(1024 * 1024);
 		for (;;) {
