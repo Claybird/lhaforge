@@ -93,11 +93,15 @@ struct CLFPassphraseConst :public ILFPassphrase {
 
 struct CLFPassphraseArray :public ILFPassphrase {
 	int index = -1;
-	std::vector<std::string> passwords;
+	std::vector<std::wstring> passwords;
 	virtual ~CLFPassphraseArray() {}
 	const char* operator()()override {
-		if (index< 0 || passwords.size() <= (size_t)index)return nullptr;
-		else return passwords[index].c_str();
+		if (index < 0 || passwords.size() <= (size_t)index) {
+			return nullptr;
+		} else {
+			set_passphrase(passwords[index]);
+			return utf8.c_str();
+		}
 	}
 	void request_renew()override {
 		index++;

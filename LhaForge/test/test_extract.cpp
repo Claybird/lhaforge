@@ -408,7 +408,7 @@ TEST(extract, extract_wrong_password) {
 	CLFArchive arc;
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
 	auto pp = std::make_shared<CLFPassphraseArray>();
-	pp->passwords = { "some_wrong_password" };
+	pp->passwords = { L"some_wrong_password" };
 	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 	EXPECT_ANY_THROW(
 		for (auto entry = arc.read_entry_begin(); entry; entry = arc.read_entry_next()) {
@@ -439,7 +439,7 @@ TEST(extract, extract_multiple_passwords) {
 	CLFOverwriteConfirmFORCED preExtractHandler(overwrite_options::overwrite);
 
 	auto pp = std::make_shared<CLFPassphraseArray>();
-	pp->passwords = { "aaaaa", "abcde" };
+	pp->passwords = { L"aaaaa", L"abcde" };
 	EXPECT_NO_THROW(arc.read_open(archiveFile, pp));
 	LF_ENTRY_STAT* entry = nullptr;
 	ASSERT_NO_THROW(entry = arc.read_entry_begin(););

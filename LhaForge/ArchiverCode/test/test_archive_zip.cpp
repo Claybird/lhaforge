@@ -422,7 +422,7 @@ TEST(CLFArchiveZIP, read_enum_2099_encrypted_zip)
 
 	CLFArchiveZIP a;
 	auto pp = std::make_shared<CLFPassphraseArray>();
-	pp->passwords = {"abcde"};	//only one password; password callback should be called only one time
+	pp->passwords = {L"abcde"};	//only one password; password callback should be called only one time
 	a.read_open(file, pp);
 	EXPECT_TRUE(a.is_modify_supported());
 	ASSERT_EQ(L"ZIP", a.get_format_name());
@@ -593,7 +593,7 @@ TEST(CLFArchiveZIP, read_passphrase)
 	//what if wrong password?
 	{
 		auto pp = std::make_shared<CLFPassphraseArray>();	//"abc" for first time, abort on second time
-		pp->passwords = { "abc" };
+		pp->passwords = { L"abc" };
 		a.read_open(LF_PROJECT_DIR() / L"test/test_password_abcde.zip", pp);
 		std::vector<char> data;
 		data.clear();
