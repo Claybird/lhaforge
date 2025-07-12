@@ -219,7 +219,19 @@ struct CLFArchiveRAR::INTERNAL
 		}
 		data_receiver = receiver;
 		bEntryRead = true;
-		return RARProcessFileW(arc, RAR_TEST, nullptr, nullptr);	//RAR_EXTRACT will generate actual file
+		for (;;) {
+			int ret = RARProcessFileW(arc, RAR_TEST, nullptr, nullptr);	//RAR_EXTRACT will generate actual file
+			if (ret == ERAR_BAD_PASSWORD) {
+				passphrase_callback->request_renew();
+				if (passphrase_callback->utf8.empty()) {
+					return ret;
+				} else {
+					RARSetPassword(arc, &passphrase_callback->utf8[0]);
+				}
+			} else {
+				return ret;
+			}
+		}
 	}
 
 	static int CALLBACK rar_event_handler(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2) {
@@ -235,6 +247,7 @@ struct CLFArchiveRAR::INTERNAL
 		case UCM_NEEDPASSWORDW:
 		if(p->passphrase_callback){
 			auto cb = p->passphrase_callback.get();
+			cb->request_renew();
 			auto pwdA = cb->operator()();
 			if (pwdA) {
 				//got some password input

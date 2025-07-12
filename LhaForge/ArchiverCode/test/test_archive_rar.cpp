@@ -167,13 +167,116 @@ TEST(CLFArchiveRAR, read_enum_2099)
 	EXPECT_EQ(numDir, 1);
 }
 
+TEST(CLFArchiveRAR, read_enum_2099_encrypted)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto file = std::filesystem::path(__FILEW__).parent_path() / L"test_2099_password.rar";
+
+	CLFArchiveRAR a;
+	auto pp = std::make_shared<CLFPassphraseArray>();
+	//for (int i = 0; i < 2100; i++) {
+		pp->passwords.push_back(L"password");
+	//}
+	a.read_open(file, pp);
+	EXPECT_FALSE(a.is_modify_supported());
+	EXPECT_EQ(L"RAR", a.get_format_name());
+
+	int count = 0;
+	int numDir = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		if (entry->is_directory()) {
+			numDir++;
+			EXPECT_FALSE(entry->is_encrypted);
+		} else {
+			if (entry->path.wstring().find(L"ccd.txt") != -1) {
+				EXPECT_EQ(entry->stat.st_size, 44);
+				std::vector<char> data;
+				for (;;) {
+					bool bEOF = false;
+					a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+						EXPECT_EQ(nullptr, offset);
+						if (buf) {
+							data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+						} else {
+							bEOF = true;
+						}
+					});
+					if (bEOF) {
+						break;
+					}
+				}
+				EXPECT_EQ(data.size(), entry->stat.st_size);
+				EXPECT_EQ(std::string(data.begin(), data.end()), ";kljd;lfj;lsdahg;has:hn:h :ahsd:fh:asdhg:ioh");
+			} else {
+				EXPECT_EQ(entry->stat.st_size, 48);
+			}
+			EXPECT_TRUE(entry->is_encrypted);
+		}
+	}
+	EXPECT_EQ(count, 2099 + 1);
+	EXPECT_EQ(numDir, 1);
+}
+
+TEST(CLFArchiveRAR, read_enum_2099_header_encrypted)
+{
+	_wsetlocale(LC_ALL, L"");	//default locale
+	const auto file = std::filesystem::path(__FILEW__).parent_path() / L"test_2099_password_header_encrypted.rar";
+
+	CLFArchiveRAR a;
+	auto pp = std::make_shared<CLFPassphraseArray>();
+	pp->passwords.push_back(L"password");	//header
+	pp->passwords.push_back(L"password");	//content
+	a.read_open(file, pp);
+	EXPECT_FALSE(a.is_modify_supported());
+	EXPECT_EQ(L"RAR", a.get_format_name());
+
+	int count = 0;
+	int numDir = 0;
+	for (auto entry = a.read_entry_begin(); entry; entry = a.read_entry_next()) {
+		count++;
+		if (entry->is_directory()) {
+			numDir++;
+			EXPECT_FALSE(entry->is_encrypted);
+		} else {
+			if (entry->path.wstring().find(L"ccd.txt") != -1) {
+				EXPECT_EQ(entry->stat.st_size, 44);
+				std::vector<char> data;
+				for (;;) {
+					bool bEOF = false;
+					a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+						EXPECT_EQ(nullptr, offset);
+						if (buf) {
+							data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+						} else {
+							bEOF = true;
+						}
+					});
+					if (bEOF) {
+						break;
+					}
+				}
+				EXPECT_EQ(data.size(), entry->stat.st_size);
+				EXPECT_EQ(std::string(data.begin(), data.end()), ";kljd;lfj;lsdahg;has:hn:h :ahsd:fh:asdhg:ioh");
+			} else {
+				EXPECT_EQ(entry->stat.st_size, 48);
+			}
+			EXPECT_TRUE(entry->is_encrypted);
+		}
+	}
+	EXPECT_EQ(count, 2099 + 1);
+	EXPECT_EQ(numDir, 1);
+}
 
 void sub_rar_test(std::filesystem::path file)
 {
 	CLFArchiveRAR a;
 	EXPECT_TRUE(a.is_known_format(file));
 
-	auto pp = std::make_shared<CLFPassphraseConst>(L"password");
+	//auto pp = std::make_shared<CLFPassphraseConst>(L"password");
+	auto pp = std::make_shared<CLFPassphraseArray>();
+	//when header is encrypted, first password is used for header, second is for file content
+	pp->passwords = { L"password", L"password" };
 	a.read_open(file, pp);
 	EXPECT_FALSE(a.is_modify_supported());
 	EXPECT_EQ(L"RAR", a.get_format_name());
@@ -234,3 +337,60 @@ TEST(CLFArchiveRAR, rar_multipart_not_from_0001)
 	sub_rar_test(LF_PROJECT_DIR() / L"test/smile.part0003.rar");
 }
 
+TEST(CLFArchiveRAR, rar_multi_password)
+{
+	auto file = LF_PROJECT_DIR() / L"test/smile_multi_encrypted.rar";
+	CLFArchiveRAR a;
+	EXPECT_TRUE(a.is_known_format(file));
+
+	//auto pp = std::make_shared<CLFPassphraseConst>(L"password");
+	auto pp = std::make_shared<CLFPassphraseArray>();
+	pp->passwords = { L"password",L"abcde" };
+	a.read_open(file, pp);
+	EXPECT_FALSE(a.is_modify_supported());
+	EXPECT_EQ(L"RAR", a.get_format_name());
+
+	auto entry = a.read_entry_begin();
+	ASSERT_NE(nullptr, entry);
+	ASSERT_EQ(entry->path.wstring(), L"smile.bmp");
+	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(L"normal", entry->method_name);
+	EXPECT_EQ(6110262, entry->stat.st_size);
+	{
+		std::vector<char> data;
+		for (;;) {
+			bool bEOF = false;
+			a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+				if (offset) {
+					data.resize(offset->offset);
+				}
+				if (buf) {
+					data.insert(data.end(), (const char*)buf, ((const char*)buf) + data_size);
+				} else {
+					bEOF = true;
+				}
+			});
+			if (bEOF) {
+				break;
+			}
+		}
+		EXPECT_EQ(data.size(), entry->stat.st_size);
+	}
+
+	entry = a.read_entry_next();
+	ASSERT_NE(nullptr, entry);
+	ASSERT_EQ(entry->path.wstring(), L"added_file.txt");
+	EXPECT_FALSE(entry->is_directory());
+	for (;;) {
+		bool bEOF = false;
+		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
+			if (!buf){
+				bEOF = true;
+			}
+		});
+		if (bEOF) {
+			break;
+		}
+	}
+	EXPECT_EQ(1000, entry->stat.st_size);
+}
