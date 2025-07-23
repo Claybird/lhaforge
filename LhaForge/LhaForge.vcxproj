@@ -390,10 +390,10 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\lib\x86</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x64\Debug;$(SolutionDir)\dependency\backends\bzip2\x64\Debug;$(SolutionDir)\dependency\backends\libiconv\x64\Debug\lib;$(SolutionDir)\dependency\backends\libcharset\x64\Debug;$(SolutionDir)\dependency\backends\lz4\x64\Debug\lib;$(SolutionDir)\dependency\backends\zlib-ng\x64\Debug\lib;$(SolutionDir)\dependency\backends\zstd\x64\Debug\lib;$(SolutionDir)\dependency\backends\liblzma\x64\Debug\lib;$(SolutionDir)\dependency\backends\unrar\build\x64\Debug</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;XmlLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -440,8 +440,8 @@
       <SubSystem>Console</SubSystem>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
-      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x86\Release;$(SolutionDir)\dependency\backends\bzip2\x86\Release;$(SolutionDir)\dependency\backends\libiconv\x86\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x86\Release;$(SolutionDir)\dependency\backends\lz4\x86\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x86\Release\lib;$(SolutionDir)\dependency\backends\zstd\x86\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x86\Release\lib;$(SolutionDir)\dependency\backends\unrar\build\x64\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x64\Release;$(SolutionDir)\dependency\backends\bzip2\x64\Release;$(SolutionDir)\dependency\backends\libiconv\x64\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x64\Release;$(SolutionDir)\dependency\backends\lz4\x64\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x64\Release\lib;$(SolutionDir)\dependency\backends\zstd\x64\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x64\Release\lib;$(SolutionDir)\dependency\backends\unrar\build\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;XmlLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -487,8 +487,8 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\lib\x86</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)\dependency\backends\libarchive\x64\Release;$(SolutionDir)\dependency\backends\bzip2\x64\Release;$(SolutionDir)\dependency\backends\libiconv\x64\Release\lib;$(SolutionDir)\dependency\backends\libcharset\x64\Release;$(SolutionDir)\dependency\backends\lz4\x64\Release\lib;$(SolutionDir)\dependency\backends\zlib-ng\x64\Release\lib;$(SolutionDir)\dependency\backends\zstd\x64\Release\lib;$(SolutionDir)\dependency\backends\liblzma\x64\Release\lib;$(SolutionDir)\dependency\backends\unrar\build\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;winmm.lib;XmlLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
