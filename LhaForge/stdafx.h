@@ -98,12 +98,6 @@ extern CAppModule _Module;
 
 #define ASSERT(x)	assert(x)
 #include "Utilities/StringUtil.h"
-//TRACE
-#if defined(_DEBUG) || defined(DEBUG)
-#define TRACE(fmt, ...)	OutputDebugString(Format(fmt, __VA_ARGS__).c_str())
-#else
-#define TRACE
-#endif
 
 
 // A macro to disallow the copy constructor and operator= functions

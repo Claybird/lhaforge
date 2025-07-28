@@ -31,7 +31,6 @@
 
 int ErrorMessage(const std::wstring& message)
 {
-	TRACE(L"ErrorMessage:%s\n", message.c_str());
 	return UtilMessageBox(NULL, message, MB_OK | MB_ICONSTOP);
 }
 
