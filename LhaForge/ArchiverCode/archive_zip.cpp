@@ -550,6 +550,7 @@ struct MINIZIP_WRITER {
 	void open(const std::filesystem::path& path,
 		bool append,	//true if adding to existing file
 		int method,
+		int level,
 		bool use_encryption,
 		int aes_enc)
 	{
@@ -562,6 +563,8 @@ struct MINIZIP_WRITER {
 		if (err != MZ_OK) {
 			RAISE_EXCEPTION(L"Failed to open file %s: %s", path.c_str(), mzError2Text(err).c_str());
 		}
+		mz_zip_writer_set_compress_level(writer, level);
+		mz_zip_writer_set_compress_method(writer, method);
 
 		if (use_encryption) {
 			_flag |= MZ_ZIP_FLAG_ENCRYPTED;
@@ -647,8 +650,9 @@ struct CLFArchiveZIP::INTERNAL {
 				method = (*iter).second;
 			}
 		}
+		int level;
 		{
-			int level = _wtoi(param.compression_level().c_str());
+			level = _wtoi(param.compression_level().c_str());
 			if (level < 0 || level>9) {
 				RAISE_EXCEPTION(L"Invalid compression level: %s", param.compression_level().c_str());
 			}
@@ -671,7 +675,7 @@ struct CLFArchiveZIP::INTERNAL {
 		}
 
 		bool use_encryption = ((options & LF_WOPT_DATA_ENCRYPTION) != 0);
-		_writer.open(path, append, method, use_encryption, aes_enc);
+		_writer.open(path, append, method, level, use_encryption, aes_enc);
 	}
 	bool is_read_mode()const {
 		return _reader.is_open();
