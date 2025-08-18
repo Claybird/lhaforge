@@ -77,6 +77,7 @@ std::filesystem::path LF_get_output_dir(
 		return UtilGetDesktopPath();
 	}
 }
+
 //check and ask for user options in case output dir is not suitable; true if user confirms to go
 bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesystem::path& outputDirIn)
 {
@@ -87,11 +88,11 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesyste
 		if (status.type() != std::filesystem::file_type::not_found &&
 			status.type() != std::filesystem::file_type::directory) {
 			//file with same name as the output directory already exists
-			return false;	//no need to confirm
+			return false;	//no need to confirm; it fails
 		}
 
 		switch (GetDriveType(outputDir.c_str())) {
-		case DRIVE_REMOVABLE://removable
+		case DRIVE_REMOVABLE: [[fallthrough]];//removable
 		case DRIVE_CDROM://CD-ROM
 			if (Conf.WarnRemovable) {
 				if (IDNO == UtilMessageBox(NULL, UtilLoadString(IDS_ASK_ISOK_REMOVABLE), MB_YESNO | MB_ICONQUESTION)) {
@@ -101,7 +102,7 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesyste
 				}
 			}
 			break;
-		case DRIVE_REMOTE://remote
+		case DRIVE_REMOTE: [[fallthrough]];
 		case DRIVE_NO_ROOT_DIR:
 			if (Conf.WarnNetwork) {
 				if (IDNO == UtilMessageBox(NULL, UtilLoadString(IDS_ASK_ISOK_NETWORK), MB_YESNO | MB_ICONQUESTION)) {
@@ -109,10 +110,15 @@ bool LF_confirm_output_dir_type(const CConfigGeneral &Conf, const std::filesyste
 				} else {
 					return true;
 				}
+			} else {
+				return true;
 			}
-			break;
+		case DRIVE_FIXED: [[fallthrough]];
+		case DRIVE_RAMDISK:
+			return true;
 		}
 
+		//in case output folder does not exist
 		if (outputDir.has_parent_path()) {
 			auto parent = outputDir.parent_path();
 			if (outputDir == parent) {

@@ -67,6 +67,7 @@ TEST(CommonUtil, LF_confirm_output_dir_type) {
 	conf.WarnNetwork = false;
 	EXPECT_TRUE(LF_confirm_output_dir_type(conf, L"C:/"));
 	EXPECT_TRUE(LF_confirm_output_dir_type(conf, L"C:/temp"));
+	EXPECT_TRUE(LF_confirm_output_dir_type(conf, L"C:/some_non_exisintg_dir"));
 }
 
 TEST(CommonUtil, LF_ask_and_make_sure_output_dir_exists) {
