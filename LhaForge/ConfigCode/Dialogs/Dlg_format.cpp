@@ -29,6 +29,10 @@ inline std::wstring mapConfigKeyToHumanReadableName(
 		{L"format_zip/encryption/aes128",IDS_ENCRYPTION_AES128},
 		{L"format_zip/encryption/aes192",IDS_ENCRYPTION_AES192},
 		{L"format_zip/encryption/aes256",IDS_ENCRYPTION_AES256},
+		{L"format_zip/zip64",IDS_ZIP64},
+		{L"format_zip/zip64/auto",IDS_GENERIC_AUTO},
+		{L"format_zip/zip64/force",IDS_GENERIC_FORCE_ENABLE},
+		{L"format_zip/zip64/disable",IDS_GENERIC_DISABLE},
 		//---
 		{L"format_7z",IDS_FORMAT_NAME_7Z},
 		{L"format_7z/compression",IDS_COMPRESS_METHOD},

@@ -89,6 +89,7 @@ public:
 	ELEMENT compression;
 	ELEMENT compression_level;
 	ELEMENT encryption;
+	ELEMENT zip64;
 public:
 	CConfigCompressFormatZIP() :CConfigCompressFormatBase(L"format_zip"),
 		compression{ L"compression", {
@@ -96,11 +97,13 @@ public:
 		compression_level{ L"compression-level",{
 			L"9",L"8",L"7",L"6",L"5",L"4",L"3",L"2",L"1",L"0"} },
 		encryption{ L"encryption",{
-			L"zipcrypto",L"aes256",L"aes192",L"aes128"} }
+			L"zipcrypto",L"aes256",L"aes192",L"aes128"} },
+		zip64{ L"zip64",{
+			L"auto",L"force",L"disable"} }
 	{}
 	virtual ~CConfigCompressFormatZIP() {}
-	virtual std::vector<const ELEMENT*> params()const override { return { &compression, &compression_level, &encryption }; }
-	virtual std::vector<ELEMENT*> params()override { return { &compression, &compression_level, &encryption }; }
+	virtual std::vector<const ELEMENT*> params()const override { return { &compression, &compression_level, &encryption, &zip64}; }
+	virtual std::vector<ELEMENT*> params()override { return { &compression, &compression_level, &encryption, &zip64 }; }
 };
 
 class CConfigCompressFormat7Z :public CConfigCompressFormatBase {

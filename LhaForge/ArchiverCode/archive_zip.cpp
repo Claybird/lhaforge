@@ -269,7 +269,7 @@ struct LF_zip_file :mz_zip_file {
 	std::string path_utf8;
 };
 
-static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int method, int optionalFlag, int aesFlag)
+static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, int method, int optionalFlag, int aesFlag, int zip64_opt)
 {
 	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
@@ -294,7 +294,7 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 	//file_info.extrafield
 	//file_info.comment
 	//file_info.linkname;           /* sym-link filename utf8 null-terminated string */
-	//file_info.zip64                     /* zip64 extension mode */
+	file_info.zip64 = zip64_opt;                    /* zip64 extension mode */
 	if (file_info.flag & MZ_ZIP_FLAG_ENCRYPTED) {
 		if (aesFlag == 0) {
 			file_info.aes_version = 0;/* winzip aes extension if not 0 */
@@ -533,6 +533,7 @@ struct MINIZIP_WRITER {
 	int _aes_encryption;
 	int _method;
 	int _flag;
+	int _zip64_opt = MZ_ZIP64_AUTO;
 
 	MINIZIP_WRITER(std::shared_ptr<MINIZIP_PASSPHRASE_BASE> pcb) :
 		_password_cb(pcb),
@@ -552,12 +553,14 @@ struct MINIZIP_WRITER {
 		int method,
 		int level,
 		bool use_encryption,
-		int aes_enc)
+		int aes_enc,
+		int zip64_opt)
 	{
 		close();
 		_path = path;
 		_method = method;
 		_flag = 0;
+		_zip64_opt = zip64_opt;
 
 		auto err = mz_zip_writer_open_file(writer, path.u8string().c_str(), 0, append);
 		if (err != MZ_OK) {
@@ -598,7 +601,7 @@ struct MINIZIP_WRITER {
 
 	void add(const LF_ENTRY_STAT& stat, std::function<LF_BUFFER_INFO()> dataProvider) {
 		LF_zip_file file_info;
-		build_file_info(file_info, stat, _method, _flag, _aes_encryption);
+		build_file_info(file_info, stat, _method, _flag, _aes_encryption, _zip64_opt);
 
 		if (stat.is_directory()) {
 			mz_zip_writer_add_info(writer, nullptr, nullptr, &file_info);
@@ -675,7 +678,24 @@ struct CLFArchiveZIP::INTERNAL {
 		}
 
 		bool use_encryption = ((options & LF_WOPT_DATA_ENCRYPTION) != 0);
-		_writer.open(path, append, method, level, use_encryption, aes_enc);
+
+		int zip64_opt = MZ_ZIP64_AUTO;
+		{
+			std::map<std::wstring, int> zip64Map = {
+				{ L"disable", MZ_ZIP64_DISABLE },
+				{ L"force", MZ_ZIP64_FORCE },
+				{ L"auto", MZ_ZIP64_AUTO },
+			};
+			auto zip64Str = toLower(param.zip64());
+			auto iter = zip64Map.find(zip64Str);
+			if (zip64Map.end() == iter) {
+				RAISE_EXCEPTION(L"Invalid zip64 flag: %s", zip64Str.c_str());
+			} else {
+				zip64_opt = (*iter).second;
+			}
+		}
+
+		_writer.open(path, append, method, level, use_encryption, aes_enc, zip64_opt);
 	}
 	bool is_read_mode()const {
 		return _reader.is_open();

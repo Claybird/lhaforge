@@ -1003,11 +1003,14 @@ BEGIN
     IDS_ERROR_INVALID_PARAMETER "Invalid parameter: '%s'"
     IDS_ARCLOG_KEEP         "Keep"
     IDS_FORMAT_NAME_TAR_LZ4 "TAR+LZ4"
+    IDS_GENERIC_AUTO        "Auto"
     IDS_ERROR_SAME_INPUT_AND_OUTPUT 
                             "Output file name must be different from source file '%s'"
     IDS_COMPRESS_LEVEL_FASTEST "Fast"
     IDS_COMPRESS_LEVEL_HIGH "High compression"
     IDS_ERROR_SINGLE_FILE_ONLY "This format can contain single file only"
+    IDS_GENERIC_FORCE_ENABLE "Force enabled"
+    IDS_GENERIC_DISABLE     "Disable"
     IDS_COMPRESS_LEVEL_EVEN_HIGHER "Even higher compression"
     IDS_COMPRESS_LEVEL_ULTRA "Maximum compression"
     IDS_COMPRESS_MULTI_THREAD "Multi-threaded"
@@ -1068,6 +1071,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMPRESS_MT_ALL_CORES "Enabled"
+    IDS_ZIP64               "ZIP64"
     IDS_FILELIST_COLUMN_FILENAME "File name"
     IDS_FILELIST_COLUMN_ORIGINALSIZE "Original size"
     IDS_FILELIST_COLUMN_FILETIME "Modified date"
@@ -2345,10 +2349,13 @@ BEGIN
     IDS_ERROR_INVALID_PARAMETER "'%s' は不正なオプションです"
     IDS_ARCLOG_KEEP         "保持"
     IDS_FORMAT_NAME_TAR_LZ4 "TAR+LZ4"
+    IDS_GENERIC_AUTO        "自動"
     IDS_ERROR_SAME_INPUT_AND_OUTPUT "'%s' は入力ファイルと同じ名前です。別の名前を指定してください。"
     IDS_COMPRESS_LEVEL_FASTEST "速度重視"
     IDS_COMPRESS_LEVEL_HIGH "圧縮率重視"
     IDS_ERROR_SINGLE_FILE_ONLY "この形式では複数のファイルを圧縮することは出来ません。"
+    IDS_GENERIC_FORCE_ENABLE "強制有効"
+    IDS_GENERIC_DISABLE     "無効"
     IDS_COMPRESS_LEVEL_EVEN_HIGHER "さらに圧縮率重視"
     IDS_COMPRESS_LEVEL_ULTRA "最高圧縮率"
     IDS_COMPRESS_MULTI_THREAD "マルチスレッド処理"
@@ -2407,6 +2414,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_COMPRESS_MT_ALL_CORES "有効"
+    IDS_ZIP64               "ZIP64"
     IDS_FILELIST_COLUMN_FILENAME "ファイル名"
     IDS_FILELIST_COLUMN_ORIGINALSIZE "元サイズ"
     IDS_FILELIST_COLUMN_FILETIME "更新日時"
