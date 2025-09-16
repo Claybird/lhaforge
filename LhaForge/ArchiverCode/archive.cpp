@@ -7,6 +7,29 @@
 #include "archive_rar.h"
 #include "resource.h"
 
+#include "Utilities/Utility.h"
+
+void LF_ENTRY_STAT::read_stat(const std::filesystem::path& src_path, const std::filesystem::path& stored_as)
+{
+	int e = _wstat64(src_path.c_str(), &stat);
+	if (e != 0) {
+		throw ARCHIVE_EXCEPTION(errno);
+	}
+
+	compressed_size = -1;
+	path = stored_as;
+	method_name.clear();
+	is_encrypted = false;
+
+	//read attributes of existing file using Win32API
+	DWORD fileAttributes = ::GetFileAttributesW(src_path.c_str());
+	if (fileAttributes == INVALID_FILE_ATTRIBUTES) {
+		throw ARCHIVE_EXCEPTION(UtilGetLastErrorMessage());
+	} else {
+		win32Attr = fileAttributes;
+	}
+}
+
 std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::path& path)
 {
 	if (CLFArchiveZIP::is_known_format(path))return std::make_unique<CLFArchiveZIP>();

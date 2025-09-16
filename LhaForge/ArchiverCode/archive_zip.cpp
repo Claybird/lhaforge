@@ -273,7 +273,7 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 {
 	file_info = {};
 	file_info.path_utf8 = stat.path.generic_u8string();
-	file_info.version_madeby = MZ_VERSION_MADEBY;
+	file_info.version_madeby = ((MZ_HOST_SYSTEM_MSDOS << 8) | (MZ_VERSION_MADEBY_ZIP_VERSION));//MZ_VERSION_MADEBY;
 	file_info.flag = MZ_ZIP_FLAG_UTF8 | optionalFlag;
 
 	file_info.compression_method = method;
@@ -283,8 +283,8 @@ static void build_file_info(LF_zip_file& file_info, const LF_ENTRY_STAT& stat, i
 	//file_info.compressed_size
 	file_info.uncompressed_size = stat.stat.st_size;
 	file_info.filename_size = (uint16_t)file_info.path_utf8.length();
-	//file_info.internal_fa
-	auto err = mz_zip_attrib_convert(MZ_HOST_SYSTEM_UNIX, stat.stat.st_mode, MZ_VERSION_MADEBY_HOST_SYSTEM, &file_info.external_fa);
+	//file_info.external_fa
+	auto err = mz_zip_attrib_convert(MZ_HOST_SYSTEM_WINDOWS_NTFS, stat.win32Attr, MZ_HOST_SYSTEM_MSDOS, &file_info.external_fa);
 	if (err != MZ_OK) {
 		RAISE_EXCEPTION(L"Failed to convert file attribute of %s: %s", stat.path.c_str(), mzError2Text(err).c_str());
 	}

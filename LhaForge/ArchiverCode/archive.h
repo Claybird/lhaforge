@@ -178,23 +178,17 @@ struct ILFScanProgressHandler {
 
 
 struct LF_ENTRY_STAT {
-	LF_ENTRY_STAT() {
-		stat = {};
-		compressed_size = -1;
-		is_encrypted = false;
-	}
-	virtual ~LF_ENTRY_STAT() {}
-	void read_stat(const std::filesystem::path& src_path, const std::filesystem::path& stored_as) {
-		int e = _wstat64(src_path.c_str(), &stat);
-		if (e != 0) {
-			throw ARCHIVE_EXCEPTION(errno);
-		}
+	struct _stat64 stat = {};
+	DWORD win32Attr = INVALID_FILE_ATTRIBUTES;
+	__int64 compressed_size = -1;	//-1 if unknown
+	std::filesystem::path path;	//stored-as
+	std::wstring method_name;
+	bool is_encrypted = false;
+	
+	virtual bool is_directory()const { return stat.st_mode & S_IFDIR; }
 
-		compressed_size = -1;
-		path = stored_as;
-		method_name.clear();
-		is_encrypted = false;
-	}
+	virtual ~LF_ENTRY_STAT() {}
+	void read_stat(const std::filesystem::path& src_path, const std::filesystem::path& stored_as);
 	void write_stat(const std::filesystem::path& dest_path)const {
 		struct __utimbuf64 ut;
 		ut.actime = stat.st_atime;
@@ -202,13 +196,6 @@ struct LF_ENTRY_STAT {
 
 		_wutime64(dest_path.c_str(), &ut);
 	}
-
-	struct _stat64 stat;
-	__int64 compressed_size;	//-1 if unknown
-	std::filesystem::path path;	//stored-as
-	std::wstring method_name;
-	bool is_encrypted;
-	virtual bool is_directory()const { return stat.st_mode & S_IFDIR; }
 };
 
 
