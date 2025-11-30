@@ -30,19 +30,6 @@
 #include "Utilities/FileOperation.h"
 #include "compress.h"
 
-enum class FILEINFO_TYPE : int {
-	INVALID = -1,
-	FILENAME,
-	FULLPATH,
-	ORIGINALSIZE,
-	TYPENAME,
-	FILETIME,
-	COMPRESSEDSIZE,
-	METHOD,
-	RATIO,		//compression ratio
-
-	ENUM_COUNT_AND_LASTITEM,
-};
 
 class CFileListModel:public CEventDispatcher
 {

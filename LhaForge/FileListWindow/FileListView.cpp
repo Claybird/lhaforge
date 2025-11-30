@@ -48,8 +48,8 @@ static const std::vector<COLUMN_DEFAULTS> g_defaults = {
 	{FILEINFO_TYPE::COMPRESSEDSIZE, IDS_FILELIST_COLUMN_COMPRESSEDSIZE, 90, LVCFMT_RIGHT},
 	{FILEINFO_TYPE::METHOD, IDS_FILELIST_COLUMN_METHOD, 60, LVCFMT_LEFT},
 	{FILEINFO_TYPE::RATIO, IDS_FILELIST_COLUMN_RATIO, 60, LVCFMT_RIGHT},
+	{FILEINFO_TYPE::ATTRIBUTE, IDS_FILELIST_COLUMN_ATTRIBUTE, 60, LVCFMT_RIGHT},
 };
-
 
 CFileListView::CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW):
 	CFileViewBase(rModel,r_confFLW),
@@ -241,6 +241,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		{FILEINFO_TYPE::COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
 		{FILEINFO_TYPE::METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
 		{FILEINFO_TYPE::RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
+		{FILEINFO_TYPE::ATTRIBUTE,		ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE},
 	};
 
 	for(const auto &item: menuTable){
@@ -253,7 +254,7 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		point.x, point.y, m_hWnd, NULL);
 	if(0==nRet){
 		//Not selected
-		return 0;
+		return 1;
 	}else if(ID_MENUITEM_LISTVIEW_COLUMN_RESET==nRet){
 		//reset
 		for (size_t i = 0; i < g_defaults.size();i++) {
@@ -485,6 +486,25 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 			}
 		}
 		break;
+	case FILEINFO_TYPE::ATTRIBUTE:
+		if (pstLVDInfo->item.mask & LVIF_TEXT) {
+			info = L"";
+			if (lpNode->_entry.stat.st_mode & _S_IFDIR) {
+				info += L'D';
+			} else {
+				info += L'-';
+			}
+			if (lpNode->_entry.stat.st_mode & _S_IWRITE) {
+				info += L'-';
+			} else {
+				info += L'R';
+			}
+		}
+		break;
+#ifndef NDEBUG
+	default:
+		RAISE_EXCEPTION(L"Not implemented");
+#endif
 	}
 
 	if (pstLVDInfo->item.mask & LVIF_TEXT) {

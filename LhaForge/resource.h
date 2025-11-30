@@ -67,6 +67,7 @@
 #define IDS_COMPRESS_MULTI_THREAD       63
 #define IDS_COMPRESS_MT_ALL_CORES       64
 #define IDS_ZIP64                       65
+#define IDS_FILELIST_COLUMN_ATTRIBUTE   66
 #define IDS_FILELIST_COLUMN_FILENAME    67
 #define IDS_FILELIST_COLUMN_ORIGINALSIZE 68
 #define IDS_FILELIST_COLUMN_FILETIME    69
@@ -455,6 +456,10 @@
 #define ID_MENUITEM_COPY_ALL            40155
 #define ID_MENUITEM_ASSOC_ICON          40159
 #define ID_MENUITEM_KEEP_ARCHIVE_TIMESTAMP 40164
+#define ID_BASE_40165                   40165
+#define ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE 40166
+#define ID_BASE_ATTRIBUTES              40167
+#define ID_40168                        40168
 #define ATL_IDS_IDLEMESSAGE             0xE001
 
 // Next default values for new objects
@@ -462,7 +467,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        206
-#define _APS_NEXT_COMMAND_VALUE         40165
+#define _APS_NEXT_COMMAND_VALUE         40169
 #define _APS_NEXT_CONTROL_VALUE         1328
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
