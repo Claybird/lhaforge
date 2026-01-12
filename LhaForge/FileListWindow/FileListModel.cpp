@@ -135,7 +135,7 @@ TEST(FileListWindow, sort_by_name)
 	root.addEntry({ L"file101.txt" });
 	root.addEntry({ L"file00.txt" });
 	root.addEntry({ L"file2.txt" });
-	FILELIST_SORT_COMPARATOR comp;
+	FILEINFO_SORT_COMPARATOR comp;
 	comp.Type = FILEINFO_TYPE::FILENAME;
 	comp.bReversed = false;
 	std::sort(root._children.begin(), root._children.end(), comp);
