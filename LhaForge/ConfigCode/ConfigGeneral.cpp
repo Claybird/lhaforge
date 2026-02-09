@@ -90,3 +90,16 @@ void CConfigGeneral::storeGeneral(CConfigFile &Config)const
 	Config.setValue(section, L"TempPath", TempPath);
 }
 
+void CConfigGeneral::loadShellExt(const CConfigFile &Config)
+{
+	const auto section = L"ShellExt";
+
+	ShellExtStyle = Config.getInt(section, L"MenuMode", 0);
+}
+
+void CConfigGeneral::storeShellExt(CConfigFile& Config)const
+{
+	const auto section = L"ShellExt";
+
+	Config.setValue(section, L"MenuMode", ShellExtStyle);
+}

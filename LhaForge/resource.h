@@ -195,6 +195,7 @@
 #define IDC_GITHUB                      1003
 #define IDC_CHECK_SHELL_EXT             1004
 #define IDC_RADIO_COMPRESS_TO_DESKTOP   1005
+#define IDC_CHECK_SHELL_EXT2            1005
 #define IDC_RADIO_COMPRESS_TO_SAME_DIR  1006
 #define IDC_RADIO_COMPRESS_TO_SPECIFIC_DIR 1007
 #define IDC_RADIO_COMPRESS_TO_ALWAYS_ASK_WHERE 1008
@@ -376,6 +377,9 @@
 #define IDC_CONDITION_DATE              1322
 #define IDC_BUTTON_PAUSE                1324
 #define IDC_STATIC_HASH                 1327
+#define IDC_SHELLEXT_STYLE_DEFAULT      1328
+#define IDC_SHELLEXT_STYLE_UNIFIED      1329
+#define IDC_SHELLEXT_STYLE_CONVENTIONAL 1330
 #define IDI_APP                         2000
 #define IDI_APP_COMPRESS                2001
 #define IDI_APP_EXTRACT                 2002
@@ -468,7 +472,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        206
 #define _APS_NEXT_COMMAND_VALUE         40169
-#define _APS_NEXT_CONTROL_VALUE         1328
+#define _APS_NEXT_CONTROL_VALUE         1329
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

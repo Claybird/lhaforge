@@ -38,6 +38,8 @@ public:
 	int/*LOSTDIR*/ OnDirNotFound;
 	int/*LOGVIEW*/ LogViewEvent;
 
+	int ShellExtStyle = 0;
+
 	std::wstring TempPath;
 protected:
 	void loadOutput(const CConfigFile&);
@@ -48,6 +50,8 @@ protected:
 	void storeLogView(CConfigFile&)const;
 	void loadGeneral(const CConfigFile&);
 	void storeGeneral(CConfigFile&)const;
+	void loadShellExt(const CConfigFile&);
+	void storeShellExt(CConfigFile&)const;
 public:
 	virtual ~CConfigGeneral(){}
 	virtual void load(const CConfigFile& Config) {
@@ -55,12 +59,14 @@ public:
 		loadLogView(Config);
 		loadFiler(Config);
 		loadGeneral(Config);
+		loadShellExt(Config);
 	}
 	virtual void store(CConfigFile& Config)const {
 		storeOutput(Config);
 		storeLogView(Config);
 		storeFiler(Config);
 		storeGeneral(Config);
+		storeShellExt(Config);
 	}
 };
 

@@ -43,14 +43,19 @@ protected:
 	std::map<std::wstring, std::vector<KVPAIR>> _requests;
 
 	LRESULT OnInitDialog(HWND hWnd, LPARAM lParam) {
+		Check_ShellExt = GetDlgItem(IDC_CHECK_SHELL_EXT);
+		auto isShellExtActive = ShellRegistCheck();
+		Check_ShellExt.SetCheck(ShellRegistCheck());
+
 		::EnableWindow(GetDlgItem(IDC_EDIT_FILER_PATH), m_Config.Filer.UseFiler);
 		::EnableWindow(GetDlgItem(IDC_EDIT_FILER_PARAM), m_Config.Filer.UseFiler);
 		::EnableWindow(GetDlgItem(IDC_BUTTON_BROWSE_FILER), m_Config.Filer.UseFiler);
+		::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_DEFAULT), isShellExtActive);
+		::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_UNIFIED), isShellExtActive);
+		::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_CONVENTIONAL), isShellExtActive);
+
 		//DDX
 		DoDataExchange(FALSE);
-
-		Check_ShellExt = GetDlgItem(IDC_CHECK_SHELL_EXT);
-		Check_ShellExt.SetCheck(ShellRegistCheck());
 		return TRUE;
 	}
 	LRESULT OnCheckFiler(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
@@ -97,6 +102,11 @@ protected:
 	LRESULT OnShellExt(WORD wNotifyCode, WORD wID, HWND hWndCtl, BOOL& bHandled) {
 		if (BN_CLICKED == wNotifyCode) {
 			mr_ConfigDlg.RequireAssistant();
+
+			BOOL isShellExtActive = IsDlgButtonChecked(IDC_CHECK_SHELL_EXT);
+			::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_DEFAULT), isShellExtActive);
+			::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_UNIFIED), isShellExtActive);
+			::EnableWindow(GetDlgItem(IDC_SHELLEXT_STYLE_CONVENTIONAL), isShellExtActive);
 		}
 		return 0;
 	}
@@ -111,6 +121,8 @@ public:
 		DDX_CHECK(IDC_CHECK_USE_FILER, m_Config.Filer.UseFiler)
 		DDX_TEXT(IDC_EDIT_FILER_PATH, m_Config.Filer.FilerPath)
 		DDX_TEXT(IDC_EDIT_FILER_PARAM, m_Config.Filer.Param)
+
+		DDX_RADIO(IDC_SHELLEXT_STYLE_DEFAULT, m_Config.ShellExtStyle)
 	END_DDX_MAP()
 
 	BEGIN_MSG_MAP_EX(CConfigDlgGeneral)
