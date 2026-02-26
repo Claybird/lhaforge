@@ -325,9 +325,9 @@ void LF_setProcessTempPath(const std::filesystem::path& path)
 
 const char* CLFPassphraseGUI::operator()()
 {
-	if (raw.empty()) {
+	if (wide.empty()) {
 		CTextInputDialog dlg(UtilLoadString(IDS_ENTER_PASSPHRASE), true);
-		dlg.SetInputText(raw);
+		dlg.SetInputText(wide);
 		if (IDOK == dlg.DoModal()) {
 			set_passphrase(dlg.GetInputText());
 			return utf8.c_str();

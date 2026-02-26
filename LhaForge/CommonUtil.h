@@ -73,7 +73,7 @@ struct CLFPassphraseGUI:public ILFPassphrase {
 	virtual ~CLFPassphraseGUI() {}
 	const char* operator()()override;
 	void request_renew()override {
-		raw.clear();
+		wide.clear();
 	}
 };
 
@@ -101,6 +101,13 @@ struct CLFPassphraseArray :public ILFPassphrase {
 		} else {
 			set_passphrase(passwords[index]);
 			return utf8.c_str();
+		}
+	}
+	const wchar_t* wide_passphrase()const override{
+		if (index < 0 || passwords.size() <= (size_t)index) {
+			return nullptr;
+		} else {
+			return wide.c_str();
 		}
 	}
 	void request_renew()override {

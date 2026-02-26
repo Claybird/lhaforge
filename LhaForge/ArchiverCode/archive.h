@@ -140,16 +140,18 @@ struct LF_BUFFER_INFO {
 };
 
 struct ILFPassphrase {
+protected:
+	std::wstring wide;
+	std::string utf8;
+public:
 	virtual ~ILFPassphrase() {}
 	void set_passphrase(const std::wstring& p) {
-		raw = p;
-		utf8 = UtilToUTF8(raw);
+		wide = p;
+		utf8 = UtilToUTF8(wide);
 	}
 	virtual void request_renew() = 0;
-
-	std::wstring raw;
-	std::string utf8;
 	virtual const char* operator()() = 0;
+	virtual const wchar_t* wide_passphrase()const { return wide.c_str(); }
 };
 
 struct ILFProgressHandler {
