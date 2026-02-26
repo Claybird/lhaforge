@@ -26,8 +26,8 @@
 #include "../archive_rar.h"
 #include "Utilities/Utility.h"
 #include "CommonUtil.h"
-#undef WINVER	//to avoid compiler warning
-#undef _WIN32_WINNT	//to avoid compiler warning
+//#undef WINVER	//to avoid compiler warning
+//#undef _WIN32_WINNT	//to avoid compiler warning
 #define RARDLL
 #include <unrar/rar.hpp>
 #include <unrar/dll.hpp>
@@ -339,13 +339,15 @@ TEST(CLFArchiveRAR, rar_multipart_not_from_0001)
 
 TEST(CLFArchiveRAR, rar_multi_password)
 {
+	_wsetlocale(LC_ALL, L"");	//default locale
+
 	auto file = LF_PROJECT_DIR() / L"test/smile_multi_encrypted.rar";
 	CLFArchiveRAR a;
 	EXPECT_TRUE(a.is_known_format(file));
 
 	//auto pp = std::make_shared<CLFPassphraseConst>(L"password");
 	auto pp = std::make_shared<CLFPassphraseArray>();
-	pp->passwords = { L"password",L"abcde" };
+	pp->passwords = { L"password",L"12345" };
 	a.read_open(file, pp);
 	EXPECT_FALSE(a.is_modify_supported());
 	EXPECT_EQ(L"RAR", a.get_format_name());
@@ -381,10 +383,14 @@ TEST(CLFArchiveRAR, rar_multi_password)
 	ASSERT_NE(nullptr, entry);
 	ASSERT_EQ(entry->path.wstring(), L"added_file.txt");
 	EXPECT_FALSE(entry->is_directory());
+	EXPECT_EQ(1000, entry->stat.st_size);
+	size_t read_size = 0;
 	for (;;) {
 		bool bEOF = false;
 		a.read_file_entry_block([&](const void* buf, size_t data_size, const offset_info* offset) {
-			if (!buf){
+			if (buf) {
+				read_size += data_size;
+			} else {
 				bEOF = true;
 			}
 		});
@@ -392,5 +398,5 @@ TEST(CLFArchiveRAR, rar_multi_password)
 			break;
 		}
 	}
-	EXPECT_EQ(1000, entry->stat.st_size);
+	EXPECT_EQ(1000, read_size);
 }

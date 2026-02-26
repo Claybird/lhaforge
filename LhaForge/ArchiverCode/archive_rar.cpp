@@ -25,8 +25,8 @@
 #include "stdafx.h"
 #include "archive_rar.h"
 #include "Utilities/Utility.h"
-#undef WINVER	//to avoid compiler warning
-#undef _WIN32_WINNT	//to avoid compiler warning
+//#undef WINVER	//to avoid compiler warning
+//#undef _WIN32_WINNT	//to avoid compiler warning
 #define RARDLL
 #include <unrar/rar.hpp>
 #include <unrar/dll.hpp>
@@ -121,30 +121,6 @@ struct CLFArchiveRAR::INTERNAL
 		close();
 	}
 
-	static int RarErrorToDll(RAR_EXIT ErrCode){
-		switch (ErrCode) {
-		case RARX_FATAL:
-		case RARX_READ:
-			return ERAR_EREAD;
-		case RARX_CRC:
-			return ERAR_BAD_DATA;
-		case RARX_WRITE:
-			return ERAR_EWRITE;
-		case RARX_OPEN:
-			return ERAR_EOPEN;
-		case RARX_CREATE:
-			return ERAR_ECREATE;
-		case RARX_MEMORY:
-			return ERAR_NO_MEMORY;
-		case RARX_BADPWD:
-			return ERAR_BAD_PASSWORD;
-		case RARX_SUCCESS:
-			return ERAR_SUCCESS; // 0.
-		default:
-			return ERAR_UNKNOWN;
-		}
-	}
-
 	void close() {
 		if (arc) {
 			RARCloseArchive(arc);
@@ -219,19 +195,7 @@ struct CLFArchiveRAR::INTERNAL
 		}
 		data_receiver = receiver;
 		bEntryRead = true;
-		for (;;) {
-			int ret = RARProcessFileW(arc, RAR_TEST, nullptr, nullptr);	//RAR_EXTRACT will generate actual file
-			if (ret == ERAR_BAD_PASSWORD) {
-				passphrase_callback->request_renew();
-				if (passphrase_callback->utf8.empty()) {
-					return ret;
-				} else {
-					RARSetPassword(arc, &passphrase_callback->utf8[0]);
-				}
-			} else {
-				return ret;
-			}
-		}
+		return RARProcessFileW(arc, RAR_TEST, nullptr, nullptr);	//RAR_EXTRACT will generate actual file
 	}
 
 	static int CALLBACK rar_event_handler(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2) {
@@ -251,7 +215,7 @@ struct CLFArchiveRAR::INTERNAL
 			auto pwdA = cb->operator()();
 			if (pwdA) {
 				//got some password input
-				wcsncpy_s((wchar_t*)P1, P2, cb->raw.c_str(), P2);
+				wcsncpy_s((wchar_t*)P1, P2, cb->wide_passphrase(), P2);
 				return 0;
 			} else {
 				return -1;
