@@ -51,6 +51,28 @@ static const std::vector<COLUMN_DEFAULTS> g_defaults = {
 	{FILEINFO_TYPE::ATTRIBUTE, IDS_FILELIST_COLUMN_ATTRIBUTE, 60, LVCFMT_RIGHT},
 };
 
+static UINT stringID_for_type(FILEINFO_TYPE type)
+{
+	for (const auto& c : g_defaults) {
+		if (c.type == type) {
+			return c.resourceID;
+		}
+	}
+	return -1;
+}
+
+static const std::vector<std::pair<FILEINFO_TYPE, UINT>> g_menuTable = {
+	{FILEINFO_TYPE::FULLPATH,		ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH},
+	{FILEINFO_TYPE::ORIGINALSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE},
+	{FILEINFO_TYPE::TYPENAME,		ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME},
+	{FILEINFO_TYPE::FILETIME,		ID_MENUITEM_LISTVIEW_COLUMN_FILETIME},
+	{FILEINFO_TYPE::COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
+	{FILEINFO_TYPE::METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
+	{FILEINFO_TYPE::RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
+	{FILEINFO_TYPE::ATTRIBUTE,		ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE},
+};
+
+
 CFileListView::CFileListView(CFileListModel& rModel, const CConfigFileListWindow &r_confFLW):
 	CFileViewBase(rModel,r_confFLW),
 	m_bDisplayFileSizeInByte(false),
@@ -230,23 +252,9 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 	std::array<int, (int)FILEINFO_TYPE::ItemCount> columnWidthArray;
 	GetColumnState(columnOrder, columnWidthArray);
 
-	struct{
-		FILEINFO_TYPE type;
-		UINT nMenuID;
-	}menuTable[]={
-		{FILEINFO_TYPE::FULLPATH,		ID_MENUITEM_LISTVIEW_COLUMN_FULLPATH},
-		{FILEINFO_TYPE::ORIGINALSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_ORIGINALSIZE},
-		{FILEINFO_TYPE::TYPENAME,		ID_MENUITEM_LISTVIEW_COLUMN_TYPENAME},
-		{FILEINFO_TYPE::FILETIME,		ID_MENUITEM_LISTVIEW_COLUMN_FILETIME},
-		{FILEINFO_TYPE::COMPRESSEDSIZE,	ID_MENUITEM_LISTVIEW_COLUMN_COMPRESSEDSIZE},
-		{FILEINFO_TYPE::METHOD,			ID_MENUITEM_LISTVIEW_COLUMN_METHOD},
-		{FILEINFO_TYPE::RATIO,			ID_MENUITEM_LISTVIEW_COLUMN_RATIO},
-		{FILEINFO_TYPE::ATTRIBUTE,		ID_MENUITEM_LISTVIEW_COLUMN_ATTRIBUTE},
-	};
-
-	for(const auto &item: menuTable){
-		bool bEnabled=(-1!=index_of(columnOrder, (int)item.type));
-		cSubMenu.CheckMenuItem(item.nMenuID,MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
+	for (const auto [type, nMenu] : g_menuTable) {
+		bool bEnabled=(-1!=index_of(columnOrder, (int)type));
+		cSubMenu.CheckMenuItem(nMenu, MF_BYCOMMAND|(bEnabled?MF_CHECKED:MF_UNCHECKED));
 	}
 
 	int nRet = cSubMenu.TrackPopupMenu(
@@ -263,9 +271,9 @@ LRESULT CFileListView::OnColumnRClick(int /*idCtrl*/, LPNMHDR pnmh, BOOL& bHandl
 		}
 	}else{
 		auto size = columnOrder.size();
-		for (const auto &item : menuTable) {
-			if (item.nMenuID == nRet) {
-				auto type = (int)item.type;
+		for (const auto [_type, nMenu] : g_menuTable) {
+			if (nMenu == nRet) {
+				auto type = (int)_type;
 				for (size_t i = 0; i < size; i++) {
 					if (type == columnOrder[i]) {
 						//disable existing, slide items
@@ -409,6 +417,80 @@ DWORD CFileListView::OnItemPrePaint(int nID, LPNMCUSTOMDRAW lpnmcd)
 	return CDRF_DODEFAULT;
 }
 
+std::wstring CFileListView::fileInfoHelper(
+	FILEINFO_TYPE type,
+	const ARCHIVE_ENTRY_INFO* lpNode,
+	bool followConfig
+)//NOTE: cannot set "const" because of m_ShellDataManager
+{
+	switch (type) {
+	case FILEINFO_TYPE::FILENAME:
+		return lpNode->_entryName;
+	case FILEINFO_TYPE::FULLPATH:
+		if (followConfig && m_bPathOnly) {
+			return lpNode->_entry.path.parent_path();
+		} else {
+			return lpNode->_entry.path;
+		}
+		break;
+	case FILEINFO_TYPE::ORIGINALSIZE:
+		if (!followConfig || m_bDisplayFileSizeInByte) {
+			return Format(L"%llu", lpNode->_originalSize);
+		} else {
+			return UtilFormatSize(lpNode->_originalSize);
+		}
+		break;
+	case FILEINFO_TYPE::TYPENAME:
+		return m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());
+	case FILEINFO_TYPE::FILETIME:
+		if (lpNode->_entry.path.empty()) {
+			return L"---";
+		} else {
+			return UtilFormatTime(lpNode->_entry.stat.st_mtime);
+		}
+		break;
+	case FILEINFO_TYPE::COMPRESSEDSIZE:
+		if (lpNode->_entry.compressed_size == -1) {
+			return L"---";
+		} else {
+			if (!followConfig || m_bDisplayFileSizeInByte) {
+				return Format(L"%llu", lpNode->_entry.compressed_size);
+			} else {
+				return UtilFormatSize(lpNode->_entry.compressed_size);
+			}
+		}
+		break;
+	case FILEINFO_TYPE::METHOD:
+		return lpNode->_entry.method_name;
+	case FILEINFO_TYPE::RATIO:
+		if (lpNode->_entry.compressed_size == -1) {
+			return L"---";
+		} else {
+			return Format(L"%.2f%%", lpNode->compress_ratio());
+		}
+		break;
+	case FILEINFO_TYPE::ATTRIBUTE:
+	{
+		std::wstring info = L"";
+		if (lpNode->_entry.stat.st_mode & _S_IFDIR) {
+			info += L'D';
+		} else {
+			info += L'-';
+		}
+		if (lpNode->_entry.stat.st_mode & _S_IWRITE) {
+			info += L'-';
+		} else {
+			info += L'R';
+		}
+		return info;
+	}
+	default:
+		return L"";
+#ifndef NDEBUG
+		RAISE_EXCEPTION(L"Not implemented");
+#endif
+	}
+}
 
 //item information
 LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
@@ -421,93 +503,15 @@ LRESULT CFileListView::OnGetDispInfo(LPNMHDR pnmh)
 	ASSERT(pstLVDInfo->item.iSubItem>=0 && pstLVDInfo->item.iSubItem<(int)FILEINFO_TYPE::ItemCount);
 	if (pstLVDInfo->item.iSubItem < 0 || pstLVDInfo->item.iSubItem >= (int)FILEINFO_TYPE::ItemCount)return 0;
 
-	std::wstring info;
-	switch((FILEINFO_TYPE)(m_ColumnIndexArray[pstLVDInfo->item.iSubItem])){
-	case FILEINFO_TYPE::FILENAME:
-		if (pstLVDInfo->item.mask & LVIF_TEXT)info = lpNode->_entryName;
-		if (pstLVDInfo->item.mask & LVIF_IMAGE)pstLVDInfo->item.iImage = m_ShellDataManager.GetIconIndex(lpNode->getExt().c_str());
-		break;
-	case FILEINFO_TYPE::FULLPATH:
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			if(m_bPathOnly){
-				info = lpNode->_entry.path.parent_path();
-			}else{
-				info = lpNode->_entry.path;
-			}
+	auto type = (FILEINFO_TYPE)(m_ColumnIndexArray[pstLVDInfo->item.iSubItem]);
+	if(type == FILEINFO_TYPE::FILENAME){
+		if (pstLVDInfo->item.mask & LVIF_IMAGE) {
+			pstLVDInfo->item.iImage = m_ShellDataManager.GetIconIndex(lpNode->getExt().c_str());
 		}
-		break;
-	case FILEINFO_TYPE::ORIGINALSIZE:
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			if (m_bDisplayFileSizeInByte) {
-				info = Format(L"%llu", lpNode->_originalSize);
-			}else{
-				info = UtilFormatSize(lpNode->_originalSize);
-			}
-		}
-		break;
-	case FILEINFO_TYPE::TYPENAME:
-		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			info = m_ShellDataManager.GetTypeName(lpNode->getExt().c_str());
-		}
-		break;
-	case FILEINFO_TYPE::FILETIME:
-		if(pstLVDInfo->item.mask & LVIF_TEXT){
-			if (lpNode->_entry.path.empty()) {
-				info = L"---";
-			} else {
-				info = UtilFormatTime(lpNode->_entry.stat.st_mtime);
-			}
-		}
-		break;
-	case FILEINFO_TYPE::COMPRESSEDSIZE:
-		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			if (lpNode->_entry.compressed_size == -1) {
-				info = L"---";
-			} else {
-				if (m_bDisplayFileSizeInByte) {
-					info = Format(L"%llu", lpNode->_entry.compressed_size);
-				} else {
-					info = UtilFormatSize(lpNode->_entry.compressed_size);
-				}
-			}
-		}
-		break;
-	case FILEINFO_TYPE::METHOD:
-		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			info = lpNode->_entry.method_name;
-		}
-		break;
-	case FILEINFO_TYPE::RATIO:
-		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			if (lpNode->_entry.compressed_size == -1) {
-				info = L"---";
-			} else {
-				info = Format(L"%.2f%%", lpNode->compress_ratio());
-			}
-		}
-		break;
-	case FILEINFO_TYPE::ATTRIBUTE:
-		if (pstLVDInfo->item.mask & LVIF_TEXT) {
-			info = L"";
-			if (lpNode->_entry.stat.st_mode & _S_IFDIR) {
-				info += L'D';
-			} else {
-				info += L'-';
-			}
-			if (lpNode->_entry.stat.st_mode & _S_IWRITE) {
-				info += L'-';
-			} else {
-				info += L'R';
-			}
-		}
-		break;
-#ifndef NDEBUG
-	default:
-		RAISE_EXCEPTION(L"Not implemented");
-#endif
 	}
 
 	if (pstLVDInfo->item.mask & LVIF_TEXT) {
+		auto info = fileInfoHelper(type, lpNode, true);
 		wcsncpy_s(pstLVDInfo->item.pszText, pstLVDInfo->item.cchTextMax, info.c_str(), pstLVDInfo->item.cchTextMax);
 	}
 	return 0;
@@ -526,24 +530,9 @@ LRESULT CFileListView::OnGetInfoTip(LPNMHDR pnmh)
 		strInfo += UtilLoadString(IDS_ERROR_UNICODECONTROL) + L"\n";
 	}
 
-	//filename
-	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_FILENAME);
-	strInfo += L" : " + lpNode->_entryName + L"\n";
-	//path
-	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_FULLPATH);
-	strInfo += L" : " + lpNode->_entry.path.wstring() + L"\n";
-	//original size
-	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_ORIGINALSIZE);
-	strInfo += L" : " + UtilFormatSize(lpNode->_originalSize) + L"\n";
-	//filetype
-	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_TYPENAME);
-	strInfo += L" : " + m_ShellDataManager.GetTypeName(lpNode->getExt().c_str()) + L"\n";
-	//filetime
-	strInfo += UtilLoadString(IDS_FILELIST_COLUMN_FILETIME);
-	if (lpNode->_entry.path.empty()) {
-		strInfo += L" : ---\n";
-	}else{
-		strInfo += L" : " + UtilFormatTime(lpNode->_entry.stat.st_mtime) + L"\n";
+	for (const auto [type, nMenuID] : g_menuTable) {
+		strInfo += UtilLoadString(stringID_for_type(type));
+		strInfo += L" : " + fileInfoHelper(type, lpNode, true) + L"\n";
 	}
 
 	if (lpNode->is_directory()) {
@@ -643,83 +632,56 @@ void CFileListView::OnCopyInfo(UINT uNotifyCode,int nID,HWND hWndCtrl)
 {
 	auto items = GetSelectedItems();
 
-	std::wstring info;
+	struct COPYSUBJECTS {
+		UINT nID;
+		FILEINFO_TYPE type;
+	};
+	const std::vector<COPYSUBJECTS> copySubjects = {
+		{ ID_MENUITEM_COPY_FILENAME, FILEINFO_TYPE::FILENAME},
+		{ ID_MENUITEM_COPY_PATH, FILEINFO_TYPE::FULLPATH},
+		{ ID_MENUITEM_COPY_ORIGINAL_SIZE, FILEINFO_TYPE::ORIGINALSIZE},
+		{ ID_MENUITEM_COPY_FILETYPE, FILEINFO_TYPE::TYPENAME },
+		{ ID_MENUITEM_COPY_FILETIME, FILEINFO_TYPE::FILETIME },
+		{ ID_MENUITEM_COPY_METHOD, FILEINFO_TYPE::METHOD},
+		{ ID_MENUITEM_COPY_COMPRESSED_SIZE, FILEINFO_TYPE::COMPRESSEDSIZE},
+		{ ID_MENUITEM_COPY_COMPRESSION_RATIO, FILEINFO_TYPE::RATIO},
+		{ ID_MENUITEM_COPY_ATTRIBUTE, FILEINFO_TYPE::ATTRIBUTE},
+		//{ ID_MENUITEM_COPY_ALL, FILEINFO_TYPE::INVALID}
+	};
 
-	switch (nID) {
-	case ID_MENUITEM_COPY_FILENAME:
-		info = L"FileName\n";
-		for (const auto& item : items) {
-			info += item->_entryName + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_PATH:
-		info = L"FullPath\n";
-		for (const auto& item : items) {
-			info += item->_entry.path.wstring() + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_ORIGINAL_SIZE:
-		info = L"OriginalSize\n";
-		for (const auto& item : items) {
-			info += Format(L"%llu", item->_originalSize) + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_FILETYPE:
-		info = L"FileType\n";
-		for (const auto& item : items) {
-			info += m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_FILETIME:
-		info = L"FileTime\n";
-		for (const auto& item : items) {
-			info += (item->_entry.stat.st_mtime == 0 ? L"---\n" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\n"));
-		}
-		break;
-	case ID_MENUITEM_COPY_METHOD:
-		info = L"Method\n";
-		for (const auto& item : items) {
-			info += item->_entry.method_name + L"\n";
-		}
-		break;
-	case ID_MENUITEM_COPY_COMPRESSED_SIZE:
-		info = L"CompressedSize\n";
-		for (const auto& item : items) {
-			if (item->_entry.compressed_size == -1) {
-				info += std::wstring(L"---\n");
+	std::wstring info;
+	if (nID == ID_MENUITEM_COPY_ALL) {
+		//header
+		for (size_t i = 0; i < copySubjects.size(); i++) {
+			info += UtilLoadString(stringID_for_type(copySubjects[i].type));
+			if (i == copySubjects.size() - 1) {
+				info += L"\n";
 			} else {
-				info += Format(L"%llu", item->_entry.compressed_size) + L"\n";
+				info += L",";
 			}
 		}
-		break;
-	case ID_MENUITEM_COPY_COMPRESSION_RATIO:
-		info = L"CompressionRatio\n";
+		//content
 		for (const auto& item : items) {
-			if (item->_entry.compressed_size == -1) {
-				info += std::wstring(L"---\n");
-			} else {
-				info += Format(L"%.2f%%", item->compress_ratio()) + L"\n";
+			for (size_t i = 0; i < copySubjects.size(); i++) {
+				info += fileInfoHelper(copySubjects[i].type, item, false);
+				if (i == copySubjects.size() - 1) {
+					info += L"\n";
+				} else {
+					info += L",";
+				}
 			}
 		}
-		break;
-	case ID_MENUITEM_COPY_ALL:
-	default:
-		info = L"FileName\tFullPath\tOriginalSize\tFileType\tFileTime\tMethod\tCompressedSize\tCompressionRatio\n";
-		for (const auto& item : items) {
-			info += item->_entryName + L"\t" +
-				item->_entry.path.wstring() + L"\t" +
-				Format(L"%llu", item->_originalSize) + L"\t" +
-				m_ShellDataManager.GetTypeName(item->getExt().c_str()) + L"\t" +
-				(item->_entry.stat.st_mtime == 0 ? L"---\t" : (UtilFormatTime(item->_entry.stat.st_mtime) + L"\t")) +
-				item->_entry.method_name + L"\t";
-			if (item->_entry.compressed_size == -1) {
-				info += std::wstring(L"---\t---\n");
-			} else {
-				info += Format(L"%llu", item->_entry.compressed_size) + L"\t" +
-					Format(L"%.2f%%", item->compress_ratio()) + L"\n";
+	} else {
+		for (const auto & cs : copySubjects) {
+			if (cs.nID == nID) {
+				info += UtilLoadString(stringID_for_type(cs.type));
+				info += L"\n";
+				for (const auto& item : items) {
+					info += fileInfoHelper(cs.type, item, false) + L"\n";
+				}
+				break;
 			}
 		}
-		break;
 	}
 
 	UtilSetTextOnClipboard(info);

@@ -112,6 +112,7 @@ protected:
 	}
 	void OnAddItems(UINT,int,HWND);
 	void OnCopyInfo(UINT,int,HWND);
+	std::wstring fileInfoHelper(FILEINFO_TYPE, const ARCHIVE_ENTRY_INFO*, bool followConfig);
 public:
 	LRESULT OnColumnRClick(int, LPNMHDR pnmh, BOOL& bHandled);
 	void SortItem(int iCol);

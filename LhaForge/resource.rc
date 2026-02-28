@@ -202,7 +202,7 @@ CAPTION "バージョン情報"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     ICON            IDI_APP,IDC_STATIC,7,7,20,20
-    LTEXT           "LhaForge2, 2.0.2 alpha2",IDC_STATIC,31,7,146,8
+    LTEXT           "LhaForge2, 2.0.3 alpha3",IDC_STATIC,31,7,146,8
     LTEXT           "Copyright (C) 2005- Claybird. All Rights Reserved.",IDC_STATIC,33,27,163,8
     LTEXT           "Official site:<a>https://claybird.sakura.ne.jp/</a>",IDC_URL,15,42,192,8
     LTEXT           "github:<a>https://github.com/Claybird/</a>",IDC_GITHUB,15,51,185,8
@@ -729,7 +729,8 @@ BEGIN
             MENUITEM "Mo&dified date",              ID_MENUITEM_COPY_FILETIME
             MENUITEM "&Method",                     ID_MENUITEM_COPY_METHOD
             MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "&Compression ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "Compression &ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "&Attributes",                 ID_MENUITEM_COPY_ATTRIBUTE
             MENUITEM SEPARATOR
             MENUITEM "&Everything",                 ID_MENUITEM_COPY_ALL
         END
@@ -799,7 +800,8 @@ BEGIN
             MENUITEM "Mo&dified date",              ID_MENUITEM_COPY_FILETIME
             MENUITEM "&Method",                     ID_MENUITEM_COPY_METHOD
             MENUITEM "&Compressed size",            ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "&Compression ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "Compression &ratio",          ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "&Attributes",                 ID_MENUITEM_COPY_ATTRIBUTE
             MENUITEM SEPARATOR
             MENUITEM "&Everything",                 ID_MENUITEM_COPY_ALL
         END
@@ -1924,7 +1926,8 @@ BEGIN
             MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
             MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
             MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "圧縮率(&R)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "属性(&A)",                      ID_MENUITEM_COPY_ATTRIBUTE
             MENUITEM SEPARATOR
             MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
         END
@@ -2006,7 +2009,8 @@ BEGIN
             MENUITEM "更新日時(&D)",                    ID_MENUITEM_COPY_FILETIME
             MENUITEM "メソッド(&M)",                    ID_MENUITEM_COPY_METHOD
             MENUITEM "圧縮後サイズ(&C)",                  ID_MENUITEM_COPY_COMPRESSED_SIZE
-            MENUITEM "圧縮率(&I)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "圧縮率(&R)",                     ID_MENUITEM_COPY_COMPRESSION_RATIO
+            MENUITEM "属性(&A)",                      ID_MENUITEM_COPY_ATTRIBUTE
             MENUITEM SEPARATOR
             MENUITEM "全て(&E)",                      ID_MENUITEM_COPY_ALL
         END
@@ -2199,8 +2203,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,1,2
- PRODUCTVERSION 2,0,1,2
+ FILEVERSION 2,0,1,3
+ PRODUCTVERSION 2,0,1,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2218,12 +2222,12 @@ BEGIN
             VALUE "Comments", "LhaForge2, a file archiver application"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "LhaForge2"
-            VALUE "FileVersion", "2.0.1.2"
+            VALUE "FileVersion", "2.0.1.3"
             VALUE "InternalName", "LhaForge"
             VALUE "LegalCopyright", "Copyright (C) 2005- Claybird <https://github.com/Claybird/lhaforge>"
             VALUE "OriginalFilename", "LhaForge.exe"
             VALUE "ProductName", "LhaForge2"
-            VALUE "ProductVersion", "2.0.1.2"
+            VALUE "ProductVersion", "2.0.1.3"
         END
     END
     BLOCK "VarFileInfo"
