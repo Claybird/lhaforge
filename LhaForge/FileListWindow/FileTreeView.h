@@ -72,7 +72,6 @@ protected:
 	//---internal functions
 	LRESULT OnCreate(LPCREATESTRUCT lpcs) {
 		LRESULT lRes = DefWindowProc();
-		SetFont(AtlGetDefaultGuiFont());
 
 		mr_Model.addEventListener(m_hWnd);
 
