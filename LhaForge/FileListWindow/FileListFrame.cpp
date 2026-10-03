@@ -193,6 +193,12 @@ LRESULT CFileListFrame::OnCreate(LPCREATESTRUCT lpcs)
 	MenuCommand_MakeSendToMenu(GetAdditionalMenuHandle(MENUTYPE::SendTo));
 	DrawMenuBar();
 
+	//update window state
+	{
+		BOOL tmp = {};
+		OnFileListUpdated(0, 0, 0, tmp);
+	}
+
 	// activate window
 	SetForegroundWindow(m_hWnd);
 	UpdateLayout();
@@ -532,8 +538,8 @@ void CFileListFrame::UpdateUpDirButtonState()
 
 void CFileListFrame::UpdateMenuState()
 {
-	bool bActive=m_TabClientWnd->GetActivePage()!=-1;
-	bool bTabActive=m_TabClientWnd->IsTabEnabled();
+	bool bActive = (m_TabClientWnd->GetActivePage() != -1);
+	bool bTabActive = m_TabClientWnd->IsTabEnabled();
 
 	const int subjects[] = {
 		ID_MENUITEM_CLOSETAB,
@@ -565,6 +571,16 @@ void CFileListFrame::UpdateMenuState()
 		ID_MENUITEM_SORT_COMPRESSEDSIZE,
 		ID_MENUITEM_SORT_METHOD,
 		ID_MENUITEM_SORT_RATIO,
+		ID_MENUITEM_COPY_FILENAME,
+		ID_MENUITEM_COPY_PATH,
+		ID_MENUITEM_COPY_ORIGINAL_SIZE,
+		ID_MENUITEM_COPY_FILETYPE,
+		ID_MENUITEM_COPY_FILETIME,
+		ID_MENUITEM_COPY_METHOD,
+		ID_MENUITEM_COPY_COMPRESSED_SIZE,
+		ID_MENUITEM_COPY_COMPRESSION_RATIO,
+		ID_MENUITEM_COPY_ATTRIBUTE,
+		ID_MENUITEM_COPY_ALL,
 	};
 
 	for (auto id : subjects) {

@@ -42,10 +42,12 @@ CFileListTabClient::CFileListTabClient(
 
 BOOL CFileListTabClient::PreTranslateMessage(MSG* pMsg)
 {
+	if (!pMsg) return CTabView::PreTranslateMessage(pMsg);
+
 	CFileListTabItem* pItem = GetCurrentTab();
-	if(pItem){
-		if(pItem->ListView.PreTranslateMessage(pMsg))return TRUE;
-		if(pItem->TreeView.PreTranslateMessage(pMsg))return TRUE;
+	if (pItem) {
+		if (pItem->ListView.PreTranslateMessage(pMsg)) return TRUE;
+		if (pItem->TreeView.PreTranslateMessage(pMsg)) return TRUE;
 	}
 	return CTabView::PreTranslateMessage(pMsg);
 }
@@ -311,7 +313,7 @@ LRESULT CFileListTabClient::OnContextMenu(LPNMHDR pnmh)
 		break;
 	default:
 		//processed by owner window
-		SendMessage(WM_COMMAND,MAKEWPARAM(nCmd,0),NULL);
+		::SendMessage(m_rFrameWnd, WM_COMMAND,MAKEWPARAM(nCmd,0),NULL);
 		break;
 	}
 
