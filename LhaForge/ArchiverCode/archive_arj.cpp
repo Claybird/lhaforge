@@ -9,7 +9,9 @@
 
 static BYTE fget_byte(FILE* f)
 {
-	return getc(f);//    error(M_CANTREAD, "");
+	auto c = getc(f);//    error(M_CANTREAD, "");
+	if (c == -1)RAISE_EXCEPTION(L"Unexpected EOF");
+	return c;
 }
 
 static WORD fget_word(FILE* f)
@@ -90,7 +92,7 @@ std::pair<bool, CLFArchiveARJ::Header> CLFArchiveARJ::Header::read_header(FILE* 
 	h.h_Attrib = (ph[1] << 8) + ph[0];	ph += 2;;
 	h.h_HostData = (ph[1] << 8) + ph[0];	ph += 2;;
 
-	strncpy_s(h.h_Filename, (char*)&header[h.h_1stSize], ARJ_FNAME_MAX);
+	strncpy_s(h.h_Filename, (const char*)&header[h.h_1stSize], ARJ_FNAME_MAX);
 	if (h.h_OS != 0 && h.h_OS < 10) { //if file was not created on MSDOS nor WIN95
 		//limit to ASCII
 		char* pp = h.h_Filename;
@@ -299,7 +301,7 @@ LF_ENTRY_STAT* CLFArchiveARJ::read_entry_begin()
 	try {
 		Header::read_header(_fp);
 		_nextEntryPos = _ftelli64(_fp);
-	} catch (const LF_EXCEPTION e) {
+	} catch (const LF_EXCEPTION &e) {
 		throw e;
 	}
 
@@ -325,7 +327,7 @@ LF_ENTRY_STAT* CLFArchiveARJ::read_entry_next()
 		auto [isOK, hdr] = Header::read_header(_fp);
 		if (!isOK)return nullptr;	//EOF
 		*_header = hdr;
-	} catch (const LF_EXCEPTION e) {
+	} catch (const LF_EXCEPTION &e) {
 		throw e;
 	}
 	if (_header->validate_flags()) {
