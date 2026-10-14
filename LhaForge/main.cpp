@@ -262,7 +262,7 @@ void procMain()
 		DoExtract(config, cli);
 		break;
 	case PROCESS_MODE::AUTOMATIC:
-		if (std::filesystem::is_directory(cli.FileList.front())) {
+		if (!cli.FileList.empty() && std::filesystem::is_directory(cli.FileList.front())) {
 			DoCompress(config, cli);
 		} else {
 			CConfigExtract ConfExtract;
