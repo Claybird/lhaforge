@@ -261,7 +261,7 @@ std::vector<int> UtilStringToIntArray(const std::wstring& str)
 
 std::wstring UtilFormatSize(UINT64 size)
 {
-	if (-1 == size) {
+	if (-1 == (signed)size) {
 		return L"---";
 	}
 	const std::vector<std::pair<UINT64, std::wstring> > units = {
@@ -289,7 +289,7 @@ std::wstring UtilFormatSize(UINT64 size)
 //compatible with CLFBytesEdit
 std::wstring UtilFormatSizeStrict(UINT64 size)
 {
-	if (-1 == size) {
+	if (-1 == (signed)size) {
 		return L"---";
 	}
 	const std::vector<std::pair<UINT64, std::wstring> > units = {
