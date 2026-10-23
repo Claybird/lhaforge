@@ -77,6 +77,7 @@ public:
 	}
 };
 bool UtilDoMessageLoop();
+bool UtilHasPendingMessage();
 
 template <typename mapclass,typename keyclass>
 bool has_key(const mapclass &theMap,keyclass theKey){

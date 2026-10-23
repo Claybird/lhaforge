@@ -167,6 +167,12 @@ bool UtilDoMessageLoop()
 	}
 }
 
+bool UtilHasPendingMessage()
+{
+	constexpr UINT mask = QS_INPUT | QS_POSTMESSAGE | QS_PAINT | QS_HOTKEY | QS_SENDMESSAGE;
+	return 0 != HIWORD(::GetQueueStatus(mask));
+}
+
 FILETIME UtilUnixTimeToFileTime(__time64_t t)
 {
 	LONGLONG ll = Int32x32To64(t, 10000000) + 116444736000000000;
