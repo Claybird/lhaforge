@@ -45,6 +45,7 @@ size_t CLFArchiveARJ::Header::find_header(const unsigned char* hdr, unsigned lon
 		if (hdr[i + 1] != HEADER_ID_HI)continue;
 		// Header_size
 		int hsiz = (hdr[i + 2] + (hdr[i + 3] << 8));
+		if (hsiz < 0)return -1;	//error
 		if (hsiz > HEADERSIZE_MAX)continue;
 		// Crc
 		CRC crc;
@@ -92,7 +93,9 @@ std::pair<bool, CLFArchiveARJ::Header> CLFArchiveARJ::Header::read_header(FILE* 
 	h.h_Attrib = (ph[1] << 8) + ph[0];	ph += 2;;
 	h.h_HostData = (ph[1] << 8) + ph[0];	ph += 2;;
 
-	strncpy_s(h.h_Filename, (const char*)&header[h.h_1stSize], ARJ_FNAME_MAX);
+	if (h.h_1stSize > HEADERSIZE_MAX)RAISE_EXCEPTION(L"Invalid header: header size");
+
+	strncpy_s(h.h_Filename, ARJ_FNAME_MAX, (const char*)&header[h.h_1stSize], ARJ_FNAME_MAX);
 	if (h.h_OS != 0 && h.h_OS < 10) { //if file was not created on MSDOS nor WIN95
 		//limit to ASCII
 		char* pp = h.h_Filename;
