@@ -157,20 +157,21 @@ bool UtilPathMatchSpec(const std::filesystem::path& path, const std::wstring& pa
 	return std::regex_search(toLower(path), re);
 }
 
+bool UtilHasPendingMessage()
+{
+	constexpr UINT mask = QS_INPUT | QS_POSTMESSAGE | QS_PAINT | QS_HOTKEY | QS_SENDMESSAGE;
+	return 0 != HIWORD(::GetQueueStatus(mask));
+}
+
+
 bool UtilDoMessageLoop()
 {
-	if (_Module.m_pMsgLoopMap) {
+	if (UtilHasPendingMessage() && _Module.m_pMsgLoopMap) {
 		CCustomMessageLoop* pLoop = (CCustomMessageLoop*)_Module.GetMessageLoop();
 		return FALSE != pLoop->OneRun();
 	} else {
 		return false;
 	}
-}
-
-bool UtilHasPendingMessage()
-{
-	constexpr UINT mask = QS_INPUT | QS_POSTMESSAGE | QS_PAINT | QS_HOTKEY | QS_SENDMESSAGE;
-	return 0 != HIWORD(::GetQueueStatus(mask));
 }
 
 FILETIME UtilUnixTimeToFileTime(__time64_t t)

@@ -387,9 +387,7 @@ void CLFProgressHandlerGUI::onNextEntry(const std::filesystem::path& entry_path,
 			entry_path.lexically_normal(),
 			entry_size);
 		dlg->SetEntryProgress(0);
-		if (UtilHasPendingMessage()) {
-			while (UtilDoMessageLoop())continue;
-		}
+		while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}
@@ -407,10 +405,8 @@ void CLFProgressHandlerGUI::onEntryIO(int64_t current_size)
 		if (timeGetTime() - interval > lastTime) {
 			dlg->SetEntryProgress(current_size);
 			lastTime = timeGetTime();
-			while (UtilDoMessageLoop())continue;
-		} else if (UtilHasPendingMessage()) {
-			while (UtilDoMessageLoop())continue;
 		}
+		while (UtilDoMessageLoop())continue;
 		if (dlg->isAborted()) {
 			CANCEL_EXCEPTION();
 		}
