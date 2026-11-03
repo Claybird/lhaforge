@@ -36,15 +36,20 @@ static size_t find_header(const unsigned char* dat, size_t siz)
 	for (size_t i = 0; i < limit; i++) {
 		if (dat[i + 4] != 'G' && dat[i + 4] != 'B') continue;
 		if (dat[i + 5] != 'Z') continue;
-		if (dat[i + 6] != 'I' && dat[i + 6] != '2') continue;
-		if (dat[i + 7] != 'P' && dat[i + 7] != '\0') continue;
+		if (dat[i + 4] == 'G') {
+			if (dat[i + 6] != 'I') continue;
+			if (dat[i + 7] != 'P')continue;
+		} else {
+			if (dat[i + 6] != '2') continue;
+			if (dat[i + 7] != '\0') continue;
+		}
 
 		DWORD checksum = (dat[i + 0]) + (dat[i + 1] << 8) + (dat[i + 2] << 16) + (dat[i + 3] << 24);
 		size_t fnlen = (dat[i + 24]) + (dat[i + 25] << 8) + (dat[i + 26]) + (dat[i + 27] << 8);
 
 		if (i + 28 + fnlen > siz)continue;
 
-		int sum = 0;
+		DWORD sum = 0;
 		for (size_t j = i + 4; j != i + 28 + fnlen; j++) {
 			sum += (char)dat[j];
 		}
@@ -72,23 +77,29 @@ struct CLFArchiveBGA::DecoderGZ :public CLFArchiveBGA::Decoder
 {
 	std::array<unsigned char, 1024 * 1024> outbuf;
 	int fd;
-	gzFile gz;
+	gzFile gz = nullptr;
 
 	const int64_t total_size;
 	int64_t offset;
 	DecoderGZ(const std::shared_ptr<BgaHeader> header, FILE* fp) :total_size(header->original_size), offset(0) {
 		fd = _dup(_fileno(fp));
-		_lseek(fd, ftell(fp), SEEK_SET);
-		fseek(fp, header->compressed_size, SEEK_CUR);
 
-		gzFile gz = gzdopen(fd, "rb");
+		if (-1 == _lseek(fd, ftell(fp), SEEK_SET) ||
+			0 != fseek(fp, header->compressed_size, SEEK_CUR)) {
+			RAISE_EXCEPTION(L"Failed to seek entry");
+		}
+
+		gz = gzdopen(fd, "rb");
 		if (!gz) {
 			_close(fd);
 			RAISE_EXCEPTION(L"Failed to init zlib decoder");
 		}
 	}
 	virtual ~DecoderGZ() {
-		gzclose(gz);
+		if (gz) {
+			gzclose(gz);
+			gz = nullptr;
+		}
 	}
 	void decode(std::function<void(const void*, size_t/*data size*/)> data_receiver)override {
 		if (total_size <= offset) {
@@ -115,20 +126,23 @@ struct CLFArchiveBGA::DecoderBZ2 :public CLFArchiveBGA::Decoder
 {
 	std::array<char, 4 * 1024 * 1024> outbuf;
 
-	BZFILE* bz;
+	BZFILE* bz = nullptr;
 	const int64_t total_size;
 	int64_t offset;
 	DecoderBZ2(const std::shared_ptr<BgaHeader> header, FILE* fp) :total_size(header->original_size), offset(0) {
 		fseek(fp, header->compressed_size, SEEK_CUR);
 		int status;
-		BZFILE* bz = BZ2_bzReadOpen(&status, fp, 0, 0, NULL, 0);
+		bz = BZ2_bzReadOpen(&status, fp, 0, 0, NULL, 0);
 		if (status != BZ_OK || bz == NULL) {
 			RAISE_EXCEPTION(L"Failed to init bzip2 decoder");
 		}
 	}
 	virtual ~DecoderBZ2() {
-		int status;
-		BZ2_bzReadClose(&status, bz);
+		if (bz) {
+			int status;
+			BZ2_bzReadClose(&status, bz);
+			bz = nullptr;
+		}
 	}
 	void decode(std::function<void(const void*, size_t/*data size*/)> data_receiver)override {
 		if (total_size <= offset) {
@@ -214,7 +228,9 @@ LF_ENTRY_STAT* CLFArchiveBGA::read_entry_begin()
 	if (!_fp.is_opened()) {
 		RAISE_EXCEPTION(L"File is not opened");
 	}
-	_fseeki64(_fp, 0, SEEK_SET);
+	if (0 != _fseeki64(_fp, 0, SEEK_SET)) {
+		RAISE_EXCEPTION(L"Failed to seek entry");
+	}
 
 	std::vector<BYTE> cReadBuffer;
 	cReadBuffer.resize(HEADER_STUB_LIMIT);
@@ -352,7 +368,10 @@ bool CLFArchiveBGA::readHeader()
 	_header->file_name_len = (buf[26]) + (buf[27] << 8);
 
 	// truncate filename that exceeds MAX_PATH
+	if (_header->dir_name_len < 0)return false;
+	if (_header->file_name_len < 0)return false;
 	DWORD fnlen = _header->dir_name_len + _header->file_name_len;
+	if (fnlen > sizeof(BgaHeader) - 28)return false;
 	if (fnlen != (unsigned)fread(buf + 28, 1, fnlen, _fp)) {
 		return false;
 	}
