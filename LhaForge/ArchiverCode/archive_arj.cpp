@@ -424,3 +424,8 @@ bool CLFArchiveARJ::is_known_format(const std::filesystem::path& arcname)
 	}
 }
 
+std::wstring CLFArchiveARJ::about_backends()
+{
+	return L"BZA/GZA backend: based on XacRett #51\n";
+}
+

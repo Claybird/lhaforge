@@ -922,3 +922,8 @@ std::pair<int, int> CLFArchiveZIP::test_sub_get_encryption()const
 	return { info->aes_version,info->aes_strength };
 }
 #endif
+
+std::wstring CLFArchiveZIP::about_backends()
+{
+	return Format(L"ZIP backend: minizip-ng %s\n", UtilUTF8toUNICODE(MZ_VERSION));
+}

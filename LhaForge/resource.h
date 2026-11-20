@@ -378,6 +378,7 @@
 #define IDC_BUTTON_PAUSE                1324
 #define IDC_STATIC_HASH                 1327
 #define IDC_SHELLEXT_STYLE_DEFAULT      1328
+#define IDC_STATIC_BACKENDS             1328
 #define IDC_SHELLEXT_STYLE_UNIFIED      1329
 #define IDC_SHELLEXT_STYLE_CONVENTIONAL 1330
 #define IDI_APP                         2000

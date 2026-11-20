@@ -54,6 +54,8 @@ public:
 		link_mailto.SetHyperLink(L"https://github.com/Claybird/");
 
 		::SetWindowTextA(GetDlgItem(IDC_STATIC_HASH), g_commit_hash);
+
+		::SetWindowTextW(GetDlgItem(IDC_STATIC_BACKENDS), CLFArchive::about_backends().c_str());
 		return TRUE;
 	}
 	LRESULT OnApply(){return TRUE;}

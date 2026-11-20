@@ -359,6 +359,7 @@ public:
 
 	//---
 	static bool is_known_format(const std::filesystem::path& path);
+	static std::wstring about_backends();
 };
 #undef _LFA_SAFE_CALL
 #undef _LFA_SAFE_CALL_VOID
@@ -403,3 +404,4 @@ public:
 	void add_file_entry(const LF_ENTRY_STAT& entry, std::function<LF_BUFFER_INFO()> dataProvider)override {}
 	void add_directory_entry(const LF_ENTRY_STAT& entry)override {}
 };
+
