@@ -42,14 +42,20 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::pat
 	RAISE_EXCEPTION(UtilLoadString(IDS_ERROR_UNKNOWN_FORMAT));
 }
 
-std::wstring CLFArchive::about_backends()
+std::vector<std::wstring> CLFArchive::about_backends()
 {
-	std::wstring info;
-	info += CLFArchiveZIP::about_backends();
-	info += CLFArchiveBGA::about_backends();
-	info += CLFArchiveARJ::about_backends();
-	info += CLFArchiveRAR::about_backends();
-	info += CLFArchiveLA::about_backends();
+	std::vector<std::wstring> info;
+
+	const auto append = [&info](const std::vector<std::wstring>& items) {
+		info.insert(info.end(), items.begin(), items.end());
+	};
+
+	append(CLFArchiveZIP::about_backends());
+	append(CLFArchiveBGA::about_backends());
+	append(CLFArchiveARJ::about_backends());
+	append(CLFArchiveRAR::about_backends());
+	append(CLFArchiveLA::about_backends());
+
 	return info;
 }
 

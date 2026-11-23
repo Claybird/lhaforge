@@ -71,5 +71,5 @@ public:
 	}
 
 	static bool is_known_format(const std::filesystem::path& arcname);
-	static std::wstring about_backends();
+	static std::vector<std::wstring> about_backends();
 };

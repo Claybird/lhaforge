@@ -359,7 +359,7 @@ public:
 
 	//---
 	static bool is_known_format(const std::filesystem::path& path);
-	static std::wstring about_backends();
+	static std::vector<std::wstring> about_backends();
 };
 #undef _LFA_SAFE_CALL
 #undef _LFA_SAFE_CALL_VOID

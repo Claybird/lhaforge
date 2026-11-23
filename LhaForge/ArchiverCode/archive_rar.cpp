@@ -311,10 +311,10 @@ bool CLFArchiveRAR::is_known_format(const std::filesystem::path& arcname)
 	}
 }
 
-std::wstring CLFArchiveRAR::about_backends()
+std::vector<std::wstring> CLFArchiveRAR::about_backends()
 {
-	return Format(L"RAR backend: %d.%d.%d, %d/%d/%d\n",
+	return { Format(L"RAR backend: %d.%d.%d, %d/%d/%d",
 		RARVER_MAJOR, RARVER_MINOR, RARVER_BETA,
-		RARVER_YEAR, RARVER_MONTH, RARVER_DAY);
+		RARVER_YEAR, RARVER_MONTH, RARVER_DAY) };
 }
 

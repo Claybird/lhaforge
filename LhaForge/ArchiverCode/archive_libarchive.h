@@ -67,5 +67,5 @@ public:
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 
 	static bool is_known_format(const std::filesystem::path &arcname);
-	static std::wstring about_backends();
+	static std::vector<std::wstring> about_backends();
 };

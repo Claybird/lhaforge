@@ -341,14 +341,14 @@ bool CLFArchiveBGA::is_known_format(const std::filesystem::path& arcname)
 	}
 }
 
-std::wstring CLFArchiveBGA::about_backends()
+std::vector<std::wstring> CLFArchiveBGA::about_backends()
 {
-	return Format(L"BZA/GZA backend: based on XacRett #51, "
+	return { Format(L"BZA/GZA backend: based on XacRett #51, "
 		"zlib %s, "
-		"bzip2 %s\n",
+		"bzip2 %s",
 		UtilUTF8toUNICODE(ZLIB_VERSION),
 		UtilUTF8toUNICODE(BZ2_bzlibVersion())
-	);
+	) };
 }
 
 bool CLFArchiveBGA::readHeader()

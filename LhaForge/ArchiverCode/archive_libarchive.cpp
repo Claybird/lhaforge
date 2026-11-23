@@ -449,10 +449,10 @@ bool CLFArchiveLA::is_known_format(const std::filesystem::path &arcname)
 	return LA_FILE_TO_READ::check_format(arcname) != LF_ARCHIVE_FORMAT::INVALID;
 }
 
-std::wstring CLFArchiveLA::about_backends()
+std::vector<std::wstring> CLFArchiveLA::about_backends()
 {
-	return UtilUTF8toUNICODE(
-		std::string("Libarchive backend: ") + archive_version_details() + std::string("\n") + 
-		std::string("win-iconv 2016-01-12\n")
-	);
+	return {
+		UtilUTF8toUNICODE(std::string("Libarchive backend: ") + archive_version_details()),
+		L"win-iconv/2016-01-12",
+	};
 }

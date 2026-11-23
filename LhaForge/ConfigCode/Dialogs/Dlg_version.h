@@ -55,7 +55,8 @@ public:
 
 		::SetWindowTextA(GetDlgItem(IDC_STATIC_HASH), g_commit_hash);
 
-		::SetWindowTextW(GetDlgItem(IDC_STATIC_BACKENDS), CLFArchive::about_backends().c_str());
+		std::wstring about_backends = join(L"\n", CLFArchive::about_backends());
+		::SetWindowTextW(GetDlgItem(IDC_STATIC_BACKENDS), about_backends.c_str());
 		return TRUE;
 	}
 	LRESULT OnApply(){return TRUE;}

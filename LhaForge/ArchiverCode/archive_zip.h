@@ -53,7 +53,7 @@ public:
 	void add_file_entry(const LF_ENTRY_STAT&, std::function<LF_BUFFER_INFO()> dataProvider)override;
 	void add_directory_entry(const LF_ENTRY_STAT&)override;
 	static bool is_known_format(const std::filesystem::path& arcname);
-	static std::wstring about_backends();
+	static std::vector<std::wstring> about_backends();
 
 	bool contains_encryted_entry();
 

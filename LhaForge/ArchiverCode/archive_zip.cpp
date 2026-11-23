@@ -923,7 +923,7 @@ std::pair<int, int> CLFArchiveZIP::test_sub_get_encryption()const
 }
 #endif
 
-std::wstring CLFArchiveZIP::about_backends()
+std::vector<std::wstring> CLFArchiveZIP::about_backends()
 {
-	return Format(L"ZIP backend: minizip-ng %s\n", UtilUTF8toUNICODE(MZ_VERSION));
+	return { Format(L"ZIP backend: minizip-ng %s", UtilUTF8toUNICODE(MZ_VERSION)) };
 }
