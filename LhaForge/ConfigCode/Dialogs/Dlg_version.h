@@ -26,8 +26,12 @@
 #include "Dlg_Base.h"
 #include "resource.h"
 
-const char g_commit_hash[] = 
-#include "commit-hash"
+const char g_commit_hash[] =
+#if __has_include("commit-hash")
+ #include "commit-hash"
+#else
+ "unknown"
+#endif
 ;
 
 class CConfigDlgVersion : public LFConfigDialogBase<CConfigDlgVersion>
