@@ -33,7 +33,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 321
         TOPMARGIN, 7
-        BOTTOMMARGIN, 144
+        BOTTOMMARGIN, 171
     END
 
     IDD_DIALOG_CONFIG, DIALOG
@@ -196,7 +196,7 @@ END
 // Dialog
 //
 
-IDD_PROPPAGE_VERSION DIALOGEX 0, 0, 328, 151
+IDD_PROPPAGE_VERSION DIALOGEX 0, 0, 328, 178
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_CAPTION
 CAPTION "バージョン情報"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
@@ -207,7 +207,7 @@ BEGIN
     LTEXT           "Official site:<a>https://claybird.sakura.ne.jp/</a>",IDC_URL,15,42,192,8
     LTEXT           "github:<a>https://github.com/Claybird/</a>",IDC_GITHUB,15,51,185,8
     LTEXT           "<commit hash here>",IDC_STATIC_HASH,31,16,146,8
-    LTEXT           "<Backends here>",IDC_STATIC_BACKENDS,7,66,314,77,WS_BORDER
+    LTEXT           "<Backends here>",IDC_STATIC_BACKENDS,7,66,314,105,WS_BORDER
 END
 
 IDD_DIALOG_CONFIG DIALOGEX 0, 0, 473, 315

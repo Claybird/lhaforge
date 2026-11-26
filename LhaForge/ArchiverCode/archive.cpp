@@ -45,6 +45,8 @@ std::unique_ptr<ILFArchiveFile> guessSuitableArchiver(const std::filesystem::pat
 std::vector<std::wstring> CLFArchive::about_backends()
 {
 	std::vector<std::wstring> info;
+	info.push_back(L"SimpleIni, https://github.com/brofield/simpleini");
+	info.push_back(Format(L"WTL Windows Template Library %X.%02X",(_WTL_VER >> 8) & 0xFF, _WTL_VER & 0xFF));
 
 	const auto append = [&info](const std::vector<std::wstring>& items) {
 		info.insert(info.end(), items.begin(), items.end());
